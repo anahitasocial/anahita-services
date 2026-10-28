@@ -8,6 +8,7 @@ import (
 	"anahita-libs/responses"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
@@ -115,7 +116,7 @@ func (h *inboundHandler) Add(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	if ok, err := h.Perms.Taggables.CanAdd(viewer, source); !ok {
+	if ok, err := h.Perms.Taggables.CanAdd(viewer, source); !ok && !h.administers(viewer, source) {
 		log.Println(err)
 		return c.NoContent(http.StatusForbidden)
 	}
@@ -191,7 +192,7 @@ func (h *inboundHandler) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	if ok, err := h.Perms.Taggables.CanDelete(viewer, source); !ok {
+	if ok, err := h.Perms.Taggables.CanDelete(viewer, source); !ok && !h.administers(viewer, source) {
 		log.Println(err)
 		return c.NoContent(http.StatusForbidden)
 	}
@@ -218,4 +219,27 @@ func (h *inboundHandler) Delete(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusOK)
+}
+
+// administers says whether the viewer is one of the administrators of a
+// profile that is not a person: a group, a website or an event, whose
+// locations its administrators look after as its owner would. Only the
+// one who made it is its author; the others are known by the graph.
+func (h *inboundHandler) administers(viewer *entities.Viewer, source *entities.AnahitaNode) bool {
+	if viewer == nil || viewer.ID <= 0 || source == nil ||
+		!strings.HasPrefix(source.Type, an_constants.NodeActorPrefixEntityType) ||
+		strings.Contains(source.Type, ".person-service.person.") {
+		return false
+	}
+
+	edge := entities.NewAnahitaEdge()
+	edge.Type = an_constants.EdgeActorAdminEntityType
+	edge.NodeAID = viewer.ID
+	edge.NodeBID = source.ID
+	found, err := h.Srv.GraphEdgeGRPC.CheckEdgeExists(edge)
+	if err != nil {
+		log.Println("is the viewer an administrator of", source.ID, err)
+		return false
+	}
+	return found
 }

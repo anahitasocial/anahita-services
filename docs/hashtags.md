@@ -88,9 +88,23 @@ name and a point, and who may add one is the installation's choice:
 location-service enforces it, and auth-service publishes it in NodeInfo as
 `locationsFrom`, from which the web app offers Add only to those it lets
 add one; give both services the same value. Editing and deleting a location
-stay with administrators whatever it says. Anybody signed in may tie a post
-of theirs to a location that exists. See
+stay with administrators whatever it says. See
 [Configuration](configuration.md#registration).
+
+Tying a location that exists to a post or a profile is not making one, and
+is for those whose post or profile it is:
+
+| Who | May tie a location to, and take it away from |
+| --- | --- |
+| Anybody signed in | A post they wrote, or one on their profile; their own profile |
+| Whoever looks after a group, a website or an event | That profile |
+| Administrators and super administrators | Any |
+
+The rule is `anahita-libs/permissions/taggable.go` (`TaggablePermissions`),
+with the administrators of a profile found in the graph by
+location-service (`cmd/api/handlers/inbound.go`, `administers`). A person's
+profile records neither an author nor an owner, so the profile itself is
+asked for, by its id.
 
 ## Trending
 

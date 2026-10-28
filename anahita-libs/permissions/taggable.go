@@ -45,7 +45,7 @@ func (t *TaggablePermissions) CanEdit(viewer *entities.Viewer, taggable Taggable
 	return false, errors.New(ErrTaggableEditNotAllowed)
 }
 
-// CanAdd - author, owner, or admin can tag content
+// CanAdd - author, owner, the profile itself, or admin can tag content
 func (t *TaggablePermissions) CanAdd(viewer *entities.Viewer, taggable TaggableInterface) (bool, error) {
 	if !viewer.HasScope(constants.OAuthScopeMediaWrite) {
 		return false, errors.New(ErrTaggableInsufficientScope)
@@ -55,18 +55,24 @@ func (t *TaggablePermissions) CanAdd(viewer *entities.Viewer, taggable TaggableI
 		return true, nil
 	}
 
-	if viewer.ID == taggable.GetAuthorID() {
+	// One's own profile: a person is their profile, and a profile has
+	// neither an author nor an owner but itself.
+	if viewer.ID > 0 && viewer.ID == taggable.GetID() {
 		return true, nil
 	}
 
-	if viewer.ID == taggable.GetOwnerID() {
+	if viewer.ID > 0 && viewer.ID == taggable.GetAuthorID() {
+		return true, nil
+	}
+
+	if viewer.ID > 0 && viewer.ID == taggable.GetOwnerID() {
 		return true, nil
 	}
 
 	return false, errors.New(ErrTaggableAddNotAllowed)
 }
 
-// CanDelete - author, owner, or admin can remove tags
+// CanDelete - author, owner, the profile itself, or admin can remove tags
 func (t *TaggablePermissions) CanDelete(viewer *entities.Viewer, taggable TaggableInterface) (bool, error) {
 	if !viewer.HasScope(constants.OAuthScopeMediaWrite) {
 		return false, errors.New(ErrTaggableInsufficientScope)
@@ -76,11 +82,17 @@ func (t *TaggablePermissions) CanDelete(viewer *entities.Viewer, taggable Taggab
 		return true, nil
 	}
 
-	if viewer.ID == taggable.GetAuthorID() {
+	// One's own profile: a person is their profile, and a profile has
+	// neither an author nor an owner but itself.
+	if viewer.ID > 0 && viewer.ID == taggable.GetID() {
 		return true, nil
 	}
 
-	if viewer.ID == taggable.GetOwnerID() {
+	if viewer.ID > 0 && viewer.ID == taggable.GetAuthorID() {
+		return true, nil
+	}
+
+	if viewer.ID > 0 && viewer.ID == taggable.GetOwnerID() {
 		return true, nil
 	}
 
