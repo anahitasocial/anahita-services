@@ -37223,6 +37223,84 @@
         "x-viewer": "signed_in"
       }
     },
+    "/websites/{id}/featured": {
+      "patch": {
+        "description": "What onboarding offers new members to follow. Super administrators only.\n\nWho may call it: somebody signed in.",
+        "operationId": "patchWebsitesByIdFeatured",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "featured": {
+                    "description": "Whether onboarding offers it to follow.",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "featured"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "done"
+          },
+          "204": {
+            "description": "it was so already"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not"
+          },
+          "404": {
+            "description": "there is no such profile"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`not_featurable`: it is disabled, archived or deleted"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Feature a profile, or stop",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).SetFeatured",
+        "x-viewer": "signed_in"
+      }
+    },
     "/websites/{id}/purge": {
       "delete": {
         "description": "Everything of it, at once and with no thirty days. Super administrators only, never on their own profile. Queued, and done by the sweeper.\n\nWho may call it: a super administrator, who has just proved who they are again.",

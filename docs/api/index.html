@@ -58,7 +58,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <p class="group">People</p>
 <ul>
 <li><a href="#auth-service">Accounts and signing in</a> <span class="count">97</span></li>
-<li><a href="#actor-service">Profiles</a> <span class="count">81</span></li>
+<li><a href="#actor-service">Profiles</a> <span class="count">82</span></li>
 <li><a href="#socialgraph-service">Following and blocking</a> <span class="count">18</span></li>
 <li><a href="#identity-image-service">Avatars and covers</a> <span class="count">6</span></li>
 <li><a href="#notification-service">Notifications</a> <span class="count">9</span></li>
@@ -4444,6 +4444,40 @@ who may call it: somebody signed in.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).SetEnabled</code></p>
+</details>
+<details class="route" id="patchWebsitesByIdFeatured" data-search="patch /websites/{id}/featured feature a profile, or stop what onboarding offers new members to follow. super administrators only.
+
+who may call it: somebody signed in.">
+<summary><span class="method patch">PATCH</span> <code class="path">/websites/{id}/featured</code> <span class="summary">Feature a profile, or stop</span></summary>
+<div class="description"><p>What onboarding offers new members to follow. Super administrators only.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>featured</code> <span class="required">always</span></td><td>boolean</td><td>Whether onboarding offers it to follow.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>done</td></tr>
+<tr><td class="status s2">204</td><td>it was so already</td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not</td></tr>
+<tr><td class="status s4">404</td><td>there is no such profile</td></tr>
+<tr><td class="status s4">409</td><td><code>not_featurable</code>: it is disabled, archived or deleted<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).SetFeatured</code></p>
 </details>
 <details class="route" id="deleteWebsitesByIdPurge" data-search="delete /websites/{id}/purge destroy a website for good everything of it, at once and with no thirty days. super administrators only, never on their own profile. queued, and done by the sweeper.
 

@@ -487,6 +487,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	websites.GET("/:id/deletion-counts", r.handler.Website.DeletionCounts, r.authorize).With(counts("Website", handlers.GroupDeletionCounts{}))
 	websites.DELETE("/:id/purge", r.handler.Website.Purge, r.authorize).With(purge("Website"))
 	websites.PATCH("/:id/enabled", r.handler.Website.SetEnabled, r.authorize).With(enabled)
+	websites.PATCH("/:id/featured", r.handler.Website.SetFeatured, r.authorize).With(featured)
 	websites.POST("/:id/restore", r.handler.Website.Restore, r.authorize).With(restore("Website"))
 	websites.PATCH("/:id/download-default", r.handler.Website.EditDownloadDefault, r.authorize).With(downloads(libs_responses.ActorNode{}))
 
