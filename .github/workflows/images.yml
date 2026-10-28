@@ -83,6 +83,9 @@ jobs:
         run: |
           set -eu
           arch=${{ matrix.arch }}
+          # Every tag, whatever the checkout brought: a missing one would make
+          # every image look new (v1.0.1 rebuilt all thirty for that).
+          git fetch --tags --force --quiet origin
           previous=$(git describe --tags --abbrev=0 --match 'v*' "$VERSION^" 2>/dev/null || true)
           echo "Previous Birth release: ${previous:-none}"
           built="" kept=""
@@ -99,12 +102,16 @@ jobs:
             # index of them (with a provenance record) by platform.
             before=""
             if [ -n "$previous" ] && [ "$REBUILD_ALL" != true ]; then
-              before=$(docker buildx imagetools inspect "$REGISTRY/$name:$previous-$arch" \
-                --format '{{json .Image}}' 2>/dev/null | jq -r --arg key "$LABEL" '
+              # An image the release before did not have (a new one) has no
+              # label to compare, and is built; the log says so.
+              image=$(docker buildx imagetools inspect "$REGISTRY/$name:$previous-$arch" --format '{{json .Image}}' 2>&1) \
+                || { echo "$name: not in $previous ($image)"; image='{}'; }
+              before=$(echo "$image" | jq -r --arg key "$LABEL" '
                   if has("config") then .config.Labels[$key]
                   else [to_entries[] | select(.key | startswith("linux/")) | .value.config.Labels[$key]][0]
-                  end // empty' || true)
+                  end // empty')
             fi
+            echo "$name: ${before:-no label} before, $inputs now"
 
             if [ "$before" = "$inputs" ]; then
               docker buildx imagetools create -t "$target" "$REGISTRY/$name:$previous-$arch"
