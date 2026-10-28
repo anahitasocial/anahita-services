@@ -87,6 +87,19 @@ func fromV0(oldKey string) (string, error) {
 	return "", errNotAPicture
 }
 
+// Prefer says whether oldKey, of two old files with the same new key, is the
+// one to keep. The PHP application could keep a person's avatar twice, under
+// com_people and under com_socialengine, where an older version of it left
+// one; the com_people one is the current. Between two of the same kind, the
+// first by key, so that every run chooses alike.
+func Prefer(oldKey, other string) bool {
+	leftover := func(key string) bool { return strings.Contains(key, "/com_socialengine/") }
+	if leftover(oldKey) != leftover(other) {
+		return !leftover(oldKey)
+	}
+	return oldKey < other
+}
+
 // split parts a file's name from its ending.
 func split(filename string) (string, string) {
 	at := strings.LastIndex(filename, ".")

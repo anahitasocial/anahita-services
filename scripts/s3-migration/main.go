@@ -83,11 +83,11 @@ func main() {
 
 	fmt.Println()
 	if !*apply {
-		fmt.Printf("%d files would be copied, %d are already in place, %d are not pictures this knows.\n", m.toCopy, m.inPlace, m.unknown)
+		fmt.Printf("%d files would be copied, %d are already in place, %d are not pictures this knows, %d gave way to another with the same place.\n", m.toCopy, m.inPlace, m.unknown, m.superseded)
 		fmt.Println("Nothing was changed. Run again with -apply to copy them.")
 		return
 	}
-	fmt.Printf("%d copied, %d already in place, %d failed, %d not pictures this knows.\n", m.copied, m.inPlace, m.failed, m.unknown)
+	fmt.Printf("%d copied, %d already in place, %d failed, %d not pictures this knows, %d gave way to another with the same place.\n", m.copied, m.inPlace, m.failed, m.unknown, m.superseded)
 	if *deleteOld {
 		fmt.Printf("%d old files deleted.\n", m.deleted)
 	} else {
@@ -124,7 +124,7 @@ type mover struct {
 	// How many files of each folder there are to move, for the summary.
 	folders map[string]int
 
-	toCopy, inPlace, copied, failed, unknown, deleted int
+	toCopy, inPlace, copied, failed, unknown, deleted, superseded int
 }
 
 type object struct {
@@ -168,6 +168,37 @@ func (m *mover) run(ctx context.Context, prefix string) error {
 	}
 	fmt.Printf("%d files under %s, %d already under %s\n", len(old), prefix, len(m.there), assetsPrefix)
 
+	// Two old files with one new place: only the one Prefer chooses is
+	// copied, so that the choice is the same on every run, and not
+	// whichever copy happened to land last.
+	chosen := map[string]object{}
+	var losers []object
+	for _, o := range old {
+		newKey, err := NewKey(o.key)
+		if err != nil {
+			continue
+		}
+		if prev, ok := chosen[newKey]; ok {
+			if Prefer(o.key, prev.key) {
+				chosen[newKey], o = o, prev
+			}
+			losers = append(losers, o)
+			continue
+		}
+		chosen[newKey] = o
+	}
+	superseded := map[string]bool{}
+	for _, o := range losers {
+		superseded[o.key] = true
+	}
+	kept := old[:0:0]
+	for _, o := range old {
+		if !superseded[o.key] {
+			kept = append(kept, o)
+		}
+	}
+	old = kept
+
 	queue := make(chan object)
 	var wg sync.WaitGroup
 	for i := 0; i < workers; i++ {
@@ -187,6 +218,30 @@ func (m *mover) run(ctx context.Context, prefix string) error {
 	}
 	close(queue)
 	wg.Wait()
+
+	// What another file was chosen over: never copied, and deleted with the
+	// old files only once the chosen one's copy is there, whole.
+	for _, o := range losers {
+		m.superseded++
+		winner := chosen[mustNewKey(o.key)]
+		if m.verbose || !m.apply {
+			m.say("superseded %s\n        by %s\n", o.key, winner.key)
+		}
+		if !m.apply || !m.deleteOld {
+			continue
+		}
+		if ok, err := m.sameSize(ctx, mustNewKey(o.key), winner.size); err != nil || !ok {
+			m.failed++
+			m.say("KEPT   %s: the copy it gave way to could not be confirmed\n", o.key)
+			continue
+		}
+		if _, err := m.client.DeleteObject(ctx, &s3.DeleteObjectInput{Bucket: aws.String(m.bucket), Key: aws.String(o.key)}); err != nil {
+			m.failed++
+			m.say("FAILED deleting %s: %v\n", o.key, err)
+			continue
+		}
+		m.deleted++
+	}
 
 	if len(m.folders) > 0 {
 		fmt.Println()
@@ -213,6 +268,12 @@ func (m *mover) say(format string, args ...any) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	fmt.Printf(format, args...)
+}
+
+// mustNewKey is NewKey for a key known to have one.
+func mustNewKey(oldKey string) string {
+	newKey, _ := NewKey(oldKey)
+	return newKey
 }
 
 // folderOf is the part of a v1 key that says what kind of file it is.

@@ -27,6 +27,24 @@ func TestWhereEachFileGoes(t *testing.T) {
 	}
 }
 
+// A person's avatar kept twice by the PHP application: the com_people one is
+// the current, and wins whichever comes first.
+func TestTheCurrentAvatarIsChosen(t *testing.T) {
+	people := "assets/public/n106/com_people/avatars/largef09.jpg"
+	leftover := "assets/public/n106/com_socialengine/avatars/largef09.jpg"
+	a, _ := NewKey(people)
+	b, _ := NewKey(leftover)
+	if a != b {
+		t.Fatalf("expected one new key, got %q and %q", a, b)
+	}
+	if !Prefer(people, leftover) || Prefer(leftover, people) {
+		t.Error("the com_people avatar should be chosen over the com_socialengine one")
+	}
+	if Prefer("assets/public/n1/com_people/avatars/b.jpg", "assets/public/n1/com_people/avatars/a.jpg") {
+		t.Error("between two of the same kind, the first by key")
+	}
+}
+
 func TestWhatIsNotAPictureIsLeftWhereItIs(t *testing.T) {
 	for _, oldKey := range []string{
 		"assets/v2/",
