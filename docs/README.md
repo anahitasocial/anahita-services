@@ -420,6 +420,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Anahita Recipes: a starting configuration for each kind of site](plans/recipes.md) | 40 | planned 2026-10-11; place in the order not decided |
 | [Running Anahita on k3s and on EKS](plans/k3s-and-eks.md) | 76 | planned 2026-10-22: a manual for both, with sizes and costs, tried on k3d, a rented server and EKS |
 | [Sweeping away unused hashtags and locations](plans/done/tag-sweep.md) | 88 | done 2026-10-27: the sweeper removes a hashtag or location no post carries, a day old, but a location a feed names; `sweeper -tags-only` |
+| [Sweeping away stored files nothing names](plans/file-sweep.md) | 89 | planned 2026-10-28: files under assets/v1/ that no row names, a day old, removed by a nightly sweep, dry until FILE_SWEEP=on |
 | [Animated images: GIF, APNG and animated WebP, through the video service](plans/done/animated-images.md) | 41 | done 2026-10-14: GIFs and animated PNGs (not WebP), and video posts going to other servers and Bluesky |
 | [A command-line client for Anahita](plans/cli-client.md) | 42 | recorded 2026-10-12 for later; waits for the API reference |
 | [Translating posts](plans/translation.md) | 43 | recorded 2026-10-12 for later: LibreTranslate and DeepL behind one interface |
