@@ -162,7 +162,7 @@ type NodeInfoDocument struct {
 	OpenRegistrations bool `json:"openRegistrations"`
 	// How much it is used.
 	Usage nodeInfoUsage `json:"usage"`
-	// What the web app reads of the installation: `nodeName`, `nodeDescription`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `websitesFrom`, `locationsFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `siteRules`, `spamRemovalMaxDays`, `accountGraceDays`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.
+	// What the web app reads of the installation: `nodeName`, `nodeDescription`, `logoUrl`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `websitesFrom`, `locationsFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `siteRules`, `spamRemovalMaxDays`, `accountGraceDays`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.
 	Metadata map[string]any `json:"metadata"`
 }
 
@@ -232,8 +232,14 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 			// name follows whatever is clearest for an operator here.
 			// They do not have to agree, and making them agree would
 			// mean picking one audience to confuse.
-			"nodeName":            h.Config.GetInstanceName(),
-			"nodeDescription":     h.Config.GetInstanceDescription(),
+			"nodeName":        h.Config.GetInstanceName(),
+			"nodeDescription": h.Config.GetInstanceDescription(),
+			// SITE_LOGO_URL, the logo of the sign-in pages and of every
+			// email, for the web app's home page and menu too: one setting
+			// for every place the site shows its logo. Empty when unset,
+			// and the web app's theme shows its own; not Anahita's mark,
+			// which is the sign-in pages' fallback, not the site's.
+			"logoUrl":             h.Config.SiteLogoURL,
 			"registrationMode":    h.Config.GetRegistrationMode(),
 			"approvalRequired":    h.Config.RequiresRegistrationApproval(),
 			"invitationsAccepted": h.Config.AllowsInvitations(),

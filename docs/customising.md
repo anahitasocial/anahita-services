@@ -7,7 +7,7 @@ without changing the code.
 
 1. **Its name and look.** The name and description:
    [Site identity](configuration.md#site-identity) here, and in the web app,
-   [Name and description](https://github.com/anahitasocial/anahita-web/blob/main/docs/customising.md#name-and-description).
+   [Name, description and logo](https://github.com/anahitasocial/anahita-web/blob/main/docs/customising.md#name-description-and-logo).
    Logo, colours, fonts and the home page visitors see:
    [Themes](https://github.com/anahitasocial/anahita-web/blob/main/docs/customising.md#themes).
 2. **Its languages.**

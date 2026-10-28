@@ -123,3 +123,31 @@ func TestPublicContentCountsAreForSuperAdministratorsOnly(t *testing.T) {
 		}
 	}
 }
+
+// The site's logo, for the web app's home page and menu: SITE_LOGO_URL when
+// it is set, and nothing when it is not, so that the theme's own is shown
+// rather than the sign-in pages' fallback.
+func TestNodeInfoGivesTheSitesLogo(t *testing.T) {
+	if got := nodeInfoMetadata(t)["logoUrl"]; got != "" {
+		t.Errorf("logoUrl unset = %v, want empty", got)
+	}
+
+	te := newTestEnv()
+	te.Repos.Users = usersWithUsage{}
+	te.Env.Config.SiteLogoURL = "https://example.com/logo.png"
+	e := echo.New()
+	rec := httptest.NewRecorder()
+	c := e.NewContext(httptest.NewRequest(http.MethodGet, "/nodeinfo/2.1", nil), rec)
+	if err := newNodeInfoHandler(te.Env).Read(c); err != nil {
+		t.Fatalf("nodeinfo: %v", err)
+	}
+	var document struct {
+		Metadata map[string]any `json:"metadata"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &document); err != nil {
+		t.Fatalf("nodeinfo is not JSON: %s", rec.Body.String())
+	}
+	if got := document.Metadata["logoUrl"]; got != "https://example.com/logo.png" {
+		t.Errorf("logoUrl = %v, want SITE_LOGO_URL", got)
+	}
+}
