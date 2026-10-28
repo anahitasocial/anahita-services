@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"slices"
 
 	"auth/data/entities"
 	"auth/data/services"
@@ -43,11 +44,17 @@ func webAuthnRP(env *Env) (*webauthn.WebAuthn, error) {
 func webAuthnOrigins(env *Env) []string {
 	appOrigins := env.Config.GetAllowedAppOrigins()
 
-	origins := make([]string, 0, len(appOrigins)+1)
+	origins := make([]string, 0, len(appOrigins)+2)
 	origins = append(origins, appOrigins...)
 
-	if authURL := env.Config.GetAuthURL(); authURL != "" {
-		origins = append(origins, authURL)
+	// The sign-in page runs on the auth host, and on the API's host too: the
+	// web app sends people to sign in at its API's address, and a passkey
+	// used there was refused as from an origin not listed ("Error validating
+	// origin", banu.io, 2026-10-28). On a dev stack both are one address.
+	for _, url := range []string{env.Config.GetAuthURL(), env.Config.GetAPIURL()} {
+		if url != "" && !slices.Contains(origins, url) {
+			origins = append(origins, url)
+		}
 	}
 
 	return origins

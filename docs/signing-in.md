@@ -31,6 +31,21 @@ All three end the same way, and all three apply the same rules to the account
 once it has been proved: a deleted account is offered its restore, an archived
 or disabled one is refused.
 
+**Where a passkey is accepted.** A passkey belongs to the site's domain (its
+relying party: `DOMAIN_NAME` in production, `localhost` on a dev stack), and
+is accepted only from the pages that use one, each named whole:
+
+| Page | Address, in production |
+| --- | --- |
+| The web app, where a passkey is made | `https://DOMAIN_NAME` (`FRONTEND_URL`) |
+| The sign-in page, on the auth host | `https://auth.DOMAIN_NAME` (`AUTH_URL`) |
+| The sign-in page, on the API's host, where the web app sends people to sign in | `https://api.DOMAIN_NAME` (`API_URL`) |
+
+A passkey used anywhere else is refused, and the log says `Error validating
+origin` (`auth-service/cmd/api/handlers/web_authn_helper.go`, `webAuthnOrigins`).
+The domain is permanent once anybody has made a passkey: changing it makes
+every passkey useless.
+
 ## Signing in with a code
 
 1. The person follows **Sign in with a code instead** and enters their email

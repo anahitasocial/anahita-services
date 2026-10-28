@@ -125,6 +125,7 @@ settings are under [Federation](#federation).
 | `TOTP_ISSUER` | Optional. The label authenticator apps show; derived from `DOMAIN_NAME` when unset |
 | `FRONTEND_URL` | Optional, not in `docker-compose.yml`. The web app's URL used in links. Defaults to `http://localhost:3000` in dev and `https://DOMAIN_NAME` in production |
 | `AUTH_URL` | Optional, not in `docker-compose.yml`. auth-service's public URL. Defaults to `http://localhost` in dev and `https://auth.DOMAIN_NAME` in production |
+| `API_URL` | Optional, not in `docker-compose.yml`. The API's public URL, where the web app sends people to sign in, and so a page a passkey is accepted from ([Signing in](signing-in.md#the-ways-in)). Defaults to `http://localhost` in dev and `https://api.DOMAIN_NAME` in production |
 
 ## Rules and promises
 

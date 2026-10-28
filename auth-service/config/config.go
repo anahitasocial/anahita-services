@@ -145,7 +145,10 @@ type Config struct {
 	// for local work.
 	AuthURL     string
 	FrontendURL string
-	AmqpAddr    string
+	// The API's public URL, where the web app sends people to sign in
+	// (its REACT_APP_API_BASE_URL). Optional, as the two above are.
+	APIURL   string
+	AmqpAddr string
 
 	// Crypt — symmetric encryption of secrets at rest (currently TOTP
 	// secrets).
@@ -272,6 +275,7 @@ func NewConfig() *Config {
 		GraphServiceAddr: os.Getenv("GRAPH_SERVICE_ADDR"),
 		AuthURL:          os.Getenv("AUTH_URL"),
 		FrontendURL:      os.Getenv("FRONTEND_URL"),
+		APIURL:           os.Getenv("API_URL"),
 
 		// OAuth
 		OAuthIssuer:         os.Getenv("OAUTH_ISSUER"),
@@ -758,6 +762,27 @@ func (config *Config) GetAuthURL() string {
 		return fmt.Sprintf("https://auth.%s", config.DomainName)
 	case config.IsStaging():
 		return fmt.Sprintf("https://auth.staging.%s", config.DomainName)
+	default:
+		return "http://localhost"
+	}
+}
+
+// GetAPIURL returns the API's public base URL: api.<domain> in production.
+//
+// The web app sends people to sign in at its API's address
+// (anahita-web's api/session.js, `${API_BASE_URL}/oauth/authorize`), so the
+// sign-in page, and a passkey used on it, are at this origin as well as at
+// the auth host's. See webAuthnOrigins.
+func (config *Config) GetAPIURL() string {
+	if config.APIURL != "" {
+		return strings.TrimRight(config.APIURL, "/")
+	}
+
+	switch {
+	case config.IsProd():
+		return fmt.Sprintf("https://api.%s", config.DomainName)
+	case config.IsStaging():
+		return fmt.Sprintf("https://api.staging.%s", config.DomainName)
 	default:
 		return "http://localhost"
 	}
