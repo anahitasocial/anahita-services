@@ -83,7 +83,7 @@ func (h *personHandler) EditAccess(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	personResp := &responses.PersonResponse{}
+	personResp := responses.NewPersonResponse(viewer)
 	resp := personResp.MapNode(person)
 
 	return c.JSON(http.StatusOK, resp)

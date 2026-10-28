@@ -68,7 +68,7 @@ func (h *personHandler) EditQuotePolicy(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	personResp := &responses.PersonResponse{}
+	personResp := responses.NewPersonResponse(viewer)
 
 	return c.JSON(http.StatusOK, personResp.MapNode(person))
 }

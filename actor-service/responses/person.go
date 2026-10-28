@@ -33,6 +33,30 @@ type PersonNode struct {
 
 type PersonResponse struct {
 	responses.ActorResponse
+
+	// Who is asking. A person's account type (registered, administrator,
+	// super administrator) is sent only to themselves and to the site's
+	// administrators: to anybody else it would say whom to aim at, and they
+	// have no use for it. Left nil, nobody is told, so a handler that forgets
+	// the viewer hides it rather than showing it.
+	Viewer *entities.Viewer
+}
+
+// NewPersonResponse answers about people to the viewer.
+func NewPersonResponse(viewer *entities.Viewer) *PersonResponse {
+	return &PersonResponse{Viewer: viewer}
+}
+
+// typeFor is the person's account type, if the viewer may know it.
+func (r *PersonResponse) typeFor(node *entities.Person) string {
+	v := r.Viewer
+	if v == nil || v.ID <= 0 {
+		return ""
+	}
+	if v.ID == node.ID || v.IsAdmin() {
+		return node.PersonType
+	}
+	return ""
 }
 
 // MapNode maps a Person entity to a PersonNode response.
@@ -75,7 +99,7 @@ func (r *PersonResponse) MapNodeItem(node *entities.Person) *PersonNodeItem {
 
 	return &PersonNodeItem{
 		ActorNodeItem:  *r.ActorResponse.MapNodeItem(&node.AnahitaNode),
-		PersonType:     node.PersonType,
+		PersonType:     r.typeFor(node),
 		PersonPronouns: node.PersonPronouns,
 		Language:       node.Language,
 	}

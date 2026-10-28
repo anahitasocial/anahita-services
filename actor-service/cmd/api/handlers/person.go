@@ -114,7 +114,7 @@ func (h *personHandler) Browse(c echo.Context) error {
 			log.Println(err)
 			return c.NoContent(http.StatusInternalServerError)
 		}
-		personResp := &responses.PersonResponse{}
+		personResp := responses.NewPersonResponse(viewer)
 		resp.Data = append(resp.Data, personResp.MapNodeItem(person))
 	}
 
@@ -173,7 +173,7 @@ func (h *personHandler) Read(c echo.Context) error {
 
 	batchPresignPaths(h.Env, []*entities.AnahitaNode{&person.AnahitaNode})
 
-	personResp := &responses.PersonResponse{}
+	personResp := responses.NewPersonResponse(viewer)
 	resp := personResp.MapNode(person)
 
 	return c.JSON(http.StatusOK, resp)
@@ -284,7 +284,7 @@ func (h *personHandler) Edit(c echo.Context) error {
 
 	batchPresignPaths(h.Env, []*entities.AnahitaNode{&person.AnahitaNode})
 
-	personResp := &responses.PersonResponse{}
+	personResp := responses.NewPersonResponse(viewer)
 	resp := personResp.MapNode(person)
 
 	return c.JSON(http.StatusOK, resp)

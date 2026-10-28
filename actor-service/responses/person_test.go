@@ -57,7 +57,11 @@ func TestPersonResponseReadsThroughToTheNode(t *testing.T) {
 	person.PersonType = "super-administrator"
 	person.PersonPronouns = "they/them"
 
-	encoded, err := json.Marshal((&PersonResponse{}).MapNode(person))
+	// Asked by the person themselves, who is told their account type
+	// (TestAccountTypeIsToldOnlyToThemAndAdministrators).
+	self := &entities.Viewer{}
+	self.ID = 42
+	encoded, err := json.Marshal(NewPersonResponse(self).MapNode(person))
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}

@@ -823,6 +823,7 @@ administrator is made from `SUPER_ADMIN_EMAIL` (see
 | Of whom | A person here: not a group, not a profile from another server, not a deleted person |
 | Recorded | In `node_deletion_logs`, as `made-registered`, `made-admin` or `made-super-admin`, with who did it |
 | When it takes effect | At the person's next token, within fifteen minutes |
+| Who is told it | The person themselves and the site's administrators. A profile's `person_type`, read alone or in the list of people, is left out for anybody else, signed in or not: it would tell a stranger whom to aim at, and nobody else has a use for it (`actor-service/responses/person.go`, `typeFor`; the user, 2026-10-28) |
 
 What sets a super administrator apart is the installation's configuration and
 its system tasks, which is why an administrator may add administrators but not
