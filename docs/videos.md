@@ -278,7 +278,7 @@ anything is sent. On AWS S3, under the bucket's Permissions:
 ```json
 [
   {
-    "AllowedOrigins": ["https://www.example.org"],
+    "AllowedOrigins": ["https://example.org"],
     "AllowedMethods": ["PUT"],
     "AllowedHeaders": ["*"],
     "MaxAgeSeconds": 3000
@@ -286,7 +286,11 @@ anything is sent. On AWS S3, under the bucket's Permissions:
 ]
 ```
 
-Other stores have the same rule under their own name for it.
+The origin is the address people open the web app at, exactly: scheme and
+host, no path. A rule naming `www.example.org` for an app at `example.org`,
+or the other way round, refuses every upload; list both where the app
+answers at both. Other stores have the same rule under their own name for
+it.
 
 `file-grpc-service` holds each kind of large file to its place:
 
