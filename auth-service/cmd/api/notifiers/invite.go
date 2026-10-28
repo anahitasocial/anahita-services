@@ -85,10 +85,13 @@ func (h *inviteNotifier) EmailAccept(joiner *entities.User, inviter *entities.Us
 		return err
 	}
 
+	// Their profile by its handle, which they chose when they accepted: the
+	// web app's /people/:x takes x for a handle, so the number they were
+	// given led to a page that was not there.
 	actionURL := fmt.Sprintf(
-		"%s/people/%d",
+		"%s/@%s/",
 		h.Config.GetFrontendURL(),
-		joiner.ID,
+		joiner.Alias,
 	)
 
 	var sendErrors []error

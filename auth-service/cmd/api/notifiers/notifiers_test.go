@@ -379,3 +379,25 @@ func TestEveryNotificationIsComplete(t *testing.T) {
 		})
 	}
 }
+
+// The "new member joined" email leads to the joiner's profile by the handle
+// they chose. It once gave their number, /people/<id>, which the web app
+// takes for a handle and so answered with a page that was not there.
+func TestAcceptLinksTheJoinerByHandle(t *testing.T) {
+	n, mail := newTestNotifiers(t)
+
+	inviter := testUser()
+	inviter.ID = 7
+	if err := n.Invite.EmailAccept(testUser(), inviter); err != nil {
+		t.Fatalf("EmailAccept: %v", err)
+	}
+	if len(mail.sent) == 0 {
+		t.Fatal("nothing was sent")
+	}
+	for _, sent := range mail.sent {
+		got := sent.Data["actionURL"]
+		if !strings.HasSuffix(got, "/@ada/") {
+			t.Errorf("the link is %q; want the joiner's profile, …/@ada/", got)
+		}
+	}
+}
