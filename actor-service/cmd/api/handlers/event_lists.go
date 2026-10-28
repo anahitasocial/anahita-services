@@ -317,3 +317,19 @@ func (h *eventHandler) HostedBy(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, resp)
 }
+
+// Featured lists the events the installation features, what onboarding
+// offers a new member, most recently featured first: the shared browse,
+// told featured.
+//
+//	GET /events/featured
+//
+// There is no list of every event (routes.go), so this is the one list of
+// events not the viewer's own or a group's; it holds only what a super
+// administrator chose to show everybody.
+func (h *eventHandler) Featured(c echo.Context) error {
+	query := c.Request().URL.Query()
+	query.Set("featured", "1")
+	c.Request().URL.RawQuery = query.Encode()
+	return h.Browse(c)
+}

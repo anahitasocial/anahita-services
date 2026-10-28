@@ -12951,6 +12951,135 @@
         "x-viewer": "signed_in"
       }
     },
+    "/events/featured": {
+      "get": {
+        "description": "What onboarding offers a new member, most recently featured first. Each a full profile, or, for one the viewer may only ask to follow, what a stranger is shown of it (`restricted`).\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getEventsFeatured",
+        "parameters": [
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Words the name, the handle or the description holds.",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "maxLength": 100,
+              "type": "string",
+              "x-validate": "search_query"
+            }
+          },
+          {
+            "description": "What they are ordered by.",
+            "in": "query",
+            "name": "ordering",
+            "schema": {
+              "default": "updated_at",
+              "enum": [
+                "created_at",
+                "updated_at",
+                "enabled"
+              ],
+              "maxLength": 15,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Which way the order runs.",
+            "in": "query",
+            "name": "dir",
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "maxLength": 4,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Disabled ones as well, for whoever may see them.",
+            "in": "query",
+            "name": "disabled",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Only the actors the installation features — what onboarding offers a new member to follow. Ordered most recently featured first unless the caller asks for an ordering; see the browse handlers.",
+            "in": "query",
+            "name": "featured",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {},
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The events the installation features",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*eventHandler).Featured",
+        "x-viewer": "anyone"
+      }
+    },
     "/events/mine": {
       "get": {
         "description": "The ones they said going or maybe to, look after, or were invited to.\n\nWho may call it: somebody signed in.",
@@ -14149,6 +14278,84 @@
           "actor-service"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).SetEnabled",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/events/{id}/featured": {
+      "patch": {
+        "description": "What onboarding offers new members to follow. Super administrators only.\n\nWho may call it: somebody signed in.",
+        "operationId": "patchEventsByIdFeatured",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "featured": {
+                    "description": "Whether onboarding offers it to follow.",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "featured"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "done"
+          },
+          "204": {
+            "description": "it was so already"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not"
+          },
+          "404": {
+            "description": "there is no such profile"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`not_featurable`: it is disabled, archived or deleted"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Feature a profile, or stop",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).SetFeatured",
         "x-viewer": "signed_in"
       }
     },

@@ -251,22 +251,26 @@ on the person's behalf.
 the inviter's account is gone, disabled or being deleted.
 
 **Featured accounts** are the ones onboarding offers to follow. A super
-administrator features a person, a group or a website from its profile:
+administrator features a person, a group, a website or an event from its
+profile:
 
 | Endpoint | Does |
 | --- | --- |
 | `PATCH /people/:id/featured` | `{ "featured": true }` or `false` |
 | `PATCH /groups/:id/featured` | The same, for a group |
 | `PATCH /websites/:id/featured` | The same, for a website |
+| `PATCH /events/:id/featured` | The same, for an event |
 
 Super administrators only; anybody else gets `403`. The answer is `200` when
 something changed and `204` when it was already so. A disabled, archived or
 deleted account cannot be featured (`409`). Featured profiles carry
 `featured_at` in their JSON.
 
-`GET /people/?featured=1`, `GET /groups/?featured=1` and
-`GET /websites/?featured=1` list them, most recently featured first unless
-`ordering` is given, through the ordinary browse:
+`GET /people/?featured=1`, `GET /groups/?featured=1`,
+`GET /websites/?featured=1` and `GET /events/featured` list them (events
+have no list of every one, so theirs has an address of its own), most
+recently featured first unless `ordering` is given, through the ordinary
+browse:
 the viewer's relationship to each is filled in and blocked accounts are left
 out. A featured account that is later disabled, archived or deleted drops out
 of the list without being unfeatured.
@@ -330,6 +334,6 @@ Nothing in signup can create a super administrator. On a fresh database, set
 | The approval queue | `auth-service/cmd/api/handlers/signup_requests.go`, `auth-service/data/repositories/signup_requests.go`, table `signup_requests` |
 | Terms of Service and Privacy Policy | `auth-service/cmd/api/handlers/agreements.go`, the `tos_accepted_*` and `pp_accepted_*` columns of table `auth_accounts` |
 | Onboarding | `auth-service/cmd/api/handlers/onboarding.go`, `onboarding_test.go`; `onboarded_at` and `invited_by` in table `auth_accounts` |
-| Featured profiles | `actor-service/cmd/api/handlers/person.go` and `group.go` (`SetFeatured`, which `website.go` shares), `featured_at` in table `nodes` |
+| Featured profiles | `actor-service/cmd/api/handlers/person.go` and `group.go` (`SetFeatured`, which `website.go` and `event.go` share), `featured_at` in table `nodes` |
 | NodeInfo | `auth-service/cmd/api/handlers/node_info.go` (`federationProtocols`); setting `FEDERATION_PROTOCOLS` |
 | The first super administrator | `auth-service/data/services/super_admin_seed.go` (`SeedSuperAdmin`); settings `SUPER_ADMIN_EMAIL`, `SUPER_ADMIN_USERNAME`, `SUPER_ADMIN_NAME` |

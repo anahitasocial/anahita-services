@@ -511,6 +511,13 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Viewer(apidoc.SignedIn).
 		Takes(&handlers.EventMineRequest{Limit: 20}).
 		Sends(http.StatusOK, libs_responses.List[any]{})
+	// The ones a super administrator features, for onboarding.
+	events.GET("/featured", r.handler.Event.Featured, r.setViewer).
+		Summary("The events the installation features").
+		Describe("What onboarding offers a new member, most recently featured first. "+someOrLimited).
+		Viewer(apidoc.Anyone).
+		Takes(actorReq.Browse).
+		Sends(http.StatusOK, libs_responses.List[any]{})
 	events.GET("/:id", r.handler.Event.Read, r.setViewer).With(readGroup("event"))
 	// Who is going, and who said maybe.
 	events.GET("/:id/attendees/", r.handler.Event.Attendees, r.setViewer).
@@ -551,6 +558,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	events.DELETE("/:id/purge", r.handler.Event.Purge, r.authorize).With(purge("event"))
 	events.POST("/:id/archive", r.handler.Event.Archive, r.authorize).With(archive("event"))
 	events.PATCH("/:id/enabled", r.handler.Event.SetEnabled, r.authorize).With(enabled)
+	events.PATCH("/:id/featured", r.handler.Event.SetFeatured, r.authorize).With(featured)
 	events.POST("/:id/restore", r.handler.Event.Restore, r.authorize).With(restore("event"))
 	events.PATCH("/:id/access", r.handler.Event.EditAccess, r.authorize).With(access(actorReq.EditAccess, libs_responses.ActorNode{}))
 	events.GET("/:id/rules", r.handler.Event.ReadRules, r.setViewer).With(readRules("event"))
