@@ -32,6 +32,7 @@ func NewRepositories(db *sql.DB) *Repositories {
 		SocialgraphRel:     NewSocialgraphRelRepo(db),
 		SocialGraphCounts:  NewSocialGraphCountsRepo(db),
 		SubscriptionsRel:   NewSubscriptionsRelRepo(db),
+		Tags:               NewTagsRepo(db),
 	}
 }
 
@@ -62,4 +63,5 @@ type Repositories struct {
 	SocialgraphRel     SocialgraphRelInterface
 	SocialGraphCounts  SocialGraphCountsInterface
 	SubscriptionsRel   SubscriptionsRelInterface
+	Tags               TagsRepoInterface
 }

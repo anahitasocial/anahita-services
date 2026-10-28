@@ -419,7 +419,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Documentation agents can use, and an MCP server](plans/done/docs-for-agents.md) | 39 | done 2026-10-27: the MCP server is anahita-mcp |
 | [Anahita Recipes: a starting configuration for each kind of site](plans/recipes.md) | 40 | planned 2026-10-11; place in the order not decided |
 | [Running Anahita on k3s and on EKS](plans/k3s-and-eks.md) | 76 | planned 2026-10-22: a manual for both, with sizes and costs, tried on k3d, a rented server and EKS |
-| [Sweeping away unused hashtags and locations](plans/tag-sweep.md) | 88 | planned 2026-10-27, for banu.io's launch: 554 unused hashtags on anahita.io's archive before its purge |
+| [Sweeping away unused hashtags and locations](plans/done/tag-sweep.md) | 88 | done 2026-10-27: the sweeper removes a hashtag or location no post carries, a day old, but a location a feed names; `sweeper -tags-only` |
 | [Animated images: GIF, APNG and animated WebP, through the video service](plans/done/animated-images.md) | 41 | done 2026-10-14: GIFs and animated PNGs (not WebP), and video posts going to other servers and Bluesky |
 | [A command-line client for Anahita](plans/cli-client.md) | 42 | recorded 2026-10-12 for later; waits for the API reference |
 | [Translating posts](plans/translation.md) | 43 | recorded 2026-10-12 for later: LibreTranslate and DeepL behind one interface |

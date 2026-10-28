@@ -15,7 +15,8 @@ The pages for running a live site from day to day.
 4. **Running more than one copy** of a service:
    [Running more than one copy of a service](deploying.md#running-more-than-one-copy-of-a-service).
 5. **Accounts.** Deleted accounts, the 30 days to restore them, purging, the
-   accounts list and the sweeper that clears out unused ones:
+   accounts list and the sweeper that clears out unused ones, with the
+   hashtags and locations nothing uses any more:
    [Account lifecycle](account-lifecycle.md).
 6. **Reports.** What administrators do with what people report:
    [What administrators do](abuse-reports.md#what-administrators-do).

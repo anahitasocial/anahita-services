@@ -146,7 +146,9 @@ progress endpoint gives `total`, `queued`, `done` and `failed`, and each
 account's state. A purge that fails is tried three times and then marked
 `failed` with the reason; asking again for that account tries again.
 
-Nobody is emailed about a purge.
+Nobody is emailed about a purge. What the purged accounts alone had tagged
+their posts with, hashtags and locations, goes with the next run of the
+[sweeper](#the-sweeper).
 
 ## Removing as spam
 
@@ -222,11 +224,15 @@ for somebody to look at. Nothing is removed because of one.
 
 The `account-sweeper` job does the purging that is nobody's request: every
 account whose 30 days have run out. It also finishes any requested purge that
-was interrupted.
+was interrupted, and removes the hashtags and locations no post carries any
+more, which is most of what a purge leaves behind
+([When one is no longer used](hashtags.md#when-one-is-no-longer-used)).
 
 - On Kubernetes it is a CronJob, every ten minutes, and never two at once.
 - With docker-compose it is not started by `make up`. Run it with
   `docker compose run --rm account-sweeper`.
+- `sweeper -tags-only` removes the unused hashtags and locations and nothing
+  else, and says how many: after a large purge, to see it done at once.
 
 A purge works through an account in batches of 500 posts, and keeps a list of
 what is left (`purge_work`). If the job is stopped part-way, the next run
@@ -261,4 +267,4 @@ A site administrator can then appoint one of its followers with
 | Purging now | `actor-service/cmd/api/handlers/person_purge.go`, `group_purge.go`; `graph-grpc-service/data/repositories/purge_requests.go` (`PurgeRequestMaxAttempts`), table `purge_requests` |
 | The filed reports of a purged person | `abuse-report-service/cmd/api/handlers/events.go` |
 | The accounts list | `auth-service/cmd/api/handlers/accounts.go`, `auth-service/data/repositories/accounts.go`; `auth-service/config/bootstrap.go` (`GetAccountDormantDays`), setting `ACCOUNT_DORMANT_DAYS` |
-| The sweeper | `graph-grpc-service/sweeper/sweeper.go` (`Run`; the days are `anahita-libs/constants` `AccountGraceDays()`), `graph-grpc-service/cmd/sweeper/main.go`, `k8s/base/jobs/sweeper-cronjob.yml`, `account-sweeper` in `docker-compose.yml`; settings `FILE_SERVICE_ADDR` and `ACCOUNT_GRACE_DAYS` |
+| The sweeper | `graph-grpc-service/sweeper/sweeper.go` (`Run`; the days are `anahita-libs/constants` `AccountGraceDays()`), `graph-grpc-service/sweeper/tags.go` and `data/repositories/tags_sweep.go` (unused hashtags and locations), `graph-grpc-service/cmd/sweeper/main.go`, `k8s/base/jobs/sweeper-cronjob.yml`, `account-sweeper` in `docker-compose.yml`; settings `FILE_SERVICE_ADDR` and `ACCOUNT_GRACE_DAYS` |

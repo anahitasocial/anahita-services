@@ -13,6 +13,7 @@ hashtags offered to somebody while they write.
 - [Trending](#trending)
 - [Suggestions while writing](#suggestions-while-writing)
 - [A hashtag's and a location's posts](#a-hashtags-and-a-locations-posts)
+- [When one is no longer used](#when-one-is-no-longer-used)
 - [What the web app does](#what-the-web-app-does)
 - [Where the code is](#where-the-code-is)
 
@@ -173,6 +174,21 @@ tied to a hashtag or a location, in one of two orders, by `sort`:
 `popular`, an all-time sum of a post's counts, is still taken, and the web
 app no longer asks for it: an old post that did well stayed on top for good.
 
+## When one is no longer used
+
+A hashtag or a location is a node of its own, made the first time a post
+carries it. When no post carries it any more (the last was deleted, or its
+author purged), the [sweeper](account-lifecycle.md#the-sweeper) removes it,
+so that it stops being suggested and counted:
+
+| Kind | Removed when | Kept anyway when |
+| --- | --- | --- |
+| Hashtag | No post is tagged with it, and it was made more than a day ago | |
+| Location | No post is tagged with it, and it was made more than a day ago | A custom feed names it: feeds name locations by id |
+
+A custom feed names hashtags by their name, so removing one changes no feed:
+the next post with it makes it again, and the feed finds it.
+
 ## What the web app does
 
 - **While typing a hashtag**, in the short box, a reply and long content,
@@ -203,5 +219,7 @@ app no longer asks for it: an old post that did well stayed on top for good.
   hashtags are offered, and in what order (`HashtagService.Suggest` in
   `proto/graphpb/hashtag.proto`).
 - `location-service/cmd/api/handlers/inbound.go`: the cap on locations.
+- `graph-grpc-service/data/repositories/tags_sweep.go` and
+  `graph-grpc-service/sweeper/tags.go`: removing the unused ones.
 - `anahita-libs/federation/content.go` and `atproto-service/bsky/outgoing.go`:
   the cap in what is sent to other servers.

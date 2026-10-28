@@ -105,6 +105,9 @@ func Run(db *sql.DB, repos *repositories.Repositories, publisher *event.Publishe
 	// over, and archiving the ones long finished.
 	Events(repos, publisher)
 
+	// Hashtags and locations no post carries any more.
+	Tags(repos)
+
 	// The days a deleted profile can be brought back: ACCOUNT_GRACE_DAYS,
 	// the number auth-service tells people (anahita-libs/constants).
 	cutoff := time.Now().UTC().AddDate(0, 0, -constants.AccountGraceDays())

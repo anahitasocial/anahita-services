@@ -49,6 +49,19 @@ and the feed finds it. Following a hashtag is having it in a custom feed.
 - **A flag for a run by hand,** `sweeper -tags-only`, to see a sweep's
   counts at once, as banu.io's row 21 will after its purges.
 
+## Built (2026-10-27)
+
+| Part | Where |
+| --- | --- |
+| Finding and removing them | `graph-grpc-service/data/repositories/tags_sweep.go` (`SweepUnused`), wired as `Repositories.Tags` |
+| The sweeper's step, and `-tags-only` | `graph-grpc-service/sweeper/tags.go` (`Tags`, `RunTags`, `TagGrace`), called from `Run`; the flag in `cmd/sweeper/main.go` |
+| Tests | `tags_sweep_integration_test.go`: kept and removed as the table above says, a second run finds nothing, and a tag added after the read survives the delete |
+
+On anahita.io's archive the sweep's own queries find 554 hashtags and 5
+locations, the counts above. The test after a purge was left out: the
+purge's own tests keep the graph whole, and banu.io's rehearsal of rows 19
+to 21 shows what a real purge leaves.
+
 ## Tests
 
 - A hashtag with a post keeps; one without, older than a day, goes; one
@@ -70,4 +83,4 @@ and the feed finds it. Following a hashtag is having it in a custom feed.
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-27 |
-| Implementation | not begun |
+| Implementation | done 2026-10-27 |

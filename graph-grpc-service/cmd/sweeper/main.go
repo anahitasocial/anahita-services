@@ -11,6 +11,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 
 	"anahita-libs/data"
@@ -24,6 +25,10 @@ import (
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
+	// -tags-only runs the tag sweep alone, by hand, after a purge.
+	tagsOnly := flag.Bool("tags-only", false, "remove unused hashtags and locations, and nothing else")
+	flag.Parse()
+
 	cfg := config.NewConfig()
 	if err := cfg.Validate(); err != nil {
 		log.Fatalf("config validation failed: %v", err)
@@ -34,6 +39,15 @@ func main() {
 		log.Fatal("can't connect to MySQL!")
 	}
 	defer conn.Close()
+
+	if *tagsOnly {
+		swept, err := sweeper.RunTags(conn, repositories.NewRepositories(conn))
+		if err != nil {
+			log.Fatalf("sweeper: %v", err)
+		}
+		log.Printf("sweeper: finished, %d hashtag(s) and %d location(s) removed", swept.Hashtags, swept.Locations)
+		return
+	}
 
 	// The publisher is optional. Without AMQP the sweep still purges content
 	// and writes the tombstone; auth-service simply does not hear about it, and
