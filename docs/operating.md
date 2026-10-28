@@ -26,6 +26,8 @@ The pages for running a live site from day to day.
    [When something does not work](federation.md#when-something-does-not-work).
 8. **Apps that sign in.** The web app and other clients, and changing what
    they may do: [OAuth scopes and clients](oauth.md).
+9. **Mail.** What is sent, and stopping all of it at once:
+   [Turning mail off](deploying.md#turning-mail-off).
 
 Not written yet:
 

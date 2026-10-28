@@ -463,6 +463,30 @@ when the bus closes the channel the service says so and stops, to be
 started again (anahita-libs/event/consumer.go). An event published while a
 service is down is not heard by it.
 
+## Turning mail off
+
+Every email the site sends is auth-service's, each about one thing that
+happened to one person: a code, a reset, an invitation, a notice about an
+account ([Notifications](notifications.md#no-email): notifications are
+never emailed, and a test keeps it so). Each is handed to mail-grpc-service
+once, with a minute to go; one that fails is logged and is not sent again,
+so no batch is ever resent. With `SMTP_HOST` or `SMTP_PORT` unset,
+mail-grpc-service refuses to start, and nothing is sent at all.
+
+To stop every email at once, for a mail server misbehaving or anything
+being sent that should not be, take mail-grpc-service down:
+
+~~~sh
+kubectl -n anahita scale deployment mail-grpc-service --replicas=0   # off
+kubectl -n anahita scale deployment mail-grpc-service --replicas=1   # on again
+~~~
+
+While it is off, auth-service is refused at once and sends nothing, and
+nothing is kept to be sent later. Somebody asking for a sign-in code is not
+told: the page answers as it always does, so that it never says whether
+there is such an account, and the log says `login code: email failed`.
+Applying the manifests again turns it back on, as they ask for one copy.
+
 ## Trying it on your own machine
 
 The `local` overlay runs the whole stack on
