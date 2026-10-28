@@ -277,10 +277,13 @@ Then, on the bucket:
       objects* and *Delete expired object delete markers or incomplete
       multipart uploads*. Nothing under Transition or *Expire current
       versions*, which would delete the live files.
-   3. **Noncurrent versions:** `30` days after objects become noncurrent;
+   3. **Noncurrent versions:** `7` days after objects become noncurrent;
       newer versions to retain empty. A file deleted or replaced can be
-      brought back for 30 days, then it is gone; without this, everything a
-      purge deletes would stay in the bucket as old versions.
+      brought back for a week, then it is gone; without this, everything a
+      purge deletes would stay in the bucket as old versions. A week is
+      enough to catch a mistake: a deleted account waits its 30 days
+      before its purge, with its files in place, so the days here only
+      begin after that. More days are the operator's choice.
    4. **Delete expired object delete markers** ticked; **delete incomplete
       multipart uploads** ticked, after `7` days.
 
