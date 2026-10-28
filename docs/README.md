@@ -422,6 +422,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Sweeping away unused hashtags and locations](plans/done/tag-sweep.md) | 88 | done 2026-10-27: the sweeper removes a hashtag or location no post carries, a day old, but a location a feed names; `sweeper -tags-only` |
 | [Sweeping away stored files nothing names](plans/file-sweep.md) | 89 | planned 2026-10-28: files under assets/v1/ that no row names, a day old, removed by a nightly sweep, dry until FILE_SWEEP=on |
 | [Refusing servers from a file](plans/domain-block-import.md) | 91 | planned 2026-10-27: a CSV of servers to refuse, Mastodon's own shape or one name a line, looked at before it is applied; the list downloaded as one too |
+| [A second profile posting to a Bluesky account](plans/bluesky-posting-only.md) | 92 | planned 2026-10-28: a profile the same person looks after (a blog, a group) connects their Bluesky account to send its posts there, posting only: nothing from Bluesky is kept as it, and the account stays the first profile's |
 | [Animated images: GIF, APNG and animated WebP, through the video service](plans/done/animated-images.md) | 41 | done 2026-10-14: GIFs and animated PNGs (not WebP), and video posts going to other servers and Bluesky |
 | [A command-line client for Anahita](plans/cli-client.md) | 42 | recorded 2026-10-12 for later; waits for the API reference |
 | [Translating posts](plans/translation.md) | 43 | recorded 2026-10-12 for later: LibreTranslate and DeepL behind one interface |
