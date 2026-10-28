@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 )
 
@@ -28,9 +29,21 @@ func NewMailHandler(env *Env) *mailHandler {
 // so a token in one has effectively escaped.
 //
 // Recipients, subject and template name are enough to trace a message. The
-// data that makes it work is not.
+// data that makes it work is not, and nor is a code in the subject:
+// auth-service writes a sign-in or email-change code there ("123456 is your
+// site's email change code"), so its digits are left out of the log.
+// A run of four digits or more: a code, as auth-service writes one in a
+// subject. Years and counts in a subject are lost to the log with them,
+// which is the cheaper mistake.
+var codeLike = regexp.MustCompile(`[0-9]{4,}`)
+
+func withoutCodes(subject string) string {
+	return codeLike.ReplaceAllString(subject, "…")
+}
+
 func logRequest(rpc, from string, to, cc, bcc []string, subject, template string) {
 	recipients := len(to) + len(cc) + len(bcc)
+	subject = withoutCodes(subject)
 
 	if template != "" {
 		log.Printf("mail: %s from=%s to=%s recipients=%d template=%q subject=%q",
