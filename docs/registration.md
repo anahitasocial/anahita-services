@@ -93,6 +93,11 @@ goes to the administrators.
 Accepting an invitation confirms the address, because the invitation was
 delivered to it.
 
+An account carried over from the PHP application by its upgrade
+(`migration-job/legacy/upgrade.sql`) is confirmed as of the day it joined,
+since that application activated each account through a link sent to the
+address.
+
 ## Invitations
 
 | Variable | Effect |

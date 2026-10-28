@@ -1305,12 +1305,19 @@ CREATE TABLE auth_accounts (
 
 -- Consent columns keep their defaults: nobody has accepted anything yet, and
 -- inventing an acceptance would be a lie in a legal record.
+--
+-- An address is taken as confirmed, as of the day its person joined: the PHP
+-- application activated each account through a link sent to it (the user,
+-- 2026-10-27). Left unconfirmed, nobody carried over could sign in with a
+-- password until they had asked for a code.
 INSERT INTO auth_accounts
     (node_id, email, password, totp_secret, totp_enabled,
-     totp_recovery_codes, totp_last_verified_at)
-SELECT node_id, email, password, totp_secret, totp_enabled,
-       totp_recovery_codes, totp_last_verified_at
-FROM people_people;
+     totp_recovery_codes, totp_last_verified_at, email_verified_at)
+SELECT person.node_id, person.email, person.password, person.totp_secret, person.totp_enabled,
+       person.totp_recovery_codes, person.totp_last_verified_at,
+       IF(person.email IS NULL OR person.email = '', NULL,
+          COALESCE((SELECT node.created_on FROM nodes AS node WHERE node.id = person.node_id), NOW()))
+FROM people_people AS person;
 
 -- Everything worth keeping is now on `nodes` and in `auth_accounts`.
 --
