@@ -39,17 +39,24 @@ Anahita Web, Mobile and CLI use the same names.
 
 For whoever maintains anahita-services:
 
-1. On an up-to-date `main` that passes `make test`, tag it and push the tag:
+1. Raise the version NodeInfo says, `softwareVersion` in
+   `auth-service/cmd/api/handlers/node_info.go`, to the one being made, and
+   commit it: it is what the site tells the fediverse it runs. It is in the
+   code and not taken from the tag, since an image that did not change is
+   tagged again rather than built ([What is rebuilt](#what-is-rebuilt)), and
+   would go on saying the version it was built at; auth-service is so built
+   at every release.
+2. On an up-to-date `main` that passes `make test`, tag it and push the tag:
 
    ~~~sh
    git tag v1.0.0 && git push origin v1.0.0
    ~~~
 
-2. The tag starts `.github/workflows/images.yml`, which publishes every
+3. The tag starts `.github/workflows/images.yml`, which publishes every
    image for amd64 and arm64 as `ghcr.io/anahitasocial/<image>:v1.0.0`, and
    as `latest`. It builds only the images that changed since the Birth
    release before: [What is rebuilt](#what-is-rebuilt).
-3. On GitHub, Releases › Draft a new release, from the tag, named
+4. On GitHub, Releases › Draft a new release, from the tag, named
    "v1.0.0 Birth": what it adds, changes and fixes, and what to do when
    upgrading.
 
