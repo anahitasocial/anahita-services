@@ -137,7 +137,7 @@ writing. There are two ways to ask:
 | Request | For | Offers |
 | --- | --- | --- |
 | `GET /hashtags/_suggest?q=ana` | Typing a hashtag | Those that begin with `q` (what follows the `#`) |
-| `POST /hashtags/_suggest` with `{"title": "…", "content": "…"}` | Long content | Those that are words of the title and content |
+| `POST /hashtags/_suggest` with `{"title": "…", "content": "…"}` | Long post | Those that are words of the title and content |
 
 Both take `limit`, 1 to 20, and offer 8 when it is not given. Both answer
 with the best first:
@@ -205,7 +205,7 @@ the next post with it makes it again, and the feed finds it.
 
 ## What the web app does
 
-- **While typing a hashtag**, in the short box, a reply and long content,
+- **While typing a hashtag**, in the short box, a reply and a long post,
   hashtags in use that begin with what was typed are offered under the line
   being written, or above it when there is no room (on a phone, the
   keyboard takes the bottom of the screen). They float over the page, so
@@ -213,7 +213,7 @@ the next post with it makes it again, and the feed finds it.
   - On a phone: a row of chips; one tap puts one in.
   - On a desktop: a short list with how many posts each is on; the arrow
     keys move through it, Enter or Tab puts one in, Escape puts it away.
-- **Under the long content editor**, a row of suggested hashtags made from
+- **Under the long post editor**, a row of suggested hashtags made from
   the title and content, asked for a moment after writing stops once there
   are 80 characters or more. One tap adds a hashtag at the end, on the line
   of hashtags the text ends with, or on a line of its own.
