@@ -72,6 +72,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # The version the release is called and the one it tells other
+      # servers it runs (NodeInfo) are the same: a release whose
+      # auth-service says another is stopped before an image is built.
+      # Forgotten at v1.0.5 and v1.0.7 (docs/releases.md, step 1).
+      - name: The version NodeInfo says is the tag's
+        run: |
+          said=$(sed -n 's/^var softwareVersion = "\(.*\)"$/\1/p' auth-service/cmd/api/handlers/node_info.go)
+          if [ "v$said" != "$VERSION" ]; then
+            echo "auth-service says $said, and the tag is $VERSION: raise softwareVersion in auth-service/cmd/api/handlers/node_info.go, commit it, and tag that commit"
+            exit 1
+          fi
+
       # Every binary, for this runner's architecture, as the images copy
       # them: the Makefile's build targets, without its image builds.
       - name: Build the binaries

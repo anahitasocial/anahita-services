@@ -45,7 +45,8 @@ For whoever maintains anahita-services:
    code and not taken from the tag, since an image that did not change is
    tagged again rather than built ([What is rebuilt](#what-is-rebuilt)), and
    would go on saying the version it was built at; auth-service is so built
-   at every release.
+   at every release. The workflow checks it: a tag whose `softwareVersion`
+   says another version stops before any image is built, and says so.
 2. On an up-to-date `main` that passes `make test`, tag it and push the tag:
 
    ~~~sh
