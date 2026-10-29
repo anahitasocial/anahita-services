@@ -428,6 +428,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Animated images: GIF, APNG and animated WebP, through the video service](plans/done/animated-images.md) | 41 | done 2026-10-14: GIFs and animated PNGs (not WebP), and video posts going to other servers and Bluesky |
 | [A command-line client for Anahita](plans/cli-client.md) | 42 | recorded 2026-10-12 for later; waits for the API reference |
 | [Translating posts](plans/translation.md) | 43 | recorded 2026-10-12 for later: LibreTranslate and DeepL behind one interface |
+| [Anahita AI](plans/anahita-ai.md) | 95 | planned 2026-10-29: a service of its own, the model the installation's choice (Ollama first); statistics and Ask for administrators, then alt-text drafts |
 | [Replies of any kind: pictures, a GIF or a video](plans/done/replies-of-any-kind.md) | 53 | done 2026-10-14 |
 | [Hiding a reply from others, across servers](plans/done/hiding-replies-across-servers.md) | 44 | done 2026-10-15: a block hides what the blocked person left, for every reader, and is told to the fediverse; a reply hidden here is hidden on Bluesky; a person's block does not reach their groups (item 55 is blocking by a group) |
 | [auth-service hardening](plans/auth-service-hardening.md) | 0b, 0c | 0b and 0c done 2026-10-03; the plan's "Not checked" list is still open |

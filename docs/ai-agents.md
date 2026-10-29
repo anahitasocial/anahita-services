@@ -10,7 +10,9 @@ and what it answers.
 
 The server is [anahita-mcp](https://github.com/anahitasocial/anahita-mcp),
 open source under MIT. It reads, and only reads: these docs, the web app's,
-and the API reference. There are two ways to use it.
+and the API reference. It knows nothing of any one site: a model
+working inside a site is a separate plan,
+[Anahita AI](plans/anahita-ai.md). There are two ways to use it.
 
 | Way | Address or command | For |
 | --- | --- | --- |
