@@ -24,8 +24,8 @@ type CaseResolve struct {
 	// `actioned`, something was done; or `dismissed`, nothing needed doing.
 	Status string `json:"status" validate:"required,oneof=actioned dismissed"`
 	// What was done: `none`, `deleted`, `disabled`, `archived`, `blocked`,
-	// `removed_as_spam` or `other`.
-	Action string `json:"action" validate:"omitempty,oneof=none deleted disabled archived blocked removed_as_spam other"`
+	// `removed_as_spam`, `refused` or `other`.
+	Action string `json:"action" validate:"omitempty,oneof=none deleted disabled archived blocked removed_as_spam refused other"`
 	// What the administrator wants remembered of it.
 	Note string `json:"note" validate:"max=2000"`
 }

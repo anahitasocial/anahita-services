@@ -79,7 +79,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 </ul>
 <p class="group">Fediverse and Bluesky</p>
 <ul>
-<li><a href="#activitypub-service">The fediverse</a> <span class="count">20</span></li>
+<li><a href="#activitypub-service">The fediverse</a> <span class="count">23</span></li>
 <li><a href="#atproto-service">Bluesky</a> <span class="count">7</span></li>
 <li><a href="#syndication-service">Websites</a> <span class="count">5</span></li>
 </ul>
@@ -89,7 +89,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 </ul>
 <p class="group">Reference</p>
 <ul>
-<li><a href="#schemas">Shapes</a> <span class="count">160</span></li>
+<li><a href="#schemas">Shapes</a> <span class="count">161</span></li>
 </ul>
 </nav>
 <main>
@@ -9490,6 +9490,83 @@ who may call it: somebody signed in.">
 </table>
 <p class="handler">Answered by <code>activitypub/cmd/api/handlers.(*Handlers).RestorePictures</code></p>
 </details>
+<details class="route" id="getActivitypubRefusedAccounts" data-search="get /activitypub/refused-accounts the accounts refused newest first. `q` narrows it to the names, handles and reasons it is found in.
+
+who may call it: a site administrator.">
+<summary><span class="method get">GET</span> <code class="path">/activitypub/refused-accounts</code> <span class="summary">The accounts refused</span></summary>
+<div class="description"><p>Newest first. <code>q</code> narrows it to the names, handles and reasons it is found in.</p></div>
+<p class="who"><strong>Who:</strong> an administrator</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>q</code></td><td>query</td><td>string</td><td>Words the name or the reason holds.</td></tr>
+<tr><td><code>start</code></td><td>query</td><td>integer</td><td>How many to pass over.</td></tr>
+<tr><td><code>limit</code></td><td>query</td><td>integer</td><td>The most to send: 50 unless asked, 200 at most.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body">object { <code>data</code>: list of <a href="#schema-RefusedAccount">RefusedAccount</a> or null, <code>pagination</code>: <a href="#schema-Pagination">Pagination</a> } <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not do this</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>activitypub/cmd/api/handlers.(*Handlers).BrowseRefusedAccounts</code></p>
+</details>
+<details class="route" id="postActivitypubRefusedAccounts" data-search="post /activitypub/refused-accounts refuse an account from another network by the profile kept here (`actor_id`), or by a handle or an address (`address`): `@user@server`, an actor&#39;s address, a bluesky handle or a did. nothing from it is taken, nothing is sent to it, it cannot be looked up or followed, and what is here of it is removed: at once on the fediverse, within a minute on bluesky.
+
+who may call it: a site administrator.">
+<summary><span class="method post">POST</span> <code class="path">/activitypub/refused-accounts</code> <span class="summary">Refuse an account from another network</span></summary>
+<div class="description"><p>By the profile kept here (<code>actor_id</code>), or by a handle or an address (<code>address</code>): <code>@user@server</code>, an actor&#39;s address, a Bluesky handle or a DID. Nothing from it is taken, nothing is sent to it, it cannot be looked up or followed, and what is here of it is removed: at once on the fediverse, within a minute on Bluesky.</p></div>
+<p class="who"><strong>Who:</strong> an administrator</p>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>actor_id</code></td><td>integer</td><td>The profile kept here.</td></tr>
+<tr><td><code>address</code></td><td>string</td><td>Or a handle or an address: <code>@user@server</code>, an actor&#39;s address, a Bluesky handle or a DID.</td></tr>
+<tr><td><code>reason</code></td><td>string</td><td>Why it is refused, for the administrators who come after.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">201</td><td>Created<div class="body"><a href="#schema-RefusedAccount">RefusedAccount</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>account_required</code>: the request names no account; <code>account_unreadable</code>: the address is not one<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not do this</td></tr>
+<tr><td class="status s4">404</td><td><code>account_not_found</code><div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">409</td><td><code>is_local</code>: the profile is this installation&#39;s own; <code>already_refused</code>: it, or its server, is refused already<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>activitypub/cmd/api/handlers.(*Handlers).RefuseAccount</code></p>
+</details>
+<details class="route" id="deleteActivitypubRefusedAccountsById" data-search="delete /activitypub/refused-accounts/{id} stop refusing an account what was removed does not come back: the account can be looked up and followed again.
+
+who may call it: a site administrator.">
+<summary><span class="method delete">DELETE</span> <code class="path">/activitypub/refused-accounts/{id}</code> <span class="summary">Stop refusing an account</span></summary>
+<div class="description"><p>What was removed does not come back: the account can be looked up and followed again.</p></div>
+<p class="who"><strong>Who:</strong> an administrator</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>Its number on the list.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">204</td><td>done</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not do this</td></tr>
+<tr><td class="status s4">404</td><td>it is not refused</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>activitypub/cmd/api/handlers.(*Handlers).LetAccountBack</code></p>
+</details>
 <details class="route" id="getActivitypubSettings" data-search="get /activitypub/settings whether the viewer is on the fediverse, and could be who may call it: somebody signed in.">
 <summary><span class="method get">GET</span> <code class="path">/activitypub/settings</code> <span class="summary">Whether the viewer is on the fediverse, and could be</span></summary>
 <p class="who"><strong>Who:</strong> somebody signed in</p>
@@ -10279,7 +10356,7 @@ who may call it: a site administrator, with a token that carries `actors:read`."
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>action</code></td><td>string</td><td>What was done: <code>none</code>, <code>deleted</code>, <code>disabled</code>, <code>archived</code>, <code>blocked</code>, <code>removed_as_spam</code> or <code>other</code>. One of <code>none</code>, <code>deleted</code>, <code>disabled</code>, <code>archived</code>, <code>blocked</code>, <code>removed_as_spam</code>, <code>other</code>.</td></tr>
+<tr><td><code>action</code></td><td>string</td><td>What was done: <code>none</code>, <code>deleted</code>, <code>disabled</code>, <code>archived</code>, <code>blocked</code>, <code>removed_as_spam</code>, <code>refused</code> or <code>other</code>. One of <code>none</code>, <code>deleted</code>, <code>disabled</code>, <code>archived</code>, <code>blocked</code>, <code>removed_as_spam</code>, <code>refused</code>, <code>other</code>.</td></tr>
 <tr><td><code>note</code></td><td>string</td><td>What the administrator wants remembered of it. At most 2000 characters.</td></tr>
 <tr><td><code>status</code> <span class="required">always</span></td><td>string</td><td><code>actioned</code>, something was done; or <code>dismissed</code>, nothing needed doing. One of <code>actioned</code>, <code>dismissed</code>.</td></tr>
 </tbody>
@@ -11074,6 +11151,23 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>description</code></td><td>string</td><td>The same in words, for whoever is building a client.</td></tr>
 <tr><td><code>error</code> <span class="required">always</span></td><td>string</td><td>Why, as a code a client can tell apart: <code>language_invalid</code>, <code>quote_not_allowed</code> and so on. Each route lists its own.</td></tr>
 <tr><td><code>reason</code></td><td>string</td><td>What lies behind it, where one code has several causes: why a post may not be quoted, for one.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-RefusedAccount" data-search="refusedaccount created_at created_by handle id identifier name network reason">
+<h3>RefusedAccount</h3>
+<p>One account on the list.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>created_at</code> <span class="required">always</span></td><td>time</td><td>When.</td></tr>
+<tr><td><code>created_by</code> <span class="required">always</span></td><td>integer</td><td>The administrator who refused it.</td></tr>
+<tr><td><code>handle</code> <span class="required">always</span></td><td>string</td><td>How it was shown when it was refused.</td></tr>
+<tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td></td></tr>
+<tr><td><code>identifier</code> <span class="required">always</span></td><td>string</td><td>The actor&#39;s address, or the DID.</td></tr>
+<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+<tr><td><code>network</code> <span class="required">always</span></td><td>string</td><td><code>activitypub</code> or <code>atproto</code>.</td></tr>
+<tr><td><code>reason</code> <span class="required">always</span></td><td>string</td><td>Why it is refused. For administrators only.</td></tr>
 </tbody>
 </table>
 </div>

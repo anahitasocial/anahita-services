@@ -21,6 +21,9 @@ const (
 	ActionOther    = "other"
 	// Removed as spam: destroyed at once, by a moderator (roadmap row 102).
 	ActionRemovedAsSpam = "removed_as_spam"
+	// Refused: an account from another network refused for the whole site,
+	// and removed with what was here of it (docs/plans/done/refused-accounts.md).
+	ActionRefused = "refused"
 
 	// ReasonRule is the reason given for breaking one of the rules: the
 	// site's, or a group's or an event's. Not in the reasons file: the rules

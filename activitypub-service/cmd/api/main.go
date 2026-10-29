@@ -81,14 +81,19 @@ func main() {
 	setViewer := an_mw.SetViewer(config, jwks)
 
 	env := &handlers.Env{
-		Site:        addresses,
-		Nodes:       services.NewGraphNodeGRPC(config),
-		Accounts:    repositories.NewAccounts(db),
-		Keys:        repositories.NewKeys(db),
-		Actors:      repositories.NewActors(db),
-		Follows:     repositories.NewFollows(db),
-		Objects:     repositories.NewObjects(db),
-		Blocks:      repositories.NewBlocks(db),
+		Site:     addresses,
+		Nodes:    services.NewGraphNodeGRPC(config),
+		Accounts: repositories.NewAccounts(db),
+		Keys:     repositories.NewKeys(db),
+		Actors:   repositories.NewActors(db),
+		Follows:  repositories.NewFollows(db),
+		Objects:  repositories.NewObjects(db),
+		Blocks:   repositories.NewBlocks(db),
+		// The accounts refused one by one (docs/plans/done/refused-accounts.md).
+		RefusedAccounts: federation.NewRefusedAccounts(db),
+		PhotoPostsOf: func(ownerID int64) ([]int64, error) {
+			return federation.PhotoPostsOf(db, ownerID)
+		},
 		Missed:      repositories.NewMissed(db),
 		FollowEdges: services.NewSocialgraphFollowGRPC(config),
 		Likes:       services.NewLikesGRPC(config),

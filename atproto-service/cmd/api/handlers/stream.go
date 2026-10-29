@@ -24,8 +24,14 @@ import (
 // itself is theirs here too (own.go).
 func (h *Handlers) Wanted() ([]string, error) {
 	wanted, err := h.Actors.Followed(bsky.MaxWanted)
-	if err != nil || !h.canWrite() {
+	if err != nil {
 		return wanted, err
+	}
+	// Not an account that is refused, though it is still kept for the
+	// moment before it is removed (ForgetRefused).
+	wanted = slices.DeleteFunc(wanted, h.refusedAccount)
+	if !h.canWrite() {
+		return wanted, nil
 	}
 	accounts, err := h.Accounts.Working()
 	if err != nil {

@@ -230,6 +230,21 @@ func idsOf(db *sql.DB, query string, args ...any) ([]int64, error) {
 	return ids, rows.Err()
 }
 
+// The photo posts kept of one person from elsewhere: what is stored of
+// their pictures is removed with them, when that person is (refused, or
+// gone where they were).
+const photoPostsOf = `
+SELECT id
+FROM nodes
+WHERE owner_id = ?
+  AND type = ?
+  AND uri IS NOT NULL`
+
+// PhotoPostsOf finds them.
+func PhotoPostsOf(db *sql.DB, ownerID int64) ([]int64, error) {
+	return idsOf(db, photoPostsOf, ownerID, constants.NodeMediumPhotoEntityType)
+}
+
 // RemovePost takes a post from elsewhere away, with what is stored of its
 // pictures. It answers with the post as it was, or nil when there was
 // nothing to take.

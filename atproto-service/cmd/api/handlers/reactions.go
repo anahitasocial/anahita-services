@@ -128,7 +128,7 @@ func (h *Handlers) reactionsTo(ctx context.Context, account *repositories.Accoun
 
 // reaction keeps one thing somebody did.
 func (h *Handlers) reaction(ctx context.Context, account *repositories.Account, person *entities.AnahitaNode, told *bsky.Notification) error {
-	if !bsky.ValidDID(told.Author.DID) || told.Author.DID == account.DID || h.refused(strings.ToLower(told.Author.Handle)) {
+	if !bsky.ValidDID(told.Author.DID) || told.Author.DID == account.DID || h.refused(strings.ToLower(told.Author.Handle)) || h.refusedAccount(told.Author.DID) {
 		return nil
 	}
 

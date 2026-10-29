@@ -1862,7 +1862,7 @@
               "schema": {
                 "properties": {
                   "action": {
-                    "description": "What was done: `none`, `deleted`, `disabled`, `archived`, `blocked`, `removed_as_spam` or `other`.",
+                    "description": "What was done: `none`, `deleted`, `disabled`, `archived`, `blocked`, `removed_as_spam`, `refused` or `other`.",
                     "enum": [
                       "none",
                       "deleted",
@@ -1870,6 +1870,7 @@
                       "archived",
                       "blocked",
                       "removed_as_spam",
+                      "refused",
                       "other"
                     ],
                     "type": "string"

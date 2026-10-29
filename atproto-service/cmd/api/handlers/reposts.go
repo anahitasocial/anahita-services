@@ -27,7 +27,7 @@ const repostService = "feed-service"
 
 // reposted is somebody on Bluesky having reposted something.
 func (h *Handlers) reposted(ctx context.Context, kept *repositories.RemoteActor, rkey string, record json.RawMessage) error {
-	if h.Reposts == nil || h.RepostRecords == nil || !bsky.ValidRkey(rkey) || h.refused(kept.Handle) {
+	if h.Reposts == nil || h.RepostRecords == nil || !bsky.ValidRkey(rkey) || h.refused(kept.Handle) || h.refusedAccount(kept.DID) {
 		return nil
 	}
 	followed, err := h.Actors.IsFollowedFromHere(kept.NodeID)
@@ -113,7 +113,7 @@ func (h *Handlers) fetchPost(ctx context.Context, uri string) (*entities.Anahita
 		log.Printf("whoever wrote %s could not be read: %v", uri, err)
 		return nil, nil
 	}
-	if h.refused(profile.Handle) {
+	if h.refused(profile.Handle) || h.refusedAccount(profile.DID) {
 		return nil, nil
 	}
 	if _, err := h.keep(profile); err != nil {

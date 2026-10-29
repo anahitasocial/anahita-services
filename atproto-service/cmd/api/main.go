@@ -79,11 +79,16 @@ func main() {
 	changed := make(chan struct{}, 1)
 
 	env := &handlers.Env{
-		Site:          addresses,
-		Nodes:         nodes,
-		Actors:        repositories.NewActors(db),
-		Bluesky:       client,
-		Blocks:        blocks,
+		Site:    addresses,
+		Nodes:   nodes,
+		Actors:  repositories.NewActors(db),
+		Bluesky: client,
+		Blocks:  blocks,
+		// The accounts refused one by one (docs/plans/done/refused-accounts.md).
+		RefusedAccounts: federation.NewRefusedAccounts(db),
+		PhotoPostsOf: func(ownerID int64) ([]int64, error) {
+			return federation.PhotoPostsOf(db, ownerID)
+		},
 		Reposts:       services.NewRepostGRPC(config),
 		RepostRecords: repositories.NewReposts(db),
 		Keeper: &federation.Keeper{
@@ -225,6 +230,10 @@ func main() {
 		_, forgotten := h.Tidy(nil, people)
 		return removed, forgotten
 	})
+
+	// An account refused is removed within a minute, with what is here of
+	// it.
+	go handlers.RunRefusedSweep(ctx, 30*time.Second, h.ForgetRefused)
 
 	// What the bus lost is looked for now and then.
 	go h.RunCatchUp(ctx, time.Minute)

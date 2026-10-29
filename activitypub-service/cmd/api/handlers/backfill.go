@@ -40,7 +40,7 @@ func (h *Handlers) backfill(kept *repositories.RemoteActor) {
 	if h.Fetcher == nil || kept == nil {
 		return
 	}
-	if h.Blocks != nil && h.Blocks.IsBlocked(hostOf(kept.URI)) {
+	if (h.Blocks != nil && h.Blocks.IsBlocked(hostOf(kept.URI))) || h.accountRefused(kept.URI) {
 		return
 	}
 

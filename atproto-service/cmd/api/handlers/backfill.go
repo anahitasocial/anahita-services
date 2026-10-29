@@ -24,7 +24,7 @@ const backfillPosts = 20
 // It is done once for each of them, by whichever copy of this service
 // claims it; a reading that fails gives the claim back, to be tried again.
 func (h *Handlers) backfill(kept *repositories.RemoteActor) {
-	if kept == nil || h.refused(kept.Handle) {
+	if kept == nil || h.refused(kept.Handle) || h.refusedAccount(kept.DID) {
 		return
 	}
 	claimed, err := h.Actors.BeginBackfill(kept.NodeID)

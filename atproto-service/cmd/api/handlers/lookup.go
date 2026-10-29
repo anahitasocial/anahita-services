@@ -193,8 +193,9 @@ func (h *Handlers) find(ctx context.Context, query string) (*bsky.Profile, strin
 		return nil, errLookupFailed
 	}
 
-	// A DID that was asked for has a handle that may be refused.
-	if h.refused(strings.ToLower(profile.Handle)) {
+	// A DID that was asked for has a handle that may be refused, and an
+	// account may be refused by itself, whatever it was asked for by.
+	if h.refused(strings.ToLower(profile.Handle)) || h.refusedAccount(profile.DID) {
 		return nil, errLookupBlocked
 	}
 	return profile, ""

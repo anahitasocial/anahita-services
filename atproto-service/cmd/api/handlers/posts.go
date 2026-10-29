@@ -40,7 +40,7 @@ func (h *Handlers) keepPost(author *repositories.RemoteActor, rkey string, post 
 	if author == nil || post == nil || !bsky.ValidRkey(rkey) {
 		return nil
 	}
-	if h.refused(author.Handle) {
+	if h.refused(author.Handle) || h.refusedAccount(author.DID) {
 		return nil
 	}
 	followed, err := h.Actors.IsFollowedFromHere(author.NodeID)
@@ -199,12 +199,18 @@ func (h *Handlers) forget(kept *repositories.RemoteActor) error {
 	if node, err := h.Nodes.Read(kept.NodeID); err == nil && h.Keeper != nil {
 		h.Keeper.DeleteActorPictures(node)
 	}
+	// Their photo posts, with their pictures in storage, which the graph's
+	// removal of them would leave.
+	h.removePhotoPosts(kept.NodeID)
 	if _, err := h.Nodes.DeleteRemoteActor(bsky.ActorURI(kept.DID)); err != nil {
 		return err
 	}
 	if err := h.Actors.Delete(kept.NodeID); err != nil {
 		return err
 	}
+	// The other services are told, as of a purge: the reports about them
+	// are closed, and what was chosen about them goes.
+	h.announceGone(kept.NodeID)
 	h.changed()
 	return nil
 }

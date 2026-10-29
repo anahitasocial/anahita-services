@@ -296,7 +296,7 @@ func (h *Handlers) fetchNote(ctx context.Context, address string) (*entities.Ana
 	if note.Type != "Note" || note.ID == "" || !sameHost(note.ID, address) || len(note.ID) > 512 {
 		return nil, nil
 	}
-	if !note.IsPublic() || note.IsReply() || !sameHost(note.Author(), note.ID) {
+	if !note.IsPublic() || note.IsReply() || !sameHost(note.Author(), note.ID) || h.accountRefused(note.Author()) {
 		return nil, nil
 	}
 

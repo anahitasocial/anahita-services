@@ -53,6 +53,11 @@ type Env struct {
 	Actors  repositories.ActorsInterface
 	Bluesky Bluesky
 	Blocks  Refused
+	// The accounts refused one by one, by DID here
+	// (docs/plans/done/refused-accounts.md), and the photo posts of somebody,
+	// removed with their pictures when they are.
+	RefusedAccounts federation.RefusedAccountsInterface
+	PhotoPostsOf    func(ownerID int64) ([]int64, error)
 	// For writing to Bluesky as an account somebody connected: who
 	// connected what, what was written, what does the writing, what the
 	// kept tokens are encrypted with, where what waits to be written is
@@ -165,6 +170,13 @@ func (h *Handlers) refused(handle string) bool {
 		return false
 	}
 	return h.Blocks.IsBlocked(originDomain) || (handle != "" && h.Blocks.IsBlocked(handle))
+}
+
+// refusedAccount says whether an account is refused by itself, by its DID:
+// what does not change when its handle does.
+func (h *Handlers) refusedAccount(did string) bool {
+	return h.RefusedAccounts != nil && did != "" &&
+		h.RefusedAccounts.IsRefused(federation.NetworkATProto, did)
 }
 
 func cutRunes(text string, max int) string {

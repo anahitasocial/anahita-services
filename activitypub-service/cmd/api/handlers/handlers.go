@@ -12,6 +12,7 @@ import (
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	"anahita-libs/event"
+	"anahita-libs/federation"
 	an_mw "anahita-libs/middleware"
 	"anahita-libs/permissions"
 	"anahita-libs/policy"
@@ -64,6 +65,12 @@ type Env struct {
 	Lab bool
 	// The servers that are refused. Nil for none, in tests.
 	Blocks repositories.BlocksInterface
+	// The accounts refused one by one, on this network and Bluesky
+	// (docs/plans/done/refused-accounts.md).
+	RefusedAccounts federation.RefusedAccountsInterface
+	// The photo posts of somebody from elsewhere, removed with their pictures
+	// when they are.
+	PhotoPostsOf func(ownerID int64) ([]int64, error)
 	// Who likes what, in the graph, as like-service keeps it.
 	Likes services.LikesGRPCInterface
 	// Reposts, in the graph, as feed-service keeps them.

@@ -95,6 +95,55 @@
         ],
         "type": "object"
       },
+      "RefusedAccount": {
+        "description": "RefusedAccount is one account on the list.",
+        "properties": {
+          "created_at": {
+            "description": "When.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "created_by": {
+            "description": "The administrator who refused it.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "handle": {
+            "description": "How it was shown when it was refused.",
+            "type": "string"
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "identifier": {
+            "description": "The actor's address, or the DID.",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "network": {
+            "description": "`activitypub` or `atproto`.",
+            "type": "string"
+          },
+          "reason": {
+            "description": "Why it is refused. For administrators only.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "network",
+          "identifier",
+          "handle",
+          "name",
+          "reason",
+          "created_by",
+          "created_at"
+        ],
+        "type": "object"
+      },
       "activitypub.Actor": {
         "description": "Actor is somebody, as they are described to another server.",
         "properties": {
@@ -996,6 +1045,220 @@
         ],
         "x-handler": "activitypub/cmd/api/handlers.(*Handlers).RestorePictures",
         "x-viewer": "signed_in"
+      }
+    },
+    "/activitypub/refused-accounts": {
+      "get": {
+        "description": "Newest first. `q` narrows it to the names, handles and reasons it is found in.\n\nWho may call it: a site administrator.",
+        "operationId": "getActivitypubRefusedAccounts",
+        "parameters": [
+          {
+            "description": "Words the name or the reason holds.",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send: 50 unless asked, 200 at most.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/RefusedAccount"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not do this"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The accounts refused",
+        "tags": [
+          "activitypub-service"
+        ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).BrowseRefusedAccounts",
+        "x-viewer": "admin"
+      },
+      "post": {
+        "description": "By the profile kept here (`actor_id`), or by a handle or an address (`address`): `@user@server`, an actor's address, a Bluesky handle or a DID. Nothing from it is taken, nothing is sent to it, it cannot be looked up or followed, and what is here of it is removed: at once on the fediverse, within a minute on Bluesky.\n\nWho may call it: a site administrator.",
+        "operationId": "postActivitypubRefusedAccounts",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "actor_id": {
+                    "description": "The profile kept here.",
+                    "format": "int64",
+                    "type": "integer"
+                  },
+                  "address": {
+                    "description": "Or a handle or an address: `@user@server`, an actor's address, a Bluesky handle or a DID.",
+                    "type": "string"
+                  },
+                  "reason": {
+                    "description": "Why it is refused, for the administrators who come after.",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefusedAccount"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`account_required`: the request names no account; `account_unreadable`: the address is not one"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not do this"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`account_not_found`"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`is_local`: the profile is this installation's own; `already_refused`: it, or its server, is refused already"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Refuse an account from another network",
+        "tags": [
+          "activitypub-service"
+        ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).RefuseAccount",
+        "x-viewer": "admin"
+      }
+    },
+    "/activitypub/refused-accounts/{id}": {
+      "delete": {
+        "description": "What was removed does not come back: the account can be looked up and followed again.\n\nWho may call it: a site administrator.",
+        "operationId": "deleteActivitypubRefusedAccountsById",
+        "parameters": [
+          {
+            "description": "Its number on the list.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "done"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not do this"
+          },
+          "404": {
+            "description": "it is not refused"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Stop refusing an account",
+        "tags": [
+          "activitypub-service"
+        ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).LetAccountBack",
+        "x-viewer": "admin"
       }
     },
     "/activitypub/settings": {

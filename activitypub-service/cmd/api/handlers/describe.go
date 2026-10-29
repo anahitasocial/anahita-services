@@ -66,3 +66,9 @@ type DomainRef struct {
 	// Its name: `spam.example`.
 	Domain string `param:"domain"`
 }
+
+// RefusedAccountRef names a refused account, by its number on the list.
+type RefusedAccountRef struct {
+	// Its number on the list.
+	ID int64 `param:"id"`
+}

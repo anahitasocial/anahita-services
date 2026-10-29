@@ -41,6 +41,7 @@ Bluesky account they already have. See [Bluesky](#bluesky).
 - [Replies](#replies)
 - [Likes and reposts](#likes-and-reposts)
 - [Servers that are refused](#servers-that-are-refused)
+- [Accounts that are refused](#accounts-that-are-refused)
 - [Pictures that are removed](#pictures-that-are-removed)
 - [Posts and people that are removed](#posts-and-people-that-are-removed)
 - [Bluesky](#bluesky)
@@ -331,6 +332,8 @@ them. A public note they post arrives there within seconds.
   have been looked at.
 - **Refuse a server** that sends abuse: see
   [Servers that are refused](#servers-that-are-refused).
+- **Refuse one account** that does, here or on Bluesky: see
+  [Accounts that are refused](#accounts-that-are-refused).
 - **The service's log** says why anything that arrived was refused
   (`inbox: … refused: …`), and what a lookup could not do.
 - **Clocks.** A request dated more than fifteen minutes from now is
@@ -1088,6 +1091,51 @@ ten.
 the inbox, counted before anything is read, and answered `429` beyond
 that.
 
+## Accounts that are refused
+
+One account at a time, on the fediverse or on Bluesky, refused for the whole
+site by an **administrator** (`federation_account_blocks`, planned in
+[plans/done/refused-accounts.md](plans/done/refused-accounts.md)). Where a server is
+refused for everybody on it, this is for one account that did wrong: a
+spammer on a large server, somebody harassing people from Bluesky.
+
+It is kept by what does not change: on the fediverse the account's address
+(the actor's `id`), on Bluesky its DID, whatever its handle becomes. A
+refused account:
+
+- **is not listened to:** what it sends to the inbox is answered `403`
+  before its key is fetched, and what Bluesky tells of it is passed over;
+  the stream asks for it no more;
+- **cannot be looked up, followed or kept again,** by any way it might
+  come: a follow, a mention, a repost of something of its;
+- **is sent nothing:** its follows are gone, and a mention of it finds
+  nobody;
+- **is removed, with what is here of it:** its profile, posts, replies,
+  likes and follows, and what is stored of their pictures; on the fediverse
+  at once, on Bluesky within a minute. The other services are told as of a
+  purge, so the reports about it are closed and what was chosen about it is
+  forgotten.
+
+Let back, it can be looked up and followed again; nothing that was removed
+comes back.
+
+| Request | Does |
+| --- | --- |
+| `GET /activitypub/refused-accounts?q=&limit=&start=` | A page of the list, newest first, with `pagination.total`. `q` narrows it to the names, handles and reasons it is found in |
+| `POST /activitypub/refused-accounts` `{ "actor_id": 123, "reason": "…" }` | Refuses the profile kept here as `actor_id`, and removes it |
+| `POST /activitypub/refused-accounts` `{ "address": "@bob@example.net", "reason": "…" }` | Refuses an account by a handle or an address, kept here or not: `@user@server`, an actor's address, a Bluesky handle (looked up at Bluesky's public service for its DID) or a DID |
+| `DELETE /activitypub/refused-accounts/<id>` | Stops refusing it |
+
+`409 is_local` for a profile made here, `409 already_refused` for one on the
+list or on a refused server, `404 account_not_found` for one that cannot be
+found. Both lists are served by activitypub-service, the one for Bluesky too,
+and read by both services; a change takes up to half a minute to take hold in
+every copy of them.
+
+In the web app it is in **Site settings, under Fediverse**, in the
+**Accounts** tab beside **Servers**; **Refuse on this site** in the menu of a
+profile from another network; and **Refuse account** on a report about one.
+
 ## Pictures that are removed
 
 A picture is nearly all of what a post from another server costs to keep:
@@ -1253,7 +1301,7 @@ page. How a handle is written says which network is asked:
 | `400 lookup_unreadable` | What was typed is not a handle, a DID or the address of a profile |
 | `404 lookup_is_here` | The handle is this installation's own name, or one under it |
 | `404 lookup_not_found` | Nobody is there: never made, closed, taken down, or put away by its owner |
-| `404 lookup_refused` | The handle is under a name on the list of [servers that are refused](#servers-that-are-refused), or `bsky.app` is on it, which refuses the whole of Bluesky |
+| `404 lookup_refused` | The handle is under a name on the list of [servers that are refused](#servers-that-are-refused), or `bsky.app` is on it, which refuses the whole of Bluesky; or the account itself is [refused](#accounts-that-are-refused) by its DID |
 | `502 lookup_failed` | Bluesky could not be reached or understood |
 | `429 too_many_lookups` | The limit |
 

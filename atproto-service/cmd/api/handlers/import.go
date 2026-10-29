@@ -155,7 +155,7 @@ func (h *Handlers) importFollows(account *repositories.Account, page []bsky.Prof
 
 // importFollow follows one account here, and says whether it did.
 func (h *Handlers) importFollow(person *entities.AnahitaNode, profile *bsky.Profile) bool {
-	if !bsky.ValidDID(profile.DID) || h.refused(strings.ToLower(profile.Handle)) {
+	if !bsky.ValidDID(profile.DID) || h.refused(strings.ToLower(profile.Handle)) || h.refusedAccount(profile.DID) {
 		return false
 	}
 	node, err := h.keep(profile)

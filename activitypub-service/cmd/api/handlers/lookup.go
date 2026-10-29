@@ -176,6 +176,11 @@ func (h *Handlers) find(ctx context.Context, query string) (*remote.Actor, strin
 	if err == nil && h.Blocks != nil && h.Blocks.IsBlocked(actor.Domain) {
 		return nil, errLookupBlocked
 	}
+	// And an account refused by itself is not found, whatever it was
+	// looked up by.
+	if err == nil && h.accountRefused(actor.ID) {
+		return nil, errLookupBlocked
+	}
 
 	switch {
 	case err == nil:
@@ -198,6 +203,11 @@ func (h *Handlers) find(ctx context.Context, query string) (*remote.Actor, strin
 // keep makes or brings up to date the node for somebody on another server,
 // and what this service alone needs to know of them.
 func (h *Handlers) keep(actor *remote.Actor) (*entities.AnahitaNode, error) {
+	// An account that is refused is never kept again, by whichever way it
+	// came: a follow, a mention, a repost of somebody else's.
+	if h.accountRefused(actor.ID) {
+		return nil, errAccountRefused
+	}
 	node := entities.NewAnahitaNode()
 	node.Type = constants.NodeActorActivityPubPersonEntityType
 	node.URI = actor.ID

@@ -92,6 +92,11 @@ func (h *Handlers) Inbox(c echo.Context) error {
 	if h.Blocks != nil && (h.Blocks.IsBlocked(hostOf(sig.KeyID)) || h.Blocks.IsBlocked(hostOf(activity.ActorID()))) {
 		return c.NoContent(http.StatusForbidden)
 	}
+	// Nor is an account refused by itself: what it sends is the activity's
+	// actor's, which is checked against who signed it below.
+	if h.accountRefused(activity.ActorID()) {
+		return c.NoContent(http.StatusForbidden)
+	}
 
 	// Somebody saying they are gone, whom nobody here ever heard of. A
 	// large server tells every server it knows each time an account is
@@ -544,10 +549,19 @@ func (h *Handlers) forget(kept *repositories.RemoteActor) error {
 	if node, err := h.Nodes.Read(kept.NodeID); err == nil {
 		h.deleteAvatar(node)
 	}
+	// Their photo posts, with their pictures in storage, which the graph's
+	// removal of them would leave.
+	h.removePhotoPosts(kept.NodeID)
 	if _, err := h.Nodes.DeleteRemoteActor(kept.URI); err != nil {
 		return err
 	}
-	return h.Actors.Delete(kept.NodeID)
+	if err := h.Actors.Delete(kept.NodeID); err != nil {
+		return err
+	}
+	// The other services are told, as of a purge: the reports about them
+	// are closed, and what was chosen about them goes.
+	h.announceGone(kept.NodeID)
+	return nil
 }
 
 // refreshed is somebody elsewhere having changed their profile. What they

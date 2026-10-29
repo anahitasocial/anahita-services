@@ -231,6 +231,32 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Takes(&handlers.BlockRequest{}).
 		Sends(http.StatusCreated, federation.DomainBlock{}).
 		Sends(http.StatusBadRequest, responses.Refusal{}, "`domain_required`: the request names no server; `domain_unreadable`: it is not a server's name; `domain_is_here`: it is this installation")
+	// The accounts refused one by one, on the fediverse and on Bluesky
+	// (docs/plans/done/refused-accounts.md). Administrators: the handlers check.
+	activitypub.GET("/refused-accounts", r.handler.BrowseRefusedAccounts).
+		Summary("The accounts refused").
+		Describe("Newest first. `q` narrows it to the names, handles and reasons it is found in.").
+		Viewer(apidoc.Admin).
+		Takes(&handlers.BlocksBrowse{}).
+		Unbound().
+		Sends(http.StatusOK, responses.List[*federation.RefusedAccount]{})
+	activitypub.POST("/refused-accounts", r.handler.RefuseAccount).
+		Summary("Refuse an account from another network").
+		Describe("By the profile kept here (`actor_id`), or by a handle or an address (`address`): `@user@server`, an actor's address, a Bluesky handle or a DID. Nothing from it is taken, nothing is sent to it, it cannot be looked up or followed, and what is here of it is removed: at once on the fediverse, within a minute on Bluesky.").
+		Viewer(apidoc.Admin).
+		Takes(&handlers.RefuseAccountRequest{}).
+		Sends(http.StatusCreated, federation.RefusedAccount{}).
+		Sends(http.StatusBadRequest, responses.Refusal{}, "`account_required`: the request names no account; `account_unreadable`: the address is not one").
+		Sends(http.StatusNotFound, responses.Refusal{}, "`account_not_found`").
+		Sends(http.StatusConflict, responses.Refusal{}, "`is_local`: the profile is this installation's own; `already_refused`: it, or its server, is refused already")
+	activitypub.DELETE("/refused-accounts/:id", r.handler.LetAccountBack).
+		Summary("Stop refusing an account").
+		Describe("What was removed does not come back: the account can be looked up and followed again.").
+		Viewer(apidoc.Admin).
+		Takes(&handlers.RefusedAccountRef{}).
+		Unbound().
+		SendsNothing(http.StatusNoContent, "done").
+		Refuses(http.StatusNotFound, "it is not refused")
 	activitypub.DELETE("/blocks/:domain", r.handler.DeleteBlock).
 		Summary("Stop refusing a server").
 		Viewer(apidoc.SuperAdmin).
