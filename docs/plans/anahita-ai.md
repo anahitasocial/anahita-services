@@ -143,7 +143,32 @@ has it. Waits for item 43.
 | Search by meaning | Embeddings, a store to compare them in, the posts already here embedded, and what other servers allow |
 | Groups and people to follow, from stated interests | A place for a person to state them; the recommendation service |
 | Help with moderation | A `report.filed` event, flags with their reasons in the abuse-case queue, and examples to measure it against before it is trusted |
-| Open science: citations from papers, answers from the community's posts | Search by meaning |
+| Open science and the knowledge graph | Its own section, below |
+
+## Open science and the knowledge graph
+
+Asked for by the user on 2026-10-29: scientific and knowledge-graph uses,
+for the research groups, libraries, schools and newsrooms Anahita is made
+for. Anahita began as tools for open learning and open science (item 50),
+and everything in it already sits on one graph ([the-graph.md](../the-graph.md)):
+people, groups, events and posts are nodes, and a post citing another is an
+edge that search and recommendations count (item 60). What a model adds is
+the world outside the site, the papers, datasets and topics posts talk
+about, as nodes of their own. **The model proposes; a person confirms.**
+Nothing it proposes becomes an edge until the post's author accepts it.
+
+| Use | What it does | What it needs first |
+| --- | --- | --- |
+| **Citations from papers** | A link or a PDF shared in a post gives its details (title, authors, year, DOI), checked against Crossref or DataCite, and the paper becomes a node: every post about it found from it | Nodes for things outside the site; link previews, which already read a link |
+| **A knowledge graph** | Topics, methods and datasets a post names proposed as nodes and edges, for its author to accept: what a community knows, laid out as the graph it already has | Citations from papers |
+| **Answers with their sources** | A question asked of a group or a whole site, answered only from its posts, each claim linked to the post it came from; "nothing here says" when nothing does | Search by meaning |
+| **Related work** | Beside a post or a paper: the posts and papers nearest it, by meaning and by the graph, each with why | Search by meaning, citations from papers |
+| **A group's research in brief** | What a research group discussed in a week or a term, with links, for those who missed it | A thread in brief (phase 4) |
+
+Each is open in the same way as the rest: what is read from the graph is
+only what the person asking may see, and nothing private goes to a provider
+outside the installation. The graph's new nodes federate as links, not as
+anything other servers must understand. To be planned with item 50.
 
 ## How much
 
@@ -165,7 +190,8 @@ Chrome.
 
 The features kept for later are larger: search by meaning about 8–12,
 suggestions from interests 5–6, help with moderation 8–12 and the examples
-to measure it, open science 12 or more.
+to measure it; open science and the knowledge graph 12–16, citations from
+papers first (4–5).
 
 ## Open
 
