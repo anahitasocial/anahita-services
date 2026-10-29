@@ -83,7 +83,7 @@ Each reason adds to a score, up to a most. The score is then kept in full for a 
 | `shared_interest` | Their public posts of the last year carry hashtags the viewer has used or liked, or follows. `ids` are those hashtags | 2 | 8 |
 | `cited` | Anybody cited them, as above, but never themselves and never the viewer. `ids` are those people | 1 | 4 |
 | `featured` | The installation's administrators featured them | 0.5 | 0.5 |
-| `popular` | Many people followed them in the last 30 days | 0.5 | 0.5 |
+| `popular` | Many people followed them in the last 30 days, counted in tens: 1 to 10 people are one, 11 to 20 two (`PopularStep`), so that thirty is more than three, and still less than one person the viewer follows | 0.5 | 2 |
 
 Two profiles that score the same are in the order of their ids, so an answer is the same each time it is asked for.
 

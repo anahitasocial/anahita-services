@@ -397,9 +397,9 @@ GROUP BY c.id
 ORDER BY 2 DESC, c.id
 LIMIT ?`
 
-// Many people have followed them lately.
+// Many people have followed them lately, counted in tens (PopularStep).
 const signalPopular = `
-SELECT c.id, COUNT(*), ''
+SELECT c.id, CEIL(COUNT(*) / ?), ''
 FROM edges AS follows
 JOIN nodes AS c ON c.id = follows.node_b_id
 WHERE follows.type = ?
@@ -610,7 +610,7 @@ func (r *Signals) Find(viewerID int64, kind string, useActivity, onlyColdStart b
 		{
 			reason: constants.ReasonPopular,
 			query:  signalPopular,
-			args:   with([]any{an_const.EdgeFollowEntityType, now.Add(-constants.PopularWindow)}, limit),
+			args:   with([]any{constants.PopularStep, an_const.EdgeFollowEntityType, now.Add(-constants.PopularWindow)}, limit),
 		},
 		{
 			reason: constants.ReasonCited,

@@ -76,10 +76,14 @@ var Weights = map[string]Weight{
 	ReasonHostedByLeader:    {Each: 3, Most: 3},
 	ReasonSharedInterest:    {Each: 2, Most: 8},
 	ReasonYouEngaged:        {Each: 2, Most: 8},
-	ReasonPopular:           {Each: 0.5, Most: 0.5},
-	ReasonCited:             {Each: 1, Most: 4},
-	ReasonCitedByLeaders:    {Each: 3, Most: 9},
-	ReasonFeatured:          {Each: 0.5, Most: 0.5},
+	// By the ten who followed lately, up to four tens: a profile thirty
+	// people followed is more of a suggestion than one three did, and
+	// still less than one somebody the viewer follows follows (the user,
+	// 2026-10-29). See PopularStep.
+	ReasonPopular:        {Each: 0.5, Most: 2},
+	ReasonCited:          {Each: 1, Most: 4},
+	ReasonCitedByLeaders: {Each: 3, Most: 9},
+	ReasonFeatured:       {Each: 0.5, Most: 0.5},
 	// As an invitation, and as a shared interest (the user, 2026-10-20).
 	ReasonPicturedWithYou:     {Each: 3, Most: 6},
 	ReasonPicturedWithLeaders: {Each: 2, Most: 8},
@@ -122,6 +126,10 @@ var ReasonOrder = []string{
 	ReasonFeatured,
 	ReasonPopular,
 }
+
+// How many people following a profile lately count as one, for `popular`:
+// 1 to 10 are 1, 11 to 20 are 2.
+const PopularStep = 10
 
 // How far back each signal looks.
 const (

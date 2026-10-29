@@ -30,7 +30,8 @@ func TestRankAddsUpWhatWasFoundAndSaysWhy(t *testing.T) {
 	found := map[string][]Hit{
 		constants.ReasonFollowedByLeaders: {{ID: 4, Count: 2, IDs: []int64{2, 3}}, {ID: 5, Count: 1, IDs: []int64{2}}},
 		constants.ReasonFollowsYou:        {{ID: 5, Count: 1}},
-		constants.ReasonPopular:           {{ID: 6, Count: 30}},
+		// Popular counts in tens of people (PopularStep): up to ten.
+		constants.ReasonPopular: {{ID: 6, Count: 1}},
 	}
 
 	ranked := Rank(found, recently(4, 5, 6), now, constants.Weights)
@@ -69,7 +70,8 @@ func TestRankCapsAReason(t *testing.T) {
 	if ranked[0].Reasons[0].Count != 40 {
 		t.Errorf("the count was cut with the ids: %d", ranked[0].Reasons[0].Count)
 	}
-	if ranked[1].Score != 0.5 {
+	// Nine thousand people are as popular as forty: 2, under one leader.
+	if ranked[1].Score != constants.Weights[constants.ReasonPopular].Most || ranked[1].Score >= constants.Weights[constants.ReasonFollowedByLeaders].Each {
 		t.Errorf("popular scored %v", ranked[1].Score)
 	}
 }
@@ -132,12 +134,13 @@ func TestRankUsesTheViewersWeights(t *testing.T) {
 
 	ranked := Rank(found, recently(1, 2, 3, 4), now, weights)
 
-	// 4: popular at 10. 3: ten leaders at 1 each, capped at 5 as 15 is to
-	// 3. 2: one leader. 1 follows the viewer, which counts for nothing.
+	// 4: popular at 10 a ten, capped at 40 as 2 is to 0.5. 3: ten leaders
+	// at 1 each, capped at 5 as 15 is to 3. 2: one leader. 1 follows the
+	// viewer, which counts for nothing.
 	if got := order(ranked); got != "[4 3 2]" {
 		t.Fatalf("order %s", got)
 	}
-	if ranked[0].Score != 10 || ranked[1].Score != 5 || ranked[2].Score != 1 {
+	if ranked[0].Score != 40 || ranked[1].Score != 5 || ranked[2].Score != 1 {
 		t.Errorf("scores %v %v %v", ranked[0].Score, ranked[1].Score, ranked[2].Score)
 	}
 

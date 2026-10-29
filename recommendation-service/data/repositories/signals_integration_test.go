@@ -248,7 +248,8 @@ func TestSignalsFindPeopleForTheirReasons(t *testing.T) {
 	if got := fmt.Sprint(idsOf(found[constants.ReasonYouEngaged])); got != "[17]" {
 		t.Errorf("you engaged: %s", got)
 	}
-	if hit := hitFor(found[constants.ReasonPopular], popularT); hit == nil || hit.Count != 3 {
+	// Three people followed T lately: one ten (PopularStep).
+	if hit := hitFor(found[constants.ReasonPopular], popularT); hit == nil || hit.Count != 1 {
 		t.Errorf("popular: %+v among %v", hit, idsOf(found[constants.ReasonPopular]))
 	}
 	if got := fmt.Sprint(idsOf(found[constants.ReasonFeatured])); got != "[19]" {
