@@ -8905,8 +8905,7 @@ who may call it: anyone, signed in or not.">
 <table>
 <thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>include_reposts</code></td><td>query</td><td>boolean</td><td>Reposts by the profiles the viewer follows as well.</td></tr>
-<tr><td><code>include_liked</code></td><td>query</td><td>boolean</td><td>What they liked as well.</td></tr>
+<tr><td><code>include_reposts</code></td><td>query</td><td>boolean</td><td>Reposts by the profiles the viewer follows as well. What they only liked is not in it: the feed is reached through follows alone.</td></tr>
 <tr><td><code>start</code></td><td>query</td><td>integer</td><td>How many to pass over. At least 0.</td></tr>
 <tr><td><code>limit</code></td><td>query</td><td>integer</td><td>The most to send. At least 0. <code>20</code> unless given.</td></tr>
 </tbody>

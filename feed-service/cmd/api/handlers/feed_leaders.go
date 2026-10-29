@@ -62,8 +62,6 @@ func (h *feedLeadersHandler) Browse(c echo.Context) error {
 	}
 
 	gnCountReq.IncludeReposts = req.IncludeReposts
-	gnCountReq.IncludeReposts = req.IncludeReposts
-	gnCountReq.IncludeLiked = req.IncludeLiked
 	gnCountReq.MediumEntityTypes = feedDefaults.MediaEntityTypes
 	gnCountReq.LeaderEntityTypes = feedDefaults.ActorEntityTypes
 	resp.Pagination.Total, err = h.Srv.FeedLeadersGRPC.Count(gnCountReq, viewer)
@@ -73,7 +71,6 @@ func (h *feedLeadersHandler) Browse(c echo.Context) error {
 	}
 
 	gnBrowseReq.IncludeReposts = req.IncludeReposts
-	gnBrowseReq.IncludeLiked = req.IncludeLiked
 	gnBrowseReq.Limit = req.Limit
 	gnBrowseReq.Offset = req.Offset
 	gnBrowseReq.MediumEntityTypes = feedDefaults.MediaEntityTypes

@@ -15450,17 +15450,9 @@
         "operationId": "getFeedsLeaders",
         "parameters": [
           {
-            "description": "Reposts by the profiles the viewer follows as well.",
+            "description": "Reposts by the profiles the viewer follows as well. What they only liked is not in it: the feed is reached through follows alone.",
             "in": "query",
             "name": "include_reposts",
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
-            "description": "What they liked as well.",
-            "in": "query",
-            "name": "include_liked",
             "schema": {
               "type": "boolean"
             }

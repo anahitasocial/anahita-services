@@ -21,7 +21,7 @@ Its routes are in the API reference: [feed-service](api/index.html#feed-service)
 
 ## The home page
 
-The first tab of somebody's home page is always the feed of the people, groups and events they follow, newest first (`GET /feeds/leaders/`). It is not a custom feed and cannot be removed or reordered. Custom feeds are the tabs after it.
+The first tab of somebody's home page, **Following**, is always the feed of the people, groups and events they follow, newest first (`GET /feeds/leaders/`): their own posts, and the posts of the profiles they follow and what those profiles reposted (`include_reposts`). It is reached through follows alone: a post somebody they follow only liked is not in it. It is not a custom feed and cannot be removed or reordered. Custom feeds are the tabs after it.
 
 Every feed orders its posts by date, newest first. (Search is the one place with another order, "Most relevant": see [Search](search.md).) A feed ordered by weights of its owner's choosing is planned as one more kind of custom feed, and would be named by whoever made it like any other. See the plan, `docs/plans/done/feed-generators.md`.
 

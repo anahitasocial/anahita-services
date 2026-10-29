@@ -24,18 +24,19 @@ type FeedLeadersRepoInterface interface {
 func NewFeedLeadersRepo(db *sql.DB) FeedLeadersRepoInterface {
 	return &FeedLeadersRepo{
 		followEntityType: constants.EdgeFollowEntityType,
-		likeEntityType:   constants.EdgeBaseLikeEntityType,
 		db:               db,
 		dbTimeout:        constants.DBTimeout,
 	}
 }
 
-// FeedLeadersRepo is the FeedLeaders repository
+// FeedLeadersRepo is the FeedLeaders repository: the Following feed, the
+// viewer's own posts and the posts and reposts of the profiles they follow,
+// reached through follow edges and nothing else. What those profiles only
+// liked is not in it (2026-10-29); the request's include_liked is not read.
 type FeedLeadersRepo struct {
 	db               *sql.DB
 	repostEntityType string
 	followEntityType string
-	likeEntityType   string
 	dbTimeout        time.Duration
 }
 
@@ -73,25 +74,6 @@ func (repo *FeedLeadersRepo) Count(req *graphpb.FeedLeadersCountRequest, viewer 
 	}
 
 	branches = append(branches, branchMedia)
-
-	// Branch 3: media liked by leaders
-	if req.IncludeLiked {
-		branches = append(branches, sq.And{
-			sq.Eq{"node.type": nodeTypes}, // slice → IN (...)
-			sq.Expr(`EXISTS (
-               SELECT 1
-               FROM edges lk
-               WHERE lk.type = ?
-                 AND lk.node_b_id = node.id
-                 AND EXISTS (
-                    SELECT 1 FROM edges le
-                    WHERE le.type = ?
-                      AND le.node_a_id = ?
-                      AND le.node_b_id = lk.node_a_id
-                 )
-            )`, repo.likeEntityType, repo.followEntityType, viewer.ID),
-		})
-	}
 
 	sb = sb.Where(sq.Or(branches))
 	// Replies are read in their thread, not in a feed.
@@ -142,25 +124,6 @@ func (repo *FeedLeadersRepo) Browse(req *graphpb.FeedLeadersBrowseRequest, viewe
 	}
 
 	branches = append(branches, branchMedia)
-
-	// Branch 3: media liked by leaders
-	if req.IncludeLiked {
-		branches = append(branches, sq.And{
-			sq.Eq{"node.type": req.MediumEntityTypes}, // ← uses slice
-			sq.Expr(`EXISTS (
-               SELECT 1
-               FROM edges lk
-               WHERE lk.type = ?
-                 AND lk.node_b_id = node.id
-                 AND EXISTS (
-                    SELECT 1 FROM edges le
-                    WHERE le.type = ?
-                      AND le.node_a_id = ?
-                      AND le.node_b_id = lk.node_a_id
-                 )
-            )`, repo.likeEntityType, repo.followEntityType, viewer.ID),
-		})
-	}
 
 	query = query.Where(sq.Or(branches))
 	// Replies are read in their thread, not in a feed.

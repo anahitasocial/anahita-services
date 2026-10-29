@@ -10,7 +10,6 @@ func NewFeedLeadersRequest() *FeedLeadersRequest {
 	return &FeedLeadersRequest{
 		Browse: &FeedLeadersBrowseRequest{
 			IncludeReposts: false,
-			IncludeLiked:   false,
 			Offset:         0,
 			Limit:          constants.RequestLimitDefault,
 		},
@@ -18,10 +17,9 @@ func NewFeedLeadersRequest() *FeedLeadersRequest {
 }
 
 type FeedLeadersBrowseRequest struct {
-	// Reposts by the profiles the viewer follows as well.
+	// Reposts by the profiles the viewer follows as well. What they only
+	// liked is not in it: the feed is reached through follows alone.
 	IncludeReposts bool `query:"include_reposts"`
-	// What they liked as well.
-	IncludeLiked bool `query:"include_liked"`
 	// How many to pass over.
 	Offset uint64 `query:"start"`
 	// The most to send.
