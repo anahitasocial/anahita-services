@@ -21,6 +21,8 @@ type Preferences struct {
 	SuggestGroups bool `json:"suggest_groups"`
 	// To be suggested events.
 	SuggestEvents bool `json:"suggest_events"`
+	// To be suggested websites.
+	SuggestWebsites bool `json:"suggest_websites"`
 	// That what they liked and wrote may be used to choose for them.
 	UseActivity bool `json:"use_activity"`
 	// That they may be suggested to other people.
@@ -40,30 +42,32 @@ const activeWithinKey = "active_within_days"
 // DefaultPreferences is what somebody has who has chosen nothing.
 func DefaultPreferences() *Preferences {
 	return &Preferences{
-		SuggestPeople: true,
-		SuggestGroups: true,
-		SuggestEvents: true,
-		UseActivity:   true,
-		Discoverable:  true,
+		SuggestPeople:   true,
+		SuggestGroups:   true,
+		SuggestEvents:   true,
+		SuggestWebsites: true,
+		UseActivity:     true,
+		Discoverable:    true,
 
 		ActiveWithinDays: constants.ActiveWithinDefault,
 	}
 }
 
 const preferencesRead = `
-SELECT suggest_people, suggest_groups, suggest_events, use_activity, discoverable, weights
+SELECT suggest_people, suggest_groups, suggest_events, suggest_websites, use_activity, discoverable, weights
 FROM recommendation_preferences
 WHERE person_id = ?`
 
 const preferencesWrite = `
 INSERT INTO recommendation_preferences
-    (person_id, suggest_people, suggest_groups, suggest_events, use_activity, discoverable, weights, updated_at)
+    (person_id, suggest_people, suggest_groups, suggest_events, suggest_websites, use_activity, discoverable, weights, updated_at)
 VALUES
-    (?, ?, ?, ?, ?, ?, ?, ?)
+    (?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON DUPLICATE KEY UPDATE
     suggest_people = VALUES(suggest_people),
     suggest_groups = VALUES(suggest_groups),
     suggest_events = VALUES(suggest_events),
+    suggest_websites = VALUES(suggest_websites),
     use_activity = VALUES(use_activity),
     discoverable = VALUES(discoverable),
     weights = VALUES(weights),
@@ -96,7 +100,7 @@ func (r *PreferencesRepo) Read(personID int64) (*Preferences, error) {
 	prefs := &Preferences{}
 	var weights string
 	err := r.db.QueryRowContext(ctx, preferencesRead, personID).
-		Scan(&prefs.SuggestPeople, &prefs.SuggestGroups, &prefs.SuggestEvents, &prefs.UseActivity, &prefs.Discoverable, &weights)
+		Scan(&prefs.SuggestPeople, &prefs.SuggestGroups, &prefs.SuggestEvents, &prefs.SuggestWebsites, &prefs.UseActivity, &prefs.Discoverable, &weights)
 	if errors.Is(err, sql.ErrNoRows) {
 		return DefaultPreferences(), nil
 	}
@@ -146,7 +150,7 @@ func (r *PreferencesRepo) Write(personID int64, prefs *Preferences) error {
 	}
 
 	_, err := r.db.ExecContext(ctx, preferencesWrite,
-		personID, prefs.SuggestPeople, prefs.SuggestGroups, prefs.SuggestEvents, prefs.UseActivity, prefs.Discoverable, weights, time.Now().UTC())
+		personID, prefs.SuggestPeople, prefs.SuggestGroups, prefs.SuggestEvents, prefs.SuggestWebsites, prefs.UseActivity, prefs.Discoverable, weights, time.Now().UTC())
 
 	return err
 }

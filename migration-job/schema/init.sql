@@ -993,10 +993,11 @@ CREATE TABLE IF NOT EXISTS abuse_reports (
 -- schema.
 CREATE TABLE IF NOT EXISTS recommendation_preferences (
     `person_id` bigint unsigned NOT NULL,
-    -- Whether to be suggested people, and groups.
+    -- Whether to be suggested people, groups, events and websites.
     `suggest_people` tinyint(1) NOT NULL DEFAULT 1,
     `suggest_groups` tinyint(1) NOT NULL DEFAULT 1,
     `suggest_events` tinyint(1) NOT NULL DEFAULT 1,
+    `suggest_websites` tinyint(1) NOT NULL DEFAULT 1,
     -- Whether what they liked and wrote may be used to choose for them.
     `use_activity` tinyint(1) NOT NULL DEFAULT 1,
     -- Whether they may be suggested to other people.

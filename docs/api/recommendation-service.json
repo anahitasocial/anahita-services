@@ -1047,6 +1047,10 @@
             "description": "To be suggested people, and groups.",
             "type": "boolean"
           },
+          "suggest_websites": {
+            "description": "To be suggested websites.",
+            "type": "boolean"
+          },
           "use_activity": {
             "description": "That what they liked and wrote may be used to choose for them.",
             "type": "boolean"
@@ -1066,6 +1070,7 @@
           "suggest_people",
           "suggest_groups",
           "suggest_events",
+          "suggest_websites",
           "use_activity",
           "discoverable",
           "active_within_days",
@@ -1174,14 +1179,15 @@
         "operationId": "getRecommendationsActors",
         "parameters": [
           {
-            "description": "Only people, only groups, or only events. All of them when left out.",
+            "description": "Only people, only groups, only events or only websites. People when left out.",
             "in": "query",
             "name": "kind",
             "schema": {
               "enum": [
                 "person",
                 "group",
-                "event"
+                "event",
+                "website"
               ],
               "type": "string"
             }
@@ -1501,6 +1507,10 @@
                   },
                   "suggest_people": {
                     "description": "To be suggested people.",
+                    "type": "boolean"
+                  },
+                  "suggest_websites": {
+                    "description": "To be suggested websites.",
                     "type": "boolean"
                   },
                   "use_activity": {

@@ -1,6 +1,6 @@
 # Recommendations
 
-recommendation-service suggests people, groups and events to follow. It uses no model: each suggestion is worked out from the graph as it stands, by rules written down here, and is sent with the reasons for it.
+recommendation-service suggests people, groups, events and websites to follow. It uses no model: each suggestion is worked out from the graph as it stands, by rules written down here, and is sent with the reasons for it.
 
 Its routes are in the API reference: [recommendation-service](api/index.html#recommendation-service).
 
@@ -36,7 +36,7 @@ Every path needs somebody signed in: a suggestion is made to a person, about tha
 
 | Parameter | Values |
 | --- | --- |
-| `kind` | `person` (the default), `group` or `event` |
+| `kind` | `person` (the default), `group`, `event` or `website` |
 | `context` | `home` (the default), or `onboarding` for somebody who has just joined and follows nobody: nothing worked out from who they follow is used |
 | `limit` | Up to 50. 10 when left out |
 
@@ -101,6 +101,21 @@ The numbers are constants in `recommendation-service/constants`. They are the se
 
 An event is suggested while it is still to come or on, and has not been called off. For an event, `followed_by_leaders` is people the viewer follows who have answered it, and following already is having answered it. An event is not asked to have a picture or a description, and is not marked down for when it was last visited: one that is still to come is as alive as anything is. It is sent with its `event` block, as it is in search results.
 
+### Websites
+
+A website, a site's feed to follow ([Websites](websites.md)), is suggested
+for the reasons that fit a site: people the viewer follows follow it
+(`followed_by_leaders`), the viewer liked its posts (`you_engaged`), its
+public posts carry hashtags the viewer uses or follows (`shared_interest`),
+it is cited, by people the viewer follows or anybody (`cited_by_leaders`,
+`cited`), and it is `featured` or `popular`. The reasons only a person has,
+following back, inviting and being in photos, are not looked for. It is
+asked, as a group is, to have a picture or to say something of itself, and
+how lately it was alive is when it last posted, that is when its feed last
+brought something: a quiet one is put last, never left out, whatever the
+reader's `active_within_days`, since its next item may come tomorrow.
+Asked for since 2026-10-28 (anahita-web roadmap row 111).
+
 ### People on other networks
 
 Somebody on Bluesky or on a server of the fediverse who is kept here is a
@@ -147,6 +162,7 @@ All but the last are one clause every signal's query ends with (`eligibleCandida
 | `suggest_people` | To be suggested people |
 | `suggest_groups` | To be suggested groups |
 | `suggest_events` | To be suggested events |
+| `suggest_websites` | To be suggested websites. Kept in `recommendation_preferences.suggest_websites` (migration `20261122000008_suggest_websites`) |
 | `use_activity` | That what they liked and wrote, and the photos they are in, may be used to choose for them. Off, `you_engaged`, `shared_interest`, `pictured_with_you` and `pictured_with_leaders` are not looked for. Who they follow is still used |
 | `discoverable` | That they may be suggested to other people |
 

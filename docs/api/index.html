@@ -5463,7 +5463,7 @@ who may call it: somebody signed in.">
 <table>
 <thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>kind</code></td><td>query</td><td>string</td><td>Only people, only groups, or only events. All of them when left out. One of <code>person</code>, <code>group</code>, <code>event</code>.</td></tr>
+<tr><td><code>kind</code></td><td>query</td><td>string</td><td>Only people, only groups, only events or only websites. People when left out. One of <code>person</code>, <code>group</code>, <code>event</code>, <code>website</code>.</td></tr>
 <tr><td><code>context</code></td><td>query</td><td>string</td><td><code>home</code> (the default), or <code>onboarding</code> for somebody who has just joined and follows nobody: nothing worked out from who they follow is used. One of <code>home</code>, <code>onboarding</code>.</td></tr>
 <tr><td><code>limit</code></td><td>query</td><td>integer</td><td>The most to send: up to 50, 10 when left out. At least 1. At most 50.</td></tr>
 </tbody>
@@ -5584,6 +5584,7 @@ who may call it: somebody signed in.">
 <tr><td><code>suggest_events</code></td><td>boolean</td><td>To be suggested events.</td></tr>
 <tr><td><code>suggest_groups</code></td><td>boolean</td><td>To be suggested groups.</td></tr>
 <tr><td><code>suggest_people</code></td><td>boolean</td><td>To be suggested people.</td></tr>
+<tr><td><code>suggest_websites</code></td><td>boolean</td><td>To be suggested websites.</td></tr>
 <tr><td><code>use_activity</code></td><td>boolean</td><td>That what they liked and wrote may be used to choose for them.</td></tr>
 <tr><td><code>weights</code></td><td>map of number</td><td>How much each reason counts for, by its name: 0, which turns the reason off, to constants.MaxWeight. The ones sent are set and the others left.</td></tr>
 </tbody>
@@ -12520,7 +12521,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-recommendation.PreferencesResponse" data-search="recommendation.preferencesresponse active_within_choices active_within_days active_within_default default_weights discoverable max_weight reasons suggest_events suggest_groups suggest_people use_activity weights">
+<div class="route schema" id="schema-recommendation.PreferencesResponse" data-search="recommendation.preferencesresponse active_within_choices active_within_days active_within_default default_weights discoverable max_weight reasons suggest_events suggest_groups suggest_people suggest_websites use_activity weights">
 <h3>recommendation.PreferencesResponse</h3>
 <p>Somebody&#39;s choices as they are sent: with the weights they are ranked by, each reason there, and the service&#39;s own to go back to.</p>
 <table>
@@ -12536,6 +12537,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>suggest_events</code> <span class="required">always</span></td><td>boolean</td><td>To be suggested events.</td></tr>
 <tr><td><code>suggest_groups</code> <span class="required">always</span></td><td>boolean</td><td>To be suggested groups.</td></tr>
 <tr><td><code>suggest_people</code> <span class="required">always</span></td><td>boolean</td><td>To be suggested people, and groups.</td></tr>
+<tr><td><code>suggest_websites</code> <span class="required">always</span></td><td>boolean</td><td>To be suggested websites.</td></tr>
 <tr><td><code>use_activity</code> <span class="required">always</span></td><td>boolean</td><td>That what they liked and wrote may be used to choose for them.</td></tr>
 <tr><td><code>weights</code> <span class="required">always</span></td><td>map of number or null</td><td>What each reason counts for, for the viewer, by its name.</td></tr>
 </tbody>

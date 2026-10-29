@@ -324,7 +324,7 @@ func TestChoicesDecideWhatIsLookedFor(t *testing.T) {
 	}
 
 	// A kind there is not is refused.
-	if status, _ := f.call(f.handlers.Actors.Browse, http.MethodGet, "/?kind=website", person(1), ""); status != http.StatusBadRequest {
+	if status, _ := f.call(f.handlers.Actors.Browse, http.MethodGet, "/?kind=page", person(1), ""); status != http.StatusBadRequest {
 		t.Errorf("a kind there is not answered %d", status)
 	}
 
@@ -339,6 +339,19 @@ func TestChoicesDecideWhatIsLookedFor(t *testing.T) {
 	_, answer = f.call(f.handlers.Actors.Browse, http.MethodGet, "/?kind=event", person(1), "")
 	if suggested(answer) != "[]" || f.signals.asked != 0 {
 		t.Errorf("events after asking for none: %s after %d searches", suggested(answer), f.signals.asked)
+	}
+
+	// Websites too (anahita-web roadmap row 111).
+	f.signals.asked = 0
+	_, answer = f.call(f.handlers.Actors.Browse, http.MethodGet, "/?kind=website", person(1), "")
+	if suggested(answer) != "[4]" || f.signals.kind != constants.KindWebsite {
+		t.Errorf("websites: suggested %s, asked for %q", suggested(answer), f.signals.kind)
+	}
+	f.call(f.handlers.Preferences.Edit, http.MethodPut, "/", person(1), `{"suggest_websites":false}`)
+	f.signals.asked = 0
+	_, answer = f.call(f.handlers.Actors.Browse, http.MethodGet, "/?kind=website", person(1), "")
+	if suggested(answer) != "[]" || f.signals.asked != 0 {
+		t.Errorf("websites after asking for none: %s after %d searches", suggested(answer), f.signals.asked)
 	}
 }
 

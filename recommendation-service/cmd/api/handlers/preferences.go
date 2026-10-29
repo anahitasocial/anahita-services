@@ -30,6 +30,8 @@ type PreferencesRequest struct {
 	SuggestGroups *bool `json:"suggest_groups"`
 	// To be suggested events.
 	SuggestEvents *bool `json:"suggest_events"`
+	// To be suggested websites.
+	SuggestWebsites *bool `json:"suggest_websites"`
 	// That what they liked and wrote may be used to choose for them.
 	UseActivity *bool `json:"use_activity"`
 	// That they may be suggested to other people.
@@ -150,6 +152,9 @@ func apply(prefs *repositories.Preferences, req *PreferencesRequest) bool {
 	}
 	if req.SuggestEvents != nil {
 		prefs.SuggestEvents = *req.SuggestEvents
+	}
+	if req.SuggestWebsites != nil {
+		prefs.SuggestWebsites = *req.SuggestWebsites
 	}
 
 	if req.ResetWeights {

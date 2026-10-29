@@ -5,19 +5,28 @@
 // runs another service behind the same contract. See docs/recommendations.md.
 package constants
 
-import "time"
+import (
+	"time"
+
+	an_const "anahita-libs/constants"
+)
 
 // The kinds of actor that are suggested, as a request names them, and the
 // types they stand for. An event is suggested while it is still to come or
-// on, and has not been called off.
+// on, and has not been called off. A website, a site's feed to follow
+// (anahita-web roadmap row 111), for the reasons that fit a site: who
+// follows it, what of it was liked, cited or shared hashtags with, whether
+// it is featured or popular; a quiet one is put last, as a group is.
 const (
-	KindPerson = "person"
-	KindGroup  = "group"
-	KindEvent  = "event"
+	KindPerson  = "person"
+	KindGroup   = "group"
+	KindEvent   = "event"
+	KindWebsite = "website"
 
-	PersonType = "node.actor.person-service.person.v1"
-	GroupType  = "node.actor.group-service.group.v1"
-	EventType  = "node.actor.actor-service.event.v1"
+	PersonType  = "node.actor.person-service.person.v1"
+	GroupType   = "node.actor.group-service.group.v1"
+	EventType   = "node.actor.actor-service.event.v1"
+	WebsiteType = an_const.NodeActorWebsiteEntityType
 )
 
 // Where a suggestion is asked for from. Somebody who has just joined
