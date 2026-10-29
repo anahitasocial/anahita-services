@@ -16,11 +16,14 @@ is published, with your name in it if you would like.
 
 | What | Where to report |
 | --- | --- |
-| The services in this repository, on `main`, and the images built from it | Here |
-| The web app | [anahita-web](https://github.com/anahitasocial/anahita-web), the same way |
+| The services, and the images built from them | [anahita-services](https://github.com/anahitasocial/anahita-services/security/advisories/new) |
+| The web app | [anahita-web](https://github.com/anahitasocial/anahita-web/security/advisories/new) |
+| The website, www.anahita.io | [anahita.io](https://github.com/anahitasocial/anahita.io/security/advisories/new) |
+| The MCP server, on npm and at mcp.anahita.io | [anahita-mcp](https://github.com/anahitasocial/anahita-mcp/security/advisories/new) |
 | A site that runs Anahita | The people who run it: their address is on the site's `/support` page |
 
-There are no releases yet, so only `main` is supported.
+The latest Birth release (a tag such as `v1.0.6`) and `main` (Embryo) are
+supported: [Releases](docs/releases.md).
 
 ## Not vulnerabilities
 
