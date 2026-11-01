@@ -33,23 +33,20 @@ func GenerateRandomString(n int) (string, error) {
 // removalCookie is what takes a cookie away: expired, and otherwise set as it
 // was given, so that a browser treats it as the same cookie.
 func removalCookie(name string, dev bool) *http.Cookie {
-	cookie := &http.Cookie{
+	sameSite := http.SameSiteStrictMode
+	if dev {
+		sameSite = http.SameSiteLaxMode
+	}
+
+	return &http.Cookie{
 		Name:     name,
 		Value:    "",
 		Path:     "/",
 		Expires:  time.Unix(0, 0),
 		HttpOnly: true,
+		Secure:   !dev,
+		SameSite: sameSite,
 	}
-
-	if dev {
-		cookie.SameSite = http.SameSiteLaxMode
-		cookie.Secure = false
-	} else {
-		cookie.SameSite = http.SameSiteStrictMode
-		cookie.Secure = true
-	}
-
-	return cookie
 }
 
 // HashString hashes a string
