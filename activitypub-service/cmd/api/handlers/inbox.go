@@ -397,17 +397,24 @@ func (h *Handlers) store(authorID int64, note *ap.ReceivedNote, parentID int64) 
 	node.OriginDomain = hostOf(note.ID)
 	node.OwnerID = authorID
 	node.ParentID = parentID
-	node.Body = cutRunes(h.namedHere(federation.WithoutCustomEmoji(federation.PostToMarkdown(note.Content), note.Tag)), receivedNoteMax)
+	words := cutRunes(h.namedHere(federation.WithoutCustomEmoji(federation.PostToMarkdown(note.Content), note.Tag)), receivedNoteMax)
+	node.Body = words
+	// A video or a sound is not kept: the post leads to where it is. Not
+	// a link for a card, which would say its words again.
+	if note.HasVideo() {
+		node.Body = federation.WithVideoLink(words, note.Page(), hostOf(note.ID))
+	}
 	node.Language = note.Language()
 	if published, err := time.Parse(time.RFC3339, note.Published); err == nil {
 		node.CreatedAt = published
 	}
 	if node.Body == "" && kind != constants.NodeMediumPhotoEntityType {
-		// Nothing to show: no words, and no picture that is kept.
+		// Nothing to show: no words, no video to lead to, and no picture
+		// that is kept.
 		return nil
 	}
 	// The card of the link in it, read by this installation itself.
-	node.Meta = h.withCard(node.Body)
+	node.Meta = h.withCard(words)
 
 	saved, created, err := h.Nodes.UpsertRemote(node)
 	if err != nil {

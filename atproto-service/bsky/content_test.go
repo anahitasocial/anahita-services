@@ -108,6 +108,19 @@ func TestWhatAPostCarries(t *testing.T) {
 	}
 }
 
+func TestAPostWithAVideo(t *testing.T) {
+	video := `{"$type":"app.bsky.embed.video","video":{"$type":"blob","ref":{"$link":"bafkrei"},"mimeType":"video/mp4","size":1}}`
+	if !post(t, `{"text":"x","embed":`+video+`}`).HasVideo() {
+		t.Error("a video was not seen")
+	}
+	if !post(t, `{"text":"x","embed":{"$type":"app.bsky.embed.recordWithMedia","record":{"record":{"uri":"at://a"}},"media":`+video+`}}`).HasVideo() {
+		t.Error("a video beside a quote was not seen")
+	}
+	if post(t, `{"text":"x"}`).HasVideo() || post(t, `{"text":"x","embed":{"$type":"app.bsky.embed.images","images":[]}}`).HasVideo() {
+		t.Error("a post with no video was said to have one")
+	}
+}
+
 func TestWhatAPostSaysOfItself(t *testing.T) {
 	now := time.Date(2026, 10, 12, 12, 0, 0, 0, time.UTC)
 

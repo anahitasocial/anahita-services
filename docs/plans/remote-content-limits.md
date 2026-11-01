@@ -65,8 +65,8 @@ picture is kept at five sizes; a video is larger than any picture.
 5. **The picture of a link's card** is the link-preview service's, which
    keeps and forgets its own.
 
-**Videos.** No video from elsewhere is kept today: a post with one is kept
-for its words. When they are brought in, they come under this from the
+**Videos.** No video from elsewhere is kept today: a post with one ends with
+a line leading to its page (2026-11-01). When they are brought in, they come under this from the
 start, and more strictly, since one video can weigh what a thousand
 pictures do:
 

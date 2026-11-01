@@ -46,7 +46,9 @@ func TestAPostWithPicturesIsAPhotoPost(t *testing.T) {
 
 	w.fromAlice(received(alicesNote, "<p>The beans</p>", withPictures("")))
 	kept := w.keptAt(alicesNote)
-	if kept == nil || kept.Type != constants.NodeMediumPhotoEntityType || kept.Body != "The beans" {
+	// The video among them is not kept, and is led to.
+	want := "The beans\n\n▶\ufe0e [mastodon.example](" + alicesNote + ")"
+	if kept == nil || kept.Type != constants.NodeMediumPhotoEntityType || kept.Body != want {
 		t.Fatalf("kept as %+v", kept)
 	}
 
@@ -80,6 +82,25 @@ func TestAPostWithPicturesIsAPhotoPost(t *testing.T) {
 	w.fromAlice(`{"id":"https://mastodon.example/d/1","type":"Delete","actor":"` + aliceID + `","object":{"id":"` + alicesNote + `","type":"Tombstone"}}`)
 	if w.keptAt(alicesNote) != nil || len(files.deleted) != stored || len(files.stored) != 0 {
 		t.Errorf("after it was taken away: stored %d, deleted %d of %d", len(files.stored), len(files.deleted), stored)
+	}
+}
+
+// THE RULE THIS GUARDS: a video is not kept, and is never lost without a
+// word: a post leads to it, and one that is only a video is still a post.
+func TestAPostWithAVideoLeadsToIt(t *testing.T) {
+	const video = `,"attachment":[{"type":"Document","mediaType":"video/mp4","url":"https://files.mastodon.example/2.mp4"}]`
+	line := "▶\ufe0e [mastodon.example](" + alicesNote + ")"
+
+	w, _ := settledWorld()
+	w.fromAlice(received(alicesNote, "<p>The beans</p>", video))
+	if kept := w.keptAt(alicesNote); kept == nil || kept.Body != "The beans\n\n"+line {
+		t.Fatalf("with words, kept as %+v", kept)
+	}
+
+	w, _ = settledWorld()
+	w.fromAlice(received(alicesNote, "", video))
+	if kept := w.keptAt(alicesNote); kept == nil || kept.Type != constants.NodeMediumNoteEntityType || kept.Body != line {
+		t.Fatalf("alone, kept as %+v", kept)
 	}
 }
 

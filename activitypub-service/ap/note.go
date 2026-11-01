@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html"
+	"net/url"
 	"strings"
 	"time"
 
@@ -355,29 +356,56 @@ type Attachment struct {
 }
 
 // Pictures is the pictures that came with a post, in the order they came:
-// what says it is an image, at an address on the web. One thing or a list
-// of them is read alike.
+// what says it is an image, at an address on the web.
 func (n *ReceivedNote) Pictures() []Attachment {
-	if len(n.Attachment) == 0 {
-		return nil
-	}
-	var many []Attachment
-	if json.Unmarshal(n.Attachment, &many) != nil {
-		var one Attachment
-		if json.Unmarshal(n.Attachment, &one) != nil {
-			return nil
-		}
-		many = []Attachment{one}
-	}
-
 	var pictures []Attachment
-	for _, each := range many {
+	for _, each := range n.attachments() {
 		if !strings.HasPrefix(strings.ToLower(each.MediaType), "image/") || !strings.HasPrefix(each.URL, "https://") || len(each.URL) > 2000 {
 			continue
 		}
 		pictures = append(pictures, each)
 	}
 	return pictures
+}
+
+// HasVideo says whether a video or a sound came with a post.
+func (n *ReceivedNote) HasVideo() bool {
+	for _, each := range n.attachments() {
+		media := strings.ToLower(each.MediaType)
+		if strings.HasPrefix(media, "video/") || strings.HasPrefix(media, "audio/") ||
+			each.Type == "Video" || each.Type == "Audio" {
+			return true
+		}
+	}
+	return false
+}
+
+// attachments is what came with a post. One thing or a list of them is read
+// alike.
+func (n *ReceivedNote) attachments() []Attachment {
+	if len(n.Attachment) == 0 {
+		return nil
+	}
+	var many []Attachment
+	if json.Unmarshal(n.Attachment, &many) == nil {
+		return many
+	}
+	var one Attachment
+	if json.Unmarshal(n.Attachment, &one) != nil {
+		return nil
+	}
+	return []Attachment{one}
+}
+
+// Page is the page people read a post at: the address it gives for that when
+// it is on the post's own server, otherwise its id.
+func (n *ReceivedNote) Page() string {
+	page, err := url.Parse(idOf(n.URL))
+	id, idErr := url.Parse(n.ID)
+	if err != nil || idErr != nil || page.Scheme != "https" || page.Host != id.Host {
+		return n.ID
+	}
+	return page.String()
 }
 
 // Author is who a received post says wrote it.

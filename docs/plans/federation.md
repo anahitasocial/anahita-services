@@ -1136,7 +1136,8 @@ the list of refused servers were in `activitypub-service` and were moved to
 **Left for later, each noticed while building:**
 
 - Replies, and reposts by the accounts followed, are not kept.
-- A video is not kept; a post that is only a video is not kept at all.
+- A video is not kept; a post with one leads to its page on Bluesky, and one
+  that is only a video is kept as that line.
 - The listener's place moves only when something is heard. After days in
   which nobody followed posts, a listener that begins again asks from far
   back, and Jetstream takes a few minutes to play that through before

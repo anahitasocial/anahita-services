@@ -654,7 +654,9 @@ written, what is stored of it is removed.
   Nothing here puts a picture behind a warning yet.
 - **What a post was first kept as, it stays:** a note that later gains a
   picture is still a note.
-- **Only pictures.** Video and sound that come with a post are not kept.
+- **Only pictures.** Video and sound that come with a post are not kept:
+  the post ends with a line leading to its page, `▶ the server's name`, and
+  one that is only a video is kept as that line.
 
 **A custom emoji** in a post, or in somebody's name or what they say of
 themselves, is a word between colons with a picture listed beside it. The
@@ -727,7 +729,8 @@ their server keeps (`backfill.go`), each held to the same rule as a note
 that is sent. Only ever from their own server, and in no more than
 twenty-five requests whatever it answers.
 
-**Not kept:** video and sound that come with a post, and polls.
+**Not kept:** polls, and video and sound that come with a post, which it
+leads to with a line at its end.
 
 ## Replies
 
@@ -1377,8 +1380,8 @@ It is kept the way a post from the fediverse is:
   whether or not the address is in its words.
 - **A post it quotes is led to,** with a line at its end; the quoted post
   is not kept.
-- **A video is not kept.** A post with words and a video is kept for its
-  words; one that is only a video is not kept at all.
+- **A video is not kept.** A post with a video ends with a line leading to
+  its page, `▶ bsky.app`, and one that is only a video is kept as that line.
 
 When somebody is first followed, their twenty most recent posts are read,
 with their answers to themselves, once, so that their profile here is not empty until they next post. A post
@@ -1555,7 +1558,7 @@ left out, `https://plc.directory`.
 
 Likes given on Bluesky to
 posts that came from there are not read, nor how many a post has; replies
-by people nobody here follows are not read; videos are not kept; a reply
+by people nobody here follows are not read; videos are led to, not kept; a reply
 hidden in Bluesky's app is not hidden here.
 The list of [servers that are refused](#servers-that-are-refused) is read
 by this service and still edited through `activitypub-service`, so an

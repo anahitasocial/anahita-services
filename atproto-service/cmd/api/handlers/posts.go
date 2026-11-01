@@ -62,6 +62,16 @@ func (h *Handlers) keepPost(author *repositories.RemoteActor, rkey string, post 
 	return err
 }
 
+// withVideoLink ends a post with a line leading to its page on Bluesky when
+// it carries a video, which is not kept here. Not a link for a card: a card
+// of the post's own page would say its words again.
+func withVideoLink(body string, post *bsky.Post, did, rkey string) string {
+	if !post.HasVideo() {
+		return body
+	}
+	return federation.WithVideoLink(body, bsky.PostPage(did, rkey), "bsky.app")
+}
+
 // storePost keeps a post that has been found to be one that is kept: on
 // its author's profile, and under what it answers when it answers
 // something. It answers with the post as it is kept, or nil when there
@@ -102,9 +112,11 @@ func (h *Handlers) storePost(author *repositories.RemoteActor, rkey string, post
 		}
 		body += "↪ [bsky.app](" + quoted + ")"
 	}
-	body = cutRunes(body, postMax)
+	words := cutRunes(body, postMax)
+	body = withVideoLink(words, post, author.DID, rkey)
 	if body == "" && kind != constants.NodeMediumPhotoEntityType {
-		// Nothing to show: no words, and no picture that is kept.
+		// Nothing to show: no words, no video to lead to, and no picture
+		// that is kept.
 		return nil, nil
 	}
 
@@ -119,7 +131,7 @@ func (h *Handlers) storePost(author *repositories.RemoteActor, rkey string, post
 	node.CreatedAt = post.Created(h.now())
 	// The card of the link it carries, or of the first one in its words,
 	// read by this installation itself.
-	node.Meta = federation.CardMeta(h.Cards, body, post.Link())
+	node.Meta = federation.CardMeta(h.Cards, words, post.Link())
 
 	saved, created, err := h.Nodes.UpsertRemote(node)
 	if err != nil {

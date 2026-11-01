@@ -121,7 +121,8 @@ func (h *Handlers) ownPosted(account *repositories.Account, rkey string, post *b
 		}
 		body += "↪ [bsky.app](" + quoted + ")"
 	}
-	body = cutRunes(body, postMax)
+	words := cutRunes(body, postMax)
+	body = withVideoLink(words, post, account.DID, rkey)
 	if body == "" && len(pictures) == 0 {
 		return nil
 	}
@@ -145,7 +146,7 @@ func (h *Handlers) ownPosted(account *repositories.Account, rkey string, post *b
 	node.ParentID = parentID
 	// Marked as having come from Bluesky before it is made: that it was
 	// made is said at once, and whoever hears it must not send it back.
-	node.Meta = markOwn(federation.CardMeta(h.Cards, body, post.Link()), bsky.PostURI(account.DID, rkey))
+	node.Meta = markOwn(federation.CardMeta(h.Cards, words, post.Link()), bsky.PostURI(account.DID, rkey))
 
 	made, err := h.Media.Add(node, viewer)
 	if err != nil || made == nil || made.ID == 0 {

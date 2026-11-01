@@ -166,6 +166,13 @@ func (p *Post) media() *Embed {
 	return p.Embed
 }
 
+// HasVideo says whether a post carries a video, on its own or beside a
+// quote.
+func (p *Post) HasVideo() bool {
+	media := p.media()
+	return media != nil && media.Type == "app.bsky.embed.video"
+}
+
 // PictureOf is one picture of a post: which file it is, and what its
 // author said it shows.
 type PictureOf struct {

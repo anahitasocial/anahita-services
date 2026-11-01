@@ -95,6 +95,21 @@ func CardLink(markdown string) string {
 	return linkpreviews.FirstURL(rest)
 }
 
+// WithVideoLink ends a post from elsewhere with a line leading to its page,
+// for what came with it that is not kept here: a video or a sound. `label`
+// is the name of the place it leads to. Without it a post could be left
+// looking complete, or, when it is only a video, not be there at all.
+func WithVideoLink(body, page, label string) string {
+	if page == "" || strings.ContainsAny(page, " \t\r\n()[]<>") {
+		return body
+	}
+	line := "▶\ufe0e [" + label + "](" + page + ")"
+	if body == "" {
+		return line
+	}
+	return body + "\n\n" + line
+}
+
 // CardMeta gives a post from elsewhere the card of the link in it, in the
 // meta a note keeps one in, or nothing when it has no link or the page
 // says nothing of itself. `address` is the link when the post names one
