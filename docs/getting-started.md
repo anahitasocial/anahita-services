@@ -113,9 +113,10 @@ be tried on nothing. `make dev_seed` fills a running stack with a made-up site:
 | Events, some of them over, with who is going | 8 |
 | Posts, over three years, with replies, likes and reposts | about 1,600 |
 
-Everybody's password is `test-dev-only-2026`, and their address is
-`<handle>@example.org`: `jeanluc`, `benjamin` and `kathryn` are the
-administrators. Nobody has a picture.
+Their password is one you choose, of 16 characters or more, as
+`DEV_SEED_PASSWORD` in `.env`, and their address is `<handle>@example.org`:
+`jeanluc`, `benjamin` and `kathryn` are the administrators. Nobody has a
+picture. It needs `htpasswd`, which macOS has; on Linux, `apache2-utils`.
 
 The people are written to the database, so no mail is sent, and everything else
 goes through the API, each person signed in as themselves. The graph is meant to
@@ -143,9 +144,9 @@ funnel --bg 80`), and `make down` closes it (`tailscale funnel --https=443 off`)
 Without the line nothing is opened. The address is your machine's own: put it in
 `PUBLIC_DOMAIN`, `PUBLIC_WEB_URL` and `PUBLIC_API_URL` in `.env`.
 
-While it is open, anybody who finds the address reaches the stack. Do not leave
-it open on a stack with the passwords from `make dev_seed`, which are published
-here, unless you have changed the administrators'.
+While it is open, anybody who finds the address reaches the stack, and can try
+to sign in to it. Use passwords nobody could guess, and keep it open only while
+you need it.
 
 ## Developing
 

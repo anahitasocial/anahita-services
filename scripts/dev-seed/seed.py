@@ -38,9 +38,6 @@ SCOPES = ('openid profile email offline_access actors:read actors:write '
 PERSON = 'node.actor.person-service.person.v1'
 NOTE = 'node.medium.text-service.note.v1'
 FOLLOW = 'edge.actor.follow.v1'
-# Everybody's password, for development only: test-dev-only-2026.
-PASSWORD = 'test-dev-only-2026'
-HASH = '$2a$04$z0q1FBTFRmgsYZUDeeLpsOrtkmtxULP/c7cAAlku/Al.7nIA0XsrK'
 ADMINISTRATORS = ('jeanluc', 'benjamin', 'kathryn')
 now = datetime.utcnow().replace(microsecond=0)
 rng = random.Random(1701)
@@ -112,6 +109,25 @@ REPLIES = ['Agreed, and well put.', 'I saw that too. Worth a longer look.', 'Not
            'Logical.', 'Sharing this with the others.', 'Remind me to buy you a drink.', 'Fascinating.', 'That is a good day, then.']
 HASHTAGS = {'USS Enterprise': 'engineering', 'Deep Space Nine': 'frontier', 'USS Voyager': 'longwayhome', 'Starfleet Academy': 'cadets',
             'Vulcan Science Academy': 'science', 'Ferengi Commerce Authority': 'latinum', 'Klingon Opera Society': 'opera', 'Bajoran Archives': 'history'}
+
+
+def setting(name):
+    for line in open('.env'):
+        if line.startswith(name + '='):
+            return line.split('=', 1)[1].strip().strip('"')
+    return ''
+
+
+# Everybody's password: DEV_SEED_PASSWORD in .env, so that none is published.
+# A stack may be open to the internet (scripts/funnel.sh).
+PASSWORD = setting('DEV_SEED_PASSWORD')
+
+
+def hashed(password):
+    out = subprocess.run(['htpasswd', '-bnBC', '4', '', password], capture_output=True)
+    if out.returncode:
+        sys.exit('htpasswd is needed, to hash the password: apache2-utils on Linux.')
+    return out.stdout.decode().strip().strip(':').replace('$2y$', '$2a$', 1)
 
 
 def compose(*a, stdin=None):
@@ -250,6 +266,7 @@ def people():
             wanted.append((crew, name))
     rng.shuffle(wanted)
     wanted = wanted[:args.people]
+    password = hashed(PASSWORD)
     if mysql("SELECT COUNT(*) FROM nodes WHERE alias = 'jeanluc'")[0][0] != '0':
         sys.exit('There are seeded people here already. Build the stack again first.')
     made = []
@@ -266,7 +283,7 @@ def people():
             f"{q(now - timedelta(days=rng.randint(60, 1400)))}, {q(now)});\n"
             f"INSERT INTO auth_accounts (node_id, email, password, email_verified_at, onboarded_at, tos_accepted, tos_accepted_version, "
             f"pp_accepted, pp_accepted_version, rules_accepted, rules_accepted_version) "
-            f"SELECT LAST_INSERT_ID(), {q(alias + '@example.org')}, {q(HASH)}, NOW(), NOW(), 1, a.tos_accepted_version, 1, a.pp_accepted_version, 1, a.rules_accepted_version "
+            f"SELECT LAST_INSERT_ID(), {q(alias + '@example.org')}, {q(password)}, NOW(), NOW(), 1, a.tos_accepted_version, 1, a.pp_accepted_version, 1, a.rules_accepted_version "
             f"FROM auth_accounts a WHERE a.node_id = (SELECT MIN(node_id) FROM auth_accounts);\n")
     mysql(''.join(sql))
     rows = mysql('SELECT id, alias, name FROM nodes WHERE alias IN (' + ','.join(q(m[1]) for m in made) + ')')
@@ -275,8 +292,10 @@ def people():
 
 
 def main():
-    if not any(l.strip().replace('"', '') == 'ENV=dev' for l in open('.env')):
+    if setting('ENV') != 'dev':
         sys.exit('This is for a development stack: .env does not say ENV=dev.')
+    if len(PASSWORD) < 16:
+        sys.exit('Put a password of 16 characters or more in .env as DEV_SEED_PASSWORD.')
 
     # Each post fans out through every service at once. Until MySQL restarts.
     mysql('SET GLOBAL max_connections = 800')
