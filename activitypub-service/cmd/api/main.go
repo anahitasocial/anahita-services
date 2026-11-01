@@ -91,6 +91,7 @@ func main() {
 		Blocks:   repositories.NewBlocks(db),
 		// The accounts refused one by one (docs/plans/done/refused-accounts.md).
 		RefusedAccounts: federation.NewRefusedAccounts(db),
+		KnownProfiles:   repositories.NewKnownProfiles(db),
 		PhotoPostsOf: func(ownerID int64) ([]int64, error) {
 			return federation.PhotoPostsOf(db, ownerID)
 		},

@@ -29,6 +29,7 @@ var actorContext = []any{
 		"toot":                      "http://joinmastodon.org/ns#",
 		"manuallyApprovesFollowers": "as:manuallyApprovesFollowers",
 		"discoverable":              "toot:discoverable",
+		"indexable":                 "toot:indexable",
 	},
 }
 
@@ -52,7 +53,10 @@ type Actor struct {
 	Published         string     `json:"published,omitempty"`
 	// Whether a follow waits to be approved.
 	ManuallyApprovesFollowers bool `json:"manuallyApprovesFollowers"`
-	Discoverable              bool `json:"discoverable"`
+	// Whether other servers may list them, and find them in search: their
+	// own choices.
+	Discoverable bool `json:"discoverable"`
+	Indexable    bool `json:"indexable"`
 }
 
 type Endpoints struct {

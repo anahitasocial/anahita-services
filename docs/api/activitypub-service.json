@@ -149,6 +149,7 @@
         "properties": {
           "@context": {},
           "discoverable": {
+            "description": "Whether other servers may list them, and find them in search: their own choices.",
             "type": "boolean"
           },
           "endpoints": {
@@ -171,6 +172,9 @@
           },
           "inbox": {
             "type": "string"
+          },
+          "indexable": {
+            "type": "boolean"
           },
           "manuallyApprovesFollowers": {
             "description": "Whether a follow waits to be approved.",
@@ -211,7 +215,8 @@
           "following",
           "publicKey",
           "manuallyApprovesFollowers",
-          "discoverable"
+          "discoverable",
+          "indexable"
         ],
         "type": "object"
       },
@@ -306,6 +311,56 @@
         },
         "required": [
           "rel"
+        ],
+        "type": "object"
+      },
+      "activitypub.KnownProfile": {
+        "description": "KnownProfile is somebody from another network who is kept here, because somebody here followed them or they were met in a thread.",
+        "properties": {
+          "created_at": {
+            "description": "When they were first kept.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "follower_count": {
+            "description": "How many here follow them.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "handle": {
+            "description": "Their handle, as it is kept here.",
+            "type": "string"
+          },
+          "id": {
+            "description": "The profile kept here.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "network": {
+            "description": "`activitypub` or `atproto`.",
+            "type": "string"
+          },
+          "type": {
+            "description": "What kind of profile it is, as any node says.",
+            "type": "string"
+          },
+          "uri": {
+            "description": "Where they are: their actor's address, or `at://` and their DID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "network",
+          "name",
+          "handle",
+          "uri",
+          "follower_count",
+          "created_at"
         ],
         "type": "object"
       },
@@ -540,6 +595,10 @@
             "description": "Whether they could be, and why not when they could not.",
             "type": "boolean"
           },
+          "discoverable": {
+            "description": "Whether other servers may list them in their directories.",
+            "type": "boolean"
+          },
           "enabled": {
             "description": "Whether they are.",
             "type": "boolean"
@@ -548,6 +607,10 @@
             "description": "What they are, or would be, called from other servers, and where those servers find them.",
             "type": "string"
           },
+          "indexable": {
+            "description": "Whether other servers may find them in search.",
+            "type": "boolean"
+          },
           "reason": {
             "description": "Why not: `site_private`, `site_unreachable` or `profile_not_public`.",
             "type": "string"
@@ -555,7 +618,9 @@
         },
         "required": [
           "available",
-          "enabled"
+          "enabled",
+          "discoverable",
+          "indexable"
         ],
         "type": "object"
       },
@@ -869,6 +934,89 @@
         ],
         "x-handler": "activitypub/cmd/api/handlers.(*Handlers).DeleteBlock",
         "x-viewer": "super_admin"
+      }
+    },
+    "/activitypub/known-profiles": {
+      "get": {
+        "description": "Newest first. `q` narrows it to the names and handles it is found in. For administrators: these people did not ask to be listed.\n\nWho may call it: a site administrator.",
+        "operationId": "getActivitypubKnownProfiles",
+        "parameters": [
+          {
+            "description": "Words the name or the reason holds.",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send: 50 unless asked, 200 at most.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/activitypub.KnownProfile"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not do this"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Who from other networks is kept here",
+        "tags": [
+          "activitypub-service"
+        ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).BrowseKnownProfiles",
+        "x-viewer": "admin"
       }
     },
     "/activitypub/lookup": {
@@ -1327,14 +1475,19 @@
             "application/json": {
               "schema": {
                 "properties": {
+                  "discoverable": {
+                    "description": "Whether other servers may list them in their directories.",
+                    "type": "boolean"
+                  },
                   "enabled": {
                     "description": "Whether the viewer is on the fediverse from now on. Leaving tells the servers that knew them, and some of those do not take them back (federation.md).",
                     "type": "boolean"
+                  },
+                  "indexable": {
+                    "description": "Whether other servers may find them in search.",
+                    "type": "boolean"
                   }
                 },
-                "required": [
-                  "enabled"
-                ],
                 "type": "object"
               }
             }
@@ -1360,7 +1513,7 @@
                 }
               }
             },
-            "description": "`enabled_required`, `person_unreadable`"
+            "description": "`enabled_required`: nothing to change; `person_unreadable`"
           },
           "401": {
             "description": "no token, or one that has expired"

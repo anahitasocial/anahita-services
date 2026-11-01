@@ -79,7 +79,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 </ul>
 <p class="group">Fediverse and Bluesky</p>
 <ul>
-<li><a href="#activitypub-service">The fediverse</a> <span class="count">23</span></li>
+<li><a href="#activitypub-service">The fediverse</a> <span class="count">24</span></li>
 <li><a href="#atproto-service">Bluesky</a> <span class="count">7</span></li>
 <li><a href="#syndication-service">Websites</a> <span class="count">5</span></li>
 </ul>
@@ -89,7 +89,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 </ul>
 <p class="group">Reference</p>
 <ul>
-<li><a href="#schemas">Shapes</a> <span class="count">161</span></li>
+<li><a href="#schemas">Shapes</a> <span class="count">162</span></li>
 </ul>
 </nav>
 <main>
@@ -9437,6 +9437,31 @@ who may call it: a super administrator.">
 </table>
 <p class="handler">Answered by <code>activitypub/cmd/api/handlers.(*Handlers).DeleteBlock</code></p>
 </details>
+<details class="route" id="getActivitypubKnownProfiles" data-search="get /activitypub/known-profiles who from other networks is kept here newest first. `q` narrows it to the names and handles it is found in. for administrators: these people did not ask to be listed.
+
+who may call it: a site administrator.">
+<summary><span class="method get">GET</span> <code class="path">/activitypub/known-profiles</code> <span class="summary">Who from other networks is kept here</span></summary>
+<div class="description"><p>Newest first. <code>q</code> narrows it to the names and handles it is found in. For administrators: these people did not ask to be listed.</p></div>
+<p class="who"><strong>Who:</strong> an administrator</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>q</code></td><td>query</td><td>string</td><td>Words the name or the reason holds.</td></tr>
+<tr><td><code>start</code></td><td>query</td><td>integer</td><td>How many to pass over.</td></tr>
+<tr><td><code>limit</code></td><td>query</td><td>integer</td><td>The most to send: 50 unless asked, 200 at most.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body">object { <code>data</code>: list of <a href="#schema-activitypub.KnownProfile">activitypub.KnownProfile</a> or null, <code>pagination</code>: <a href="#schema-Pagination">Pagination</a> } <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not do this</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>activitypub/cmd/api/handlers.(*Handlers).BrowseKnownProfiles</code></p>
+</details>
 <details class="route" id="getActivitypubLookup" data-search="get /activitypub/lookup find somebody on another server they are kept here, so that they can be followed as anybody is. thirty lookups in ten minutes.
 
 who may call it: somebody signed in.">
@@ -9599,14 +9624,16 @@ who may call it: somebody signed in.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>enabled</code> <span class="required">always</span></td><td>boolean</td><td>Whether the viewer is on the fediverse from now on. Leaving tells the servers that knew them, and some of those do not take them back (<a href="../federation.md">federation.md</a>).</td></tr>
+<tr><td><code>discoverable</code></td><td>boolean</td><td>Whether other servers may list them in their directories.</td></tr>
+<tr><td><code>enabled</code></td><td>boolean</td><td>Whether the viewer is on the fediverse from now on. Leaving tells the servers that knew them, and some of those do not take them back (<a href="../federation.md">federation.md</a>).</td></tr>
+<tr><td><code>indexable</code></td><td>boolean</td><td>Whether other servers may find them in search.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
 <table class="answers">
 <tbody>
 <tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-activitypub.Settings">activitypub.Settings</a> <span class="media">application/json</span></div></td></tr>
-<tr><td class="status s4">400</td><td><code>enabled_required</code>, <code>person_unreadable</code><div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>enabled_required</code>: nothing to change; <code>person_unreadable</code><div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td>somebody else&#39;s, and the viewer is not an administrator of the website asked about</td></tr>
 <tr><td class="status s4">409</td><td>why they cannot be: <code>site_private</code>, <code>site_unreachable</code> or <code>profile_not_public</code><div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
@@ -11335,14 +11362,14 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-activitypub.Actor" data-search="activitypub.actor @context discoverable endpoints followers following icon id image inbox manuallyapprovesfollowers name outbox preferredusername publickey published summary type url">
+<div class="route schema" id="schema-activitypub.Actor" data-search="activitypub.actor @context discoverable endpoints followers following icon id image inbox indexable manuallyapprovesfollowers name outbox preferredusername publickey published summary type url">
 <h3>activitypub.Actor</h3>
 <p>Somebody, as they are described to another server.</p>
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
 <tr><td><code>@context</code></td><td>anything</td><td></td></tr>
-<tr><td><code>discoverable</code> <span class="required">always</span></td><td>boolean</td><td></td></tr>
+<tr><td><code>discoverable</code> <span class="required">always</span></td><td>boolean</td><td>Whether other servers may list them, and find them in search: their own choices.</td></tr>
 <tr><td><code>endpoints</code></td><td><a href="#schema-activitypub.Endpoints">activitypub.Endpoints</a></td><td></td></tr>
 <tr><td><code>followers</code> <span class="required">always</span></td><td>string</td><td></td></tr>
 <tr><td><code>following</code> <span class="required">always</span></td><td>string</td><td></td></tr>
@@ -11350,6 +11377,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>id</code> <span class="required">always</span></td><td>string</td><td></td></tr>
 <tr><td><code>image</code></td><td><a href="#schema-activitypub.Image">activitypub.Image</a></td><td></td></tr>
 <tr><td><code>inbox</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+<tr><td><code>indexable</code> <span class="required">always</span></td><td>boolean</td><td></td></tr>
 <tr><td><code>manuallyApprovesFollowers</code> <span class="required">always</span></td><td>boolean</td><td>Whether a follow waits to be approved.</td></tr>
 <tr><td><code>name</code></td><td>string</td><td></td></tr>
 <tr><td><code>outbox</code> <span class="required">always</span></td><td>string</td><td></td></tr>
@@ -11415,6 +11443,23 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>href</code></td><td>string</td><td></td></tr>
 <tr><td><code>rel</code> <span class="required">always</span></td><td>string</td><td></td></tr>
 <tr><td><code>type</code></td><td>string</td><td></td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-activitypub.KnownProfile" data-search="activitypub.knownprofile created_at follower_count handle id name network type uri">
+<h3>activitypub.KnownProfile</h3>
+<p>Somebody from another network who is kept here, because somebody here followed them or they were met in a thread.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>created_at</code> <span class="required">always</span></td><td>time</td><td>When they were first kept.</td></tr>
+<tr><td><code>follower_count</code> <span class="required">always</span></td><td>integer</td><td>How many here follow them.</td></tr>
+<tr><td><code>handle</code> <span class="required">always</span></td><td>string</td><td>Their handle, as it is kept here.</td></tr>
+<tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td>The profile kept here.</td></tr>
+<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+<tr><td><code>network</code> <span class="required">always</span></td><td>string</td><td><code>activitypub</code> or <code>atproto</code>.</td></tr>
+<tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td>What kind of profile it is, as any node says.</td></tr>
+<tr><td><code>uri</code> <span class="required">always</span></td><td>string</td><td>Where they are: their actor&#39;s address, or <code>at://</code> and their DID.</td></tr>
 </tbody>
 </table>
 </div>
@@ -11502,7 +11547,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-activitypub.Settings" data-search="activitypub.settings actor available enabled handle reason">
+<div class="route schema" id="schema-activitypub.Settings" data-search="activitypub.settings actor available discoverable enabled handle indexable reason">
 <h3>activitypub.Settings</h3>
 <p>What a person is shown about being on the fediverse.</p>
 <table>
@@ -11510,8 +11555,10 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tbody>
 <tr><td><code>actor</code></td><td>string</td><td>Where those servers find them.</td></tr>
 <tr><td><code>available</code> <span class="required">always</span></td><td>boolean</td><td>Whether they could be, and why not when they could not.</td></tr>
+<tr><td><code>discoverable</code> <span class="required">always</span></td><td>boolean</td><td>Whether other servers may list them in their directories.</td></tr>
 <tr><td><code>enabled</code> <span class="required">always</span></td><td>boolean</td><td>Whether they are.</td></tr>
 <tr><td><code>handle</code></td><td>string</td><td>What they are, or would be, called from other servers, and where those servers find them.</td></tr>
+<tr><td><code>indexable</code> <span class="required">always</span></td><td>boolean</td><td>Whether other servers may find them in search.</td></tr>
 <tr><td><code>reason</code></td><td>string</td><td>Why not: <code>site_private</code>, <code>site_unreachable</code> or <code>profile_not_public</code>.</td></tr>
 </tbody>
 </table>

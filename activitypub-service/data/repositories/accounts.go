@@ -15,6 +15,10 @@ type Account struct {
 	Enabled  bool
 	// When they last chose to be.
 	EnabledAt time.Time
+	// Whether other servers may list them, and find them in search. On
+	// until they say otherwise.
+	Discoverable bool
+	Indexable    bool
 }
 
 // AccountsInterface is who has chosen to be on the fediverse.
@@ -24,6 +28,8 @@ type AccountsInterface interface {
 	Read(personID int64) (*Account, error)
 	// Set records a person's choice.
 	Set(personID int64, enabled bool) error
+	// SetListing records whether other servers may list them and find them.
+	SetListing(personID int64, discoverable, indexable bool) error
 	// Told records what of a person their followers' servers now have:
 	// the person's own updated_at when they were sent their description.
 	Told(personID int64, updatedAt time.Time) error
@@ -38,7 +44,7 @@ func NewAccounts(db *sql.DB) *Accounts {
 }
 
 const readAccount = `
-SELECT enabled, enabled_at
+SELECT enabled, enabled_at, discoverable, indexable
 FROM activitypub_accounts
 WHERE person_id = ?`
 
@@ -46,9 +52,10 @@ func (repo *Accounts) Read(personID int64) (*Account, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	account := &Account{PersonID: personID}
+	account := &Account{PersonID: personID, Discoverable: true, Indexable: true}
 	var enabledAt sql.NullTime
-	err := repo.db.QueryRowContext(ctx, readAccount, personID).Scan(&account.Enabled, &enabledAt)
+	err := repo.db.QueryRowContext(ctx, readAccount, personID).Scan(
+		&account.Enabled, &enabledAt, &account.Discoverable, &account.Indexable)
 	if errors.Is(err, sql.ErrNoRows) {
 		return account, nil
 	}
@@ -69,6 +76,24 @@ func (repo *Accounts) Told(personID int64, updatedAt time.Time) error {
 	defer cancel()
 
 	_, err := repo.db.ExecContext(ctx, toldAccount, updatedAt.UTC(), personID)
+	return err
+}
+
+// Somebody who has never gone on the fediverse may choose these first.
+const setListing = `
+INSERT INTO activitypub_accounts (person_id, discoverable, indexable, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?)
+ON DUPLICATE KEY UPDATE
+    discoverable = VALUES(discoverable),
+    indexable    = VALUES(indexable),
+    updated_at   = VALUES(updated_at)`
+
+func (repo *Accounts) SetListing(personID int64, discoverable, indexable bool) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	now := time.Now().UTC()
+	_, err := repo.db.ExecContext(ctx, setListing, personID, discoverable, indexable, now, now)
 	return err
 }
 

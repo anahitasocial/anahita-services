@@ -115,7 +115,7 @@ func (h *Handlers) profileChanged(ctx context.Context, personID int64) error {
 	if err != nil {
 		return err
 	}
-	described := ap.NewActor(h.addresses, person, publicKey)
+	described := h.actorDescribed(person, publicKey)
 	changed := person.UpdatedAt.UTC().Format(time.RFC3339)
 	if err := h.toFollowers(ctx, person,
 		ap.NewUpdatePerson(h.addresses.Activity(newUUID()), described),
@@ -123,4 +123,21 @@ func (h *Handlers) profileChanged(ctx context.Context, personID int64) error {
 		return err
 	}
 	return h.Accounts.Told(person.ID, person.UpdatedAt)
+}
+
+// listingChanged tells a person's followers' servers what they chose about
+// being listed and found. Nothing else about them changed, so each is told
+// apart from the changes to their profile, and may be changed back.
+func (h *Handlers) listingChanged(ctx context.Context, personID int64) error {
+	person, err := h.Nodes.Read(personID)
+	if err != nil || person == nil {
+		return err
+	}
+	publicKey, err := h.publicKeyOf(person.ID)
+	if err != nil {
+		return err
+	}
+	return h.toFollowers(ctx, person,
+		ap.NewUpdatePerson(h.addresses.Activity(newUUID()), h.actorDescribed(person, publicKey)),
+		fmt.Sprintf("listing:%s:%d", person.UUID, time.Now().UnixNano()))
 }

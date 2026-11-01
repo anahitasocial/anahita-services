@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"strconv"
@@ -29,14 +30,23 @@ type Settings struct {
 	Handle string `json:"handle,omitempty"`
 	// Where those servers find them.
 	Actor string `json:"actor,omitempty"`
+	// Whether other servers may list them in their directories.
+	Discoverable bool `json:"discoverable"`
+	// Whether other servers may find them in search.
+	Indexable bool `json:"indexable"`
 }
 
-// SettingsRequest turns being on the fediverse on or off.
+// SettingsRequest changes any of what a person chooses. What it leaves out
+// stays as it is.
 type SettingsRequest struct {
 	// Whether the viewer is on the fediverse from now on. Leaving tells the
 	// servers that knew them, and some of those do not take them back
 	// (federation.md).
-	Enabled *bool `json:"enabled" validate:"required"`
+	Enabled *bool `json:"enabled"`
+	// Whether other servers may list them in their directories.
+	Discoverable *bool `json:"discoverable"`
+	// Whether other servers may find them in search.
+	Indexable *bool `json:"indexable"`
 }
 
 // ReadSettings says whether the viewer is on the fediverse and could be.
@@ -91,7 +101,8 @@ func (h *Handlers) EditSettings(c echo.Context) error {
 	}
 
 	req := &SettingsRequest{}
-	if err := c.Bind(req); err != nil || req.Enabled == nil {
+	if err := c.Bind(req); err != nil ||
+		(req.Enabled == nil && req.Discoverable == nil && req.Indexable == nil) {
 		return refuse(c, http.StatusBadRequest, "enabled_required")
 	}
 
@@ -99,6 +110,16 @@ func (h *Handlers) EditSettings(c echo.Context) error {
 	if err != nil {
 		log.Println("activitypub settings:", err)
 		return refuse(c, http.StatusInternalServerError, "unavailable")
+	}
+
+	if req.Discoverable != nil || req.Indexable != nil {
+		if err := h.changeListing(personID, settings, req); err != nil {
+			log.Println("activitypub settings:", err)
+			return refuse(c, http.StatusInternalServerError, "unavailable")
+		}
+	}
+	if req.Enabled == nil {
+		return c.JSON(http.StatusOK, settings)
 	}
 
 	// Off is always allowed. On only when they could be.
@@ -137,6 +158,30 @@ func (h *Handlers) EditSettings(c echo.Context) error {
 	return c.JSON(http.StatusOK, settings)
 }
 
+// changeListing records what somebody chose about being listed and found.
+// Other servers learn of it as they learn of a changed name: their followers'
+// servers are told now, and others when they next read the profile. Unlike
+// leaving, it can be changed back as often as they like.
+func (h *Handlers) changeListing(personID int64, settings *Settings, req *SettingsRequest) error {
+	if req.Discoverable != nil {
+		settings.Discoverable = *req.Discoverable
+	}
+	if req.Indexable != nil {
+		settings.Indexable = *req.Indexable
+	}
+	if err := h.Accounts.SetListing(personID, settings.Discoverable, settings.Indexable); err != nil {
+		return err
+	}
+	if settings.Enabled {
+		h.later(func() {
+			if err := h.listingChanged(context.Background(), personID); err != nil {
+				log.Println("activitypub listing:", err)
+			}
+		})
+	}
+	return nil
+}
+
 // administersWebsite says whether the viewer is one of a website's
 // administrators. Anything that is not a website here is not theirs to ask
 // about.
@@ -166,6 +211,8 @@ func (h *Handlers) settingsOf(personID int64) (*Settings, error) {
 		return nil, err
 	}
 	settings.Enabled = account.Enabled
+	settings.Discoverable = account.Discoverable
+	settings.Indexable = account.Indexable
 
 	if ok, reason := h.siteFederates(); !ok {
 		settings.Reason = reason

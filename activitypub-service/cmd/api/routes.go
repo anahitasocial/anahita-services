@@ -6,6 +6,7 @@ import (
 
 	"activitypub/ap"
 	"activitypub/cmd/api/handlers"
+	"activitypub/data/repositories"
 
 	"anahita-libs/apidoc"
 	"anahita-libs/federation"
@@ -187,7 +188,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Takes(&handlers.SettingsQuery{}).
 		Takes(&handlers.SettingsRequest{}).
 		Sends(http.StatusOK, handlers.Settings{}).
-		Sends(http.StatusBadRequest, responses.Refusal{}, "`enabled_required`, `person_unreadable`").
+		Sends(http.StatusBadRequest, responses.Refusal{}, "`enabled_required`: nothing to change; `person_unreadable`").
 		Refuses(http.StatusForbidden, "somebody else's, and the viewer is not an administrator of the website asked about").
 		Sends(http.StatusConflict, responses.Refusal{}, "why they cannot be: `site_private`, `site_unreachable` or `profile_not_public`")
 	// Finding somebody on another server.
@@ -233,6 +234,13 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Sends(http.StatusBadRequest, responses.Refusal{}, "`domain_required`: the request names no server; `domain_unreadable`: it is not a server's name; `domain_is_here`: it is this installation")
 	// The accounts refused one by one, on the fediverse and on Bluesky
 	// (docs/plans/done/refused-accounts.md). Administrators: the handlers check.
+	activitypub.GET("/known-profiles", r.handler.BrowseKnownProfiles).
+		Summary("Who from other networks is kept here").
+		Describe("Newest first. `q` narrows it to the names and handles it is found in. For administrators: these people did not ask to be listed.").
+		Viewer(apidoc.Admin).
+		Takes(&handlers.BlocksBrowse{}).
+		Unbound().
+		Sends(http.StatusOK, responses.List[*repositories.KnownProfile]{})
 	activitypub.GET("/refused-accounts", r.handler.BrowseRefusedAccounts).
 		Summary("The accounts refused").
 		Describe("Newest first. `q` narrows it to the names, handles and reasons it is found in.").

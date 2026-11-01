@@ -74,6 +74,9 @@ func (f *fakeNodes) FilterVisible(ids []int64, viewer *entities.Viewer) ([]int64
 type fakeAccounts struct {
 	enabled map[int64]bool
 	told    map[int64]time.Time
+	// What a person chose about being listed and found: [discoverable,
+	// indexable]. On until they choose.
+	listing map[int64][2]bool
 }
 
 func (f *fakeAccounts) Told(id int64, at time.Time) error {
@@ -85,7 +88,19 @@ func (f *fakeAccounts) Told(id int64, at time.Time) error {
 }
 
 func (f *fakeAccounts) Read(id int64) (*repositories.Account, error) {
-	return &repositories.Account{PersonID: id, Enabled: f.enabled[id]}, nil
+	account := &repositories.Account{PersonID: id, Enabled: f.enabled[id], Discoverable: true, Indexable: true}
+	if chosen, ok := f.listing[id]; ok {
+		account.Discoverable, account.Indexable = chosen[0], chosen[1]
+	}
+	return account, nil
+}
+
+func (f *fakeAccounts) SetListing(id int64, discoverable, indexable bool) error {
+	if f.listing == nil {
+		f.listing = map[int64][2]bool{}
+	}
+	f.listing[id] = [2]bool{discoverable, indexable}
+	return nil
 }
 
 func (f *fakeAccounts) Set(id int64, enabled bool) error {

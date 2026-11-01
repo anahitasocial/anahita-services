@@ -37,7 +37,7 @@ func (h *Handlers) Actor(c echo.Context) error {
 	}
 
 	c.Response().Header().Set("Cache-Control", "public, max-age=180")
-	return activityJSON(c, ap.NewActor(h.addresses, person, publicKey))
+	return activityJSON(c, h.actorDescribed(person, publicKey))
 }
 
 // Followers says how many follow a person, and not who.
@@ -56,4 +56,14 @@ func (h *Handlers) Following(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 	return activityJSON(c, ap.NewCollection(h.addresses.Following(person.UUID), person.LeaderCount))
+}
+
+// actorDescribed is a person as other servers are told of them, with what they
+// chose about being listed and found.
+func (h *Handlers) actorDescribed(person *entities.AnahitaNode, publicKey string) *ap.Actor {
+	actor := ap.NewActor(h.addresses, person, publicKey)
+	if account, err := h.Accounts.Read(person.ID); err == nil && account != nil {
+		actor.Discoverable, actor.Indexable = account.Discoverable, account.Indexable
+	}
+	return actor
 }

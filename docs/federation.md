@@ -27,6 +27,7 @@ Bluesky account they already have. See [Bluesky](#bluesky).
 - [Who is on the fediverse](#who-is-on-the-fediverse)
 - [What a person is called](#what-a-person-is-called)
 - [What other servers are told](#what-other-servers-are-told)
+- [Listed and found](#listed-and-found)
 - [Looking somebody up on another server](#looking-somebody-up-on-another-server)
 - [Being followed from another server](#being-followed-from-another-server)
 - [Following somebody on another server](#following-somebody-on-another-server)
@@ -410,6 +411,24 @@ WebFinger answers for a handle on the API's host as well as on the handle's
 own domain (`ana@api.example.org` as well as `ana@example.org`), and says in
 its answer which is the real one. A server that first met somebody by their
 address asks the host in that address who they are.
+
+## Listed and found
+
+Two choices of each person's own, in their Fediverse settings, apart from being
+on the fediverse at all, and on until they say otherwise:
+
+| Choice | Sent as | What it asks of other servers |
+| --- | --- | --- |
+| Shown in directories | `discoverable` | That the profile may appear in directories and suggestions |
+| Found in search | `indexable` | That they may be found in search |
+
+Either can be changed as often as somebody likes, unlike leaving: the servers of
+their followers are sent the change as a changed profile is, and others see it
+when they next read the profile. It is a request, which servers that care honour:
+what another server has already copied cannot be taken back from here.
+
+A person's choices go in their actor (`ap/actor.go`), read from
+`activitypub_accounts`.
 
 ## Looking somebody up on another server
 
@@ -957,6 +976,8 @@ Signed in, for the person themselves:
 | --- | --- |
 | `GET /activitypub/settings` | Whether they are on the fediverse, whether they could be, and what they are or would be called. An administrator may ask it of somebody else, with `?person_id=`, to read and not to change |
 | `PUT /activitypub/settings` `{ "enabled": true }` | Turns it on or off |
+| `PUT /activitypub/settings` `{ "discoverable": false, "indexable": false }` | Whether other servers may list them, and find them in search; either alone. See [Listed and found](#listed-and-found) |
+| `GET /activitypub/known-profiles` | Administrators: who from other networks is kept here, for the list in the Fediverse settings |
 | `GET /activitypub/lookup?q=@alice@mastodon.example` | Finds somebody on another server, by handle or by the address of their profile, and keeps them |
 
 ~~~json

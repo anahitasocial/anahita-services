@@ -68,6 +68,8 @@ type Env struct {
 	// The accounts refused one by one, on this network and Bluesky
 	// (docs/plans/done/refused-accounts.md).
 	RefusedAccounts federation.RefusedAccountsInterface
+	// Who from other networks is kept here, for administrators to see.
+	KnownProfiles repositories.KnownProfilesInterface
 	// The photo posts of somebody from elsewhere, removed with their pictures
 	// when they are.
 	PhotoPostsOf func(ownerID int64) ([]int64, error)

@@ -43,6 +43,7 @@ func NewActor(a Addresses, person *entities.AnahitaNode, publicKeyPEM string) *A
 		// here as from elsewhere.
 		ManuallyApprovesFollowers: false,
 		Discoverable:              true,
+		Indexable:                 true,
 	}
 
 	if person.Body != "" {

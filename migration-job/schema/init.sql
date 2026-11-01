@@ -1133,6 +1133,9 @@ CREATE TABLE IF NOT EXISTS activitypub_accounts (
     `enabled` tinyint(1) NOT NULL DEFAULT 0,
     -- When they last turned it on.
     `enabled_at` datetime DEFAULT NULL,
+    -- Whether other servers may list them, and find them in search.
+    `discoverable` tinyint(1) NOT NULL DEFAULT 1,
+    `indexable` tinyint(1) NOT NULL DEFAULT 1,
     -- Their own updated_at when their followers' servers were last sent
     -- their description.
     `told_updated_at` datetime DEFAULT NULL,
