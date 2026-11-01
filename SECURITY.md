@@ -33,8 +33,11 @@ These are in the repository on purpose, for development only:
    the same values in `docs/getting-started.md`.
 2. The values in `*.example` files, and the keys made up for tests.
 
-This is reported and is not a vulnerability here:
+These are reported and are not vulnerabilities here:
 
 1. `golang.org/x/crypto/openpgp` (GO-2026-5932), which `govulncheck` and
    Dependabot name because the package is unmaintained. It has no fix, and
    nothing here calls it.
+2. `github.com/disintegration/imaging` (GHSA-q7pp-wcgr-pffx), a crash in
+   `Grayscale` on a crafted TIFF. It has no fix, and nothing here calls
+   `Grayscale`: only `Resize` and the `Rotate` functions.
