@@ -66,6 +66,7 @@ internet.
 | Step 1 | done 2026-11-01 |
 | Steps 2 and 3, Go, gRPC, protobuf and `golang.org/x/*` | done 2026-11-01, together: gRPC 1.76 does not build on Go 1.27 |
 | Step 3, Echo, RabbitMQ's client, goldmark, `edwards25519` and the AWS SDK | done 2026-11-01. `govulncheck` now names one advisory, in 21 modules: `golang.org/x/crypto/openpgp`, unmaintained, with no fix, and not called |
-| Step 4 | every module's tests, the development stack and the federation lab, against GoToSocial, 2026-11-01: following and posts both ways. banu.io comes with the next Birth release |
+| Step 4 | every module's tests, the development stack and the federation lab, against GoToSocial, 2026-11-01: following and posts both ways. On banu.io with `v1.0.9`, 2026-11-01 |
 | Step 5 | done 2026-11-01: `SECURITY.md` says why `openpgp` is not a vulnerability here |
 | Step 6 | done 2026-11-01: `.github/dependabot.yml`, security updates in one pull request |
+| Finished | 2026-11-01, `v1.0.9` |
