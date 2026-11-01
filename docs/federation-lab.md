@@ -66,7 +66,13 @@ make fedi_lab
 ~~~
 
 It is not started by `make up`, and takes port 443 on your machine while it
-runs.
+runs. If something else holds that port, its front door does not start: a
+browser needs the port, and the servers, which speak over Docker's network, do
+not.
+
+A development database built again gives this installation a new key, and
+GoToSocial keeps the old one, so it refuses what is signed here with
+`authentication NOT PASSED`. `make fedi_lab_reset` empties it.
 
 ## Opening it in a browser
 

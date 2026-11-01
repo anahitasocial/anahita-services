@@ -1,0 +1,19 @@
+# Security updates only, and together: one pull request across every module,
+# so that the next advisory is one update and not twenty-eight
+# (docs/plans/dependency-alerts.md, step 6). No version updates: a package is
+# otherwise raised when somebody decides to.
+version: 2
+updates:
+  - package-ecosystem: gomod
+    directories:
+      - "/"
+      - "/*"
+      - "/examples/grpc/go"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+    groups:
+      go-security:
+        applies-to: security-updates
+        patterns:
+          - "*"

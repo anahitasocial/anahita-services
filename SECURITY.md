@@ -32,3 +32,9 @@ These are in the repository on purpose, for development only:
 1. The Garage key and RPC secret that `scripts/storage-init.sh` creates, and
    the same values in `docs/getting-started.md`.
 2. The values in `*.example` files, and the keys made up for tests.
+
+This is reported and is not a vulnerability here:
+
+1. `golang.org/x/crypto/openpgp` (GO-2026-5932), which `govulncheck` and
+   Dependabot name because the package is unmaintained. It has no fix, and
+   nothing here calls it.
