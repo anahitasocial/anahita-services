@@ -111,7 +111,12 @@ func (f *Fetcher) Thumbnail(address string) ([]byte, string, string, error) {
 		return nil, "", "", err
 	}
 
-	upright, _, err := images.Accept(raw, MaxImageBytes, MaxImagePixels)
+	readable, err := asPNG(raw, MaxImagePixels)
+	if err != nil {
+		return nil, "", "", err
+	}
+
+	upright, _, err := images.Accept(readable, MaxImageBytes, MaxImagePixels)
 	if err != nil {
 		return nil, "", "", err
 	}

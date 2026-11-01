@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	"anahita-libs/data/services"
 	"anahita-libs/linkpreviews"
 	"anahita-libs/ratelimit"
+	images "anahita-libs/utils"
 
 	"github.com/labstack/echo/v4"
 )
@@ -187,7 +189,7 @@ func (h *previewsHandler) fetch(address string) *linkpreviews.Preview {
 func (h *previewsHandler) keepPicture(address string) string {
 	content, name, mimeType, err := h.Fetcher.Thumbnail(address)
 	if err != nil {
-		log.Println("link preview: picture not kept:", errorKind(err))
+		log.Println("link preview: picture not kept:", pictureError(err))
 		return ""
 	}
 
@@ -209,6 +211,17 @@ func (h *previewsHandler) keepPicture(address string) string {
 	}
 
 	return name
+}
+
+// pictureError says why a picture was not kept. What is wrong with a picture
+// names no address, so it is said; anything else is only its kind.
+func pictureError(err error) string {
+	for _, known := range []error{images.ErrUnsupported, images.ErrTooLarge, images.ErrUnreadable} {
+		if errors.Is(err, known) {
+			return known.Error()
+		}
+	}
+	return errorKind(err)
 }
 
 // errorKind is an error without what it was about. Go's network errors

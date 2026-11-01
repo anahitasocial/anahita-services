@@ -71,7 +71,8 @@ descriptions to 300.
 ## The picture
 
 The picture is fetched by the same fetcher, decoded, made no wider than
-800 pixels and encoded again, then stored through `file-grpc-service` under
+800 pixels and encoded again, a WebP or a GIF as a PNG (a GIF as its first
+picture), then stored through `file-grpc-service` under
 `assets/v1/link-preview-service/`, named by the SHA-256 of its bytes. What is stored is
 always a picture this installation encoded itself.
 
