@@ -118,7 +118,12 @@ up:
 	@./scripts/grpc-certs-init.sh
 	docker-compose up -d
 	@./scripts/storage-init.sh
+	@./scripts/funnel.sh on
 	@echo "Docker images started!"
+
+## dev_seed: fills a running development stack with a made-up site (docs/getting-started.md)
+dev_seed:
+	python3 -I scripts/dev-seed/seed.py
 
 ## storage_init: prepares the local Garage store (role, bucket, access key); safe to repeat
 storage_init:
@@ -127,6 +132,7 @@ storage_init:
 ## down: stop docker compose
 down:
 	@echo "Stopping docker images..."
+	@./scripts/funnel.sh off
 	docker-compose down
 	@echo "Docker stopped!"
 
@@ -375,6 +381,7 @@ up_build: build_abuse_report build_recommendation build_link_preview build_syndi
 	@./scripts/grpc-certs-init.sh
 	docker-compose up --build -d
 	@./scripts/storage-init.sh
+	@./scripts/funnel.sh on
 	@echo "Docker images built and started!"
 
 ## auth: stops auth-service, removes docker image, builds service, and starts it

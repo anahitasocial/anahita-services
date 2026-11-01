@@ -40,8 +40,11 @@ services:
     networks:
       anahita-network:
         ipv4_address: 172.20.1.3
+    # No binary log: nothing replicates from a development database, and the
+    # log would keep what was loaded and then changed or removed.
     command:
       --group_concat_max_len=64000
+      --skip-log-bin
 
 # Redis - session store
   redis:

@@ -10,6 +10,8 @@ Running the whole stack locally with Docker Compose.
 - [Configure](#configure)
 - [Starting](#starting)
 - [First run](#first-run)
+- [A site to work with](#a-site-to-work-with)
+- [Reachable from outside](#reachable-from-outside)
 - [Developing](#developing)
 - [Tests](#tests)
 - [Other targets](#other-targets)
@@ -97,6 +99,53 @@ On a fresh database:
    nobody can sign up or accept an invitation.
 3. **Replace the placeholder Terms and Privacy Policy** in the web app before
    anyone joins — every member is asked to accept whatever is there.
+
+## A site to work with
+
+A new database is empty, and a feature that lists, ranks or recommends cannot
+be tried on nothing. `make dev_seed` fills a running stack with a made-up site:
+
+| What | How many |
+| --- | --- |
+| People, named after Star Trek characters, three of them administrators | 60 |
+| Groups, and the people who follow them | 10 |
+| Locations | 10 |
+| Events, some of them over, with who is going | 8 |
+| Posts, over three years, with replies, likes and reposts | about 1,600 |
+
+Everybody's password is `test-dev-only-2026`, and their address is
+`<handle>@example.org`: `jeanluc`, `benjamin` and `kathryn` are the
+administrators. Nobody has a picture.
+
+The people are written to the database, so no mail is sent, and everything else
+goes through the API, each person signed in as themselves. The graph is meant to
+be even: people follow mostly inside their groups, a few people are followed
+widely and none by everybody, and what each person posts runs from a little to a
+lot. It prints how even it came out when it ends.
+
+It takes about half an hour, makes the same site each time, and runs
+only where `.env` says `ENV=dev`. It raises MySQL's `max_connections` until
+MySQL next restarts, since each post goes through every service at once. To run
+it again, start from an empty database.
+
+## Reachable from outside
+
+Another server can only reach a stack that is on the internet, which trying
+federation needs. With [Tailscale Funnel](https://tailscale.com/kb/1223/funnel)
+set up on your machine, put this in `.env`:
+
+~~~sh
+DEV_FUNNEL=on
+~~~
+
+`make up` and `make up_build` then open port 80 to the internet (`tailscale
+funnel --bg 80`), and `make down` closes it (`tailscale funnel --https=443 off`).
+Without the line nothing is opened. The address is your machine's own: put it in
+`PUBLIC_DOMAIN`, `PUBLIC_WEB_URL` and `PUBLIC_API_URL` in `.env`.
+
+While it is open, anybody who finds the address reaches the stack. Do not leave
+it open on a stack with the passwords from `make dev_seed`, which are published
+here, unless you have changed the administrators'.
 
 ## Developing
 
