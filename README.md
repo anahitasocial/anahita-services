@@ -5,7 +5,7 @@
 Anahita as a microservices architecture — the Go rewrite of the Anahita
 social networking platform.
 
-The project is a Go workspace (`go.work`, Go 1.25) of loosely coupled
+The project is a Go workspace (`go.work`, Go 1.27) of loosely coupled
 services plus one shared library. Everything is fronted by nginx, which is
 the single public entry point; there is no broker service and no etcd —
 service addresses are plain DNS names inside the Docker/Kubernetes network,

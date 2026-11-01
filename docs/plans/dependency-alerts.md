@@ -33,8 +33,35 @@ the vulnerable part. `govulncheck` says which are reached.
 `examples/grpc/python/requirements.txt` is an example, not anything a site
 runs; it is updated with the rest so that it does not count.
 
+## What step 1 found (2026-11-01)
+
+`govulncheck` in each module, in the workspace as the images are built, Go
+1.26.5: 26 modules. The other two, the root module and `examples/grpc/go`, do
+not build alone, and no site runs them. The 744 alerts are 12 packages:
+
+| Package | Advisories | Modules | Fixed in | Reached by the code |
+| --- | --- | --- | --- | --- |
+| Go's standard library | 22 | 26 | Go 1.26.9 | 20 of them: `net/http`, `crypto/tls`, `crypto/x509`, `encoding/xml`, `net/url` |
+| `golang.org/x/net` | 14 | 25 | 0.62.0 | HTTP/2 through gRPC, in 25; `html`, in 5 |
+| `github.com/rabbitmq/amqp091-go` | 11 | 12 | 1.14.0 | Dialling and channels, in 12. Its advisories need a hostile broker, and the broker is ours |
+| `golang.org/x/image` | 9 | 21 | 0.45.0 | `tiff.Decode` in 21, and `bmp` in 1 |
+| `google.golang.org/grpc` | 5 | 25 | 1.83.1 | Transport in 25, the server's authorization check in 3 |
+| `golang.org/x/crypto` | 4 | 21 | 0.56.0 | Not reached |
+| `golang.org/x/text` | 2 | 25 | 0.41.0 | Not reached |
+| `github.com/labstack/echo/v4` | 1 | 21 | 4.15.3 | `Static`, in 2: an encoded slash past a route's protection |
+| `github.com/yuin/goldmark` | 1 | 20 | 1.7.17 | The link renderer, in 2: cross-site scripting |
+| `filippo.io/edwards25519` | 1 | 21 | 1.1.1 | Not reached |
+| `github.com/aws/aws-sdk-go-v2` `service/s3`, `eventstream` | 1 | 2 | 1.97.3, 1.7.8 | In 2 |
+
+The images were built with Go 1.25.0, which `go.work` names and
+`.github/workflows/images.yml` reads, so step 2 matters most: the standard
+library's are fixed by it alone, and they are the ones reached from the
+internet.
+
 ## Status
 
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-28 |
+| Step 1 | done 2026-11-01 |
+| Steps 2 and 3, Go, gRPC, protobuf and `golang.org/x/*` | done 2026-11-01, together: gRPC 1.76 does not build on Go 1.27 |

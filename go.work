@@ -1,4 +1,4 @@
-go 1.25.0
+go 1.27.3
 
 use (
 	./abuse-report-service
@@ -23,8 +23,8 @@ use (
 	./scripts/s3-migration
 	./search-service
 	./socialgraph-service
+	./syndication-service
 	./text-service
 	./video-service
 	./web-shell
-	./syndication-service
 )

@@ -1,6 +1,6 @@
 module github.com/anahitasocial/anahita-services
 
-go 1.25.0
+go 1.27.3
 
 require (
 	github.com/gabriel-vasile/mimetype v1.4.13 // indirect

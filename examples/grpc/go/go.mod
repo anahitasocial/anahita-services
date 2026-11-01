@@ -1,6 +1,6 @@
 module example.com/anahita-grpc
 
-go 1.25
+go 1.27.3
 
 require (
 	google.golang.org/grpc v1.76.0
