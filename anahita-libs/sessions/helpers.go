@@ -6,7 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"net/http"
 	"net/url"
+	"time"
 
 	"anahita-libs/cors"
 
@@ -26,6 +28,28 @@ func GenerateRandomString(n int) (string, error) {
 	}
 
 	return string(ret), nil
+}
+
+// removalCookie is what takes a cookie away: expired, and otherwise set as it
+// was given, so that a browser treats it as the same cookie.
+func removalCookie(name string, dev bool) *http.Cookie {
+	cookie := &http.Cookie{
+		Name:     name,
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Unix(0, 0),
+		HttpOnly: true,
+	}
+
+	if dev {
+		cookie.SameSite = http.SameSiteLaxMode
+		cookie.Secure = false
+	} else {
+		cookie.SameSite = http.SameSiteStrictMode
+		cookie.Secure = true
+	}
+
+	return cookie
 }
 
 // HashString hashes a string

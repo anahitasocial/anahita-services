@@ -78,13 +78,7 @@ func (s *cookieSession) Edit(c echo.Context, key string, value string) error {
 }
 
 func (s *cookieSession) Delete(c echo.Context, key string) error {
-	cookie := &http.Cookie{
-		Name:     key,
-		Value:    "",
-		Path:     "/",
-		Expires:  time.Unix(0, 0),
-		HttpOnly: true,
-	}
+	cookie := removalCookie(key, s.config.IsDev())
 
 	http.SetCookie(c.Response(), cookie)
 
@@ -110,13 +104,7 @@ func (s *cookieSession) HasSessionByID(c echo.Context, key string, sessionID str
 func (s *cookieSession) DeleteBySessionID(c echo.Context, key string, sessionID string) error {
 	for _, cookie := range c.Request().Cookies() {
 		if cookie.Value == sessionID {
-			cookie := &http.Cookie{
-				Name:     cookie.Name,
-				Value:    "",
-				Path:     "/",
-				Expires:  time.Unix(0, 0),
-				HttpOnly: true,
-			}
+			cookie := removalCookie(cookie.Name, s.config.IsDev())
 
 			http.SetCookie(c.Response(), cookie)
 		}

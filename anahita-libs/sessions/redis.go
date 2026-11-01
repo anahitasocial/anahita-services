@@ -133,13 +133,7 @@ func (s *redisSession) Delete(c echo.Context, key string) error {
 		return err
 	}
 
-	cookie = &http.Cookie{
-		Name:     key,
-		Value:    "",
-		Path:     "/",
-		Expires:  time.Unix(0, 0),
-		HttpOnly: true,
-	}
+	cookie = removalCookie(key, s.config.IsDev())
 
 	http.SetCookie(c.Response(), cookie)
 
@@ -166,13 +160,7 @@ func (s *redisSession) DeleteBySessionID(c echo.Context, key string, sessionID s
 
 	for _, cookie := range c.Request().Cookies() {
 		if cookie.Value == sessionID {
-			cookie := &http.Cookie{
-				Name:     cookie.Name,
-				Value:    "",
-				Path:     "/",
-				Expires:  time.Unix(0, 0),
-				HttpOnly: true,
-			}
+			cookie := removalCookie(cookie.Name, s.config.IsDev())
 
 			http.SetCookie(c.Response(), cookie)
 		}
