@@ -28,7 +28,7 @@ Every feed orders its posts by date, newest first. (Search is the one place with
 ## A feed is a node
 
 - Type `node.feed.feed-service.generator.v1`, owned by the person who made it (`owner_id`), with its name in `name`, what it is for in `body`, and its audience in `access`.
-- The node's `meta` is JSON holding what it shows, the `definition`, and its `icon`: one of sixteen pictures, by name (`feeds.Icons`), with `feed` for one given none. Meta that is a definition alone, as the first feeds were kept, is read as that.
+- The node's `meta` is JSON holding what it shows, the `definition`, and its `icon`: one of eighteen pictures, by name (`feeds.Icons`), with `feed` for one given none. Meta that is a definition alone, as the first feeds were kept, is read as that.
 - Keeping a feed on the home page is an edge from the person to the feed, `edge.feed.pin.v1`, with its place among the tabs in the edge's `ordering`.
 - There is no table of its own and no migration. Deleting a feed deletes its node and, with it, every edge that kept it on somebody's home page. Removing an account removes its feeds as it removes everything else it owns.
 
@@ -105,10 +105,10 @@ will do, and says why when the browser will not tell it.
 
 | What | Most |
 | --- | --- |
-| Profiles in `sources.actors`, and in `exclude.actors` | 50 each |
-| Hashtags, in the filter and left out | 10 each |
-| Keywords, in the filter and left out | 10 each, of 2 to 50 characters |
-| Locations | 5 |
+| Profiles in `sources.actors`, and in `exclude.actors` | 100 each |
+| Hashtags, in the filter and left out | 40 each |
+| Keywords, in the filter and left out | 40 each, of 2 to 50 characters |
+| Locations | 40 |
 | An area's radius | 1 to 500 km |
 | Feeds one person owns | 10 |
 | Feeds on one person's home page | 10 |

@@ -15,6 +15,7 @@ var Icons = []string{
 	"note", "article", "topic", "photo",
 	"hashtag", "place", "keyword", "language",
 	"star", "heart", "news", "world",
+	"fediverse", "bluesky",
 }
 
 // The picture of a feed that was given none.

@@ -30,10 +30,16 @@ const (
 
 // Limits. Constants: a feed is cheap to make and is read often.
 const (
-	MaxActors    = 50
-	MaxHashtags  = 10
-	MaxKeywords  = 10
-	MaxLocations = 5
+	// A feed of a region, or of every newsroom, is made of many of each
+	// (the user, 2026-11-01). Actors, hashtags and locations are found by
+	// index. A keyword is two LIKEs read through every post that does not
+	// match: 40 cost about 2 seconds over 94,000 short posts when almost
+	// none match, growing with both. A site far bigger needs an index
+	// before it needs more of them.
+	MaxActors    = 100
+	MaxHashtags  = 40
+	MaxKeywords  = 40
+	MaxLocations = 40
 	// How far around a point, in kilometres.
 	MinRadiusKm = 1
 	MaxRadiusKm = 500
