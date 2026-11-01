@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"anahita-libs/middleware"
 	"auth/data/entities"
 
 	"github.com/labstack/echo/v4"
@@ -14,11 +15,15 @@ import (
 
 func consentContext(headers map[string]string) echo.Context {
 	req := httptest.NewRequest(http.MethodPatch, "/agreements/tos", nil)
+	// As it arrives, from nginx, and read as main() has it read.
+	req.RemoteAddr = "10.0.0.2:40000"
 	for k, v := range headers {
 		req.Header.Set(k, v)
 	}
 
-	return echo.New().NewContext(req, httptest.NewRecorder())
+	e := echo.New()
+	e.IPExtractor = middleware.ClientIPExtractor()
+	return e.NewContext(req, httptest.NewRecorder())
 }
 
 // The version comes from the web app and is checked for SHAPE only.
