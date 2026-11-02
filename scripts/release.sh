@@ -27,7 +27,7 @@ echo "$version" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$' ||
 
 [ "$(git branch --show-current)" = main ] || stop "A release is made from main."
 
-# go.work.sum changes by itself and is never committed.
+# go.work.sum gains lines by itself as Go runs, and no build needs them.
 [ -z "$(git status --porcelain -- . ':!go.work.sum')" ] ||
   stop "There are uncommitted changes: commit them or put them away first."
 
