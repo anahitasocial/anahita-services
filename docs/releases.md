@@ -39,20 +39,23 @@ Anahita Web, Mobile and CLI use the same names.
 
 For whoever maintains anahita-services:
 
-1. Raise the version NodeInfo says, `softwareVersion` in
-   `auth-service/cmd/api/handlers/node_info.go`, to the one being made, and
-   commit it: it is what the site tells the fediverse it runs. It is in the
-   code and not taken from the tag, since an image that did not change is
-   tagged again rather than built ([What is rebuilt](#what-is-rebuilt)), and
-   would go on saying the version it was built at; auth-service is so built
-   at every release. The workflow checks it: a tag whose `softwareVersion`
-   says another version stops before any image is built, and says so.
-2. On an up-to-date `main` that passes `make test`, tag it and push the tag:
+1. On an up-to-date `main` with nothing uncommitted, make it:
 
    ~~~sh
-   git tag v1.0.0 && git push origin v1.0.0
+   make release v1.0.0
    ~~~
 
+   It stops, changing nothing, unless the version is after the newest tag
+   and `make test` passes. Then it raises the version NodeInfo says,
+   `softwareVersion` in `auth-service/cmd/api/handlers/node_info.go`, commits
+   that, pushes `main`, tags that commit and pushes the tag.
+2. `softwareVersion` is what the site tells the fediverse it runs. It is in
+   the code and not taken from the tag, since an image that did not change
+   is tagged again rather than built ([What is rebuilt](#what-is-rebuilt)),
+   and would go on saying the version it was built at; auth-service is so
+   built at every release. The workflow checks it: a tag whose
+   `softwareVersion` says another version stops before any image is built,
+   and says so.
 3. The tag starts `.github/workflows/images.yml`, which publishes every
    image for amd64 and arm64 as `ghcr.io/anahitasocial/<image>:v1.0.0`, and
    as `latest`. It builds only the images that changed since the Birth

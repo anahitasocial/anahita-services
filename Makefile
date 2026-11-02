@@ -693,6 +693,19 @@ clean:
 	@cd ${FEED_SRV} && go clean
 	@echo "Cleaned!"
 
+# The version follows the word release: it is not a target of its own.
+ifeq (release,$(firstword $(MAKECMDGOALS)))
+RELEASE_VERSION := $(word 2,$(MAKECMDGOALS))
+ifneq (,$(RELEASE_VERSION))
+$(eval $(RELEASE_VERSION):;@:)
+endif
+endif
+
+## release: makes a Birth release, as in make release v1.0.14 (docs/releases.md)
+release:
+	@scripts/release.sh $(RELEASE_VERSION)
+.PHONY: release
+
 ## help: displays help
 help: Makefile
 	@echo " Choose a command:"
