@@ -17,6 +17,7 @@ Its routes are in the API reference: [auth-service](api/index.html#auth-service)
 - [Resetting a forgotten password](#resetting-a-forgotten-password)
 - [Changing an email address](#changing-an-email-address)
 - [Adding text messages later](#adding-text-messages-later)
+- [Staying signed in](#staying-signed-in)
 - [Where the code is](#where-the-code-is)
 
 ## The ways in
@@ -164,10 +165,38 @@ account, a sender, and `sms` added to the list of channels in
 `auth-service/cmd/api/handlers/oauth_login_code.go`. The pages, the limits and
 the storage do not change.
 
+## Staying signed in
+
+Signed in, the web app holds no token itself: auth-service keeps its pair in
+the session, in Redis, behind a cookie. Every request through the gateway asks
+`/oauth/validate`, which answers with the access token for the services.
+
+| Token | Lasts | |
+| --- | --- | --- |
+| Access token | 15 minutes | `AccessTokenLifetime` |
+| Refresh token | 30 days | `RefreshTokenLifetime` |
+
+When the access token has expired, `/oauth/validate` renews the pair with the
+refresh token: the old refresh token is revoked as **rotated**, and the new
+pair goes into the session. A page asks for several things at once, so one of
+its requests renews and the others wait for it, up to two seconds, and take
+up the new access token. A session is ended only when its refresh token is
+over: spent, revoked, expired, unknown, or its account refused.
+
+A refresh token revoked as rotated and presented again more than a minute
+later is a copy: whoever holds it is not the session it was given to. Every
+refresh token that person holds for that client is revoked
+(`ErrRefreshTokenReuse`). One revoked any other way, by signing out, by its
+client's deactivation or by that revocation, is a session that has ended, and
+is refused and no more (`ErrRefreshTokenRevoked`). Treating those as copies
+too set off a revocation each time one of them came back, and signed people
+out of every device every fifteen minutes (banu.io, 2026-11-02).
+
 ## Where the code is
 
 | What | Where |
 | --- | --- |
+| Staying signed in: renewing, rotation, copies of a refresh token | `auth-service/cmd/api/handlers/oauth_session.go` (`ReadValidate`, `refreshSessionTokens`, `awaitRenewal`), `auth-service/data/services/oauth_token.go` (`RefreshTokenPair`), table `oauth_refresh_tokens` (`rotated`) |
 | Signing in with a password, then two-factor | `auth-service/cmd/api/handlers/oauth_login.go` (`AddCredentials`, `AddTotp`) |
 | Signing in with a passkey | `auth-service/cmd/api/handlers/oauth_web_authn.go`, table `webauthn_credentials` |
 | Signing in with a code | `auth-service/cmd/api/handlers/oauth_login_code.go` (`loginCodeChannels`), `oauth_login_code_test.go` |

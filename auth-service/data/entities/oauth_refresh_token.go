@@ -31,9 +31,20 @@ type OAuthRefreshToken struct {
 	// Reuse detection uses it to tell a rotation race from a replay: a
 	// token revoked moments ago is a concurrent refresh, one revoked long
 	// ago is an attacker. A nil value on a revoked row means the timestamp
-	// predates the column, and must be read as "long ago" so those tokens
-	// still trip the cascade.
+	// predates the column, and is read as "long ago". Only a rotated token
+	// can trip the cascade at all: see Rotated.
 	RevokedAt *time.Time `db:"revoked_at" json:"revokedAt,omitempty"`
+
+	// Rotated is whether it was revoked by being exchanged for a new pair,
+	// and not by signing out, a client's deactivation or a reuse cascade.
+	//
+	// Only a rotated token presented again is a replay: it was spent, so
+	// whoever holds it now holds a copy. A token revoked any other way was
+	// never spent, and presenting it is a session that was ended, often by
+	// a cascade elsewhere: refused, and no more. Cascading on it signed the
+	// person out on every device, over and over (banu.io, 2026-11-02).
+	// Rows revoked before the column existed read as not rotated.
+	Rotated bool `db:"rotated" json:"-"`
 }
 
 // NewOAuthRefreshToken returns a new OAuthRefreshToken with a generated UUID.

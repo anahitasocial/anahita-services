@@ -1,7 +1,10 @@
 package handlers
 
 import (
+	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,6 +13,7 @@ import (
 	"time"
 
 	"auth/data/entities"
+	"auth/data/services"
 	"auth/requests"
 	"auth/responses"
 
@@ -23,14 +27,42 @@ const (
 	sessionKeyOAuthTokens     = "oauth_tokens"
 	oauthRefreshLockKeyPrefix = "oauth:refresh_lock:"
 	oauthRefreshLockTTL       = 5 * time.Second
-	oauthRefreshLockWait      = 200 * time.Millisecond
+	// How long a request waits for another one renewing the same session,
+	// a step at a time, before it gives up on this request alone.
+	oauthRefreshWaitStep = 100 * time.Millisecond
+	oauthRefreshWaitMost = 2 * time.Second
 )
+
+// Why a renewal did not happen that leaves the session as it is: another
+// request is renewing it, or has already ended it.
+var (
+	errRenewingElsewhere = errors.New("another request is renewing the session")
+	errSessionGone       = errors.New("the session is gone")
+)
+
+// endsSession is whether a failed renewal means the session is over: its
+// refresh token is spent, revoked, expired or unknown. Anything else, a race
+// with another request or a passing failure, leaves it for the next request.
+func endsSession(err error) bool {
+	if errors.Is(err, errRenewingElsewhere) || errors.Is(err, errSessionGone) {
+		return false
+	}
+	return errors.Is(err, entities.ErrRefreshTokenReuse) ||
+		errors.Is(err, entities.ErrRefreshTokenRevoked) ||
+		errors.Is(err, entities.ErrRefreshTokenExpired) ||
+		errors.Is(err, entities.ErrRefreshTokenNotFound) ||
+		errors.Is(err, services.ErrRefreshAccountUnavailable) ||
+		errors.Is(err, errNoRefreshToken)
+}
 
 // SessionStarted says the app's session holds its tokens now.
 type SessionStarted struct {
 	// Always `authenticated`.
 	Status string `json:"status"`
 }
+
+// errNoRefreshToken is a session holding no refresh token to renew with.
+var errNoRefreshToken = errors.New("no refresh token in session")
 
 type storedOAuthTokens struct {
 	AccessToken  string `json:"access_token"`
@@ -140,7 +172,12 @@ func (h *oauthHandler) ReadValidate(c echo.Context) error {
 	newAccessToken, err := h.refreshSessionTokens(c, tokens)
 	if err != nil {
 		log.Println("validate: refresh failed:", err)
-		_ = h.Session.Delete(c, sessionKeyOAuthTokens)
+		// Only a session that is over is ended. A page asks for several
+		// things at once, and one request renewing the session while the
+		// others wait is no reason to sign anybody out.
+		if endsSession(err) {
+			_ = h.Session.Delete(c, sessionKeyOAuthTokens)
+		}
 		return c.NoContent(http.StatusOK)
 	}
 
@@ -273,7 +310,7 @@ func (h *oauthHandler) isAllowedLogoutReturnTo(candidate string) bool {
 
 func (h *oauthHandler) refreshSessionTokens(c echo.Context, tokens *storedOAuthTokens) (string, error) {
 	if tokens.RefreshToken == "" {
-		return "", fmt.Errorf("no refresh token in session")
+		return "", errNoRefreshToken
 	}
 
 	ctx := c.Request().Context()
@@ -286,21 +323,17 @@ func (h *oauthHandler) refreshSessionTokens(c echo.Context, tokens *storedOAuthT
 	}
 
 	if !locked {
-		time.Sleep(oauthRefreshLockWait)
-		fresh, err := h.readOAuthTokensSession(c)
-		if err != nil {
-			return "", fmt.Errorf("re-read after lock contention: %w", err)
-		}
-		if _, err := h.OAuth.ValidateAccessToken(ctx, fresh.AccessToken); err == nil {
-			return fresh.AccessToken, nil
-		}
-		return "", fmt.Errorf("token still invalid after sibling refresh")
+		return h.awaitRenewal(c, h.isLiveAccessToken(ctx))
 	}
 	defer h.Session.Del(lockKey)
 
 	storedRefresh, err := h.Repos.OAuthRefreshTokens.ReadByTokenHash(h.OAuth.HashToken(tokens.RefreshToken))
+	if errors.Is(err, sql.ErrNoRows) {
+		// Gone from the database, as an expired one is when it is cleared.
+		return "", entities.ErrRefreshTokenNotFound
+	}
 	if err != nil {
-		return "", fmt.Errorf("refresh token not found: %w", err)
+		return "", fmt.Errorf("read refresh token: %w", err)
 	}
 
 	client, err := h.Repos.OAuthClients.ReadByClientID(storedRefresh.ClientID)
@@ -309,6 +342,11 @@ func (h *oauthHandler) refreshSessionTokens(c echo.Context, tokens *storedOAuthT
 	}
 
 	newPair, err := h.OAuth.RefreshTokenPair(ctx, tokens.RefreshToken, client, "")
+	if errors.Is(err, entities.ErrRefreshTokenRaced) {
+		// Renewed a moment ago by a request that read the session before
+		// this one: its new pair is in the session, or is about to be.
+		return h.awaitRenewal(c, h.isLiveAccessToken(ctx))
+	}
 	if err != nil {
 		return "", fmt.Errorf("refresh token pair: %w", err)
 	}
@@ -318,6 +356,35 @@ func (h *oauthHandler) refreshSessionTokens(c echo.Context, tokens *storedOAuthT
 	}
 
 	return newPair.AccessToken, nil
+}
+
+// awaitRenewal waits for another request renewing this session, and answers
+// with the access token it leaves there, as live says. It gives up after a
+// while without ending anything, and says so if the session was ended
+// meanwhile.
+func (h *oauthHandler) awaitRenewal(c echo.Context, live func(string) bool) (string, error) {
+	for waited := time.Duration(0); waited < oauthRefreshWaitMost; waited += oauthRefreshWaitStep {
+		time.Sleep(oauthRefreshWaitStep)
+
+		fresh, err := h.readOAuthTokensSession(c)
+		if err != nil {
+			return "", fmt.Errorf("%w: %v", errSessionGone, err)
+		}
+		if live(fresh.AccessToken) {
+			return fresh.AccessToken, nil
+		}
+	}
+
+	return "", errRenewingElsewhere
+}
+
+// isLiveAccessToken is whether an access token is one this service signed
+// and that has not yet expired.
+func (h *oauthHandler) isLiveAccessToken(ctx context.Context) func(string) bool {
+	return func(token string) bool {
+		_, err := h.OAuth.ValidateAccessToken(ctx, token)
+		return err == nil
+	}
 }
 
 func (h *oauthHandler) writeOAuthTokensSession(c echo.Context, pair *entities.OAuthTokenPair) error {

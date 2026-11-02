@@ -173,8 +173,18 @@ func (s *OAuthService) RefreshTokenPair(
 		return nil, entities.ErrRefreshTokenNotFound
 	}
 
+	if stored.Revoked && !stored.Rotated {
+		// Revoked without being spent: by signing out, by a client's
+		// deactivation, or by a reuse cascade. Whoever presents it is a
+		// session that has ended, not a thief holding a copy, so it is
+		// refused and nothing more. Cascading here is what kept signing a
+		// person out on every device: each session the cascade ended set
+		// off the next one when it came back (banu.io, 2026-11-02).
+		return nil, entities.ErrRefreshTokenRevoked
+	}
+
 	if stored.Revoked {
-		// Revoked moments ago: a concurrent or retrying client presenting a
+		// Rotated moments ago: a concurrent or retrying client presenting a
 		// token that was still valid when it read it. Refuse the exchange —
 		// the token is spent — but do not cascade, because the request that
 		// won the race has already minted a pair the user is relying on.

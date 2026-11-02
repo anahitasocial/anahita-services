@@ -76,8 +76,19 @@ func revokedToken(revokedAt *time.Time) *entities.OAuthRefreshToken {
 		Scopes:    "openid offline_access",
 		Revoked:   true,
 		RevokedAt: revokedAt,
+		// Spent by rotation: the only revocation whose token, presented
+		// again, is a replay.
+		Rotated:   true,
 		ExpiresAt: time.Now().Add(RefreshTokenLifetime),
 	}
+}
+
+// endedToken is a token revoked without being spent: by signing out, by its
+// client's deactivation, or by a reuse cascade.
+func endedToken(revokedAt *time.Time) *entities.OAuthRefreshToken {
+	token := revokedToken(revokedAt)
+	token.Rotated = false
+	return token
 }
 
 func testClient() *entities.OAuthClient {
@@ -200,6 +211,39 @@ func TestRefreshTokenPair_GraceBoundary(t *testing.T) {
 			}
 			if fake.cascadeCalls != tt.cascade {
 				t.Errorf("cascadeCalls = %d, want %d", fake.cascadeCalls, tt.cascade)
+			}
+		})
+	}
+}
+
+// TestRefreshTokenPair_AnEndedSessionDoesNotCascade is the regression test for
+// banu.io on 2026-11-02: a token revoked by a reuse cascade, presented when its
+// session came back, was taken for a replay and set off another cascade, which
+// ended the session the person had just signed back into, every fifteen
+// minutes. A token revoked without being spent is refused, and no more.
+func TestRefreshTokenPair_AnEndedSessionDoesNotCascade(t *testing.T) {
+	longAgo := time.Now().Add(-10 * time.Minute)
+	justNow := time.Now().Add(-5 * time.Second)
+
+	cases := []struct {
+		name  string
+		token *entities.OAuthRefreshToken
+	}{
+		{"revoked long ago", endedToken(&longAgo)},
+		{"revoked moments ago", endedToken(&justNow)},
+		{"revoked before the time was kept", endedToken(nil)},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			svc, fake := serviceWithStoredToken(c.token)
+
+			_, err := svc.RefreshTokenPair(context.Background(), "plaintext", testClient(), "")
+
+			if !errors.Is(err, entities.ErrRefreshTokenRevoked) {
+				t.Errorf("err = %v, want ErrRefreshTokenRevoked", err)
+			}
+			if fake.cascadeCalls != 0 {
+				t.Errorf("an ended session must not end the others, got %d cascades", fake.cascadeCalls)
 			}
 		})
 	}

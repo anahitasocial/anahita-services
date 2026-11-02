@@ -766,9 +766,13 @@ CREATE TABLE oauth_refresh_tokens (
     -- responses. See ReuseGracePeriod in auth-service.
     --
     -- Nullable on purpose: a revoked row carrying no timestamp reads as
-    -- "revoked long ago" and still trips the containment cascade, which is
-    -- the safe direction to be wrong in.
+    -- "revoked long ago", which for a rotated token trips the containment
+    -- cascade, the safe direction to be wrong in.
     `revoked_at` datetime DEFAULT NULL,
+    -- Revoked by being exchanged for a new pair, the one revocation
+    -- whose token, presented again, is a replay. See Rotated in
+    -- auth-service.
+    `rotated` tinyint(1) NOT NULL DEFAULT 0,
     `expires_at` datetime NOT NULL,
     -- Defaulted: the insert does not name it. See oauth_authorizations.
     `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,

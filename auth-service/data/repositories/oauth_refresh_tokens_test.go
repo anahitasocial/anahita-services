@@ -100,7 +100,7 @@ func TestOAuthRefreshTokens_RevokeIfActive(t *testing.T) {
 		repo := NewOAuthRefreshTokens(db)
 
 		mock.ExpectExec("UPDATE oauth_refresh_tokens SET revoked").
-			WithArgs(true, int64(42), false).
+			WithArgs(true, true, int64(42), false).
 			WillReturnResult(sqlmock.NewResult(0, 1))
 
 		claimed, err := repo.RevokeIfActive(42)
@@ -120,7 +120,7 @@ func TestOAuthRefreshTokens_RevokeIfActive(t *testing.T) {
 		repo := NewOAuthRefreshTokens(db)
 
 		mock.ExpectExec("UPDATE oauth_refresh_tokens SET revoked").
-			WithArgs(true, int64(42), false).
+			WithArgs(true, true, int64(42), false).
 			WillReturnResult(sqlmock.NewResult(0, 0))
 
 		claimed, err := repo.RevokeIfActive(42)
@@ -140,7 +140,7 @@ func TestOAuthRefreshTokens_RevokeIfActive(t *testing.T) {
 		repo := NewOAuthRefreshTokens(db)
 
 		mock.ExpectExec("UPDATE oauth_refresh_tokens SET revoked = .+ WHERE .+revoked").
-			WithArgs(true, int64(42), false).
+			WithArgs(true, true, int64(42), false).
 			WillReturnResult(sqlmock.NewResult(0, 1))
 
 		if _, err := repo.RevokeIfActive(42); err != nil {
@@ -199,7 +199,7 @@ func TestOAuthRefreshTokens_StampsRevokedAt(t *testing.T) {
 		repo := NewOAuthRefreshTokens(db)
 
 		mock.ExpectExec(`SET revoked = \?, revoked_at = NOW\(\)`).
-			WithArgs(true, int64(42), false).
+			WithArgs(true, true, int64(42), false).
 			WillReturnResult(sqlmock.NewResult(0, 1))
 
 		claimed, err := repo.RevokeIfActive(42)
@@ -245,7 +245,7 @@ func TestOAuthRefreshTokens_ReadsRevokedAt(t *testing.T) {
 		mock.ExpectQuery("SELECT .* FROM oauth_refresh_tokens").
 			WithArgs("hash").
 			WillReturnRows(sqlmock.NewRows(oauthRefreshTokenFields).
-				AddRow(int64(1), "hash", int64(7), "anahita-mobile", "read", false, testTime, testTime, nil))
+				AddRow(int64(1), "hash", int64(7), "anahita-mobile", "read", false, testTime, testTime, nil, false))
 
 		token, err := repo.ReadByTokenHash("hash")
 		if err != nil {
@@ -263,7 +263,7 @@ func TestOAuthRefreshTokens_ReadsRevokedAt(t *testing.T) {
 		mock.ExpectQuery("SELECT .* FROM oauth_refresh_tokens").
 			WithArgs("hash").
 			WillReturnRows(sqlmock.NewRows(oauthRefreshTokenFields).
-				AddRow(int64(1), "hash", int64(7), "anahita-mobile", "read", true, testTime, testTime, testTime))
+				AddRow(int64(1), "hash", int64(7), "anahita-mobile", "read", true, testTime, testTime, testTime, true))
 
 		token, err := repo.ReadByTokenHash("hash")
 		if err != nil {
@@ -287,8 +287,8 @@ func TestOAuthRefreshTokens_ReadsRevokedAt(t *testing.T) {
 
 		mock.ExpectQuery("SELECT .* FROM oauth_refresh_tokens").
 			WillReturnRows(sqlmock.NewRows(oauthRefreshTokenFields).
-				AddRow(int64(1), "hash-1", int64(7), "anahita-mobile", "read", true, testTime, testTime, testTime).
-				AddRow(int64(2), "hash-2", int64(7), "anahita-mobile", "read", false, testTime, testTime, nil))
+				AddRow(int64(1), "hash-1", int64(7), "anahita-mobile", "read", true, testTime, testTime, testTime, true).
+				AddRow(int64(2), "hash-2", int64(7), "anahita-mobile", "read", false, testTime, testTime, nil, false))
 
 		tokens, err := repo.BrowseByClientID("anahita-mobile")
 		if err != nil {
@@ -308,3 +308,59 @@ func TestOAuthRefreshTokens_ReadsRevokedAt(t *testing.T) {
 
 // testTime is a fixed timestamp for rows returned by sqlmock.
 var testTime = time.Date(2026, 8, 23, 12, 0, 0, 0, time.UTC)
+
+// -----------------------------------------------------------------------------
+// rotated
+//
+// Reuse detection cascades only on a token that rotation spent. If rotation
+// stopped marking its token, a stolen token replayed would no longer revoke
+// the thief's pair; if any other revocation marked its tokens, a session ended
+// by a cascade would set off the next one when it came back, which is what
+// signed people out every fifteen minutes on banu.io (2026-11-02).
+// -----------------------------------------------------------------------------
+
+func TestOAuthRefreshTokens_OnlyRotationMarksATokenRotated(t *testing.T) {
+	t.Run("rotation marks it", func(t *testing.T) {
+		db, mock := newTestDB(t)
+		repo := NewOAuthRefreshTokens(db)
+
+		mock.ExpectExec(`SET revoked = \?, revoked_at = NOW\(\), rotated = \?`).
+			WithArgs(true, true, int64(42), false).
+			WillReturnResult(sqlmock.NewResult(0, 1))
+
+		if _, err := repo.RevokeIfActive(42); err != nil {
+			t.Fatalf("RevokeIfActive: %v", err)
+		}
+	})
+
+	t.Run("signing out, a cascade or a client's deactivation do not", func(t *testing.T) {
+		db, mock := newTestDB(t)
+		repo := NewOAuthRefreshTokens(db)
+
+		mock.ExpectExec(`SET revoked = \?, revoked_at = NOW\(\) WHERE`).
+			WithArgs(true, "anahita-web", int64(7), false).
+			WillReturnResult(sqlmock.NewResult(0, 2))
+
+		if err := repo.RevokeByUserAndClient(7, "anahita-web"); err != nil {
+			t.Fatalf("RevokeByUserAndClient: %v", err)
+		}
+	})
+
+	t.Run("it is read back", func(t *testing.T) {
+		db, mock := newTestDB(t)
+		repo := NewOAuthRefreshTokens(db)
+
+		mock.ExpectQuery("SELECT .* FROM oauth_refresh_tokens").
+			WithArgs("hash").
+			WillReturnRows(sqlmock.NewRows(oauthRefreshTokenFields).
+				AddRow(int64(1), "hash", int64(7), "anahita-web", "read", true, testTime, testTime, testTime, true))
+
+		token, err := repo.ReadByTokenHash("hash")
+		if err != nil {
+			t.Fatalf("ReadByTokenHash: %v", err)
+		}
+		if !token.Rotated {
+			t.Error("expected Rotated to be read back")
+		}
+	})
+}

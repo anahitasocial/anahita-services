@@ -28,6 +28,7 @@ var oauthRefreshTokenFields = []string{
 	"expires_at",
 	"created_at",
 	"revoked_at",
+	"rotated",
 }
 
 // getBaseSelectQuery returns the base select query for oauth refresh tokens.
@@ -59,6 +60,7 @@ func (repo *oauthRefreshTokens) getOne(query sq.SelectBuilder) (*entities.OAuthR
 		&token.ExpiresAt,
 		&token.CreatedAt,
 		&revokedAt,
+		&token.Rotated,
 	)
 
 	if err != nil {
@@ -111,6 +113,7 @@ func (repo *oauthRefreshTokens) browseWhere(pred sq.Sqlizer) ([]*entities.OAuthR
 			&token.ExpiresAt,
 			&token.CreatedAt,
 			&revokedAt,
+			&token.Rotated,
 		)
 
 		if err != nil {

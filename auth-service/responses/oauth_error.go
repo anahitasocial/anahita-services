@@ -38,4 +38,9 @@ const (
 	// store, where the winning request's fresh pair is already stored.
 	// Clients must not clear credentials on this code.
 	OAuthErrorCodeRefreshRaced = "refresh_raced"
+
+	// OAuthErrorCodeRefreshRevoked means the refresh token was revoked
+	// without being spent: signed out, its client deactivated, or a reuse
+	// cascade. Terminal: the session has ended; sign in again.
+	OAuthErrorCodeRefreshRevoked = "refresh_revoked"
 )

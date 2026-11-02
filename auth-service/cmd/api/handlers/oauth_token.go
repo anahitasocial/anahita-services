@@ -167,6 +167,8 @@ func refreshErrorCode(err error) string {
 		return responses.OAuthErrorCodeRefreshReuse
 	case errors.Is(err, entities.ErrRefreshTokenRaced):
 		return responses.OAuthErrorCodeRefreshRaced
+	case errors.Is(err, entities.ErrRefreshTokenRevoked):
+		return responses.OAuthErrorCodeRefreshRevoked
 	default:
 		return ""
 	}

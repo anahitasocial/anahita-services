@@ -86,9 +86,12 @@ func (repo *oauthRefreshTokens) RevokeIfActive(id int64) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
+	// Marked rotated: the one revocation that spends a token, so the only
+	// one whose token, presented again, is a replay.
 	query := repo.sb.Update("oauth_refresh_tokens").
 		Set("revoked", true).
 		Set("revoked_at", sq.Expr("NOW()")).
+		Set("rotated", true).
 		Where(sq.Eq{
 			"id":      id,
 			"revoked": false,
