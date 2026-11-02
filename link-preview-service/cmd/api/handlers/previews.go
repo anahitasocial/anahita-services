@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"path"
 	"regexp"
 	"time"
 
@@ -37,6 +38,15 @@ var previewLimit = ratelimit.Limit{Max: 30, Window: time.Minute}
 const imageFolder = linkpreviews.StoragePrefix
 
 var imageName = regexp.MustCompile(`^[a-f0-9]{64}\.(jpg|png|gif|webp)$`)
+
+// What kind of picture each ending is. Every name imageName lets through has
+// one.
+var imageTypes = map[string]string{
+	".jpg":  "image/jpeg",
+	".png":  "image/png",
+	".gif":  "image/gif",
+	".webp": "image/webp",
+}
 
 // PreviewRequest asks for the preview of a link.
 type PreviewRequest struct {
@@ -237,8 +247,13 @@ type ImageRequest struct {
 	Name string `param:"name"`
 }
 
-// Image sends whoever asks to a preview's picture: a redirect to a signed
-// address in storage, good for a short while.
+// Image sends a preview's picture.
+//
+// It sends the picture itself. It sent a redirect to a signed address in
+// storage once, which stops working after a while: a phone showed broken
+// pictures in November 2026 with every redirect sent as it should be. A
+// picture's name is the hash of what is in it, so what is sent under a name
+// never changes and can be kept for as long as anybody likes.
 //
 // The name is the hash of the picture, which nobody can guess, and names
 // nothing else: a name that is not that shape is not looked for.
@@ -252,16 +267,16 @@ func (h *previewsHandler) Image(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	presign := services.NewFileRequest().Presign
-	presign.Path = imageFolder + name
+	read := services.NewFileRequest().Read
+	read.Path = imageFolder + name
 
-	address, err := h.Srv.FilesGRPC.Presign(presign)
-	if err != nil || address == "" {
+	file, err := h.Srv.FilesGRPC.Read(read)
+	if err != nil || file == nil || len(file.Content) == 0 {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	// Kept by the browser for less long than the signed address is good.
-	c.Response().Header().Set("Cache-Control", "private, max-age=600")
+	// For a year, and never asked for again.
+	c.Response().Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 
-	return c.Redirect(http.StatusFound, address)
+	return c.Blob(http.StatusOK, imageTypes[path.Ext(name)], file.Content)
 }

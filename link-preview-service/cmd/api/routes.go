@@ -63,10 +63,11 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	// visitor included where the installation lets visitors read.
 	previews.GET("/image/:name", r.handler.Previews.Image, r.setViewer).
 		Summary("A preview's picture").
-		Describe("A redirect to the picture in storage, at an address good for a short while.").
+		Describe("The picture itself. Its name is the hash of what is in it, so it never changes and may be kept for a year.").
 		Viewer(apidoc.Anyone).
 		Takes(&handlers.ImageRequest{}).
-		SendsNothing(http.StatusFound, "the picture is at the address in Location").
+		Media("image/jpeg").
+		Sends(http.StatusOK, []byte{}, "the picture: a JPEG, or a PNG, GIF or WebP as its name says").
 		Refuses(http.StatusNotFound, "there is no such picture")
 
 	return doc

@@ -66,11 +66,12 @@ func (f *fakeFiles) Add(req *an_services.FileAddRequest) (*entities.File, error)
 	return &entities.File{}, nil
 }
 
-func (f *fakeFiles) Presign(req *an_services.FilePresignRequest) (string, error) {
-	if _, ok := f.stored[req.Path]; !ok {
-		return "", errors.New("no such file")
+func (f *fakeFiles) Read(req *an_services.FileReadRequest) (*entities.File, error) {
+	content, ok := f.stored[req.Path]
+	if !ok {
+		return nil, errors.New("no such file")
 	}
-	return "https://storage.example/" + req.Path + "?signed", nil
+	return &entities.File{Content: content, Path: req.Path}, nil
 }
 
 type memory struct {
@@ -253,7 +254,7 @@ func TestAPictureIsReachedOnlyByItsOwnName(t *testing.T) {
 	f.read(person(1), "url=https://example.org/post")
 	name := strings.Repeat("a", 64) + ".jpg"
 
-	image := func(name string) (int, string) {
+	image := func(name string) *httptest.ResponseRecorder {
 		rec := httptest.NewRecorder()
 		c := f.echo.NewContext(httptest.NewRequest(http.MethodGet, "/", nil), rec)
 		c.SetParamNames("name")
@@ -262,20 +263,31 @@ func TestAPictureIsReachedOnlyByItsOwnName(t *testing.T) {
 			t.Fatalf("handler: %v", err)
 		}
 		answers.Handler(f.handler.Image, rec)
-		return rec.Code, rec.Header().Get("Location")
+		return rec
 	}
 
-	status, location := image(name)
-	if status != http.StatusFound || !strings.Contains(location, linkpreviews.StoragePrefix+name) {
-		t.Errorf("answered %d, to %q", status, location)
+	// The picture itself, with nothing in it that stops working later: no
+	// redirect, and kept for as long as a browser likes.
+	rec := image(name)
+	if rec.Code != http.StatusOK || rec.Body.String() != "small picture" {
+		t.Errorf("answered %d, %q", rec.Code, rec.Body.String())
+	}
+	if rec.Header().Get("Location") != "" {
+		t.Errorf("sent on to %q", rec.Header().Get("Location"))
+	}
+	if kind := rec.Header().Get("Content-Type"); kind != "image/jpeg" {
+		t.Errorf("sent as %q", kind)
+	}
+	if cache := rec.Header().Get("Cache-Control"); !strings.Contains(cache, "immutable") {
+		t.Errorf("kept as %q", cache)
 	}
 
 	for _, bad := range []string{
 		"../avatars/someone.jpg", "..%2Favatars%2Fx.jpg", "x.jpg", strings.Repeat("a", 64) + ".svg",
 		strings.Repeat("A", 64) + ".jpg", strings.Repeat("b", 64) + ".jpg", "",
 	} {
-		if status, location := image(bad); status != http.StatusNotFound || location != "" {
-			t.Errorf("%q answered %d, to %q", bad, status, location)
+		if rec := image(bad); rec.Code != http.StatusNotFound || rec.Body.Len() != 0 {
+			t.Errorf("%q answered %d, %q", bad, rec.Code, rec.Body.String())
 		}
 	}
 }

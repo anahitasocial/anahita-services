@@ -8268,11 +8268,11 @@ who may call it: somebody signed in.">
 </table>
 <p class="handler">Answered by <code>linkpreview/cmd/api/handlers.(*previewsHandler).Read</code></p>
 </details>
-<details class="route" id="getLinkPreviewsImageByName" data-search="get /link-previews/image/{name} a preview&#39;s picture a redirect to the picture in storage, at an address good for a short while.
+<details class="route" id="getLinkPreviewsImageByName" data-search="get /link-previews/image/{name} a preview&#39;s picture the picture itself. its name is the hash of what is in it, so it never changes and may be kept for a year.
 
 who may call it: anyone, signed in or not.">
 <summary><span class="method get">GET</span> <code class="path">/link-previews/image/{name}</code> <span class="summary">A preview&#39;s picture</span></summary>
-<div class="description"><p>A redirect to the picture in storage, at an address good for a short while.</p></div>
+<div class="description"><p>The picture itself. Its name is the hash of what is in it, so it never changes and may be kept for a year.</p></div>
 <p class="who"><strong>Who:</strong> anyone, signed in or not</p>
 <h4>Takes</h4>
 <table>
@@ -8284,7 +8284,7 @@ who may call it: anyone, signed in or not.">
 <h4>Answers</h4>
 <table class="answers">
 <tbody>
-<tr><td class="status s3">302</td><td>the picture is at the address in Location</td></tr>
+<tr><td class="status s2">200</td><td>the picture: a JPEG, or a PNG, GIF or WebP as its name says<div class="body">string <span class="media">image/jpeg</span></div></td></tr>
 <tr><td class="status s4">404</td><td>there is no such picture</td></tr>
 </tbody>
 </table>

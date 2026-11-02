@@ -253,7 +253,7 @@
     },
     "/link-previews/image/{name}": {
       "get": {
-        "description": "A redirect to the picture in storage, at an address good for a short while.\n\nWho may call it: anyone, signed in or not.",
+        "description": "The picture itself. Its name is the hash of what is in it, so it never changes and may be kept for a year.\n\nWho may call it: anyone, signed in or not.",
         "operationId": "getLinkPreviewsImageByName",
         "parameters": [
           {
@@ -267,8 +267,16 @@
           }
         ],
         "responses": {
-          "302": {
-            "description": "the picture is at the address in Location"
+          "200": {
+            "content": {
+              "image/jpeg": {
+                "schema": {
+                  "contentEncoding": "base64",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "the picture: a JPEG, or a PNG, GIF or WebP as its name says"
           },
           "404": {
             "description": "there is no such picture"

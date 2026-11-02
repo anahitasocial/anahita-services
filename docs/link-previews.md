@@ -83,9 +83,13 @@ picture), then stored through `file-grpc-service` under
 always a picture this installation encoded itself.
 
 A reader's browser asks this installation for the picture, never the site
-the link points to, so reading a note tells that site nothing.
+the link points to, so reading a note tells that site nothing. It is sent
+by `link-preview-service` itself, with no redirect to a signed address in
+storage. Its name is the hash of what is in it, so a browser may keep it for
+a year.
 
 A preview whose picture could not be fetched or read is kept without one.
+A picture that will not load in a reader's browser is left out of the card.
 
 ## How long a preview is kept
 
@@ -104,7 +108,7 @@ fetched once. The card on a note is a copy and does not expire.
 | Method and path | Who | What |
 | --- | --- | --- |
 | `GET /link-previews?url=` | signed in | The preview: `url`, `title`, `description`, `site_name`, `image`. `204` when there is nothing to show, `400` when it is not an http or https address, `429` past 30 a minute |
-| `GET /link-previews/image/:name` | anybody | Redirects to the stored picture. `:name` is 64 hexadecimal characters and `.jpg`, `.png`, `.gif` or `.webp`; anything else is `404` |
+| `GET /link-previews/image/:name` | anybody | The stored picture. `:name` is 64 hexadecimal characters and `.jpg`, `.png`, `.gif` or `.webp`; anything else is `404` |
 
 `image` is a path under the API, `/link-previews/image/<name>`.
 
