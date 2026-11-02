@@ -62,13 +62,13 @@ func TestStoreKeepsAGoodPreviewLongerThanAFailure(t *testing.T) {
 	cache := &memory{kept: map[string]string{}, ttl: map[string]time.Duration{}}
 	store := NewStore(cache)
 
-	good := &Preview{URL: "https://example.org/a", Title: "A", Status: StatusOK}
+	good := &Preview{URL: "https://example.org/a", Title: "A", ImageKey: "a.jpg", Status: StatusOK}
+	bare := &Preview{URL: "https://example.org/c", Title: "C", Status: StatusOK}
 	bad := &Preview{URL: "https://example.org/b", Status: StatusFailed}
-	if err := store.Put(good); err != nil {
-		t.Fatal(err)
-	}
-	if err := store.Put(bad); err != nil {
-		t.Fatal(err)
+	for _, preview := range []*Preview{good, bare, bad} {
+		if err := store.Put(preview); err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	if got, ok := store.Get(good.URL); !ok || got.Title != "A" || !got.Usable() {
@@ -82,6 +82,9 @@ func TestStoreKeepsAGoodPreviewLongerThanAFailure(t *testing.T) {
 	}
 	if cache.ttl[Key(good.URL)] != FreshFor || cache.ttl[Key(bad.URL)] != FailedFor {
 		t.Errorf("kept for %v and %v", cache.ttl[Key(good.URL)], cache.ttl[Key(bad.URL)])
+	}
+	if got, ok := store.Get(bare.URL); !ok || !got.Usable() || cache.ttl[Key(bare.URL)] != FailedFor {
+		t.Errorf("a preview without a picture read back as %+v %v, kept for %v", got, ok, cache.ttl[Key(bare.URL)])
 	}
 
 	// With nowhere to keep them, nothing is kept and nothing breaks.

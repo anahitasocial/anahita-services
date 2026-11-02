@@ -65,6 +65,12 @@ In this order, the first that is there: Open Graph (`og:title`,
 `<title>` and `<meta name="description">`. Reading stops at the end of
 `<head>`.
 
+A link to YouTube is asked of YouTube's oEmbed address first
+(`https://www.youtube.com/oembed`), for the video's title, its channel, as
+the description, and its picture. YouTube gives a server a page with nothing
+of the video in it, so the page is read only when oEmbed has no answer: a
+channel's page, or a video that has gone.
+
 A page with no title has no preview. Titles are cut to 200 characters and
 descriptions to 300.
 
@@ -85,10 +91,11 @@ A preview whose picture could not be fetched or read is kept without one.
 
 | What | Kept for |
 | --- | --- |
-| A preview | 7 days |
+| A preview with its picture | 7 days |
+| A preview without one | 1 hour |
 | That a page could not be read, or said nothing of itself | 1 hour |
 
-Both are in Redis under the SHA-256 of the normalised address (lower-case
+All are in Redis under the SHA-256 of the normalised address (lower-case
 scheme and host, no fragment), so the same link pasted by two people is
 fetched once. The card on a note is a copy and does not expire.
 
@@ -147,7 +154,7 @@ still shown; only their pictures need the service.
 | What | Where |
 | --- | --- |
 | Fetching a page safely | `link-preview-service/fetch/safe.go`, `fetch.go`, over `anahita-libs/safehttp`; tested in `fetch_test.go` |
-| What is read from the page | `link-preview-service/fetch/parse.go` |
+| What is read from the page | `link-preview-service/fetch/parse.go`; YouTube, `oembed.go` |
 | The picture, no wider than 800 pixels | `link-preview-service/fetch/fetch.go` (`Thumbnail`), `safe.go` (`ThumbnailWidth`), `link-preview-service/cmd/api/handlers/previews.go` (`keepPicture`, `Image`) |
 | The endpoints | `link-preview-service/cmd/api/handlers/previews.go` |
 | The preview, the Redis store, how long it is kept, normalising an address | `anahita-libs/linkpreviews/linkpreviews.go` (`FreshFor`, `FailedFor`, `Key`, `Normalise`) |
@@ -156,7 +163,7 @@ still shown; only their pictures need the service.
 
 ## What is not built
 
-- oEmbed, and a favicon for a page with no picture.
+- oEmbed for any site but YouTube, and a favicon for a page with no picture.
 - Cards on photo and video posts, and for any link in a note but the first.
 - Blocking previews of chosen domains. The list of servers the site refuses
   for federation is not consulted.

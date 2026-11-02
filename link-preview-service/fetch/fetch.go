@@ -57,6 +57,10 @@ func (f *Fetcher) get(address, accept string) (*http.Response, error) {
 // Page fetches a page and reads its head. It returns where the address led
 // as well, which a short link does not say.
 func (f *Fetcher) Page(address string) (*Page, string, error) {
+	if page := f.youTube(address); page != nil {
+		return page, address, nil
+	}
+
 	resp, err := f.get(address, "text/html,application/xhtml+xml")
 	if err != nil {
 		return nil, "", err

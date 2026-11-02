@@ -23,7 +23,8 @@ import (
 )
 
 // How long a preview is kept before the page is read again, and how long a
-// failure is remembered before it is tried again.
+// failure, or a preview that came without its picture, is remembered before
+// it is tried again.
 const (
 	FreshFor      = 7 * 24 * time.Hour
 	FailedFor     = time.Hour
@@ -169,7 +170,8 @@ func (s *Store) Get(address string) (*Preview, bool) {
 	return preview, true
 }
 
-// Put keeps a preview: a good one for a week, a failure for an hour.
+// Put keeps a preview: a whole one for a week, a failure or one with no
+// picture for an hour, since what stopped the picture may have passed.
 func (s *Store) Put(preview *Preview) error {
 	if s == nil || s.cache == nil || preview == nil {
 		return nil
@@ -181,7 +183,7 @@ func (s *Store) Put(preview *Preview) error {
 	}
 
 	ttl := FailedFor
-	if preview.Status == StatusOK {
+	if preview.Status == StatusOK && preview.ImageKey != "" {
 		ttl = FreshFor
 	}
 
