@@ -299,10 +299,11 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Refuses(http.StatusNotFound, "there is no such post that the viewer may see")
 
 	// What cites a post, of any kind: the articles and topics that show it
-	// within their text. Not part of a preview, like its quotes.
+	// within their text, and the notes that quote it. Not part of a preview,
+	// like its quotes.
 	notes.GET("/:id/cited_by", r.handler.Note.CitedBy, r.setViewer, an_mw.MembersInPreview()).
 		Summary("The posts that cite a post").
-		Describe("Newest first, those the viewer may see. Its author's own are listed too, though they are not counted in its `citation_count`.").
+		Describe("The articles and topics that show it within their text, and the notes that quote it, together, newest first: those the viewer may see. A quote its post was taken out of is not listed. Its author's own are listed too, though they are not counted in its `citation_count`, and quotes are counted in its `quote_count` instead.").
 		Viewer(apidoc.Anyone).
 		Takes(&handlers.CitedByRequest{Limit: 20}).
 		Sends(http.StatusOK, responses.List[*responses.MediumNodeItem]{}).

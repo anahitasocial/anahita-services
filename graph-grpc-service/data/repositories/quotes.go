@@ -26,6 +26,13 @@ type QuotesRepoInterface interface {
 	// List returns the notes that quote a post and that this viewer may
 	// see, newest first: not one the post was taken out of.
 	List(quotedID int64, viewer *entities.Viewer, limit uint64) ([]*entities.AnahitaNode, error)
+
+	// Page is a page of them, newest first, from offset, for a post's Cited
+	// by, where they are listed with its citations.
+	Page(quotedID int64, viewer *entities.Viewer, limit uint64, offset uint64) ([]*entities.AnahitaNode, error)
+
+	// Count is how many of them this viewer may see.
+	Count(quotedID int64, viewer *entities.Viewer) (uint64, error)
 }
 
 // QuotesLimit is how many of a post's quotes are read at once.
@@ -102,23 +109,61 @@ func (r *quotesRepo) Detach(quoteNoteID int64, by int64) (bool, error) {
 // not see on its author's profile is not listed as a quote either, so the
 // list is shorter than the count on the post for anybody who cannot see them
 // all.
-func (r *quotesRepo) List(quotedID int64, viewer *entities.Viewer, limit uint64) ([]*entities.AnahitaNode, error) {
-	if viewer == nil {
-		viewer = entities.NewViewer()
-	}
-	if limit == 0 || limit > QuotesLimit {
-		limit = QuotesLimit
-	}
-
-	query := GetBaseSelectQuery().
+// visibleQuotes narrows a query on nodes to the notes quoting a post that the
+// viewer may see: not one the post was taken out of, removed or switched off.
+func visibleQuotes(query sq.SelectBuilder, quotedID int64, viewer *entities.Viewer) sq.SelectBuilder {
+	query = query.
 		Where(sq.Eq{"node.quote_id": quotedID}).
 		Where("node.quote_detached_at IS NULL").
 		Where("node.deleted_at IS NULL").
 		Where(sq.Eq{"node.enabled": true})
 
-	query = SetMediumAccessQuery(query, viewer)
+	return SetMediumAccessQuery(query, viewer)
+}
 
-	query = query.OrderBy("node.created_at DESC", "node.id DESC").Limit(limit)
+func (r *quotesRepo) List(quotedID int64, viewer *entities.Viewer, limit uint64) ([]*entities.AnahitaNode, error) {
+	if limit == 0 || limit > QuotesLimit {
+		limit = QuotesLimit
+	}
+
+	return r.Page(quotedID, viewer, limit, 0)
+}
+
+func (r *quotesRepo) Page(quotedID int64, viewer *entities.Viewer, limit uint64, offset uint64) ([]*entities.AnahitaNode, error) {
+	if viewer == nil {
+		viewer = entities.NewViewer()
+	}
+
+	query := visibleQuotes(GetBaseSelectQuery(), quotedID, viewer).
+		OrderBy("node.created_at DESC", "node.id DESC").
+		Limit(limit).
+		Offset(offset)
 
 	return FetchNodes(r.db, query)
+}
+
+func (r *quotesRepo) Count(quotedID int64, viewer *entities.Viewer) (uint64, error) {
+	if viewer == nil {
+		viewer = entities.NewViewer()
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), purgeStatementTimeout)
+	defer cancel()
+
+	query := visibleQuotes(
+		sq.Select("COUNT(*)").
+			From("nodes AS node").
+			LeftJoin("nodes AS owner ON owner.id = node.owner_id"),
+		quotedID,
+		viewer,
+	)
+
+	sqlStr, args, err := query.ToSql()
+	if err != nil {
+		return 0, err
+	}
+
+	var total uint64
+	err = r.db.QueryRowContext(ctx, sqlStr, args...).Scan(&total)
+	return total, err
 }

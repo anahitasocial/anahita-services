@@ -206,9 +206,10 @@ web app reads it the same way.
   a profile counting the citations of its posts,
   `nodes.citation_count`, which [Search](search.md) and
   [Recommendations](recommendations.md) weigh. `GET /notes/:id/cited_by`
-  lists the posts citing a post of any kind, newest first, as the viewer
-  may see them; the web app shows them in a post's Cited by tab, beside
-  Replies and Locations. What an article or a topic cites is listed at the
+  lists the posts citing a post of any kind, and the notes quoting it,
+  together, newest first, as the viewer may see them; the web app shows them
+  in a post's Cited by tab, beside Replies and Locations. A quote is listed
+  there but not counted as a citation: it has its own `quote_count`. What an article or a topic cites is listed at the
   end of its own text.
 - **A page elsewhere** is shown by its card, kept in the post's `meta` under
   `link_previews` and sent as `link_previews`: see

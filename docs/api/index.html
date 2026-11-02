@@ -6248,11 +6248,11 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </table>
 <p class="handler">Answered by <code>text/cmd/api/handlers.(*mediumHandler).EditAccess</code></p>
 </details>
-<details class="route" id="getNotesByIdCitedBy" data-search="get /notes/{id}/cited_by the posts that cite a post newest first, those the viewer may see. its author&#39;s own are listed too, though they are not counted in its `citation_count`.
+<details class="route" id="getNotesByIdCitedBy" data-search="get /notes/{id}/cited_by the posts that cite a post the articles and topics that show it within their text, and the notes that quote it, together, newest first: those the viewer may see. a quote its post was taken out of is not listed. its author&#39;s own are listed too, though they are not counted in its `citation_count`, and quotes are counted in its `quote_count` instead.
 
 who may call it: anyone, signed in or not.">
 <summary><span class="method get">GET</span> <code class="path">/notes/{id}/cited_by</code> <span class="summary">The posts that cite a post</span></summary>
-<div class="description"><p>Newest first, those the viewer may see. Its author&#39;s own are listed too, though they are not counted in its <code>citation_count</code>.</p></div>
+<div class="description"><p>The articles and topics that show it within their text, and the notes that quote it, together, newest first: those the viewer may see. A quote its post was taken out of is not listed. Its author&#39;s own are listed too, though they are not counted in its <code>citation_count</code>, and quotes are counted in its <code>quote_count</code> instead.</p></div>
 <p class="who"><strong>Who:</strong> anyone, signed in or not</p>
 <h4>Takes</h4>
 <table>

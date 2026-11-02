@@ -21,7 +21,7 @@ type CitedByRequest struct {
 }
 
 // CitedBy returns the posts that cite a post, newest first: the articles
-// and topics that show it within their text. Served under /notes/ for a
+// and topics that show it within their text, and the notes that quote it. Served under /notes/ for a
 // post of any kind, a photo included, as its quotes are.
 //
 // GET /notes/:id/cited_by

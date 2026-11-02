@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"log"
+	"sort"
 
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
@@ -130,8 +131,14 @@ func (h *mediumHandler) ListSaved(ctx context.Context, req *graphpb.SavedListReq
 
 // ListCitedBy returns the posts that cite a post, newest first, as the
 // viewer may see them: the articles and topics that show it within their
-// text (an edge.medium.citation.v1 from each to it). Its author's own are
-// among them, though they do not count toward its citation_count.
+// text (an edge.medium.citation.v1 from each to it), and the notes that quote
+// it. Its author's own are among them, though they do not count toward its
+// citation_count; and a quote does not count toward it at all, having its own
+// quote_count.
+//
+// The two are read separately, each as far as this page reaches, and put
+// together here: a page from offset is the newest of both after the first
+// offset of them.
 func (h *mediumHandler) ListCitedBy(ctx context.Context, req *graphpb.CitedByListRequest) (*graphpb.CitedByListResponse, error) {
 	viewer := entities.NewViewer()
 	if req.Viewer != nil {
@@ -141,24 +148,38 @@ func (h *mediumHandler) ListCitedBy(ctx context.Context, req *graphpb.CitedByLis
 		viewer.Email = req.Viewer.Email
 	}
 
+	reach := req.GetOffset() + req.GetLimit()
 	browse := &graphpb.BrowseNeighboursRequest{
 		NodeId:    req.GetCitedId(),
 		EdgeTypes: []string{constants.EdgeMediumCitationType},
 		Direction: constants.GraphQueryDirectionInbound,
-		Limit:     req.GetLimit(),
-		Offset:    req.GetOffset(),
+		Limit:     reach,
 		Ordering:  constants.OrderingRecent,
 	}
-	nodes, err := h.env.Repos.Graph.BrowseNeighbours(browse, viewer)
+	citing, err := h.env.Repos.Graph.BrowseNeighbours(browse, viewer)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
-	total, err := h.env.Repos.Graph.CountNeighbours(browse, viewer)
+	citations, err := h.env.Repos.Graph.CountNeighbours(browse, viewer)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
+
+	quoting, err := h.env.Repos.Quotes.Page(req.GetCitedId(), viewer, reach, 0)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	quotes, err := h.env.Repos.Quotes.Count(req.GetCitedId(), viewer)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	nodes := newestFirst(citing, quoting, req.GetOffset(), req.GetLimit())
+	total := citations + quotes
 
 	ids := extractNodeIDs(nodes)
 	if len(ids) > 0 && viewer.ID > 0 {
@@ -193,4 +214,34 @@ func (h *mediumHandler) ListAuthored(ctx context.Context, req *graphpb.AuthoredL
 	}
 
 	return &graphpb.AuthoredListResponse{Nodes: nodesToGrpc(nodes)}, nil
+}
+
+// newestFirst puts two lists of posts, each newest first, into one, and takes
+// the page from offset. A post in both is listed once.
+func newestFirst(a, b []*entities.AnahitaNode, offset, limit uint64) []*entities.AnahitaNode {
+	all := make([]*entities.AnahitaNode, 0, len(a)+len(b))
+	seen := map[int64]bool{}
+	for _, node := range append(append([]*entities.AnahitaNode{}, a...), b...) {
+		if node == nil || seen[node.ID] {
+			continue
+		}
+		seen[node.ID] = true
+		all = append(all, node)
+	}
+
+	sort.SliceStable(all, func(i, j int) bool {
+		if !all[i].CreatedAt.Equal(all[j].CreatedAt) {
+			return all[i].CreatedAt.After(all[j].CreatedAt)
+		}
+		return all[i].ID > all[j].ID
+	})
+
+	if offset >= uint64(len(all)) {
+		return []*entities.AnahitaNode{}
+	}
+	end := offset + limit
+	if limit == 0 || end > uint64(len(all)) {
+		end = uint64(len(all))
+	}
+	return all[offset:end]
 }

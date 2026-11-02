@@ -2983,7 +2983,7 @@
     },
     "/notes/{id}/cited_by": {
       "get": {
-        "description": "Newest first, those the viewer may see. Its author's own are listed too, though they are not counted in its `citation_count`.\n\nWho may call it: anyone, signed in or not.",
+        "description": "The articles and topics that show it within their text, and the notes that quote it, together, newest first: those the viewer may see. A quote its post was taken out of is not listed. Its author's own are listed too, though they are not counted in its `citation_count`, and quotes are counted in its `quote_count` instead.\n\nWho may call it: anyone, signed in or not.",
         "operationId": "getNotesByIdCitedBy",
         "parameters": [
           {
