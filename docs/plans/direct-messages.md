@@ -125,7 +125,8 @@ Claude answer each for Anahita, from the code and not from memory:
 1. **Found:** banu.io submitted, Anahita known to FediDB as a software,
    `setting-up.md` saying how. Mostly the user's, and an hour of Claude's.
 2. **The feature list:** `docs/features.md`, the 128 answered, each "no"
-   weighed. A session.
+   weighed. A session. **Done 2026-11-03:** [Features](../features.md), and
+   the answers entered on FediDB.
 3. **Messages here,** with consent, requests, reporting and notifications.
    Four to five sessions.
 4. **Messages with the fediverse,** private mentions in and out. Two

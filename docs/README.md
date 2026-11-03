@@ -89,6 +89,7 @@ The pages, grouped by what they are about, each group in the order to read it.
 1. [Why Anahita](why-anahita.md) — the choices behind it: software for a community, the principles, what it does not do, and why two networks
 2. [The graph](the-graph.md) — nodes and edges: how their types are named, every kind there is, and who may see a node
 3. [How things are found](how-things-are-found.md) — the home page, custom feeds, search, suggestions and trending: what each orders by, and what is never used
+4. [Features](features.md) — what Anahita does, by the 128 questions FediDB compares fediverse software by, and what is not built yet
 
 ### Run a site
 
