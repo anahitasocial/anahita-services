@@ -50,11 +50,7 @@ const (
 	// with the same cause, a NodeInfo document describing the project
 	// rather than the software.
 	//
-	// Points at anahitasocial/ rather than the purplerat/ remote it is
-	// pushed to today, because this is where it will live once it is
-	// public and NodeInfo is read by strangers, for whom a private URL
-	// and a wrong URL fail identically. Worth knowing that until that
-	// move happens, this link 404s for everyone outside the org.
+	// The public repository, since NodeInfo is read by strangers.
 	//
 	// A constant rather than config: every instance runs the same
 	// software from the same place, so it is a property of the build

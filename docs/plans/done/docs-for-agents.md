@@ -242,9 +242,9 @@ in `AGENTS.md`, the sovereignty line and "every string is in
 (`tools/docs-mcp`, Go, read only, offline, one server for both repositories'
 docs, started from each `.mcp.json`), as Design part 3 describes, and
 `llms.txt`. The people it is for have no clone, and cannot reach it before
-then. Publishing also changes the web app's 55 links to
-`github.com/purplerat/anahita-services`, which until then lead nowhere for
-anybody else; they are left as they are and changed together. The recipe
+then. Publishing also changes the web app's 55 links to the private
+repository, which until then lead nowhere for anybody else; they are left
+as they are and changed together. The recipe
 tools wait for row 30 as well.
 
 ## anahita-mcp, a server of our own (user, 2026-10-27)
