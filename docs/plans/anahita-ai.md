@@ -24,57 +24,57 @@ model and back that the later phases take.
 
 ## Principles
 
-- **Off unless the installation turns it on.** Where the service is not
-  running, the web app shows none of it, as with the recommendation and
-  ActivityPub services.
-- **The model is the installation's choice.** One interface, written to by
-  each provider:
-  - **Ollama**, a model run on the installation's own machines, which the
-    documentation leads with, for the reason [translation.md](translation.md)
-    leads with LibreTranslate;
-  - **any OpenAI-compatible server** (vLLM, LM Studio and others);
-  - **Anthropic**, for an installation that would rather pay for a larger
-    model.
-- **Nothing leaves the installation that its people did not agree to.**
-  With a provider outside it, only what is open to everybody is sent, as
-  for translation; the administrators' settings and the docs say in plain
-  words which provider is in use. Counts sent for a question about
-  statistics carry nobody's posts.
-- **It suggests; people decide.** A draft is edited by its author before
-  anything is saved; a flag goes to a human; nothing is removed, hidden or
-  ranked by the model.
-- **Nobody is tracked.** Statistics are counts for the whole site, never
-  for one profile. Suggestions of whom to follow come only from interests a
-  person has stated. No ranked default feed.
-- **Nothing waits for the model.** The core services never call this one.
-  It reads the event bus and the core's read APIs, keeps its own tables
-  (`ai_` before their names, made by `migration-job`), and the web app calls
-  it directly. When it is down or slow, only its buttons are missing.
+1. **Off unless the installation turns it on.** Where the service is not
+   running, the web app shows none of it, as with the recommendation and
+   ActivityPub services.
+2. **The model is the installation's choice.** One interface, written to by
+   each provider:
+   - **Ollama**, a model run on the installation's own machines, which the
+     documentation leads with, for the reason [translation.md](translation.md)
+     leads with LibreTranslate;
+   - **any OpenAI-compatible server** (vLLM, LM Studio and others);
+   - **Anthropic**, for an installation that would rather pay for a larger
+     model.
+3. **Nothing leaves the installation that its people did not agree to.**
+   With a provider outside it, only what is open to everybody is sent, as
+   for translation; the administrators' settings and the docs say in plain
+   words which provider is in use. Counts sent for a question about
+   statistics carry nobody's posts.
+4. **It suggests; people decide.** A draft is edited by its author before
+   anything is saved; a flag goes to a human; nothing is removed, hidden or
+   ranked by the model.
+5. **Nobody is tracked.** Statistics are counts for the whole site, never
+   for one profile. Suggestions of whom to follow come only from interests a
+   person has stated. No ranked default feed.
+6. **Nothing waits for the model.** The core services never call this one.
+   It reads the event bus and the core's read APIs, keeps its own tables
+   (`ai_` before their names, made by `migration-job`), and the web app calls
+   it directly. When it is down or slow, only its buttons are missing.
 
 ## Phase 0 · The service
 
-- `ai-service/`, laid out like the others: `cmd/api`, its own `go.mod`,
-  `go.work`, `dockerfiles/ai.dockerfile`, `k8s/base/services/ai.yml` in
-  `k8s/base/kustomization.yml`, Makefile targets, `docker-compose.yml`, and
-  Ollama in compose for development.
-- `ai-service/provider/`: the interface (`Complete`, with tools;
-  `Describe`, for a picture; `Embed` later), the three providers, and their
-  settings:
+1. `ai-service/`, laid out like the others: `cmd/api`, its own `go.mod`,
+   `go.work`, `dockerfiles/ai.dockerfile`, `k8s/base/services/ai.yml` in
+   `k8s/base/kustomization.yml`, Makefile targets, `docker-compose.yml`, and
+   Ollama in compose for development.
+2. `ai-service/provider/`: the interface (`Complete`, with tools;
+   `Describe`, for a picture; `Embed` later), the three providers, and their
+   settings:
 
-  | Setting | What it is |
-  | --- | --- |
-  | `AI_PROVIDER` | `ollama`, `openai` or `anthropic`; empty is off |
-  | `AI_MODEL` | The model for text |
-  | `AI_VISION_MODEL` | The model for pictures; empty is no alt-text drafts |
-  | `AI_BASE_URL` | The provider's address, for Ollama and OpenAI-compatible servers |
-  | `AI_API_KEY` | The provider's key, from a secret |
+   | Setting | What it is |
+   | --- | --- |
+   | `AI_PROVIDER` | `ollama`, `openai` or `anthropic`; empty is off |
+   | `AI_MODEL` | The model for text |
+   | `AI_VISION_MODEL` | The model for pictures; empty is no alt-text drafts |
+   | `AI_BASE_URL` | The provider's address, for Ollama and OpenAI-compatible servers |
+   | `AI_API_KEY` | The provider's key, from a secret |
 
-- Signing in as everywhere else (`anahita-libs/middleware/oauth.go`), the
-  routes in the API reference through `apidoc`, and limits for each person
-  with the shared limiter.
-- `GET /ai/status`: which features are on, so the web app shows only those.
-- Usage kept as counts: calls and tokens for each feature, each day.
-  Questions and answers are not kept.
+3. Signing in as everywhere else (`anahita-libs/middleware/oauth.go`), the
+   routes in the API reference through `apidoc`, and limits for each person
+   with the shared limiter.
+4. `GET /ai/status`: which features are on, so the web app shows only those.
+5. Usage kept as counts: calls and tokens for each feature, each day.
+   Questions and answers are not kept.
 
 ## Phase 1 · Alt-text drafts (in progress)
 

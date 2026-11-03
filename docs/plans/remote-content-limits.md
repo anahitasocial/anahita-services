@@ -22,17 +22,17 @@ could afford, and a larger site raises them.
 
 ## What other projects do
 
-- **Mastodon** treats the files and the words apart. Its copy of a picture
-  or a video from another server is deleted after a number of days the
-  administrator sets; the post stays, with where the file came from, and
-  the file is fetched again when somebody asks for it. A second setting
-  deletes old posts from other servers outright, which cannot be undone
-  and which its own documentation is careful about.
-- **GoToSocial** does the first of those, and has it on as it comes.
-- **Pleroma and Akkoma** have an age for posts from elsewhere and a
-  command an administrator runs to prune them.
-- **Bluesky** does not have the problem: a personal server holds only its
-  own people's data.
+1. **Mastodon** treats the files and the words apart. Its copy of a picture
+   or a video from another server is deleted after a number of days the
+   administrator sets; the post stays, with where the file came from, and
+   the file is fetched again when somebody asks for it. A second setting
+   deletes old posts from other servers outright, which cannot be undone
+   and which its own documentation is careful about.
+2. **GoToSocial** does the first of those, and has it on as it comes.
+3. **Pleroma and Akkoma** have an age for posts from elsewhere and a
+   command an administrator runs to prune them.
+4. **Bluesky** does not have the problem: a personal server holds only its
+   own people's data.
 
 The shape of each is certain; the numbers each ships with were not checked
 and are not quoted.
@@ -70,13 +70,13 @@ a line leading to its page (2026-11-01). When they are brought in, they come und
 start, and more strictly, since one video can weigh what a thousand
 pictures do:
 
-- **not copied when the post arrives,** only its poster picture;
-- **copied when somebody first presses play,** through the video worker,
-  as an upload is;
-- **kept for a shorter age of its own** (`REMOTE_VIDEO_DAYS`), and copied
-  again if asked for after that;
-- **with a limit on length and weight** above which the post leads to
-  where the video is, and it is not copied at all.
+1. **not copied when the post arrives,** only its poster picture;
+2. **copied when somebody first presses play,** through the video worker,
+   as an upload is;
+3. **kept for a shorter age of its own** (`REMOTE_VIDEO_DAYS`), and copied
+   again if asked for after that;
+4. **with a limit on length and weight** above which the post leads to
+   where the video is, and it is not copied at all.
 
 A video is never played straight from another server: that tells the
 other server who watched.
@@ -103,12 +103,12 @@ operator who needs them turns them on knowing that.
 
 Whatever the numbers say:
 
-- a post somebody here liked, reposted, quoted, saved or answered, and its
-  files;
-- a post in a thread somebody here wrote in;
-- a post an open abuse report is about;
-- **anything written here.** Only what has a `uri`, and so came from
-  elsewhere, is ever looked at.
+1. a post somebody here liked, reposted, quoted, saved or answered, and its
+   files;
+2. a post in a thread somebody here wrote in;
+3. a post an open abuse report is about;
+4. **anything written here.** Only what has a `uri`, and so came from
+   elsewhere, is ever looked at.
 
 ## What is written here is not clipped
 
@@ -183,31 +183,31 @@ migrations of everything before it.
 
 ### Steps 2 and 3, posts and people: 2026-10-13
 
-- `anahita-libs/federation/retention.go`: which posts are due
-  (`OldPosts`, one query built from the rules that are set), which people
-  (`StalePeople`), and removing a post with its files
-  (`Keeper.RemovePost`).
-- Each service does a round every hour (`handlers/retention.go`,
-  `Tidy`): the posts go as they would have had their author taken them
-  away, said on the bus; then the people of whom nothing is left, by the
-  service's own way of forgetting somebody.
-- `REMOTE_UNFOLLOWED_DAYS`, thirty unless said; `REMOTE_POSTS_DAYS` and
-  `REMOTE_POSTS_KEPT`, off unless said.
-- **Not in the hourly sweeper of graph-grpc-service, as first written
-  above,** but in the two services: each knows what it keeps beside the
-  graph (keys, follows, cursors) and has to forget that too.
-- **An answer is never removed by a rule,** which the plan did not say.
-  An answer is kept only when it belongs to a conversation somebody here
-  can see, and removing the middle of one helps nobody.
-- A person is removed only when no edge at all touches them. That is
-  stricter than the plan's list (a like, a reply, a block) and simpler to
-  be sure of.
-- No migration, and nothing in the web app: a post that went is simply
-  not in a list any more.
-- Checked against MySQL with the schema of `schema/init.sql`
-  (`retention_integration_test.go`): each rule alone, each protection,
-  and that another kind of server's posts are not looked at. On the
-  development database the default rule found nothing due.
+1. `anahita-libs/federation/retention.go`: which posts are due
+   (`OldPosts`, one query built from the rules that are set), which people
+   (`StalePeople`), and removing a post with its files
+   (`Keeper.RemovePost`).
+2. Each service does a round every hour (`handlers/retention.go`,
+   `Tidy`): the posts go as they would have had their author taken them
+   away, said on the bus; then the people of whom nothing is left, by the
+   service's own way of forgetting somebody.
+3. `REMOTE_UNFOLLOWED_DAYS`, thirty unless said; `REMOTE_POSTS_DAYS` and
+   `REMOTE_POSTS_KEPT`, off unless said.
+4. **Not in the hourly sweeper of graph-grpc-service, as first written
+   above,** but in the two services: each knows what it keeps beside the
+   graph (keys, follows, cursors) and has to forget that too.
+5. **An answer is never removed by a rule,** which the plan did not say.
+   An answer is kept only when it belongs to a conversation somebody here
+   can see, and removing the middle of one helps nobody.
+6. A person is removed only when no edge at all touches them. That is
+   stricter than the plan's list (a like, a reply, a block) and simpler to
+   be sure of.
+7. No migration, and nothing in the web app: a post that went is simply
+   not in a list any more.
+8. Checked against MySQL with the schema of `schema/init.sql`
+   (`retention_integration_test.go`): each rule alone, each protection,
+   and that another kind of server's posts are not looked at. On the
+   development database the default rule found nothing due.
 
 Left: videos (step 4), with bringing videos in. The questions under "To
 decide when it is built" are still open; none was needed for this.
@@ -220,16 +220,16 @@ post again from where it came from, which both services already knew how
 to do, and which is right when a picture's address has changed. So there
 is no migration.
 
-- `anahita-libs/federation/media.go`: which posts are due
-  (`OldPicturePosts`), removing (`Keeper.RemovePictures`), copying again
-  (`Keeper.RestorePictures`), and what the post says of it in its meta
-  (`media_removed`).
-- Each service sweeps what came through it, every hour, and answers
-  `POST /…/posts/:id/pictures`.
-- `REMOTE_MEDIA_DAYS`, thirty unless said, `0` for never.
-- The API sends `media_removed` with a post; the web app draws a
-  placeholder with what the pictures showed and a button, and asks at
-  once on the post's own page (`components/RemovedPictures.jsx`).
+1. `anahita-libs/federation/media.go`: which posts are due
+   (`OldPicturePosts`), removing (`Keeper.RemovePictures`), copying again
+   (`Keeper.RestorePictures`), and what the post says of it in its meta
+   (`media_removed`).
+2. Each service sweeps what came through it, every hour, and answers
+   `POST /…/posts/:id/pictures`.
+3. `REMOTE_MEDIA_DAYS`, thirty unless said, `0` for never.
+4. The API sends `media_removed` with a post; the web app draws a
+   placeholder with what the pictures showed and a button, and asks at
+   once on the post's own page (`components/RemovedPictures.jsx`).
 
 "Left alone" is by the post's `updated_at`, which is when it arrived, was
 changed, or had its pictures copied again; not by when it was written,

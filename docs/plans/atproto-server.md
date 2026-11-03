@@ -66,19 +66,19 @@ listening exist.
 
 ## Before it is taken up
 
-- **Whether Bluesky lets it grow.** As understood on 2026-10-14, Bluesky's
-  relay limits how many accounts a new independent PDS may host until it is
-  trusted. Worth building when Bluesky opens the network further to servers
-  like this one; to be checked again then, from Bluesky's own documentation.
-- **Perhaps a repository of its own,** an optional part an operator adds,
-  rather than inside anahita-services: the PDS is a separate program
-  (Node.js, with its own database) with its own upgrades and backups, and
-  most installations, small ones above all, would leave it off.
-- **Testing needs a public address kept for good.** The relay must reach the
-  PDS, and identities made on Bluesky's directory (PLC) are as good as
-  permanent, so a hostname used for trying it must never be reused.
-- **Public only.** atproto repositories are public: a members-only site
-  leaves it off, as it does ActivityPub, and only public posts go to it.
+1. **Whether Bluesky lets it grow.** As understood on 2026-10-14, Bluesky's
+   relay limits how many accounts a new independent PDS may host until it is
+   trusted. Worth building when Bluesky opens the network further to servers
+   like this one; to be checked again then, from Bluesky's own documentation.
+2. **Perhaps a repository of its own,** an optional part an operator adds,
+   rather than inside anahita-services: the PDS is a separate program
+   (Node.js, with its own database) with its own upgrades and backups, and
+   most installations, small ones above all, would leave it off.
+3. **Testing needs a public address kept for good.** The relay must reach the
+   PDS, and identities made on Bluesky's directory (PLC) are as good as
+   permanent, so a hostname used for trying it must never be reused.
+4. **Public only.** atproto repositories are public: a members-only site
+   leaves it off, as it does ActivityPub, and only public posts go to it.
 
 ## Depends on
 

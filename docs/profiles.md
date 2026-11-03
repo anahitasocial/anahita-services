@@ -24,11 +24,11 @@ types in [The graph](the-graph.md).
 
 ## Contents
 
-- [What every profile has](#what-every-profile-has)
-- [Its address](#its-address)
-- [Its admins](#its-admins)
-- [The API](#the-api)
-- [Where the code is](#where-the-code-is)
+1. [What every profile has](#what-every-profile-has)
+2. [Its address](#its-address)
+3. [Its admins](#its-admins)
+4. [The API](#the-api)
+5. [Where the code is](#where-the-code-is)
 
 ## What every profile has
 

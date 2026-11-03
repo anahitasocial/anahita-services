@@ -10,16 +10,16 @@ Its routes are in the API reference: [photo-service](api/index.html#photo-servic
 
 ## Contents
 
-- [One post, several images](#one-post-several-images)
-- [Posting](#posting)
-- [What is stored](#what-is-stored)
-- [Reading](#reading)
-- [Changing a post's images](#changing-a-posts-images)
-- [Downloading](#downloading)
-- [Removal](#removal)
-- [Limits](#limits)
-- [Where the code is](#where-the-code-is)
-- [What is not built](#what-is-not-built)
+1. [One post, several images](#one-post-several-images)
+2. [Posting](#posting)
+3. [What is stored](#what-is-stored)
+4. [Reading](#reading)
+5. [Changing a post's images](#changing-a-posts-images)
+6. [Downloading](#downloading)
+7. [Removal](#removal)
+8. [Limits](#limits)
+9. [Where the code is](#where-the-code-is)
+10. [What is not built](#what-is-not-built)
 
 ## One post, several images
 
@@ -191,30 +191,30 @@ Anybody who can see a photo can save what their browser was shown. The
 download is something else: a proper file, at the largest size kept, with a
 sensible name, **where whoever posted it has said so**.
 
-- **The switch.** `allow_download` on a photo post, off unless turned on.
-  Sent when the post is made, and changed with
-  `PATCH /photos/:id/download` `{ "allow": true }` by whoever may edit the
-  post: its author, and the admins of the group it is on. Every photo
-  posted before this existed is off: nobody is taken to have agreed.
-- **What a new post starts with**, when its author does not say, is what
-  the profile it is posted on says: a person's own choice for their
-  profile, a group's for what is posted in the group
-  (`PATCH /people/:id/download-default`, `PATCH /groups/:id/download-default`).
-  That is where a post starts and no more. Changing it changes nothing
-  already posted.
-- **The download.** `GET /photos/:id/download?file=<position>` answers with
-  a redirect to a signed address that makes a browser save the file. The
-  first image when no position is given, and one image at a time. The file
-  is the largest copy kept, which was encoded here from what was uploaded;
-  it is named for the post's title, or `photo-<id>`.
-- **Who may.** Somebody who can see the post, when the switch is on; and
-  its author always, whatever the switch says. Somebody who cannot see the
-  post is told it is not there (`404`), as for the post itself; somebody
-  who can and may not download is told so (`403`). A visitor on a site in
-  `preview` mode downloads nothing. 60 a minute for each person.
-- **What a client is told.** A post that holds a file says
-  `authorized.download` for the viewer, wherever it is sent; the post's
-  own page also says `allow_download`, and a profile says its default.
+1. **The switch.** `allow_download` on a photo post, off unless turned on.
+   Sent when the post is made, and changed with
+   `PATCH /photos/:id/download` `{ "allow": true }` by whoever may edit the
+   post: its author, and the admins of the group it is on. Every photo
+   posted before this existed is off: nobody is taken to have agreed.
+2. **What a new post starts with**, when its author does not say, is what
+   the profile it is posted on says: a person's own choice for their
+   profile, a group's for what is posted in the group
+   (`PATCH /people/:id/download-default`, `PATCH /groups/:id/download-default`).
+   That is where a post starts and no more. Changing it changes nothing
+   already posted.
+3. **The download.** `GET /photos/:id/download?file=<position>` answers with
+   a redirect to a signed address that makes a browser save the file. The
+   first image when no position is given, and one image at a time. The file
+   is the largest copy kept, which was encoded here from what was uploaded;
+   it is named for the post's title, or `photo-<id>`.
+4. **Who may.** Somebody who can see the post, when the switch is on; and
+   its author always, whatever the switch says. Somebody who cannot see the
+   post is told it is not there (`404`), as for the post itself; somebody
+   who can and may not download is told so (`403`). A visitor on a site in
+   `preview` mode downloads nothing. 60 a minute for each person.
+5. **What a client is told.** A post that holds a file says
+   `authorized.download` for the viewer, wherever it is sent; the post's
+   own page also says `allow_download`, and a profile says its default.
 
 Nothing is counted and nobody is told who downloaded what.
 
@@ -259,10 +259,10 @@ made small enough before it goes. Every length people write is listed in
 
 ## What is not built
 
-- **Drag to reorder** in the web app. Images are moved with arrow buttons,
-  which also work from the keyboard.
-- **Images in the lists of search, hashtags, locations and likes.** They show
-  the first image.
-- **Albums, and collections of other people's posts.** Decided against; see
-  [the plan](plans/done/photo-albums.md).
-- **Photos and video in one post.** For the video service.
+1. **Drag to reorder** in the web app. Images are moved with arrow buttons,
+   which also work from the keyboard.
+2. **Images in the lists of search, hashtags, locations and likes.** They show
+   the first image.
+3. **Albums, and collections of other people's posts.** Decided against; see
+   [the plan](plans/done/photo-albums.md).
+4. **Photos and video in one post.** For the video service.

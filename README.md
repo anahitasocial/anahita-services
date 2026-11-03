@@ -65,12 +65,12 @@ they set their first password:
 
 **I won't use Anahita to:**
 
-- Spread hate or organize hate groups, including against women, LGBTQIA+ people, or marginalized communities.
-- Harm or exploit children.
-- Harass, threaten, or expose the private data (dox) of anyone.
-- Promote violent extremism or terrorism.
-- Spread misinformation about health or science.
-- Abuse the system through spam, malware, financial scams, or data harvesting.
+1. Spread hate or organize hate groups, including against women, LGBTQIA+ people, or marginalized communities.
+2. Harm or exploit children.
+3. Harass, threaten, or expose the private data (dox) of anyone.
+4. Promote violent extremism or terrorism.
+5. Spread misinformation about health or science.
+6. Abuse the system through spam, malware, financial scams, or data harvesting.
 
 It is a pledge to the people who will trust you, from Anahita's creator,
 Rastin Mehr; not a term of the licences.

@@ -9,16 +9,16 @@ Its routes are in the API reference: [auth-service](api/index.html#auth-service)
 
 ## Contents
 
-- [The ways in](#the-ways-in)
-- [Signing in with a code](#signing-in-with-a-code)
-- [What a code can and cannot do](#what-a-code-can-and-cannot-do)
-- [Limits](#limits)
-- [How codes are kept](#how-codes-are-kept)
-- [Resetting a forgotten password](#resetting-a-forgotten-password)
-- [Changing an email address](#changing-an-email-address)
-- [Adding text messages later](#adding-text-messages-later)
-- [Staying signed in](#staying-signed-in)
-- [Where the code is](#where-the-code-is)
+1. [The ways in](#the-ways-in)
+2. [Signing in with a code](#signing-in-with-a-code)
+3. [What a code can and cannot do](#what-a-code-can-and-cannot-do)
+4. [Limits](#limits)
+5. [How codes are kept](#how-codes-are-kept)
+6. [Resetting a forgotten password](#resetting-a-forgotten-password)
+7. [Changing an email address](#changing-an-email-address)
+8. [Adding text messages later](#adding-text-messages-later)
+9. [Staying signed in](#staying-signed-in)
+10. [Where the code is](#where-the-code-is)
 
 ## The ways in
 
@@ -67,14 +67,14 @@ code arriving and coming back is what the confirmation link proves.
 
 ## What a code can and cannot do
 
-- It replaces the **password**, not the second factor. An account with
-  two-factor turned on is still asked for its authenticator code.
-- It works **once**, for **10 minutes**, and only in the browser that asked
-  for it: the browser's session holds which code it is waiting for.
-- A **new code retires the old one.**
-- It is checked against the account **as it is when the code is typed**, not
-  when it was sent.
-- A code is issued for one purpose and refused for any other.
+1. It replaces the **password**, not the second factor. An account with
+   two-factor turned on is still asked for its authenticator code.
+2. It works **once**, for **10 minutes**, and only in the browser that asked
+   for it: the browser's session holds which code it is waiting for.
+3. A **new code retires the old one.**
+4. It is checked against the account **as it is when the code is typed**, not
+   when it was sent.
+5. A code is issued for one purpose and refused for any other.
 
 ## Limits
 

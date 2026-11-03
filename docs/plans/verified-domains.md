@@ -20,18 +20,18 @@ The two networks verify different things, so one proof on our side feeds two dif
 So: on Bluesky the domain becomes the handle. On Mastodon the handle can't change, but the same domain shows as a verified link, which is the verification Mastodon users recognise. Search by `@me@domain` can be made to work with one small file on the person's site.
 
 ## What exists
-- `nodes.verified` (boolean) is stored and returned on actors (`anahita-libs/responses/actor.go:17`), and an actor edit can set it (`graph-grpc-service/cmd/server/handlers/actor_fields.go:40`). Nothing sets it from a real check and the web app never shows it.
-- `website_url` is one validated http(s) link on an actor profile.
-- Nothing verifies domains, and there is no DNS lookup code.
-- Federation (item 8) is not built yet. Its AT Protocol phase gives each opted-in person a handle `alias.DOMAIN` on our PDS.
+1. `nodes.verified` (boolean) is stored and returned on actors (`anahita-libs/responses/actor.go:17`), and an actor edit can set it (`graph-grpc-service/cmd/server/handlers/actor_fields.go:40`). Nothing sets it from a real check and the web app never shows it.
+2. `website_url` is one validated http(s) link on an actor profile.
+3. Nothing verifies domains, and there is no DNS lookup code.
+4. Federation (item 8) is not built yet. Its AT Protocol phase gives each opted-in person a handle `alias.DOMAIN` on our PDS.
 
 ## Decisions
-- **One proof, three results.** A person verifies a domain once; Anahita shows the badge, Bluesky gets the handle, Mastodon gets the verified link.
-- **Two ways to prove, either is enough:**
-  1. **DNS:** a TXT record. If the person has opted into Bluesky, the record is `_atproto.<domain>` with their DID, so the same record also makes the domain their Bluesky handle. Otherwise `_anahita.<domain>` with a token.
-  2. **A link back:** their site links to their Anahita profile with `rel="me"`. This is the same thing Mastodon checks, so one link satisfies both.
-- **`verified` stops being settable through an actor edit.** Only the verification check sets it.
-- **Verification can lapse.** Domains are re-checked, and a domain that stops proving ownership loses the badge.
+1. **One proof, three results.** A person verifies a domain once; Anahita shows the badge, Bluesky gets the handle, Mastodon gets the verified link.
+2. **Two ways to prove, either is enough:**
+   1. **DNS:** a TXT record. If the person has opted into Bluesky, the record is `_atproto.<domain>` with their DID, so the same record also makes the domain their Bluesky handle. Otherwise `_anahita.<domain>` with a token.
+   2. **A link back:** their site links to their Anahita profile with `rel="me"`. This is the same thing Mastodon checks, so one link satisfies both.
+3. **`verified` stops being settable through an actor edit.** Only the verification check sets it.
+4. **Verification can lapse.** Domains are re-checked, and a domain that stops proving ownership loses the badge.
 
 ## Design
 **Data**
@@ -40,11 +40,11 @@ So: on Bluesky the domain becomes the handle. On Mastodon the handle can't chang
 - Groups can verify a domain too (an organisation's site).
 
 **Checking**
-- **DNS:** look up the TXT record with Go's resolver, against two public resolvers, so a stale local cache doesn't decide.
-- **Link back:** fetch the page with the SSRF-safe fetcher from the link preview service ([link-previews.md](done/link-previews.md): no private addresses, a size cap, a timeout) and look for `<a>` or `<link>` with `rel="me"` whose `href` is the actor's canonical profile URL.
-- **Re-checks:** the sweeper re-checks verified domains weekly. Three failures in a row mark the domain `lapsed`, clear `verified`, and notify the person. A lapsed domain can be verified again.
-- **Names that could mislead:** domains are stored in punycode and shown in Unicode only when every label is in one script, the usual defence against look-alike domains.
-- **Rate limit** on verification attempts (the shared limiter).
+1. **DNS:** look up the TXT record with Go's resolver, against two public resolvers, so a stale local cache doesn't decide.
+2. **Link back:** fetch the page with the SSRF-safe fetcher from the link preview service ([link-previews.md](done/link-previews.md): no private addresses, a size cap, a timeout) and look for `<a>` or `<link>` with `rel="me"` whose `href` is the actor's canonical profile URL.
+3. **Re-checks:** the sweeper re-checks verified domains weekly. Three failures in a row mark the domain `lapsed`, clear `verified`, and notify the person. A lapsed domain can be verified again.
+4. **Names that could mislead:** domains are stored in punycode and shown in Unicode only when every label is in one script, the usual defence against look-alike domains.
+5. **Rate limit** on verification attempts (the shared limiter).
 
 **Endpoints** (actor-service, one handler for people and groups)
 
@@ -58,21 +58,21 @@ So: on Bluesky the domain becomes the handle. On Mastodon the handle can't chang
 Starting and removing require step-up, since a verified domain is part of identity.
 
 **What a verified domain does**
-- **On Anahita:** a verified mark and the domain on the profile and beside the name in feeds. The actor response gains `verified_domain`.
-- **Bluesky (item 8, AT phase):** atproto-service sets the domain as the handle on the PDS, once the `_atproto` record resolves to the person's DID. If the domain lapses, the handle falls back to `alias.DOMAIN`.
-- **Mastodon and the rest of ActivityPub (item 8, ActivityPub phase):**
-  - the actor JSON lists the website as a profile field (a `PropertyValue` attachment), which is how Mastodon shows profile links;
-  - the profile page's HTML carries `<link rel="me" href="https://domain/">`, and the person's site links back with `rel="me"`. Mastodon then shows the link as verified. This has to be in the HTML the server returns, so it comes from the web shell ([open-graph.md](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/done/open-graph.md), item 10), not from the React app;
-  - `alsoKnownAs` on the actor lists `https://domain/`;
-  - **optional, for search by domain:** the settings page offers a ready-made WebFinger file for the person to host at `https://domain/.well-known/webfinger`, so `@me@domain` finds their account from any fediverse server. Their handle shown on Mastodon is still the Anahita one.
-- **Remote accounts:** for Bluesky accounts whose handle is a domain, and Mastodon accounts with verified links, show the same mark. Bluesky handles are verified by the network already; for Mastodon links we run our own link-back check, since Mastodon doesn't send its verdict.
+1. **On Anahita:** a verified mark and the domain on the profile and beside the name in feeds. The actor response gains `verified_domain`.
+2. **Bluesky (item 8, AT phase):** atproto-service sets the domain as the handle on the PDS, once the `_atproto` record resolves to the person's DID. If the domain lapses, the handle falls back to `alias.DOMAIN`.
+3. **Mastodon and the rest of ActivityPub (item 8, ActivityPub phase):**
+   1. the actor JSON lists the website as a profile field (a `PropertyValue` attachment), which is how Mastodon shows profile links;
+   2. the profile page's HTML carries `<link rel="me" href="https://domain/">`, and the person's site links back with `rel="me"`. Mastodon then shows the link as verified. This has to be in the HTML the server returns, so it comes from the web shell ([open-graph.md](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/done/open-graph.md), item 10), not from the React app;
+   3. `alsoKnownAs` on the actor lists `https://domain/`;
+   4. **optional, for search by domain:** the settings page offers a ready-made WebFinger file for the person to host at `https://domain/.well-known/webfinger`, so `@me@domain` finds their account from any fediverse server. Their handle shown on Mastodon is still the Anahita one.
+4. **Remote accounts:** for Bluesky accounts whose handle is a domain, and Mastodon accounts with verified links, show the same mark. Bluesky handles are verified by the network already; for Mastodon links we run our own link-back check, since Mastodon doesn't send its verdict.
 
 ## Web (anahita-web)
-- **Settings → Account → "Verify a domain":** enter the domain, then a two-tab instruction card (DNS record, or link on your site) with copy buttons, a "Check now" button, and the state (pending, verified, lapsed with the reason).
-- The verified mark and domain on the profile header, actor cards and feed items, with a tooltip saying what was verified and when.
-- When Bluesky is connected: "Use this domain as my Bluesky handle", on by default.
-- The WebFinger file download, with a one-line explanation of what it does and doesn't change.
-- i18n in en-GB and fr-FR.
+1. **Settings → Account → "Verify a domain":** enter the domain, then a two-tab instruction card (DNS record, or link on your site) with copy buttons, a "Check now" button, and the state (pending, verified, lapsed with the reason).
+2. The verified mark and domain on the profile header, actor cards and feed items, with a tooltip saying what was verified and when.
+3. When Bluesky is connected: "Use this domain as my Bluesky handle", on by default.
+4. The WebFinger file download, with a one-line explanation of what it does and doesn't change.
+5. i18n in en-GB and fr-FR.
 
 ## Estimate
 
@@ -88,13 +88,13 @@ Starting and removing require step-up, since a verified domain is part of identi
 The first three rows (the Anahita part) can ship before federation exists.
 
 ## Verification
-- A TXT record with the right value verifies; a wrong value, or a record on another domain, does not. Removing the record lapses the domain after three weekly checks and clears the mark.
-- A page with `rel="me"` pointing at the profile verifies; the same link without `rel="me"`, or pointing at another profile, does not.
-- A domain verified by one actor can't be verified by another.
-- Verification attempts against `localhost`, a private address or a redirect to one are refused.
-- `verified` can't be set through `PATCH /people/:id`.
-- With Bluesky connected, the handle on bsky.app becomes the domain, and reverts when the domain lapses.
-- On a Mastodon server, the Anahita profile shows the website with the verified tick once the site links back.
+1. A TXT record with the right value verifies; a wrong value, or a record on another domain, does not. Removing the record lapses the domain after three weekly checks and clears the mark.
+2. A page with `rel="me"` pointing at the profile verifies; the same link without `rel="me"`, or pointing at another profile, does not.
+3. A domain verified by one actor can't be verified by another.
+4. Verification attempts against `localhost`, a private address or a redirect to one are refused.
+5. `verified` can't be set through `PATCH /people/:id`.
+6. With Bluesky connected, the handle on bsky.app becomes the domain, and reverts when the domain lapses.
+7. On a Mastodon server, the Anahita profile shows the website with the verified tick once the site links back.
 
 ## Dependencies
 - **Hard for the federation parts:** item 8 (AT Protocol phase for the handle, ActivityPub phase for the profile field) and item 10 (the web shell, for `rel="me"` in served HTML).

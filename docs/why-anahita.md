@@ -12,10 +12,10 @@ moderation policies. Key concepts in Anahita's design philosophy include:
 
 ## Contents
 
-- [The principles](#the-principles)
-- [Two networks, not a third](#two-networks-not-a-third)
-- [Everything is a node](#everything-is-a-node)
-- [Further reading](#further-reading)
+1. [The principles](#the-principles)
+2. [Two networks, not a third](#two-networks-not-a-third)
+3. [Everything is a node](#everything-is-a-node)
+4. [Further reading](#further-reading)
 
 ## The principles
 

@@ -8,14 +8,14 @@ Its route is in the API reference: [search-service](api/index.html#search-servic
 
 ## Contents
 
-- [Two orders](#two-orders)
-- [Most relevant](#most-relevant)
-- [Old and useful counts as much as new](#old-and-useful-counts-as-much-as-new)
-- [Tuning it](#tuning-it)
-- [Each person's choices](#each-persons-choices)
-- [What is found at all](#what-is-found-at-all)
-- [Where the code is](#where-the-code-is)
-- [What is not built](#what-is-not-built)
+1. [Two orders](#two-orders)
+2. [Most relevant](#most-relevant)
+3. [Old and useful counts as much as new](#old-and-useful-counts-as-much-as-new)
+4. [Tuning it](#tuning-it)
+5. [Each person's choices](#each-persons-choices)
+6. [What is found at all](#what-is-found-at-all)
+7. [Where the code is](#where-the-code-is)
+8. [What is not built](#what-is-not-built)
 
 ## Two orders
 
@@ -124,16 +124,16 @@ Every number above is the operator's, in
 }
 ```
 
-- graph-grpc-service reads it from `SEARCH_RANKING_PATH`, which is
-  `/app/defaults/search_ranking.json` in the image. docker-compose mounts
-  the working tree's copy there. On Kubernetes, mount a ConfigMap over that
-  path to change it.
-- **It is read again when it changes,** without a restart.
-- **What it leaves out keeps its default,** so a file with only
-  `{"half_life_days": 30}` changes that and nothing else.
-- **A file that cannot be read, or has a number below 0 or above 1000, is
-  not taken:** the default weights are used, and the service says so in
-  its log.
+1. graph-grpc-service reads it from `SEARCH_RANKING_PATH`, which is
+   `/app/defaults/search_ranking.json` in the image. docker-compose mounts
+   the working tree's copy there. On Kubernetes, mount a ConfigMap over that
+   path to change it.
+2. **It is read again when it changes,** without a restart.
+3. **What it leaves out keeps its default,** so a file with only
+   `{"half_life_days": 30}` changes that and nothing else.
+4. **A file that cannot be read, or has a number below 0 or above 1000, is
+   not taken:** the default weights are used, and the service says so in
+   its log.
 
 ## Each person's choices
 
@@ -170,18 +170,18 @@ So with the default file, a citation set to Much more counts 6 for that
 person, and a like set to Off counts nothing. The match always comes
 first; the steps only change the order among results that match alike.
 
-- `GET /search/preferences` answers with the person's steps, which may be
-  set (`adjustable`) and to what (`options`). A name not in `steps` is As
-  is.
-- `PUT /search/preferences` with `{"steps": {"cite": 2, "like": 0}}`
-  replaces them all. A name that may not be set, or a value that is not a
-  step, is refused with 422 `invalid_weight`, and nothing changes.
-- They are kept on the server, in `search_preferences`, so they follow the
-  person to any device. Only steps other than As is are stored, and the
-  row is removed when the profile is purged.
-- The names and steps are `constants.SearchAdjustable` and
-  `constants.SearchSteps` in anahita-libs. The graph applies them with
-  `ranking.Weights.Adjusted`.
+1. `GET /search/preferences` answers with the person's steps, which may be
+   set (`adjustable`) and to what (`options`). A name not in `steps` is As
+   is.
+2. `PUT /search/preferences` with `{"steps": {"cite": 2, "like": 0}}`
+   replaces them all. A name that may not be set, or a value that is not a
+   step, is refused with 422 `invalid_weight`, and nothing changes.
+3. They are kept on the server, in `search_preferences`, so they follow the
+   person to any device. Only steps other than As is are stored, and the
+   row is removed when the profile is purged.
+4. The names and steps are `constants.SearchAdjustable` and
+   `constants.SearchSteps` in anahita-libs. The graph applies them with
+   `ranking.Weights.Adjusted`.
 
 ## What is found at all
 
@@ -214,16 +214,16 @@ wildcards are taken out, and a regular expression made of them is quoted.
 
 ## Where the code is
 
-- `graph-grpc-service/data/repositories/search.go`: what is found
-  (`wordsMatch`), the two scores (`relevance`), and the order, ranking the
-  page's ids before reading their rows (`browseByRelevance`).
-- `graph-grpc-service/ranking`: the weights, the file, reading it again, and
-  each person's steps (`Adjusted`).
-- `graph-grpc-service/data/repositories/search_preferences.go` and
-  `search-service/cmd/api/handlers/preferences.go`: each person's steps,
-  kept and given.
-- `graph-grpc-service/data/repositories/search_ranking_integration_test.go`:
-  the order checked against MySQL, with searches as people make them.
+1. `graph-grpc-service/data/repositories/search.go`: what is found
+   (`wordsMatch`), the two scores (`relevance`), and the order, ranking the
+   page's ids before reading their rows (`browseByRelevance`).
+2. `graph-grpc-service/ranking`: the weights, the file, reading it again, and
+   each person's steps (`Adjusted`).
+3. `graph-grpc-service/data/repositories/search_preferences.go` and
+   `search-service/cmd/api/handlers/preferences.go`: each person's steps,
+   kept and given.
+4. `graph-grpc-service/data/repositories/search_ranking_integration_test.go`:
+   the order checked against MySQL, with searches as people make them.
 
 ## What is not built
 

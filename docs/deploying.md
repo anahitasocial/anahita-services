@@ -8,20 +8,20 @@ your own machine, use docker-compose instead: see
 
 ## Contents
 
-- [What you need](#what-you-need)
-- [How the manifests are laid out](#how-the-manifests-are-laid-out)
-- [Hostnames](#hostnames)
-- [First deployment](#first-deployment)
-- [Certificates between the services](#certificates-between-the-services)
-- [Object storage](#object-storage)
-- [Database, Redis and RabbitMQ](#database-redis-and-rabbitmq)
-- [On AWS](#on-aws)
-- [Joining the fediverse](#joining-the-fediverse)
-- [Images](#images)
-- [Upgrading](#upgrading)
-- [Running more than one copy of a service](#running-more-than-one-copy-of-a-service)
-- [Trying it on your own machine](#trying-it-on-your-own-machine)
-- [One machine without Kubernetes](#one-machine-without-kubernetes)
+1. [What you need](#what-you-need)
+2. [How the manifests are laid out](#how-the-manifests-are-laid-out)
+3. [Hostnames](#hostnames)
+4. [First deployment](#first-deployment)
+5. [Certificates between the services](#certificates-between-the-services)
+6. [Object storage](#object-storage)
+7. [Database, Redis and RabbitMQ](#database-redis-and-rabbitmq)
+8. [On AWS](#on-aws)
+9. [Joining the fediverse](#joining-the-fediverse)
+10. [Images](#images)
+11. [Upgrading](#upgrading)
+12. [Running more than one copy of a service](#running-more-than-one-copy-of-a-service)
+13. [Trying it on your own machine](#trying-it-on-your-own-machine)
+14. [One machine without Kubernetes](#one-machine-without-kubernetes)
 
 ## What you need
 

@@ -5,22 +5,22 @@ each at a name of its own, speaking to each other over https.
 
 ## Contents
 
-- [Why it is needed](#why-it-is-needed)
-- [What is in it](#what-is-in-it)
-- [Starting it](#starting-it)
-- [Opening it in a browser](#opening-it-in-a-browser)
-- [Somebody to talk to](#somebody-to-talk-to)
-- [Having GoToSocial look somebody up](#having-gotosocial-look-somebody-up)
-- [Turning the fediverse on and off for somebody](#turning-the-fediverse-on-and-off-for-somebody)
-- [Following somebody here from GoToSocial](#following-somebody-here-from-gotosocial)
-- [Following somebody on GoToSocial from here](#following-somebody-on-gotosocial-from-here)
-- [Posts, both ways](#posts-both-ways)
-- [Looking somebody on GoToSocial up from here](#looking-somebody-on-gotosocial-up-from-here)
-- [Asking as another server would](#asking-as-another-server-would)
-- [Stopping and emptying it](#stopping-and-emptying-it)
-- [Real servers, from the lab](#real-servers-from-the-lab)
-- [What it is not](#what-it-is-not)
-- [Where the code is](#where-the-code-is)
+1. [Why it is needed](#why-it-is-needed)
+2. [What is in it](#what-is-in-it)
+3. [Starting it](#starting-it)
+4. [Opening it in a browser](#opening-it-in-a-browser)
+5. [Somebody to talk to](#somebody-to-talk-to)
+6. [Having GoToSocial look somebody up](#having-gotosocial-look-somebody-up)
+7. [Turning the fediverse on and off for somebody](#turning-the-fediverse-on-and-off-for-somebody)
+8. [Following somebody here from GoToSocial](#following-somebody-here-from-gotosocial)
+9. [Following somebody on GoToSocial from here](#following-somebody-on-gotosocial-from-here)
+10. [Posts, both ways](#posts-both-ways)
+11. [Looking somebody on GoToSocial up from here](#looking-somebody-on-gotosocial-up-from-here)
+12. [Asking as another server would](#asking-as-another-server-would)
+13. [Stopping and emptying it](#stopping-and-emptying-it)
+14. [Real servers, from the lab](#real-servers-from-the-lab)
+15. [What it is not](#what-it-is-not)
+16. [Where the code is](#where-the-code-is)
 
 ## Why it is needed
 

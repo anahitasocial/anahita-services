@@ -5,17 +5,17 @@ hashtags offered to somebody while they write.
 
 ## Contents
 
-- [How a post gets its hashtags](#how-a-post-gets-its-hashtags)
-- [At most ten hashtags](#at-most-ten-hashtags)
-- [At most five locations](#at-most-five-locations)
-- [A post's locations on other servers](#a-posts-locations-on-other-servers)
-- [Who may add a location](#who-may-add-a-location)
-- [Trending](#trending)
-- [Suggestions while writing](#suggestions-while-writing)
-- [A hashtag's and a location's posts](#a-hashtags-and-a-locations-posts)
-- [When one is no longer used](#when-one-is-no-longer-used)
-- [What the web app does](#what-the-web-app-does)
-- [Where the code is](#where-the-code-is)
+1. [How a post gets its hashtags](#how-a-post-gets-its-hashtags)
+2. [At most ten hashtags](#at-most-ten-hashtags)
+3. [At most five locations](#at-most-five-locations)
+4. [A post's locations on other servers](#a-posts-locations-on-other-servers)
+5. [Who may add a location](#who-may-add-a-location)
+6. [Trending](#trending)
+7. [Suggestions while writing](#suggestions-while-writing)
+8. [A hashtag's and a location's posts](#a-hashtags-and-a-locations-posts)
+9. [When one is no longer used](#when-one-is-no-longer-used)
+10. [What the web app does](#what-the-web-app-does)
+11. [Where the code is](#where-the-code-is)
 
 ## How a post gets its hashtags
 
@@ -112,22 +112,22 @@ asked for, by its id.
 what the most profiles used lately, and how many (`profiles`, shown as
 "3 profiles").
 
-- **Each profile once, of every kind.** A profile uses a tag by writing a
-  post that carries it, or by being tagged with it: a person, a group, an
-  event or a website, here or on another server. One profile posting a
-  hashtag twenty times counts as one, so nobody can make something trend
-  alone. Ties go to the one on more posts and profiles.
-- **By when a post was written,** not when it arrived, and a profile by
-  when it was tagged, not when it was made. A profile's older posts fetched
-  when it is followed don't trend that day.
-- **Public only:** posts anybody may see, on profiles anybody may see, and
-  public profiles, so what trends says nothing about what is kept from
-  view.
-- **Over a window** the installation chooses (`TRENDING_WINDOW`, see
-  [Configuration](configuration.md#trending)): daily where it federates,
-  monthly where only its own members post. A window with fewer than ten is
-  widened, to a week, a month, then a year, and the answer's `window` says
-  which it is of. The web app shows it under the tabs.
+1. **Each profile once, of every kind.** A profile uses a tag by writing a
+   post that carries it, or by being tagged with it: a person, a group, an
+   event or a website, here or on another server. One profile posting a
+   hashtag twenty times counts as one, so nobody can make something trend
+   alone. Ties go to the one on more posts and profiles.
+2. **By when a post was written,** not when it arrived, and a profile by
+   when it was tagged, not when it was made. A profile's older posts fetched
+   when it is followed don't trend that day.
+3. **Public only:** posts anybody may see, on profiles anybody may see, and
+   public profiles, so what trends says nothing about what is kept from
+   view.
+4. **Over a window** the installation chooses (`TRENDING_WINDOW`, see
+   [Configuration](configuration.md#trending)): daily where it federates,
+   monthly where only its own members post. A window with fewer than ten is
+   widened, to a week, a month, then a year, and the answer's `window` says
+   which it is of. The web app shows it under the tabs.
 
 ## Suggestions while writing
 
@@ -205,35 +205,35 @@ the next post with it makes it again, and the feed finds it.
 
 ## What the web app does
 
-- **While typing a hashtag**, in the short box, a reply and a long post,
-  hashtags in use that begin with what was typed are offered under the line
-  being written, or above it when there is no room (on a phone, the
-  keyboard takes the bottom of the screen). They float over the page, so
-  nothing under them moves.
-  - On a phone: a row of chips; one tap puts one in.
-  - On a desktop: a short list with how many posts each is on; the arrow
-    keys move through it, Enter or Tab puts one in, Escape puts it away.
-- **Under the long post editor**, a row of suggested hashtags made from
-  the title and content, asked for a moment after writing stops once there
-  are 80 characters or more. One tap adds a hashtag at the end, on the line
-  of hashtags the text ends with, or on a line of its own.
-- **At ten hashtags**, both say "Only the first 10 hashtags count" instead
-  of offering more.
-- **At five locations**, a post's Locations card says a post can have up to 5
-  locations in place of its add button.
+1. **While typing a hashtag**, in the short box, a reply and a long post,
+   hashtags in use that begin with what was typed are offered under the line
+   being written, or above it when there is no room (on a phone, the
+   keyboard takes the bottom of the screen). They float over the page, so
+   nothing under them moves.
+   - On a phone: a row of chips; one tap puts one in.
+   - On a desktop: a short list with how many posts each is on; the arrow
+     keys move through it, Enter or Tab puts one in, Escape puts it away.
+2. **Under the long post editor**, a row of suggested hashtags made from
+   the title and content, asked for a moment after writing stops once there
+   are 80 characters or more. One tap adds a hashtag at the end, on the line
+   of hashtags the text ends with, or on a line of its own.
+3. **At ten hashtags**, both say "Only the first 10 hashtags count" instead
+   of offering more.
+4. **At five locations**, a post's Locations card says a post can have up to 5
+   locations in place of its add button.
 
 ## Where the code is
 
-- `anahita-libs/constants/tags.go`: the two caps.
-- `hashtag-service/cmd/api/handlers/hashtag_events.go`: filing a post under
-  its hashtags.
-- `hashtag-service/cmd/api/handlers/suggest.go`: the two suggestion
-  requests, and the words of a text (`wordsOf`).
-- `graph-grpc-service/data/repositories/hashtag_suggestions.go`: which
-  hashtags are offered, and in what order (`HashtagService.Suggest` in
-  `proto/graphpb/hashtag.proto`).
-- `location-service/cmd/api/handlers/inbound.go`: the cap on locations.
-- `graph-grpc-service/data/repositories/tags_sweep.go` and
-  `graph-grpc-service/sweeper/tags.go`: removing the unused ones.
-- `anahita-libs/federation/content.go` and `atproto-service/bsky/outgoing.go`:
-  the cap in what is sent to other servers.
+1. `anahita-libs/constants/tags.go`: the two caps.
+2. `hashtag-service/cmd/api/handlers/hashtag_events.go`: filing a post under
+   its hashtags.
+3. `hashtag-service/cmd/api/handlers/suggest.go`: the two suggestion
+   requests, and the words of a text (`wordsOf`).
+4. `graph-grpc-service/data/repositories/hashtag_suggestions.go`: which
+   hashtags are offered, and in what order (`HashtagService.Suggest` in
+   `proto/graphpb/hashtag.proto`).
+5. `location-service/cmd/api/handlers/inbound.go`: the cap on locations.
+6. `graph-grpc-service/data/repositories/tags_sweep.go` and
+   `graph-grpc-service/sweeper/tags.go`: removing the unused ones.
+7. `anahita-libs/federation/content.go` and `atproto-service/bsky/outgoing.go`:
+   the cap in what is sent to other servers.

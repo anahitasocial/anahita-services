@@ -11,16 +11,16 @@ need both.
 
 Profile deletion was rebuilt from a hard delete into a reversible one:
 
-- Deleting marks `nodes.deleted_at` and clears `enabled`, destroying nothing.
-- auth-service revokes credentials on the deletion event — passkeys, refresh
-  tokens, IdP sessions — which previously outlived the account entirely.
-- A person restores themselves by signing in; a group's administrators restore
-  it from the group's settings page.
-- A sweeper job purges after 30 days, keeping a tombstone so the handle stays
-  reserved (see *Federation* below).
-- Deletion is audited in `node_deletion_logs`: scheduled, purged, restored.
-  Keyed on a node rather than an actor, so media and comments can write to it
-  when they need the same record — actors are just the first user.
+1. Deleting marks `nodes.deleted_at` and clears `enabled`, destroying nothing.
+2. auth-service revokes credentials on the deletion event — passkeys, refresh
+   tokens, IdP sessions — which previously outlived the account entirely.
+3. A person restores themselves by signing in; a group's administrators restore
+   it from the group's settings page.
+4. A sweeper job purges after 30 days, keeping a tombstone so the handle stays
+   reserved (see *Federation* below).
+5. Deletion is audited in `node_deletion_logs`: scheduled, purged, restored.
+   Keyed on a node rather than an actor, so media and comments can write to it
+   when they need the same record — actors are just the first user.
 
 What follows is what was deliberately left, plus what an end-of-session audit
 turned up.
@@ -53,24 +53,24 @@ Both gates built and verified against the running stack.
 
 Things learned in the building, worth keeping:
 
-- **403 was already taken.** In auth-service it only ever meant "step up", but
-  in person-service it also meant "you may not delete this" — and the React
-  card opens the dialog on a 403. Without a distinguishing body somebody
-  lacking permission would prove themselves, retry, be refused, and be shown
-  the dialog again forever. The refusal now carries
-  `{"error":"step_up_required"}`.
-- **The step-up key had to leave auth-service.** person-service and
-  group-service read a marker auth-service writes, so the prefix, TTL and
-  sentinel are in `anahita-libs/sessions` — a prefix only one service knows is
-  one the others can silently disagree with. A narrow `KeyValueInterface` came
-  with it, so a service reading two Redis keys does not have to satisfy six
-  cookie-shaped config methods.
-- **The counts are scalar subqueries, not joins.** Joining 219 followers
-  against 23 groups gives 5,037 of something that counts neither, and it looks
-  plausible. There is a test that fails if a JOIN appears.
-- **The counts take the deletion permission**, not a read permission. They
-  describe somebody's whole footprint, so if you may not delete the profile you
-  may not enumerate it.
+1. **403 was already taken.** In auth-service it only ever meant "step up", but
+   in person-service it also meant "you may not delete this" — and the React
+   card opens the dialog on a 403. Without a distinguishing body somebody
+   lacking permission would prove themselves, retry, be refused, and be shown
+   the dialog again forever. The refusal now carries
+   `{"error":"step_up_required"}`.
+2. **The step-up key had to leave auth-service.** person-service and
+   group-service read a marker auth-service writes, so the prefix, TTL and
+   sentinel are in `anahita-libs/sessions` — a prefix only one service knows is
+   one the others can silently disagree with. A narrow `KeyValueInterface` came
+   with it, so a service reading two Redis keys does not have to satisfy six
+   cookie-shaped config methods.
+3. **The counts are scalar subqueries, not joins.** Joining 219 followers
+   against 23 groups gives 5,037 of something that counts neither, and it looks
+   plausible. There is a test that fails if a JOIN appears.
+4. **The counts take the deletion permission**, not a read permission. They
+   describe somebody's whole footprint, so if you may not delete the profile you
+   may not enumerate it.
 
 ### Phase 3 — admin tiering — DROPPED 2026-09-07
 
@@ -141,29 +141,29 @@ All three remaining findings are fixed, and one was withdrawn:
 
 The original findings, kept for the record:
 
-- **`start_time` and `created_at` come from different clocks.**
-  `tokens.Add` does not name `start_time`, so MySQL fills it from
-  `CURRENT_TIMESTAMP` in the *session* time zone, while `created_at` is
-  written from Go. The DSN sets `parseTime=true` with no `loc`, so the
-  driver reads everything back as UTC. If MySQL is not on UTC, every reset
-  link's fifteen-minute window is shifted by the offset — either dead on
-  arrival or alive well past its expiry. Confirm with
-  `SELECT @@session.time_zone` before assuming it is fine, and consider
-  writing `start_time` explicitly rather than relying on the default.
-- **A reset can be issued for a deleted or suspended account.**
-  `Users.ReadByEmail` filters on neither `deleted_at` nor `enabled`, so a
-  profile inside its 30-day deletion window still receives reset mail and
-  can complete a reset. Harmless in that login still refuses it — the
-  restore flow is what such a person actually needs — but mailing a deleted
-  account is its own problem, and the reset page says nothing about the
-  deletion.
-- **One validation message covers two different failures.** A `POST
-  /password/reset` that fails validation always reports "Password must be at
-  least 15 characters long", including when the real failure was the token
-  field. Rare, and baffling when it happens.
-- **`GetAuthURL()` returns `http://localhost` outside prod and staging**, so
-  reset links in a development environment point at the developer's own
-  machine. Correct for local work, wrong for any shared dev deployment.
+1. **`start_time` and `created_at` come from different clocks.**
+   `tokens.Add` does not name `start_time`, so MySQL fills it from
+   `CURRENT_TIMESTAMP` in the *session* time zone, while `created_at` is
+   written from Go. The DSN sets `parseTime=true` with no `loc`, so the
+   driver reads everything back as UTC. If MySQL is not on UTC, every reset
+   link's fifteen-minute window is shifted by the offset — either dead on
+   arrival or alive well past its expiry. Confirm with
+   `SELECT @@session.time_zone` before assuming it is fine, and consider
+   writing `start_time` explicitly rather than relying on the default.
+2. **A reset can be issued for a deleted or suspended account.**
+   `Users.ReadByEmail` filters on neither `deleted_at` nor `enabled`, so a
+   profile inside its 30-day deletion window still receives reset mail and
+   can complete a reset. Harmless in that login still refuses it — the
+   restore flow is what such a person actually needs — but mailing a deleted
+   account is its own problem, and the reset page says nothing about the
+   deletion.
+3. **One validation message covers two different failures.** A `POST
+   /password/reset` that fails validation always reports "Password must be at
+   least 15 characters long", including when the real failure was the token
+   field. Rare, and baffling when it happens.
+4. **`GetAuthURL()` returns `http://localhost` outside prod and staging**, so
+   reset links in a development environment point at the developer's own
+   machine. Correct for local work, wrong for any shared dev deployment.
 
 **What the tests now cover**, so the next change to this flow has something
 holding it: enumeration parity between registered and unregistered
@@ -200,10 +200,10 @@ So a stolen laptop with an unlocked browser deletes a profile today.
 
 The machinery all exists and is used by four other flows:
 
-- `/reauth/password` — password, plus a TOTP passcode when the account has one
-- `/reauth/passkey/*` — a passkey on its own
-- `requireStepUp` / `clearStepUp` on the handler side
-- the `StepUp` container on the React side
+1. `/reauth/password` — password, plus a TOTP passcode when the account has one
+2. `/reauth/passkey/*` — a passkey on its own
+3. `requireStepUp` / `clearStepUp` on the handler side
+4. the `StepUp` container on the React side
 
 So this is wiring rather than building: call `requireStepUp` in the delete
 handlers, return the reauth status, and put the `StepUp` container in front of
@@ -474,38 +474,38 @@ Everything needed already exists in the sweeper: `PurgeActorContent`,
 work is mostly making that reachable from a request rather than only from a
 schedule.
 
-- **Extract the purge.** `purgeAccount` is unexported in `graph/sweeper`. Lift it
-  so both the job and an endpoint call one implementation — two purge paths that
-  drift is exactly the trap the two restore implementations are already in
-  (section 3).
-- **Super administrator only.** `IsSuperAdmin`, not `IsAdminOrSuperAdmin`. The
-  2FA-disable widening to ordinary admins was right because it recovers an
-  account; this destroys one.
-- **Gate it properly.** Step-up, and a typed alias. There is no undo and no
-  grace period — this is the one action in the system where the ceremony should
-  be heavier than for ordinary deletion, not lighter.
-- **Two variants to decide between, and "clean everything up" does not settle
-  it.** "Purge now" keeps the tombstone, so the handle stays reserved. "Purge
-  and release" scrubs the tombstone too and frees the handle, which is what an
-  erasure request may require and what section 5 describes. They are different
-  actions with different consequences; do not collapse them into one button.
+1. **Extract the purge.** `purgeAccount` is unexported in `graph/sweeper`. Lift it
+   so both the job and an endpoint call one implementation — two purge paths that
+   drift is exactly the trap the two restore implementations are already in
+   (section 3).
+2. **Super administrator only.** `IsSuperAdmin`, not `IsAdminOrSuperAdmin`. The
+   2FA-disable widening to ordinary admins was right because it recovers an
+   account; this destroys one.
+3. **Gate it properly.** Step-up, and a typed alias. There is no undo and no
+   grace period — this is the one action in the system where the ceremony should
+   be heavier than for ordinary deletion, not lighter.
+4. **Two variants to decide between, and "clean everything up" does not settle
+   it.** "Purge now" keeps the tombstone, so the handle stays reserved. "Purge
+   and release" scrubs the tombstone too and frees the handle, which is what an
+   erasure request may require and what section 5 describes. They are different
+   actions with different consequences; do not collapse them into one button.
 
-  **Settled 2026-09-07: both records stay.** They do different jobs, and the
-  distinction is worth holding onto:
+   **Settled 2026-09-07: both records stay.** They do different jobs, and the
+   distinction is worth holding onto:
 
-  - **The tombstone** (`TombstoneActor`) is the FEDERATION-facing record. It
-    keeps the id, the alias, the type and `deleted_at` — everything needed to
-    answer a remote server `410 Gone` rather than `404 Not Found`, and to
-    build an ActivityPub `Tombstone` with a `deleted` timestamp. The alias is
-    kept to reserve the handle, which is what stops a later account inheriting
-    a deleted one's cached follows and content on remote servers.
-  - **`node_deletion_logs`** is the ACCOUNTABILITY record: node, alias, type,
-    who did it, which action, when. Internal, never federated. A super
-    administrator destroying an account without a waiting period is exactly
-    what it exists for.
+   - **The tombstone** (`TombstoneActor`) is the FEDERATION-facing record. It
+     keeps the id, the alias, the type and `deleted_at` — everything needed to
+     answer a remote server `410 Gone` rather than `404 Not Found`, and to
+     build an ActivityPub `Tombstone` with a `deleted` timestamp. The alias is
+     kept to reserve the handle, which is what stops a later account inheriting
+     a deleted one's cached follows and content on remote servers.
+   - **`node_deletion_logs`** is the ACCOUNTABILITY record: node, alias, type,
+     who did it, which action, when. Internal, never federated. A super
+     administrator destroying an account without a waiting period is exactly
+     what it exists for.
 
-  Neither is a notification, so keeping them costs nothing against the
-  no-notification decision above.
+   Neither is a notification, so keeping them costs nothing against the
+   no-notification decision above.
 
 ### The federation decision this actually forces
 

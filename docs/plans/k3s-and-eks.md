@@ -112,17 +112,17 @@ stretches. The move is a dump, a restore and `MYSQL_HOST`.
 
 ### Overlays
 
-- `k8s/overlays/k3s`: `generic`'s files, with the `traefik`, `mysql`,
-  `mysql-backup`, `redis`, `rabbitmq` and `garage` components, and a
-  `files.` name for Garage. k3s's `local-path` StorageClass is the default,
-  so the volumes need nothing.
-- `k8s/overlays/k3d`: the same components with development settings, at
-  `http://api.localhost:8088`, for `make k3d-deploy`.
-- Three new components: `traefik` (the Ingress class), `garage` (Garage,
-  and `garage-init`, which gives the node its role, imports the key, makes
-  the bucket and its CORS rule through the admin API), `mysql-backup`.
-- `k8s/overlays/aws`: as it is, corrected by whatever trying it on EKS turns
-  up; prefix delegation, or the node count, said in the manual.
+1. `k8s/overlays/k3s`: `generic`'s files, with the `traefik`, `mysql`,
+   `mysql-backup`, `redis`, `rabbitmq` and `garage` components, and a
+   `files.` name for Garage. k3s's `local-path` StorageClass is the default,
+   so the volumes need nothing.
+2. `k8s/overlays/k3d`: the same components with development settings, at
+   `http://api.localhost:8088`, for `make k3d-deploy`.
+3. Three new components: `traefik` (the Ingress class), `garage` (Garage,
+   and `garage-init`, which gives the node its role, imports the key, makes
+   the bucket and its CORS rule through the admin API), `mysql-backup`.
+4. `k8s/overlays/aws`: as it is, corrected by whatever trying it on EKS turns
+   up; prefix delegation, or the node count, said in the manual.
 
 ### The manual
 

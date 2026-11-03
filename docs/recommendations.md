@@ -8,15 +8,15 @@ It is optional. An installation that does not want suggestions leaves the servic
 
 ## Contents
 
-- [The contract](#the-contract)
-- [Why somebody is suggested](#why-somebody-is-suggested)
-- [Who is never suggested](#who-is-never-suggested)
-- [What each person chooses](#what-each-person-chooses)
-- [Each person's own weights](#each-persons-own-weights)
-- [Not interested](#not-interested)
-- [Running it, and not running it](#running-it-and-not-running-it)
-- [Where the code is](#where-the-code-is)
-- [What is not built](#what-is-not-built)
+1. [The contract](#the-contract)
+2. [Why somebody is suggested](#why-somebody-is-suggested)
+3. [Who is never suggested](#who-is-never-suggested)
+4. [What each person chooses](#what-each-person-chooses)
+5. [Each person's own weights](#each-persons-own-weights)
+6. [Not interested](#not-interested)
+7. [Running it, and not running it](#running-it-and-not-running-it)
+8. [Where the code is](#where-the-code-is)
+9. [What is not built](#what-is-not-built)
 
 ## The contract
 
@@ -125,31 +125,31 @@ the viewer, they post about what the viewer does. They are among the
 people, with their whole handle (`alice.bsky.social`,
 `@bob@mastodon.example`) to say where they are.
 
-- **Only the ones kept here.** This installation knows of nobody on those
-  networks but whoever somebody here looked up or follows, whoever they
-  reposted, and whoever did something to a post that went out from here.
-  It cannot suggest a good account that nobody here has met.
-- **Somebody on Bluesky is suggested to anybody.** Anybody here can follow
-  them.
-- **Somebody on the fediverse is suggested only to a person who is on the
-  fediverse themselves.** Anybody else's follow of them would be taken
-  away again, since the other server could not find out who was asking.
-- **How lately they were active** is what was kept of them here: the last
-  post of theirs that arrived.
+1. **Only the ones kept here.** This installation knows of nobody on those
+   networks but whoever somebody here looked up or follows, whoever they
+   reposted, and whoever did something to a post that went out from here.
+   It cannot suggest a good account that nobody here has met.
+2. **Somebody on Bluesky is suggested to anybody.** Anybody here can follow
+   them.
+3. **Somebody on the fediverse is suggested only to a person who is on the
+   fediverse themselves.** Anybody else's follow of them would be taken
+   away again, since the other server could not find out who was asking.
+4. **How lately they were active** is what was kept of them here: the last
+   post of theirs that arrived.
 
 ## Who is never suggested
 
 Whatever the reason, a profile is left out when it is:
 
-- the viewer, or somebody they follow already, or have asked to follow;
-- on either side of a block with the viewer;
-- one the viewer said they were not interested in;
-- somebody who asked not to be suggested;
-- disabled, archived or deleted;
-- an event that is over or was called off;
-- a person who has not confirmed their email address;
-- a person or group without a picture and with nothing said about itself;
-- one the viewer may not see.
+1. the viewer, or somebody they follow already, or have asked to follow;
+2. on either side of a block with the viewer;
+3. one the viewer said they were not interested in;
+4. somebody who asked not to be suggested;
+5. disabled, archived or deleted;
+6. an event that is over or was called off;
+7. a person who has not confirmed their email address;
+8. a person or group without a picture and with nothing said about itself;
+9. one the viewer may not see.
 
 All but the last are one clause every signal's query ends with (`eligibleCandidate`). The last is the graph's rule and is asked of the graph: the best hundred of what was found are put to `FilterVisible`, and only what it returns is sent. So is everything in `related`.
 
@@ -172,11 +172,11 @@ Every choice is yes until its owner says otherwise. They are theirs to read and 
 
 Somebody can set how much each reason counts for when choosing for them. It changes the order they are suggested things in, and nothing about what anybody else is suggested.
 
-- `GET /recommendations/preferences` sends `weights` (what each reason counts for, for them), `default_weights` (the service's own), `max_weight` (10) and `reasons` (the order to list them in).
-- `PUT` takes `weights`, by the reason's name. The ones sent are set and the others left. A weight is from 0 to 10; a reason there is not, or a number out of range, is answered `422` with `invalid_weight` and nothing is changed.
-- A reason set to 0 is not used for them at all.
-- What a reason may count for at most keeps its proportion: `followed_by_leaders` counts for up to five times what it counts for once, whatever that is set to.
-- `reset_weights: true` goes back to the service's own.
+1. `GET /recommendations/preferences` sends `weights` (what each reason counts for, for them), `default_weights` (the service's own), `max_weight` (10) and `reasons` (the order to list them in).
+2. `PUT` takes `weights`, by the reason's name. The ones sent are set and the others left. A weight is from 0 to 10; a reason there is not, or a number out of range, is answered `422` with `invalid_weight` and nothing is changed.
+3. A reason set to 0 is not used for them at all.
+4. What a reason may count for at most keeps its proportion: `followed_by_leaders` counts for up to five times what it counts for once, whatever that is set to.
+5. `reset_weights: true` goes back to the service's own.
 
 Kept as JSON in `recommendation_preferences.weights`, empty until set (migration `20261021000001_recommendation_weights`).
 
@@ -186,12 +186,12 @@ A profile somebody turns down is not suggested to them again. It is theirs alone
 
 ## Running it, and not running it
 
-- It reads the installation's database for its signals and writes two tables of its own, `recommendation_preferences` and `recommendation_dismissals` (migration `20261020000001_recommendations`).
-- It takes the settings every service does (`DSN`, `GRAPH_SERVICE_ADDR`, `FILE_SERVICE_ADDR`, `AMQP_ADDR`, the OAuth settings) and has none of its own.
-- nginx sends `/recommendations/` to it. `make recommendation` builds and starts it on the development stack.
-- When an actor is removed for good, what it chose and what was chosen about it are removed with it (`node.actor.*.*.purged.v1`).
-- **Without it:** the gateway answers `/recommendations/` with an error, which the web app takes as there being no suggestions and shows nothing of them. On Kubernetes, leave `services/recommendation.yml` out of the kustomization.
-- **In its place:** another service answering the paths above. It should ask the graph which profiles the viewer may see, as this one does.
+1. It reads the installation's database for its signals and writes two tables of its own, `recommendation_preferences` and `recommendation_dismissals` (migration `20261020000001_recommendations`).
+2. It takes the settings every service does (`DSN`, `GRAPH_SERVICE_ADDR`, `FILE_SERVICE_ADDR`, `AMQP_ADDR`, the OAuth settings) and has none of its own.
+3. nginx sends `/recommendations/` to it. `make recommendation` builds and starts it on the development stack.
+4. When an actor is removed for good, what it chose and what was chosen about it are removed with it (`node.actor.*.*.purged.v1`).
+5. **Without it:** the gateway answers `/recommendations/` with an error, which the web app takes as there being no suggestions and shows nothing of them. On Kubernetes, leave `services/recommendation.yml` out of the kustomization.
+6. **In its place:** another service answering the paths above. It should ask the graph which profiles the viewer may see, as this one does.
 
 ## Where the code is
 
@@ -201,7 +201,7 @@ A profile somebody turns down is not suggested to them again. It is theirs alone
 
 ## What is not built
 
-- **Locations somebody picks.** Only hashtags are offered in signing up and read from followed feeds; locations followed as feeds are not used yet.
-- **Nearby.** Nothing uses where people are.
-- **A cache.** Each answer is worked out when it is asked for, which on the development data takes under a tenth of a second.
-- **Suggested posts.** The same contract would take a second path for them.
+1. **Locations somebody picks.** Only hashtags are offered in signing up and read from followed feeds; locations followed as feeds are not used yet.
+2. **Nearby.** Nothing uses where people are.
+3. **A cache.** Each answer is worked out when it is asked for, which on the development data takes under a tenth of a second.
+4. **Suggested posts.** The same contract would take a second path for them.

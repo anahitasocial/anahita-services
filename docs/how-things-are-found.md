@@ -8,12 +8,12 @@ orders by. The pages it links to have the numbers.
 
 ## Contents
 
-- [Seven ways in](#seven-ways-in)
-- [What they share](#what-they-share)
-- [What is never used](#what-is-never-used)
-- [Interest fades; usefulness does not](#interest-fades-usefulness-does-not)
-- [Each person's own weights](#each-persons-own-weights)
-- [The operator's numbers](#the-operators-numbers)
+1. [Seven ways in](#seven-ways-in)
+2. [What they share](#what-they-share)
+3. [What is never used](#what-is-never-used)
+4. [Interest fades; usefulness does not](#interest-fades-usefulness-does-not)
+5. [Each person's own weights](#each-persons-own-weights)
+6. [The operator's numbers](#the-operators-numbers)
 
 ## Seven ways in
 

@@ -15,21 +15,21 @@ Why it is built this way is in the plan, [plans/done/website.md](plans/done/webs
 
 ## Contents
 
-- [Who does what](#who-does-what)
-- [Connecting a website](#connecting-a-website)
-- [Proving a domain](#proving-a-domain)
-- [Reading the feed](#reading-the-feed)
-- [Its posts](#its-posts)
-- [Replies as the website](#replies-as-the-website)
-- [On the fediverse](#on-the-fediverse)
-- [On Bluesky](#on-bluesky)
-- [WebSub](#websub)
-- [Pausing and starting again](#pausing-and-starting-again)
-- [Settings](#settings)
-- [The tables](#the-tables)
-- [Endpoints](#endpoints)
-- [What is not built](#what-is-not-built)
-- [Where the code is](#where-the-code-is)
+1. [Who does what](#who-does-what)
+2. [Connecting a website](#connecting-a-website)
+3. [Proving a domain](#proving-a-domain)
+4. [Reading the feed](#reading-the-feed)
+5. [Its posts](#its-posts)
+6. [Replies as the website](#replies-as-the-website)
+7. [On the fediverse](#on-the-fediverse)
+8. [On Bluesky](#on-bluesky)
+9. [WebSub](#websub)
+10. [Pausing and starting again](#pausing-and-starting-again)
+11. [Settings](#settings)
+12. [The tables](#the-tables)
+13. [Endpoints](#endpoints)
+14. [What is not built](#what-is-not-built)
+15. [Where the code is](#where-the-code-is)
 
 ## Who does what
 

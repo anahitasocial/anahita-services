@@ -11,20 +11,20 @@ Each arrow is an edge; the dashed one is the post's owner_id.](images/graph.svg)
 
 ## Contents
 
-- [Why one graph](#why-one-graph)
-- [Nodes](#nodes)
-- [How a type is named](#how-a-type-is-named)
-- [Every kind of node](#every-kind-of-node)
-  - [An actor](#an-actor)
-  - [A medium](#a-medium)
-  - [A tag](#a-tag)
-  - [Every type](#every-type)
-- [Edges](#edges)
-- [Every kind of edge](#every-kind-of-edge)
-- [Who may see a node](#who-may-see-a-node)
-- [Nodes from other servers](#nodes-from-other-servers)
-- [Events are not types](#events-are-not-types)
-- [Where the code is](#where-the-code-is)
+1. [Why one graph](#why-one-graph)
+2. [Nodes](#nodes)
+3. [How a type is named](#how-a-type-is-named)
+4. [Every kind of node](#every-kind-of-node)
+   1. [An actor](#an-actor)
+   2. [A medium](#a-medium)
+   3. [A tag](#a-tag)
+   4. [Every type](#every-type)
+5. [Edges](#edges)
+6. [Every kind of edge](#every-kind-of-edge)
+7. [Who may see a node](#who-may-see-a-node)
+8. [Nodes from other servers](#nodes-from-other-servers)
+9. [Events are not types](#events-are-not-types)
+10. [Where the code is](#where-the-code-is)
 
 ## Why one graph
 
@@ -102,19 +102,19 @@ An actor is somebody, or a body of people, and the code's word for a
 **profile** ([Profiles](profiles.md)). A person is one; so is a collective of
 people: a group, an event, an organisation's website.
 
-- **It has an identity:** a name, a handle, a description, a profile photo,
-  an address of its own.
-- **It forms relationships:** it is followed, and a person follows others;
-  it blocks and is blocked; people are invited to follow it; a group, an
-  event or a website is looked after by its admins.
-- **It owns things:** the posts on it are its own, whoever wrote them, and
-  what may be posted on it is its own to choose.
-- **It has a right to privacy:** it chooses who may see it, and nobody
-  outside that sees anything on it.
-- **It has stories to tell:** what it posts reaches those who follow it, in
-  their feeds, newest first.
-- **It can be tagged and located:** carry a hashtag, be tied to a location,
-  be mentioned in a post, and, a person, be tagged in a photo.
+1. **It has an identity:** a name, a handle, a description, a profile photo,
+   an address of its own.
+2. **It forms relationships:** it is followed, and a person follows others;
+   it blocks and is blocked; people are invited to follow it; a group, an
+   event or a website is looked after by its admins.
+3. **It owns things:** the posts on it are its own, whoever wrote them, and
+   what may be posted on it is its own to choose.
+4. **It has a right to privacy:** it chooses who may see it, and nobody
+   outside that sees anything on it.
+5. **It has stories to tell:** what it posts reaches those who follow it, in
+   their feeds, newest first.
+6. **It can be tagged and located:** carry a hashtag, be tied to a location,
+   be mentioned in a post, and, a person, be tagged in a photo.
 
 ### A medium
 
@@ -123,14 +123,14 @@ Sound is not one yet. It is a **post** to the people reading it: a note, an
 article, a topic, a photo post, a video post, and a reply, which is a note
 under another.
 
-- **It is owned:** by the profile it is on, and written by its author, who
-  need not be its owner, as a person's post in a group is the group's.
-- **It has an audience:** who may see it, chosen when it is written, never
-  wider than the profile it is on.
-- **It is answered and passed on:** replied to, liked, reposted, quoted,
-  saved.
-- **It is tied to the rest:** cited by another post, tagged with a hashtag,
-  tied to a location, naming the profiles it mentions and the people in it.
+1. **It is owned:** by the profile it is on, and written by its author, who
+   need not be its owner, as a person's post in a group is the group's.
+2. **It has an audience:** who may see it, chosen when it is written, never
+   wider than the profile it is on.
+3. **It is answered and passed on:** replied to, liked, reposted, quoted,
+   saved.
+4. **It is tied to the rest:** cited by another post, tagged with a hashtag,
+   tied to a location, naming the profiles it mentions and the people in it.
 
 ### A tag
 

@@ -9,17 +9,17 @@ Its routes are in the API reference: [link-preview-service](api/index.html#link-
 
 ## Contents
 
-- [Two halves](#two-halves)
-- [Fetching a page safely](#fetching-a-page-safely)
-- [What is read from the page](#what-is-read-from-the-page)
-- [The picture](#the-picture)
-- [How long a preview is kept](#how-long-a-preview-is-kept)
-- [Endpoints](#endpoints)
-- [The card on a note](#the-card-on-a-note)
-- [Cards in long writing](#cards-in-long-writing)
-- [Running it, and not running it](#running-it-and-not-running-it)
-- [Where the code is](#where-the-code-is)
-- [What is not built](#what-is-not-built)
+1. [Two halves](#two-halves)
+2. [Fetching a page safely](#fetching-a-page-safely)
+3. [What is read from the page](#what-is-read-from-the-page)
+4. [The picture](#the-picture)
+5. [How long a preview is kept](#how-long-a-preview-is-kept)
+6. [Endpoints](#endpoints)
+7. [The card on a note](#the-card-on-a-note)
+8. [Cards in long writing](#cards-in-long-writing)
+9. [Running it, and not running it](#running-it-and-not-running-it)
+10. [Where the code is](#where-the-code-is)
+11. [What is not built](#what-is-not-built)
 
 ## Two halves
 
@@ -42,21 +42,21 @@ that says something the page did not.
 
 The address comes from a person, so it is treated as hostile.
 
-- `http` and `https` only, on ports 80 and 443 only.
-- The name is resolved, and the connection is refused when the address it
-  is about to be made to is private, loopback, link-local, multicast,
-  unspecified, carrier-grade NAT, or a cloud metadata address. The check is
-  on the dialer (`Control`), so it is made on the address actually
-  connected to: a name that resolves to something else the second time
-  gains nothing.
-- The same check runs again for every redirect. At most 3 are followed.
-- No proxy from the environment is used.
-- It says it is `Anahita/1.0` and no more. Naming the installation's address
-  as well, as a crawler usually does, gets the connection dropped by some
-  large sites' edges.
-- 5 seconds for the whole request.
-- At most 1 MB of a page is read, and only `text/html`.
-- At most 5 MB of a picture is read.
+1. `http` and `https` only, on ports 80 and 443 only.
+2. The name is resolved, and the connection is refused when the address it
+   is about to be made to is private, loopback, link-local, multicast,
+   unspecified, carrier-grade NAT, or a cloud metadata address. The check is
+   on the dialer (`Control`), so it is made on the address actually
+   connected to: a name that resolves to something else the second time
+   gains nothing.
+3. The same check runs again for every redirect. At most 3 are followed.
+4. No proxy from the environment is used.
+5. It says it is `Anahita/1.0` and no more. Naming the installation's address
+   as well, as a crawler usually does, gets the connection dropped by some
+   large sites' edges.
+6. 5 seconds for the whole request.
+7. At most 1 MB of a page is read, and only `text/html`.
+8. At most 5 MB of a picture is read.
 
 ## What is read from the page
 

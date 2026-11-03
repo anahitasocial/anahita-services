@@ -13,16 +13,16 @@ is told apart by what they say they are.
 
 ## Contents
 
-- [What it sends](#what-it-sends)
-- [Which pages are described](#which-pages-are-described)
-- [What is never described](#what-is-never-described)
-- [Pictures](#pictures)
-- [What other servers ask this host](#what-other-servers-ask-this-host)
-- [Running it](#running-it)
-- [Settings](#settings)
-- [Not running it](#not-running-it)
-- [Where the code is](#where-the-code-is)
-- [What is not built](#what-is-not-built)
+1. [What it sends](#what-it-sends)
+2. [Which pages are described](#which-pages-are-described)
+3. [What is never described](#what-is-never-described)
+4. [Pictures](#pictures)
+5. [What other servers ask this host](#what-other-servers-ask-this-host)
+6. [Running it](#running-it)
+7. [Settings](#settings)
+8. [Not running it](#not-running-it)
+9. [Where the code is](#where-the-code-is)
+10. [What is not built](#what-is-not-built)
 
 ## What it sends
 
@@ -69,17 +69,17 @@ networks that read it as `/@ana` or `/@garden`.
 A tag is copied by every site the link is pasted into and cannot be taken
 back, so the rule is stricter than who may read the page.
 
-- The page is read as somebody who is **not signed in**, through the same
-  calls and access rules as the API.
-- What comes back is described only if it says of itself that it is
-  `public`, **and** the profile it is on says the same, and it is not
-  deleted, archived or disabled. A public note on a profile for registered
-  people is not described.
-- A reply is described only if the post at the top of its thread passes
-  the same test.
-- Settings and notification pages are nobody's to describe.
-- With `SITE_READ_ACCESS=registered`, a site for members, no page is
-  described and nothing is read at all.
+1. The page is read as somebody who is **not signed in**, through the same
+   calls and access rules as the API.
+2. What comes back is described only if it says of itself that it is
+   `public`, **and** the profile it is on says the same, and it is not
+   deleted, archived or disabled. A public note on a profile for registered
+   people is not described.
+3. A reply is described only if the post at the top of its thread passes
+   the same test.
+4. Settings and notification pages are nobody's to describe.
+5. With `SITE_READ_ACCESS=registered`, a site for members, no page is
+   described and nothing is read at all.
 
 Everything else is sent with what the site says of itself, exactly like a
 page that does not exist. The answer does not tell the two apart.

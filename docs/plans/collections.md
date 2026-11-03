@@ -25,10 +25,10 @@ On 7, this page reads it as two things, to be confirmed when the work is schedul
 
 Saved posts (roadmap item 33, done 2026-10-06), which this builds on and does not change:
 
-- A saved post is an edge from the person to the post, `edge.base.bookmark.v1`. `BookmarksRepo` in graph-grpc-service (`data/repositories/bookmarks.go`) holds `Set`, `IsSavedMany`, `List` and `Count`. `List` goes through `SetMediumAccessQuery`.
-- text-service serves `GET /bookmarks/`, `PUT /bookmarks/:id` and `DELETE /bookmarks/:id`.
-- Nothing is counted on the post and nobody is told.
-- Web: "Save" in a post's menu, and the Saved page in the left menu.
+1. A saved post is an edge from the person to the post, `edge.base.bookmark.v1`. `BookmarksRepo` in graph-grpc-service (`data/repositories/bookmarks.go`) holds `Set`, `IsSavedMany`, `List` and `Count`. `List` goes through `SetMediumAccessQuery`.
+2. text-service serves `GET /bookmarks/`, `PUT /bookmarks/:id` and `DELETE /bookmarks/:id`.
+3. Nothing is counted on the post and nobody is told.
+4. Web: "Save" in a post's menu, and the Saved page in the left menu.
 
 Also there to be used: the access gate for media, `GraphNodeGRPC.FilterVisible`, the handlers media share in `anahita-libs` (access, reply access, quote policy, pin, delete), the per-actor feature permissions in `graph-grpc-defaults/actor_features/`, and on the web the light box in `containers/media/Stepper`.
 
@@ -38,26 +38,26 @@ Item 18 of the first plan (2026-09-28) decided against albums and collections fo
 
 ### The collection
 
-- Type `node.medium.collection-service.collection.v1`. A media node: `name` is the title, `body` the description.
-- `owner_id` is the profile it is on, a person, a group or an event. `created_by` is who made it.
-- Everything media have comes with the type and needs no code of its own: `access`, likes, replies and who can reply, reposts, quotes and who can quote, pins, hashtags and mentions in the description, reports, Interactions, saving, language, delete and purge.
-- It appears in feeds and on profiles as a post, shown by its title, description and the first few things in it.
-- Who may make one on a group or an event is a feature permission like the ones for other media, in `actor_features`. Events are roadmap item 12 and are not built yet; collections on them come with them.
+1. Type `node.medium.collection-service.collection.v1`. A media node: `name` is the title, `body` the description.
+2. `owner_id` is the profile it is on, a person, a group or an event. `created_by` is who made it.
+3. Everything media have comes with the type and needs no code of its own: `access`, likes, replies and who can reply, reposts, quotes and who can quote, pins, hashtags and mentions in the description, reports, Interactions, saving, language, delete and purge.
+4. It appears in feeds and on profiles as a post, shown by its title, description and the first few things in it.
+5. Who may make one on a group or an event is a feature permission like the ones for other media, in `actor_features`. Events are roadmap item 12 and are not built yet; collections on them come with them.
 
 ### What is in it
 
-- An edge from the collection to the post, `edge.collection.item.v1`, with its place in the order kept on the edge. One post is in a collection once, and can be in several collections.
-- Any media node can go in: a note, an article, a topic, a photo, and a video when there are videos.
-- Putting something in, taking it out and moving it are done by whoever may edit the collection: its author, and on a group or event its administrators.
-- A new item goes to the end. Moving sends the whole order in one request.
-- Proposed limits, as constants: 100 items in a collection, and a rate limit on adding.
+1. An edge from the collection to the post, `edge.collection.item.v1`, with its place in the order kept on the edge. One post is in a collection once, and can be in several collections.
+2. Any media node can go in: a note, an article, a topic, a photo, and a video when there are videos.
+3. Putting something in, taking it out and moving it are done by whoever may edit the collection: its author, and on a group or event its administrators.
+4. A new item goes to the end. Moving sends the whole order in one request.
+5. Proposed limits, as constants: 100 items in a collection, and a rate limit on adding.
 
 ### Who sees what
 
-- The collection is seen by whoever its `access` admits, through the ordinary gate.
-- Each post in it is seen only by a viewer who could see that post anyway. The list is read for the viewer and never for the collection's author. A public collection that holds a followers-only post shows it to followers and to nobody else. Posts by somebody blocked, either way, are left out.
-- The number of items shown is the number that viewer can see. No count is stored on the node, as it would tell a stranger that hidden posts are there.
-- The preview in a feed is built from the first items the viewer can see.
+1. The collection is seen by whoever its `access` admits, through the ordinary gate.
+2. Each post in it is seen only by a viewer who could see that post anyway. The list is read for the viewer and never for the collection's author. A public collection that holds a followers-only post shows it to followers and to nobody else. Posts by somebody blocked, either way, are left out.
+3. The number of items shown is the number that viewer can see. No count is stored on the node, as it would tell a stranger that hidden posts are there.
+4. The preview in a feed is built from the first items the viewer can see.
 
 ### The service
 
@@ -81,12 +81,12 @@ Likes, replies, reposts and quotes go through the services that serve them for e
 
 ### Web
 
-- **Making one:** a Collection form in the composer, with title, description and audience. It starts empty.
-- **Adding to one:** on the Saved page, "Add to collection" on each card opens a picker of the collections the viewer may edit, with a tick beside each that already holds the post. It does not make a new collection.
-- **Reading one:** the page any post has, with the items below in the masonry the other lists use, each a card of its own kind. Pressing one opens the light box, which steps through the collection in order, whatever kind each item is. The Stepper shows photos today and would have to show a note, an article and a topic as a slide.
-- **Arranging:** for an editor, drag to reorder and a button to take an item out.
-- **On a profile:** a Collections tab, for people, groups and events, shown when the feature is on for that actor.
-- **In a feed:** a card with the title, the description and a few thumbnails or first lines.
+1. **Making one:** a Collection form in the composer, with title, description and audience. It starts empty.
+2. **Adding to one:** on the Saved page, "Add to collection" on each card opens a picker of the collections the viewer may edit, with a tick beside each that already holds the post. It does not make a new collection.
+3. **Reading one:** the page any post has, with the items below in the masonry the other lists use, each a card of its own kind. Pressing one opens the light box, which steps through the collection in order, whatever kind each item is. The Stepper shows photos today and would have to show a note, an article and a topic as a slide.
+4. **Arranging:** for an editor, drag to reorder and a button to take an item out.
+5. **On a profile:** a Collections tab, for people, groups and events, shown when the feature is on for that actor.
+6. **In a feed:** a card with the title, the description and a few thumbnails or first lines.
 
 ## Still open
 
@@ -102,20 +102,20 @@ Not scheduled. As a rough size: the service, graph RPCs and tests about 3 sessio
 
 ## How it would be checked
 
-- A public collection holding a followers-only post shows that post to a follower and not to a stranger, in the list, in the feed preview and in the light box, and the stranger's count leaves it out.
-- A post that has not been saved by the adder is refused. One that has is added at the end; adding it twice changes nothing.
-- A new order is kept, and is refused when it names a post that is not in the collection.
-- A follower of a group who is not an administrator cannot add to or arrange the group's collection.
-- The collection is liked, replied to, reposted, quoted, pinned, reported and saved like a note.
-- Deleting a collection leaves its posts alone. Deleting a post takes it out of every collection. Purging an actor removes its collections and their edges.
-- With collection-service not running, saving still works and the web app shows nothing about collections.
+1. A public collection holding a followers-only post shows that post to a follower and not to a stranger, in the list, in the feed preview and in the light box, and the stranger's count leaves it out.
+2. A post that has not been saved by the adder is refused. One that has is added at the end; adding it twice changes nothing.
+3. A new order is kept, and is refused when it names a post that is not in the collection.
+4. A follower of a group who is not an administrator cannot add to or arrange the group's collection.
+5. The collection is liked, replied to, reposted, quoted, pinned, reported and saved like a note.
+6. Deleting a collection leaves its posts alone. Deleting a post takes it out of every collection. Purging an actor removes its collections and their edges.
+7. With collection-service not running, saving still works and the web app shows nothing about collections.
 
 ## Depends on
 
-- Saved posts (item 33, done).
-- Quote posts (item 25, done), if the quote setting is used for the author's say.
-- Events (item 12), for collections on events.
-- Videos (item 16), for videos as items.
+1. Saved posts (item 33, done).
+2. Quote posts (item 25, done), if the quote setting is used for the author's say.
+3. Events (item 12), for collections on events.
+4. Videos (item 16), for videos as items.
 
 ## Status
 

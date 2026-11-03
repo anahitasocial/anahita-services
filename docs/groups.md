@@ -8,10 +8,10 @@ where each is described.
 
 ## Contents
 
-- [Making one](#making-one)
-- [What only a group has](#what-only-a-group-has)
-- [The API](#the-api)
-- [Where the code is](#where-the-code-is)
+1. [Making one](#making-one)
+2. [What only a group has](#what-only-a-group-has)
+3. [The API](#the-api)
+4. [Where the code is](#where-the-code-is)
 
 ## Making one
 

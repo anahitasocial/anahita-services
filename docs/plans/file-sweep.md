@@ -36,33 +36,33 @@ A key in none of these shapes is left alone, and counted.
 
 ## How
 
-- **Kept unless the sweep is sure.** A file goes only when its key parses
-  into one of the shapes above and the row it names is certainly not there:
-  never on a failed or slow query.
-- **A day old at least,** by the store's own date, so that nothing being
-  uploaded, resized or encoded is touched.
-- **A new call in file-grpc-service,** `List(prefix, after, limit)`, limited
-  to `assets/v1/`, so the sweeper reads the bucket through the service that
-  owns it, as it deletes through it now; no keys to the bucket in the
-  sweeper.
-- **Once a day, not every ten minutes:** listing a whole bucket costs more
-  than reading a table. A CronJob of its own, `file-sweeper`, at night,
-  running `sweeper -files-only`, under the sweeper's lock.
-- **A dry run first.** `-files-only -dry-run` lists and counts what would go,
-  and the CronJob runs dry until the operator sets `FILE_SWEEP=on`, so that
-  a site sees what it would remove before anything is.
-- **Capped,** a few thousand files a night, and logged as counts by folder,
-  not names.
+1. **Kept unless the sweep is sure.** A file goes only when its key parses
+   into one of the shapes above and the row it names is certainly not there:
+   never on a failed or slow query.
+2. **A day old at least,** by the store's own date, so that nothing being
+   uploaded, resized or encoded is touched.
+3. **A new call in file-grpc-service,** `List(prefix, after, limit)`, limited
+   to `assets/v1/`, so the sweeper reads the bucket through the service that
+   owns it, as it deletes through it now; no keys to the bucket in the
+   sweeper.
+4. **Once a day, not every ten minutes:** listing a whole bucket costs more
+   than reading a table. A CronJob of its own, `file-sweeper`, at night,
+   running `sweeper -files-only`, under the sweeper's lock.
+5. **A dry run first.** `-files-only -dry-run` lists and counts what would go,
+   and the CronJob runs dry until the operator sets `FILE_SWEEP=on`, so that
+   a site sees what it would remove before anything is.
+6. **Capped,** a few thousand files a night, and logged as counts by folder,
+   not names.
 
 ## Tests
 
-- Each folder's shapes parse; a key in no shape is kept.
-- An avatar its profile names is kept; the old sizes of a replaced one go; a
-  purged profile's go; one made an hour ago is kept.
-- A photo in `photo_files` or `photo_uploads` is kept; one in neither, a day
-  old, goes.
-- A query that fails keeps everything in that batch.
-- The dry run removes nothing.
+1. Each folder's shapes parse; a key in no shape is kept.
+2. An avatar its profile names is kept; the old sizes of a replaced one go; a
+   purged profile's go; one made an hour ago is kept.
+3. A photo in `photo_files` or `photo_uploads` is kept; one in neither, a day
+   old, goes.
+4. A query that fails keeps everything in that batch.
+5. The dry run removes nothing.
 
 ## Documentation
 

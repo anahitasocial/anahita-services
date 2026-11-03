@@ -9,17 +9,17 @@ Its routes are in the API reference: [export-service](api/index.html#export-serv
 
 ## Contents
 
-- [The parts](#the-parts)
-- [Asking for one](#asking-for-one)
-- [What is in an archive](#what-is-in-an-archive)
-- [What is not](#what-is-not)
-- [How it is made](#how-it-is-made)
-- [Keeping and deleting](#keeping-and-deleting)
-- [Endpoints](#endpoints)
-- [Settings](#settings)
-- [Running it, and not running it](#running-it-and-not-running-it)
-- [Where the code is](#where-the-code-is)
-- [What is not built](#what-is-not-built)
+1. [The parts](#the-parts)
+2. [Asking for one](#asking-for-one)
+3. [What is in an archive](#what-is-in-an-archive)
+4. [What is not](#what-is-not)
+5. [How it is made](#how-it-is-made)
+6. [Keeping and deleting](#keeping-and-deleting)
+7. [Endpoints](#endpoints)
+8. [Settings](#settings)
+9. [Running it, and not running it](#running-it-and-not-running-it)
+10. [Where the code is](#where-the-code-is)
+11. [What is not built](#what-is-not-built)
 
 ## The parts
 
@@ -70,14 +70,14 @@ as text: the page is made with a template that escapes all of it.
 
 ## What is not
 
-- **What other people wrote.** A reply names the post it answers and a
-  repost the post it reposts; neither holds it.
-- **What was removed.** It is gone for its author too.
-- **The account**: the email address, sign-ins, passkeys. Those are
-  auth-service's, which this does not read.
-- **Files storage does not have.** A post naming a picture that is not
-  there keeps its text; the file is left out and counted in `README.txt`,
-  so one missing picture does not cost somebody their archive.
+1. **What other people wrote.** A reply names the post it answers and a
+   repost the post it reposts; neither holds it.
+2. **What was removed.** It is gone for its author too.
+3. **The account**: the email address, sign-ins, passkeys. Those are
+   auth-service's, which this does not read.
+4. **Files storage does not have.** A post naming a picture that is not
+   there keeps its text; the file is left out and counted in `README.txt`,
+   so one missing picture does not cost somebody their archive.
 
 ## How it is made
 
@@ -165,9 +165,9 @@ not available here.
 
 ## What is not built
 
-- Telling the person, by a notification or an email, that their archive is
-  ready. The settings page says.
-- The account's own data, from auth-service.
-- A Bluesky repository file, which comes with federation.
-- Deleting somebody's archives when their account is purged. They are
-  deleted when their week is up.
+1. Telling the person, by a notification or an email, that their archive is
+   ready. The settings page says.
+2. The account's own data, from auth-service.
+3. A Bluesky repository file, which comes with federation.
+4. Deleting somebody's archives when their account is purged. They are
+   deleted when their week is up.

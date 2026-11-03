@@ -19,35 +19,35 @@ Bluesky account they already have. See [Bluesky](#bluesky).
 
 ## Contents
 
-- [What it is](#what-it-is)
-- [A server on one network, an app on the other](#a-server-on-one-network-an-app-on-the-other)
-- [Setting it up](#setting-it-up)
-- [Keeping it running](#keeping-it-running)
-- [When something does not work](#when-something-does-not-work)
-- [Who is on the fediverse](#who-is-on-the-fediverse)
-- [What a person is called](#what-a-person-is-called)
-- [What other servers are told](#what-other-servers-are-told)
-- [Listed and found](#listed-and-found)
-- [Looking somebody up on another server](#looking-somebody-up-on-another-server)
-- [Being followed from another server](#being-followed-from-another-server)
-- [Following somebody on another server](#following-somebody-on-another-server)
-- [Posts going out](#posts-going-out)
-- [Posts coming in](#posts-coming-in)
-- [What can be done with what came from elsewhere](#what-can-be-done-with-what-came-from-elsewhere)
-- [The inbox](#the-inbox)
-- [What is sent, and when it does not arrive](#what-is-sent-and-when-it-does-not-arrive)
-- [Signing keys and signed requests](#signing-keys-and-signed-requests)
-- [The API](#the-api)
-- [Leaving, and what follows a person's changes](#leaving-and-what-follows-a-persons-changes)
-- [Replies](#replies)
-- [Likes and reposts](#likes-and-reposts)
-- [Servers that are refused](#servers-that-are-refused)
-- [Accounts that are refused](#accounts-that-are-refused)
-- [Pictures that are removed](#pictures-that-are-removed)
-- [Posts and people that are removed](#posts-and-people-that-are-removed)
-- [Bluesky](#bluesky)
-- [Where the code is](#where-the-code-is)
-- [Further reading](#further-reading)
+1. [What it is](#what-it-is)
+2. [A server on one network, an app on the other](#a-server-on-one-network-an-app-on-the-other)
+3. [Setting it up](#setting-it-up)
+4. [Keeping it running](#keeping-it-running)
+5. [When something does not work](#when-something-does-not-work)
+6. [Who is on the fediverse](#who-is-on-the-fediverse)
+7. [What a person is called](#what-a-person-is-called)
+8. [What other servers are told](#what-other-servers-are-told)
+9. [Listed and found](#listed-and-found)
+10. [Looking somebody up on another server](#looking-somebody-up-on-another-server)
+11. [Being followed from another server](#being-followed-from-another-server)
+12. [Following somebody on another server](#following-somebody-on-another-server)
+13. [Posts going out](#posts-going-out)
+14. [Posts coming in](#posts-coming-in)
+15. [What can be done with what came from elsewhere](#what-can-be-done-with-what-came-from-elsewhere)
+16. [The inbox](#the-inbox)
+17. [What is sent, and when it does not arrive](#what-is-sent-and-when-it-does-not-arrive)
+18. [Signing keys and signed requests](#signing-keys-and-signed-requests)
+19. [The API](#the-api)
+20. [Leaving, and what follows a person's changes](#leaving-and-what-follows-a-persons-changes)
+21. [Replies](#replies)
+22. [Likes and reposts](#likes-and-reposts)
+23. [Servers that are refused](#servers-that-are-refused)
+24. [Accounts that are refused](#accounts-that-are-refused)
+25. [Pictures that are removed](#pictures-that-are-removed)
+26. [Posts and people that are removed](#posts-and-people-that-are-removed)
+27. [Bluesky](#bluesky)
+28. [Where the code is](#where-the-code-is)
+29. [Further reading](#further-reading)
 
 ## What it is
 
@@ -113,40 +113,40 @@ domain, is written down for later (`docs/plans/atproto-server.md`).
 
 ### Who owns what
 
-- **Everything posted here is kept here,** in the installation's database
-  and storage, run by whoever runs the site. That is the fediverse's sense
-  of owning: choosing one's host, or being it.
-- **A copy of a connected person's public posts goes to Bluesky.** Each
-  picture is uploaded, made small enough for Bluesky's limit of two
-  megabytes,
-  to their PDS: Bluesky's own hosting for most people, or their own server
-  if they run one. Those copies are theirs in the AT Protocol's sense: in
-  their repository, under their identity, moving with it. From there
-  Bluesky's relay and its image and video services spread and cache them,
-  and anybody reading the public firehose may keep a copy.
-- **What a post names on Bluesky is a file, not a server.** A picture is
-  named by its content's hash and the account it belongs to; the original
-  is fetched from that account's PDS. Bluesky's app shows its own resized
-  copies from its image servers (`cdn.bsky.app`) and plays videos from its
-  video service, so most viewing comes from Bluesky's caches even when the
-  original is on somebody's own server.
-- **Deleting a post here deletes it from their Bluesky account,** and
-  Bluesky takes it out of its app. Copies others already took from the
-  public network cannot be called back, there or on the fediverse.
-- **Disconnecting stops new copies and takes nothing back.** What was
-  written to Bluesky stays there, and can no longer be removed from here.
-- **Only what is public goes out,** on either network: followers-only and
-  members-only posts, a site kept to its members, and anybody who did not
-  turn federation on or connect an account send nothing.
-- **What comes in is copied in,** pictures included, into the
-  installation's own storage, so that a reader's browser never asks another
-  server for them. Pictures from elsewhere are removed after a while unless
-  somebody here holds to the post (see
-  [Pictures that are removed](#pictures-that-are-removed)).
-- **Each person can take a copy of everything,** with
-  [Download your data](data-export.md), including an archive shaped as
-  ActivityPub has it. Their Bluesky repository is not in it: they can
-  export that from Bluesky itself.
+1. **Everything posted here is kept here,** in the installation's database
+   and storage, run by whoever runs the site. That is the fediverse's sense
+   of owning: choosing one's host, or being it.
+2. **A copy of a connected person's public posts goes to Bluesky.** Each
+   picture is uploaded, made small enough for Bluesky's limit of two
+   megabytes,
+   to their PDS: Bluesky's own hosting for most people, or their own server
+   if they run one. Those copies are theirs in the AT Protocol's sense: in
+   their repository, under their identity, moving with it. From there
+   Bluesky's relay and its image and video services spread and cache them,
+   and anybody reading the public firehose may keep a copy.
+3. **What a post names on Bluesky is a file, not a server.** A picture is
+   named by its content's hash and the account it belongs to; the original
+   is fetched from that account's PDS. Bluesky's app shows its own resized
+   copies from its image servers (`cdn.bsky.app`) and plays videos from its
+   video service, so most viewing comes from Bluesky's caches even when the
+   original is on somebody's own server.
+4. **Deleting a post here deletes it from their Bluesky account,** and
+   Bluesky takes it out of its app. Copies others already took from the
+   public network cannot be called back, there or on the fediverse.
+5. **Disconnecting stops new copies and takes nothing back.** What was
+   written to Bluesky stays there, and can no longer be removed from here.
+6. **Only what is public goes out,** on either network: followers-only and
+   members-only posts, a site kept to its members, and anybody who did not
+   turn federation on or connect an account send nothing.
+7. **What comes in is copied in,** pictures included, into the
+   installation's own storage, so that a reader's browser never asks another
+   server for them. Pictures from elsewhere are removed after a while unless
+   somebody here holds to the post (see
+   [Pictures that are removed](#pictures-that-are-removed)).
+8. **Each person can take a copy of everything,** with
+   [Download your data](data-export.md), including an archive shaped as
+   ActivityPub has it. Their Bluesky repository is not in it: they can
+   export that from Bluesky itself.
 
 ### Groups, events and the rest
 
@@ -314,32 +314,32 @@ them. A public note they post arrives there within seconds.
 
 ## Keeping it running
 
-- **Back up `actor_keys`, and the key it is sealed with.** A person's
-  signing key is what makes them who they are to other servers. Lose the
-  table, or `CRYPT_LOCAL_KEY`, and every person here is somebody whose
-  followers' servers refuse what they send. Both are in the backups an
-  installation cannot do without.
-- **Watch what could not be sent:**
+1. **Back up `actor_keys`, and the key it is sealed with.** A person's
+   signing key is what makes them who they are to other servers. Lose the
+   table, or `CRYPT_LOCAL_KEY`, and every person here is somebody whose
+   followers' servers refuse what they send. Both are in the backups an
+   installation cannot do without.
+2. **Watch what could not be sent:**
 
-  ~~~sql
-  SELECT target, attempts, last_error, created_at
-  FROM activitypub_deliveries
-  WHERE status = 'failed'
-  ORDER BY created_at DESC;
-  ~~~
+   ~~~sql
+   SELECT target, attempts, last_error, created_at
+   FROM activitypub_deliveries
+   WHERE status = 'failed'
+   ORDER BY created_at DESC;
+   ~~~
 
-  A few are ordinary: servers close. Many to one server means it is down,
-  or refuses this installation. Rows that failed can be deleted when they
-  have been looked at.
-- **Refuse a server** that sends abuse: see
-  [Servers that are refused](#servers-that-are-refused).
-- **Refuse one account** that does, here or on Bluesky: see
-  [Accounts that are refused](#accounts-that-are-refused).
-- **The service's log** says why anything that arrived was refused
-  (`inbox: … refused: …`), and what a lookup could not do.
-- **Clocks.** A request dated more than fifteen minutes from now is
-  refused, here and everywhere else. A server whose clock has drifted
-  federates with nobody.
+   A few are ordinary: servers close. Many to one server means it is down,
+   or refuses this installation. Rows that failed can be deleted when they
+   have been looked at.
+3. **Refuse a server** that sends abuse: see
+   [Servers that are refused](#servers-that-are-refused).
+4. **Refuse one account** that does, here or on Bluesky: see
+   [Accounts that are refused](#accounts-that-are-refused).
+5. **The service's log** says why anything that arrived was refused
+   (`inbox: … refused: …`), and what a lookup could not do.
+6. **Clocks.** A request dated more than fifteen minutes from now is
+   refused, here and everywhere else. A server whose clock has drifted
+   federates with nobody.
 
 ## When something does not work
 
@@ -362,12 +362,12 @@ back: it is copied by servers this one has never heard of.
 
 A person is on the fediverse when all of these are so:
 
-- they turned it on for themselves;
-- they are a person, made here, enabled, and not on their way to being
-  deleted;
-- their profile is open to everybody (`public`): not to members only, and
-  not to followers;
-- the graph agrees that a visitor may see them.
+1. they turned it on for themselves;
+2. they are a person, made here, enabled, and not on their way to being
+   deleted;
+3. their profile is open to everybody (`public`): not to members only, and
+   not to followers;
+4. the graph agrees that a visitor may see them.
 
 The moment one of them stops being so, they are not found: every address of
 theirs answers `404`, in the same words as an address nobody has. A server
@@ -521,14 +521,14 @@ happened and asks the other server, with a signed `Follow`.
 What is sent to another server cannot be called back, so what is sent is
 narrow, and is asked of the post as it is at that moment:
 
-- a **note, a photo post, a video post or an article**, written here, by
-  somebody who is on the fediverse. A photo post is sent as a note with its
-  pictures, a video post as a note with its video, and an article as an
-  `Article`;
-- on **their own profile**: not in a group, not on somebody else's;
-- **open to everybody**: not to members, not to followers;
-- or **a reply**, by [the rule for replies](#replies);
-- and a visitor may see it, by the graph's own reckoning.
+1. a **note, a photo post, a video post or an article**, written here, by
+   somebody who is on the fediverse. A photo post is sent as a note with its
+   pictures, a video post as a note with its video, and an article as an
+   `Article`;
+2. on **their own profile**: not in a group, not on somebody else's;
+3. **open to everybody**: not to members, not to followers;
+4. or **a reply**, by [the rule for replies](#replies);
+5. and a visitor may see it, by the graph's own reckoning.
 
 Such a note goes to every server that has a follower of its author, once
 for each server. It is sent as HTML made from its Markdown, with nothing in
@@ -623,12 +623,12 @@ from then on, and nothing from before.
 
 A note from another server is kept when all of these are so:
 
-- **somebody here follows whoever wrote it.** This installation is not a
-  copy of the fediverse: what nobody here asked for is not stored;
-- it is **its sender's own**, at an address on their own server;
-- it is **addressed to everybody**;
-- it has some text. A note that **answers another** is kept by
-  [the rule for replies](#replies).
+1. **somebody here follows whoever wrote it.** This installation is not a
+   copy of the fediverse: what nobody here asked for is not stored;
+2. it is **its sender's own**, at an address on their own server;
+3. it is **addressed to everybody**;
+4. it has some text. A note that **answers another** is kept by
+   [the rule for replies](#replies).
 
 It is kept as an ordinary note, owned by the node kept for its author, with
 its address as its `uri`. Its HTML is kept as Markdown with nothing in it
@@ -830,22 +830,22 @@ counted, shown and told to its author like any other.
 | **A like** (`Like`) | Somebody on the fediverse likes a note or a reply that came from another server: its author's server is told. Taken back with an `Undo` | Of a note or a reply here that went out: kept as a like by the person kept for whoever sent it, and the author told. `Undo` takes it away |
 | **A repost** (`Announce`, Mastodon's boost) | Somebody on the fediverse reposts a note other servers can see, one from elsewhere or one here that went out: their followers' servers are told, and the note's author's when it is from elsewhere. Taken back with an `Undo` | Of a note here that went out, by anybody: kept as a repost and the author told. Of a note from elsewhere, only by somebody followed from here: the note is read from its own server and kept with whoever wrote it, if it is not here already, and the repost is on the reposter's profile and in the feeds of who follows them |
 
-- **By somebody who is not on the fediverse,** a like or a repost of
-  something from elsewhere stays here, as their reply does.
-- **Somebody the author has blocked** neither likes nor reposts what the
-  author wrote; a server that is refused is not listened to at all.
-- **A like is named from who liked and what** (`/ap/activities/like-…`), so
-  taking it back names it again with nothing kept. A repost that went out
-  is on record like a note (`activitypub_objects`, `kind` `repost`), with
-  where it went, because the repost is gone by the time its taking back is
-  heard of.
-- **Taken back elsewhere, the news of it goes here:** a repost of
-  something here that is undone on its own server is removed, and what its
-  author was told of it with it.
-- **Nobody elsewhere is notified here:** whoever wrote something from
-  another server is told by their own server.
-- **Not covered by the sweep:** a like or a repost whose word the bus lost
-  is not found again. Doing it again puts it right.
+1. **By somebody who is not on the fediverse,** a like or a repost of
+   something from elsewhere stays here, as their reply does.
+2. **Somebody the author has blocked** neither likes nor reposts what the
+   author wrote; a server that is refused is not listened to at all.
+3. **A like is named from who liked and what** (`/ap/activities/like-…`), so
+   taking it back names it again with nothing kept. A repost that went out
+   is on record like a note (`activitypub_objects`, `kind` `repost`), with
+   where it went, because the repost is gone by the time its taking back is
+   heard of.
+4. **Taken back elsewhere, the news of it goes here:** a repost of
+   something here that is undone on its own server is removed, and what its
+   author was told of it with it.
+5. **Nobody elsewhere is notified here:** whoever wrote something from
+   another server is told by their own server.
+6. **Not covered by the sweep:** a like or a repost whose word the bus lost
+   is not found again. Doing it again puts it right.
 
 ## What can be done with what came from elsewhere
 
@@ -1127,18 +1127,18 @@ It is kept by what does not change: on the fediverse the account's address
 (the actor's `id`), on Bluesky its DID, whatever its handle becomes. A
 refused account:
 
-- **is not listened to:** what it sends to the inbox is answered `403`
-  before its key is fetched, and what Bluesky tells of it is passed over;
-  the stream asks for it no more;
-- **cannot be looked up, followed or kept again,** by any way it might
-  come: a follow, a mention, a repost of something of its;
-- **is sent nothing:** its follows are gone, and a mention of it finds
-  nobody;
-- **is removed, with what is here of it:** its profile, posts, replies,
-  likes and follows, and what is stored of their pictures; on the fediverse
-  at once, on Bluesky within a minute. The other services are told as of a
-  purge, so the reports about it are closed and what was chosen about it is
-  forgotten.
+1. **is not listened to:** what it sends to the inbox is answered `403`
+   before its key is fetched, and what Bluesky tells of it is passed over;
+   the stream asks for it no more;
+2. **cannot be looked up, followed or kept again,** by any way it might
+   come: a follow, a mention, a repost of something of its;
+3. **is sent nothing:** its follows are gone, and a mention of it finds
+   nobody;
+4. **is removed, with what is here of it:** its profile, posts, replies,
+   likes and follows, and what is stored of their pictures; on the fediverse
+   at once, on Bluesky within a minute. The other services are told as of a
+   purge, so the reports about it are closed and what was chosen about it is
+   forgotten.
 
 Let back, it can be looked up and followed again; nothing that was removed
 comes back.
@@ -1171,29 +1171,29 @@ they hold of other servers, and it is on as the installation comes, since
 it loses nothing that is still there to be had. `0` keeps pictures for
 good.
 
-- **What stays.** The post, with its words, and what each picture showed.
-  It says in its meta (`media_removed`) how many pictures it had, and the
-  API sends that with the post: `media_removed: { count, alts, gone }`.
-- **"Left alone"** is by when the post was last written here: when it
-  arrived, when its author changed it, and when its pictures were last
-  copied again. Pictures that were asked for are kept as long again.
-- **Never** the pictures of a post somebody here liked, saved, answered,
-  reposted or quoted, nor of one an open report is about. And nothing
-  written here is ever looked at: only what has an address on another
-  server.
-- **Asked for again:** `POST /activitypub/posts/:id/pictures` or
-  `POST /atproto/posts/:id/pictures`, by anybody signed in who may see the
-  post, sixty times in ten minutes. The post is read again from where it
-  came from and its pictures are copied as they were the first time. In
-  the web app it is a button where the pictures were, and it is asked at
-  once on the post's own page.
-- **No longer to be had.** When the post was taken away where it was
-  written, or what it is read from says it has no pictures now, the answer
-  is `410 media_gone`, and the post says so from then on (`gone`), keeping
-  what its pictures showed.
-- **Each service looks after what came through it,** every hour, two
-  hundred posts at a time, oldest first: an installation that runs one of
-  the two is covered by that one.
+1. **What stays.** The post, with its words, and what each picture showed.
+   It says in its meta (`media_removed`) how many pictures it had, and the
+   API sends that with the post: `media_removed: { count, alts, gone }`.
+2. **"Left alone"** is by when the post was last written here: when it
+   arrived, when its author changed it, and when its pictures were last
+   copied again. Pictures that were asked for are kept as long again.
+3. **Never** the pictures of a post somebody here liked, saved, answered,
+   reposted or quoted, nor of one an open report is about. And nothing
+   written here is ever looked at: only what has an address on another
+   server.
+4. **Asked for again:** `POST /activitypub/posts/:id/pictures` or
+   `POST /atproto/posts/:id/pictures`, by anybody signed in who may see the
+   post, sixty times in ten minutes. The post is read again from where it
+   came from and its pictures are copied as they were the first time. In
+   the web app it is a button where the pictures were, and it is asked at
+   once on the post's own page.
+5. **No longer to be had.** When the post was taken away where it was
+   written, or what it is read from says it has no pictures now, the answer
+   is `410 media_gone`, and the post says so from then on (`gone`), keeping
+   what its pictures showed.
+6. **Each service looks after what came through it,** every hour, two
+   hundred posts at a time, oldest first: an installation that runs one of
+   the two is covered by that one.
 
 Avatars and covers of people elsewhere are small, one of each, and are
 kept while the person is. The picture of a link's card is the link
@@ -1222,35 +1222,35 @@ are off because **what they remove is not got back by asking**: a post
 that went is read again only if its author is followed anew, and then
 only their latest. `0` turns any of the three off.
 
-- **Never** a post somebody here liked or saved; one that anything stands
-  under or on, here or elsewhere (an answer, a repost, a quote); one in a
-  thread somebody here wrote in; one an open report is about.
-- **Never an answer.** Only a post that begins a thread is removed by a
-  rule. An answer from elsewhere is here because it is part of a
-  conversation somebody here is in.
-- **Never anything written here.** Only what has an address on another
-  server is looked at, and only what is owned by somebody of another
-  server. The operator's settings do not clip what the site's own people
-  wrote, at any age or number.
-- **"Left alone"** is as for pictures: by when the post was last written
-  here.
-- **It goes as if its author had taken it away:** with what is stored of
-  its pictures, and said on the bus, so that its hashtags and any news of
-  it go too.
-- **Then the person.** Somebody from elsewhere is removed, with their
-  avatar and cover, when all of these hold:
-  - no post of theirs is left here;
-  - nobody here follows them, and they follow nobody here;
-  - nobody here has blocked them, and nothing ties them to anything here
-    (no like, no mention);
-  - no open report is about them;
-  - they have been left alone for `REMOTE_UNFOLLOWED_DAYS`.
+1. **Never** a post somebody here liked or saved; one that anything stands
+   under or on, here or elsewhere (an answer, a repost, a quote); one in a
+   thread somebody here wrote in; one an open report is about.
+2. **Never an answer.** Only a post that begins a thread is removed by a
+   rule. An answer from elsewhere is here because it is part of a
+   conversation somebody here is in.
+3. **Never anything written here.** Only what has an address on another
+   server is looked at, and only what is owned by somebody of another
+   server. The operator's settings do not clip what the site's own people
+   wrote, at any age or number.
+4. **"Left alone"** is as for pictures: by when the post was last written
+   here.
+5. **It goes as if its author had taken it away:** with what is stored of
+   its pictures, and said on the bus, so that its hashtags and any news of
+   it go too.
+6. **Then the person.** Somebody from elsewhere is removed, with their
+   avatar and cover, when all of these hold:
+   1. no post of theirs is left here;
+   2. nobody here follows them, and they follow nobody here;
+   3. nobody here has blocked them, and nothing ties them to anything here
+      (no like, no mention);
+   4. no open report is about them;
+   5. they have been left alone for `REMOTE_UNFOLLOWED_DAYS`.
 
-  Looked up again, they are read again. With that setting at `0` nobody
-  is removed.
-- **Each service looks after what came through it,** every hour, two
-  hundred posts and two hundred people at a time, the longest left alone
-  first.
+   Looked up again, they are read again. With that setting at `0` nobody
+   is removed.
+7. **Each service looks after what came through it,** every hour, two
+   hundred posts and two hundred people at a time, the longest left alone
+   first.
 
 Not built: the same for videos, which are not brought in from elsewhere
 yet (`docs/plans/remote-content-limits.md`).
@@ -1368,20 +1368,20 @@ post is for.
 
 It is kept the way a post from the fediverse is:
 
-- **Its words** become Markdown. Links stay links, a name leads to that
-  account's page on Bluesky, and a hashtag is a hashtag of this
-  installation, made if it is new.
-- **With pictures it is a photo post,** up to four (what Bluesky takes),
-  each with what its
-  author said it shows, copied into this installation's storage. What its
-  author marked as not to be shown plainly (nudity, graphic media) is kept
-  for its words, without its pictures.
-- **A link it carries is given a card** read by this installation itself,
-  whether or not the address is in its words.
-- **A post it quotes is led to,** with a line at its end; the quoted post
-  is not kept.
-- **A video is not kept.** A post with a video ends with a line leading to
-  its page, `▶ bsky.app`, and one that is only a video is kept as that line.
+1. **Its words** become Markdown. Links stay links, a name leads to that
+   account's page on Bluesky, and a hashtag is a hashtag of this
+   installation, made if it is new.
+2. **With pictures it is a photo post,** up to four (what Bluesky takes),
+   each with what its
+   author said it shows, copied into this installation's storage. What its
+   author marked as not to be shown plainly (nudity, graphic media) is kept
+   for its words, without its pictures.
+3. **A link it carries is given a card** read by this installation itself,
+   whether or not the address is in its words.
+4. **A post it quotes is led to,** with a line at its end; the quoted post
+   is not kept.
+5. **A video is not kept.** A post with a video ends with a line leading to
+   its page, `▶ bsky.app`, and one that is only a video is kept as that line.
 
 When somebody is first followed, their twenty most recent posts are read,
 with their answers to themselves, once, so that their profile here is not empty until they next post. A post
@@ -1396,24 +1396,24 @@ done on the network, and told which accounts are wanted: those somebody
 here follows, ten thousand at most. With nobody followed, no connection is
 made.
 
-- **One copy listens.** Any number of copies of the service may run, and
-  one of them holds the turn (a lock in the database). When it stops,
-  another takes over within half a minute.
-- **Nothing is missed while nobody listens.** The time of the last thing
-  dealt with is kept (`atproto_cursor`), and a connection that begins
-  again asks for what came after it. Jetstream keeps what was said for a
-  limited time; a service that was down for longer than that loses what
-  was posted in between.
-- **No one Jetstream is relied on.** One of them can fall behind, or stop
-  passing things on, while still answering: on 2026-10-13 one of Bluesky's
-  four had nothing of the last hour and the other three had all of it,
-  and that cannot be told from a quiet evening by listening. So each is
-  listened to for ten minutes and then the next, and each begins far
-  enough back to hear again what the last three were asked for. What one
-  of them kept back arrives from the next, some minutes late. With one
-  address only, there is no such cover.
-- **A follow that the bus lost** is found within a minute: the service
-  asks the graph who is followed, and does not rely on having been told.
+1. **One copy listens.** Any number of copies of the service may run, and
+   one of them holds the turn (a lock in the database). When it stops,
+   another takes over within half a minute.
+2. **Nothing is missed while nobody listens.** The time of the last thing
+   dealt with is kept (`atproto_cursor`), and a connection that begins
+   again asks for what came after it. Jetstream keeps what was said for a
+   limited time; a service that was down for longer than that loses what
+   was posted in between.
+3. **No one Jetstream is relied on.** One of them can fall behind, or stop
+   passing things on, while still answering: on 2026-10-13 one of Bluesky's
+   four had nothing of the last hour and the other three had all of it,
+   and that cannot be told from a quiet evening by listening. So each is
+   listened to for ten minutes and then the next, and each begins far
+   enough back to hear again what the last three were asked for. What one
+   of them kept back arrives from the next, some minutes late. With one
+   address only, there is no such cover.
+4. **A follow that the bus lost** is found within a minute: the service
+   asks the graph who is followed, and does not rely on having been told.
 
 ### Answering on Bluesky
 
@@ -1422,126 +1422,126 @@ under Privacy, with their handle and **an app password**: a password
 Bluesky lets an account make for one app and take back without touching
 its own. The card says to use one and where to make it.
 
-- **What is kept.** The password is sent once to the server that holds
-  the account, found from the account's lasting name, and exchanged there
-  for two tokens. It is not kept. The longer-lived token is kept,
-  encrypted under the same key as auth-service's secrets
-  (`CRYPT_LOCAL_KEY`); the short one is held in memory. An installation
-  with no such key reads Bluesky and writes nothing: nobody is offered the
-  card.
-- **What goes.** A like or a repost of a post that came from Bluesky; a
-  reply under one, or under a reply that itself went there; and a note, a
-  photo or video post or an article of the person's own that everybody may
-  read, on their own profile. A topic does not go. Connecting an account is saying that such posts are
-  posted there, as being on the fediverse is. A post on somebody else's
-  profile or a group's does not go.
-- **Videos.** A video post goes with its video, a GIF made into a clip
-  included, and its title as its first line: the largest size no taller
-  than 720 and no heavier than 50 MB, read from storage at an address only
-  the services reach and given to the account's server
-  (`app.bsky.embed.video`), which Bluesky makes ready to play once the post
-  is written. That is the simpler of the two ways Bluesky's documents
-  describe; the other, through Bluesky's video service, has it ready
-  before the post appears. A video longer than three minutes or heavier
-  than that goes as a card that leads to its page here, with its poster;
-  so does one Bluesky would not take. An account Bluesky hosts must have
-  confirmed its email to post videos, and has a daily limit.
-- **Articles.** An article goes as its title, as the first line, then its
-  words, cut to what a post holds, with a card that leads to the article
-  here: its title, its opening under it, and its cover as its picture,
-  given to the account's server as a photo post's pictures are.
-- **Pictures and cards.** A photo post goes with up to four pictures and
-  what each shows; one with more goes with the first four, and its words
-  end with the address of the post here, where they all are. A note goes with the card of the link in it, picture
-  and all: Bluesky draws no card of its own from an address in a post, so
-  the card is this installation's, as it was kept when the note was made.
-  Each picture is given to the account's server first. Bluesky takes two
-  megabytes for each: one that weighs more is made smaller, and written
-  again as a JPEG when that is not enough. Words become
-  what Bluesky takes: Markdown's marks are taken out, links and the first
-  ten hashtags are marked as such, and what is longer than three hundred letters is cut
-  with a mark to say so; a note so cut carries a card of itself here,
-  where the rest is. A post with pictures or a video has no room for a
-  card, so when it is cut its words end instead with the address of the
-  post here, on a line of its own. A post or a reply that is changed here afterwards
-  is not changed there: Bluesky has no changing a post, and taking it down
-  to post it again would lose its likes, reposts and replies. Mastodon and
-  other servers are sent the change.
-- **Following.** Somebody connected who follows an account on Bluesky from
-  here follows it there too, as their account: it is the only kind of
-  follow Bluesky has, so whoever is followed is told and sees them among
-  their followers. An account that follows them already is left as it is,
-  and nothing is written. Unfollowing here takes back only a follow that
-  was written from here: one made on Bluesky itself stays until it is
-  removed there. Whoever has not connected an account follows here and
-  nowhere else, and nobody is told.
-- **Blocking.** Somebody connected who blocks an account on Bluesky from
-  here blocks it on Bluesky too: a block (`app.bsky.graph.block`) is
-  written to their account, as Bluesky's own app writes one, and taken back
-  when they unblock it here. A block made in Bluesky's app is not this
-  installation's to take back. Written whatever their profile here is open
-  to: a block keeps somebody away and tells nobody else.
-- **Hiding a reply.** Somebody connected who hides a reply from Bluesky
-  under a post of theirs that went there, or a reply of somebody's here
-  that went there, hides it on Bluesky too: it is added to the post's
-  threadgate (`app.bsky.feed.threadgate`, named as the post is), the list
-  of hidden replies every Bluesky app reads and tucks away. Shown again
-  here, it is taken out. Only that reply is changed: replies hidden in
-  Bluesky's own app, and who may reply when that was set there, are left
-  as they are. Whether it is hidden is read when the threadgate is
-  written, so hiding and showing again quickly writes what is so at the
-  end. A threadgate holds 300 hidden replies; past that the oldest go.
-  Deleting the post here removes its threadgate with it. A reply hidden in
-  Bluesky's own app is not hidden here yet.
-- **What comes back.** Each connected account is asked, once a minute,
-  what it was told of on Bluesky, as its own app would show it: who liked
-  or reposted something written from here, who answered it, and who
-  followed the account. Each is kept as the same thing from the fediverse
-  is: whoever did it becomes somebody of another server here, though
-  nobody here follows them, and their like, repost, reply or follow is
-  theirs. The person here is told as of anybody's. Somebody they have
-  blocked does none of it. What happened before the account was connected
-  is not gone back for.
-- **What is taken back there.** An account is told when somebody likes,
-  reposts, answers or follows, and not when they think better of it. So
-  every five minutes, and once soon after the service starts, what is
-  kept here of such things is looked for on Bluesky again: who likes and
-  has reposted each post that went out from here, whether each answer is
-  still there, and whether each follower still follows. What is no longer
-  so is removed here, with the news of it. Nothing is removed on a doubt:
-  not when Bluesky could not be asked, not from a list too long to read to
-  its end (more than five hundred likes), and not what arrived in the last
-  three minutes.
-- **What is taken back.** Taking a like or a repost back here, or deleting
-  the reply, removes it there.
-- **It arrives.** What is to be written waits in a table
-  (`atproto_writes`) and is tried until it is done, for two days, as what
-  goes to the fediverse is.
-- **It is not kept twice.** Bluesky tells of everything an account does,
-  and whoever follows their own account here would be told of their own
-  reply. Each thing written is remembered by the name it was written
-  under (`atproto_sent`) and is known for this installation's own.
-- **When it stops working.** An app password that is removed on Bluesky
-  ends the connection. The first thing that cannot be written marks the
-  account as needing to be connected again, which the card then says.
-- **One person, one profile.** A Bluesky account that somebody here
-  connected is that person. It is not also kept as somebody of another
-  server: what was kept of it before it was connected (its profile here,
-  its posts, and the follows of it) is removed when it is connected, and
-  looking it up afterwards finds the person here.
-- **What they post on Bluesky itself is theirs here.** A post made with
-  the connected account in Bluesky's own app is kept here as a post of
-  the person's own, on their profile, open to everybody as it is there,
-  with its pictures and the card of its link. It is a post like any they
-  wrote here: it is given its hashtags, and goes to the fediverse if they
-  are on it. It is not sent back to Bluesky; a like or an answer given to
-  it here reaches it there; deleted there, it goes from here. Only from
-  when the account was connected. A reply comes too when what it answers
-  is here, and sits under it: the rest of a thread posted there, or an
-  answer to a post from Bluesky that is kept here. One that answers
-  anything else is left, since it would stand without what it answers.
-- **Disconnecting** forgets the token. What was written stays on Bluesky,
-  and can then be removed only there.
+1. **What is kept.** The password is sent once to the server that holds
+   the account, found from the account's lasting name, and exchanged there
+   for two tokens. It is not kept. The longer-lived token is kept,
+   encrypted under the same key as auth-service's secrets
+   (`CRYPT_LOCAL_KEY`); the short one is held in memory. An installation
+   with no such key reads Bluesky and writes nothing: nobody is offered the
+   card.
+2. **What goes.** A like or a repost of a post that came from Bluesky; a
+   reply under one, or under a reply that itself went there; and a note, a
+   photo or video post or an article of the person's own that everybody may
+   read, on their own profile. A topic does not go. Connecting an account is saying that such posts are
+   posted there, as being on the fediverse is. A post on somebody else's
+   profile or a group's does not go.
+3. **Videos.** A video post goes with its video, a GIF made into a clip
+   included, and its title as its first line: the largest size no taller
+   than 720 and no heavier than 50 MB, read from storage at an address only
+   the services reach and given to the account's server
+   (`app.bsky.embed.video`), which Bluesky makes ready to play once the post
+   is written. That is the simpler of the two ways Bluesky's documents
+   describe; the other, through Bluesky's video service, has it ready
+   before the post appears. A video longer than three minutes or heavier
+   than that goes as a card that leads to its page here, with its poster;
+   so does one Bluesky would not take. An account Bluesky hosts must have
+   confirmed its email to post videos, and has a daily limit.
+4. **Articles.** An article goes as its title, as the first line, then its
+   words, cut to what a post holds, with a card that leads to the article
+   here: its title, its opening under it, and its cover as its picture,
+   given to the account's server as a photo post's pictures are.
+5. **Pictures and cards.** A photo post goes with up to four pictures and
+   what each shows; one with more goes with the first four, and its words
+   end with the address of the post here, where they all are. A note goes with the card of the link in it, picture
+   and all: Bluesky draws no card of its own from an address in a post, so
+   the card is this installation's, as it was kept when the note was made.
+   Each picture is given to the account's server first. Bluesky takes two
+   megabytes for each: one that weighs more is made smaller, and written
+   again as a JPEG when that is not enough. Words become
+   what Bluesky takes: Markdown's marks are taken out, links and the first
+   ten hashtags are marked as such, and what is longer than three hundred letters is cut
+   with a mark to say so; a note so cut carries a card of itself here,
+   where the rest is. A post with pictures or a video has no room for a
+   card, so when it is cut its words end instead with the address of the
+   post here, on a line of its own. A post or a reply that is changed here afterwards
+   is not changed there: Bluesky has no changing a post, and taking it down
+   to post it again would lose its likes, reposts and replies. Mastodon and
+   other servers are sent the change.
+6. **Following.** Somebody connected who follows an account on Bluesky from
+   here follows it there too, as their account: it is the only kind of
+   follow Bluesky has, so whoever is followed is told and sees them among
+   their followers. An account that follows them already is left as it is,
+   and nothing is written. Unfollowing here takes back only a follow that
+   was written from here: one made on Bluesky itself stays until it is
+   removed there. Whoever has not connected an account follows here and
+   nowhere else, and nobody is told.
+7. **Blocking.** Somebody connected who blocks an account on Bluesky from
+   here blocks it on Bluesky too: a block (`app.bsky.graph.block`) is
+   written to their account, as Bluesky's own app writes one, and taken back
+   when they unblock it here. A block made in Bluesky's app is not this
+   installation's to take back. Written whatever their profile here is open
+   to: a block keeps somebody away and tells nobody else.
+8. **Hiding a reply.** Somebody connected who hides a reply from Bluesky
+   under a post of theirs that went there, or a reply of somebody's here
+   that went there, hides it on Bluesky too: it is added to the post's
+   threadgate (`app.bsky.feed.threadgate`, named as the post is), the list
+   of hidden replies every Bluesky app reads and tucks away. Shown again
+   here, it is taken out. Only that reply is changed: replies hidden in
+   Bluesky's own app, and who may reply when that was set there, are left
+   as they are. Whether it is hidden is read when the threadgate is
+   written, so hiding and showing again quickly writes what is so at the
+   end. A threadgate holds 300 hidden replies; past that the oldest go.
+   Deleting the post here removes its threadgate with it. A reply hidden in
+   Bluesky's own app is not hidden here yet.
+9. **What comes back.** Each connected account is asked, once a minute,
+   what it was told of on Bluesky, as its own app would show it: who liked
+   or reposted something written from here, who answered it, and who
+   followed the account. Each is kept as the same thing from the fediverse
+   is: whoever did it becomes somebody of another server here, though
+   nobody here follows them, and their like, repost, reply or follow is
+   theirs. The person here is told as of anybody's. Somebody they have
+   blocked does none of it. What happened before the account was connected
+   is not gone back for.
+10. **What is taken back there.** An account is told when somebody likes,
+    reposts, answers or follows, and not when they think better of it. So
+    every five minutes, and once soon after the service starts, what is
+    kept here of such things is looked for on Bluesky again: who likes and
+    has reposted each post that went out from here, whether each answer is
+    still there, and whether each follower still follows. What is no longer
+    so is removed here, with the news of it. Nothing is removed on a doubt:
+    not when Bluesky could not be asked, not from a list too long to read to
+    its end (more than five hundred likes), and not what arrived in the last
+    three minutes.
+11. **What is taken back.** Taking a like or a repost back here, or deleting
+    the reply, removes it there.
+12. **It arrives.** What is to be written waits in a table
+    (`atproto_writes`) and is tried until it is done, for two days, as what
+    goes to the fediverse is.
+13. **It is not kept twice.** Bluesky tells of everything an account does,
+    and whoever follows their own account here would be told of their own
+    reply. Each thing written is remembered by the name it was written
+    under (`atproto_sent`) and is known for this installation's own.
+14. **When it stops working.** An app password that is removed on Bluesky
+    ends the connection. The first thing that cannot be written marks the
+    account as needing to be connected again, which the card then says.
+15. **One person, one profile.** A Bluesky account that somebody here
+    connected is that person. It is not also kept as somebody of another
+    server: what was kept of it before it was connected (its profile here,
+    its posts, and the follows of it) is removed when it is connected, and
+    looking it up afterwards finds the person here.
+16. **What they post on Bluesky itself is theirs here.** A post made with
+    the connected account in Bluesky's own app is kept here as a post of
+    the person's own, on their profile, open to everybody as it is there,
+    with its pictures and the card of its link. It is a post like any they
+    wrote here: it is given its hashtags, and goes to the fediverse if they
+    are on it. It is not sent back to Bluesky; a like or an answer given to
+    it here reaches it there; deleted there, it goes from here. Only from
+    when the account was connected. A reply comes too when what it answers
+    is here, and sits under it: the rest of a thread posted there, or an
+    answer to a post from Bluesky that is kept here. One that answers
+    anything else is left, since it would stand without what it answers.
+17. **Disconnecting** forgets the token. What was written stays on Bluesky,
+    and can then be removed only there.
 
 | Request | Does |
 | --- | --- |

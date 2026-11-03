@@ -15,11 +15,11 @@ A **recipe** is those choices made together, for one kind of site, with the reas
 
 ## Decisions
 
-- **A recipe says what kind of site; an overlay says where it runs.** The two are chosen separately and any recipe goes with any overlay.
-- **A recipe is a Kustomize component,** `recipes/<name>/` in `anahita-recipes`, added to an overlay in one line. Nothing new to install or learn.
-- **A recipe is a start, not a lock.** The overlay's own `config.env` is read after it, so whatever the operator sets wins.
-- **A recipe invents no setting.** It only chooses among the ones there are. Where a kind of site needs something no setting gives, that is written down as a gap, and becomes a feature to plan or not, on its own.
-- **How big a site is, is a third choice,** apart from what kind: `k8s/sizes/{small,medium,large}` set how many copies of each service run and what each may use. A recipe names the size it expects; the operator may take another.
+1. **A recipe says what kind of site; an overlay says where it runs.** The two are chosen separately and any recipe goes with any overlay.
+2. **A recipe is a Kustomize component,** `recipes/<name>/` in `anahita-recipes`, added to an overlay in one line. Nothing new to install or learn.
+3. **A recipe is a start, not a lock.** The overlay's own `config.env` is read after it, so whatever the operator sets wins.
+4. **A recipe invents no setting.** It only chooses among the ones there are. Where a kind of site needs something no setting gives, that is written down as a gap, and becomes a feature to plan or not, on its own.
+5. **How big a site is, is a third choice,** apart from what kind: `k8s/sizes/{small,medium,large}` set how many copies of each service run and what each may use. A recipe names the size it expects; the operator may take another.
 
 ## Design
 
@@ -65,16 +65,16 @@ Each recipe's `README.md` ends with **the three things to decide before the firs
 
 Writing them will turn up settings that do not exist. Expected, to be confirmed while writing and listed in the plan as they are found, not built here:
 
-- ~~who may create a group or an event at all~~: there is one, `GROUPS_FROM` and `EVENTS_FROM`, found while writing this. A school's recipe sets both to administrators;
-- a site-wide default for a new profile's own privacy;
-- turning the report reasons to a kind of site (a school's list is not a newsroom's): possible today by replacing the file, which a recipe can do;
-- **hashtags and places to begin with (user, 2026-10-12 and 2026-10-14).** A new site has no hashtags and no places, so the Interests step of signing up (built 2026-10-14, [item 45](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/done/onboarding-recommendations.md)) has nothing to offer, and the place picker nothing to pick, until people have written. The user's design:
-  - **`hashtag-defaults/hashtag_seed.json`,** given to hashtag-service when it is first deployed, lists hashtags to make at the start. Each recipe carries its own list: a school's subjects and years, a newsroom's beats, a library's subjects and programmes, a research group's fields and methods, a neighbourhood's streets and notices. The operator edits it before the first start.
-  - **Seeded hashtags are marked featured** (`nodes.featured_at`, as featured people and groups are), belong to the installation and to no person, and **the Interests list fills up with featured hashtags** when public posts give it too few (`GET /recommendations/interests` counts by posts, so a hashtag nobody has used yet would otherwise never be offered).
-  - **`location-defaults/location_seed.json`** does the same for places, and is harder: there are a great many. A small tool writes it, for the operator to read through before it is loaded, never loaded unread, since what geocoders hold is uneven: for instance `seed-places --around "Vancouver, BC" --kinds neighbourhood,library,school,park`, asking the open geocoders location-service already uses (Photon and Nominatim, from OpenStreetMap, within their usage limits), or reading GeoNames, an open dataset, for a whole region without many requests. A recipe names what kinds of place matter to it; the operator names where.
-  - Seeding runs once, on a site with none; running it again adds only what is missing and changes nothing anybody made.
-- **a licence on what is posted (user's list, 2026-10-13: research groups).** A research group, and a library, would want to say that what is posted may be reused, and how. Creative Commons licences are planned and kept for later (item 19); the `research` recipe is the reason to look at it again;
-- terms and a privacy policy fitted to each kind. A recipe can carry a **starting text marked as such**; it is not legal advice and must say so.
+1. ~~who may create a group or an event at all~~: there is one, `GROUPS_FROM` and `EVENTS_FROM`, found while writing this. A school's recipe sets both to administrators;
+2. a site-wide default for a new profile's own privacy;
+3. turning the report reasons to a kind of site (a school's list is not a newsroom's): possible today by replacing the file, which a recipe can do;
+4. **hashtags and places to begin with (user, 2026-10-12 and 2026-10-14).** A new site has no hashtags and no places, so the Interests step of signing up (built 2026-10-14, [item 45](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/done/onboarding-recommendations.md)) has nothing to offer, and the place picker nothing to pick, until people have written. The user's design:
+   1. **`hashtag-defaults/hashtag_seed.json`,** given to hashtag-service when it is first deployed, lists hashtags to make at the start. Each recipe carries its own list: a school's subjects and years, a newsroom's beats, a library's subjects and programmes, a research group's fields and methods, a neighbourhood's streets and notices. The operator edits it before the first start.
+   2. **Seeded hashtags are marked featured** (`nodes.featured_at`, as featured people and groups are), belong to the installation and to no person, and **the Interests list fills up with featured hashtags** when public posts give it too few (`GET /recommendations/interests` counts by posts, so a hashtag nobody has used yet would otherwise never be offered).
+   3. **`location-defaults/location_seed.json`** does the same for places, and is harder: there are a great many. A small tool writes it, for the operator to read through before it is loaded, never loaded unread, since what geocoders hold is uneven: for instance `seed-places --around "Vancouver, BC" --kinds neighbourhood,library,school,park`, asking the open geocoders location-service already uses (Photon and Nominatim, from OpenStreetMap, within their usage limits), or reading GeoNames, an open dataset, for a whole region without many requests. A recipe names what kinds of place matter to it; the operator names where.
+   4. Seeding runs once, on a site with none; running it again adds only what is missing and changes nothing anybody made.
+5. **a licence on what is posted (user's list, 2026-10-13: research groups).** A research group, and a library, would want to say that what is posted may be reused, and how. Creative Commons licences are planned and kept for later (item 19); the `research` recipe is the reason to look at it again;
+6. terms and a privacy policy fitted to each kind. A recipe can carry a **starting text marked as such**; it is not legal advice and must say so.
 
 ### The web app
 
@@ -98,10 +98,10 @@ A recipe is mostly the server's. For the web app it may suggest a name and descr
 
 ## Verification
 
-- `kubectl kustomize` of `generic` with `recipes/school` gives a ConfigMap with reading closed to members, invitations from administrators, and no recommendation service among the Deployments.
-- The same overlay with `SITE_READ_ACCESS=preview` in its own `config.env` gives `preview`: the operator's word is last.
-- A recipe naming a setting that does not exist fails `make test`.
-- On a local cluster, `school` and `newsroom` each come up, and a visitor who is not signed in sees nothing on the one and the front page on the other.
+1. `kubectl kustomize` of `generic` with `recipes/school` gives a ConfigMap with reading closed to members, invitations from administrators, and no recommendation service among the Deployments.
+2. The same overlay with `SITE_READ_ACCESS=preview` in its own `config.env` gives `preview`: the operator's word is last.
+3. A recipe naming a setting that does not exist fails `make test`.
+4. On a local cluster, `school` and `newsroom` each come up, and a visitor who is not signed in sees nothing on the one and the front page on the other.
 
 ## Open questions
 
@@ -120,10 +120,10 @@ A recipe is mostly the server's. For the web app it may suggest a name and descr
 
 ## Documentation
 
-- **New services page `recipes.md`**: what a recipe is, the table, how to take one and how to write one.
-- **services `deploying.md`**: the first step becomes choosing a recipe and a size.
-- **services `configuration.md`**: each setting a recipe chooses says which recipes choose what.
-- **web `customising.md`**: what a recipe suggests for the web app.
+1. **New services page `recipes.md`**: what a recipe is, the table, how to take one and how to write one.
+2. **services `deploying.md`**: the first step becomes choosing a recipe and a size.
+3. **services `configuration.md`**: each setting a recipe chooses says which recipes choose what.
+4. **web `customising.md`**: what a recipe suggests for the web app.
 
 ## Status
 

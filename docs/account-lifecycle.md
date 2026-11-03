@@ -10,16 +10,16 @@ Its routes are in the API reference: [actor-service](api/index.html#actor-servic
 
 ## Contents
 
-- [The four states](#the-four-states)
-- [Deleting and the 30 days](#deleting-and-the-30-days)
-- [What a purge removes](#what-a-purge-removes)
-- [What a purge leaves](#what-a-purge-leaves)
-- [Purging now](#purging-now)
-- [Removing as spam](#removing-as-spam)
-- [The accounts list](#the-accounts-list)
-- [The sweeper](#the-sweeper)
-- [Groups left without an administrator](#groups-left-without-an-administrator)
-- [Where the code is](#where-the-code-is)
+1. [The four states](#the-four-states)
+2. [Deleting and the 30 days](#deleting-and-the-30-days)
+3. [What a purge removes](#what-a-purge-removes)
+4. [What a purge leaves](#what-a-purge-leaves)
+5. [Purging now](#purging-now)
+6. [Removing as spam](#removing-as-spam)
+7. [The accounts list](#the-accounts-list)
+8. [The sweeper](#the-sweeper)
+9. [Groups left without an administrator](#groups-left-without-an-administrator)
+10. [Where the code is](#where-the-code-is)
 
 ## The four states
 
@@ -71,18 +71,18 @@ After 30 days the [sweeper](#the-sweeper) purges it.
 Everything the account **owns**, everything it **wrote**, and everything
 underneath either:
 
-- its posts, wherever they are: on its own profile, in a group, or on somebody
-  else's profile;
-- its replies to other people's posts, and whatever was said under those
-  replies;
-- **other people's replies to its posts**, which go with the posts;
-- every like, follow, subscription, block and administrator role it had;
-- every notification sent to it, or sent to others about it or its posts;
-- its uploaded avatar, cover and photos, from object storage;
-- its sign-in details, sessions, passkeys and sign-in history;
-- the invitations it sent that nobody used, and the signup request it began
-  as, where signing up needed approval;
-- the abuse reports it filed.
+1. its posts, wherever they are: on its own profile, in a group, or on somebody
+   else's profile;
+2. its replies to other people's posts, and whatever was said under those
+   replies;
+3. **other people's replies to its posts**, which go with the posts;
+4. every like, follow, subscription, block and administrator role it had;
+5. every notification sent to it, or sent to others about it or its posts;
+6. its uploaded avatar, cover and photos, from object storage;
+7. its sign-in details, sessions, passkeys and sign-in history;
+8. the invitations it sent that nobody used, and the signup request it began
+   as, where signing up needed approval;
+9. the abuse reports it filed.
 
 The numbers other people see are counted again afterwards: the follower and
 following counts of everybody it was connected to, and the like, reply and
@@ -93,15 +93,15 @@ there are what will go.
 
 ## What a purge leaves
 
-- **A tombstone.** The account's row stays, with the handle and nothing else.
-  It is what keeps the handle from being registered again by somebody who
-  would then inherit the old account's mentions and followers.
-- **What the account started but does not own**: groups, hashtags and locations
-  it created. Other people are in the group and other posts carry the tag.
-- **The audit trail**: who deleted or purged what, and when
-  (`node_deletion_logs`), and the purge request, if a super administrator
-  asked for it (`purge_requests`).
-- **Abuse cases about it**, closed as `actioned`, `deleted`.
+1. **A tombstone.** The account's row stays, with the handle and nothing else.
+   It is what keeps the handle from being registered again by somebody who
+   would then inherit the old account's mentions and followers.
+2. **What the account started but does not own**: groups, hashtags and locations
+   it created. Other people are in the group and other posts carry the tag.
+3. **The audit trail**: who deleted or purged what, and when
+   (`node_deletion_logs`), and the purge request, if a super administrator
+   asked for it (`purge_requests`).
+4. **Abuse cases about it**, closed as `actioned`, `deleted`.
 
 ## Purging now
 
@@ -161,24 +161,24 @@ deleted account waits, since by the time those run out it may be too late.
 | `POST /people/:id/spam` | Removes a person as spam |
 | `POST /groups/:id/spam` | Removes a group as spam |
 
-- **Site administrators and super administrators** may, with no proof of
-  identity: the web app asks once more, saying it cannot be undone, and
-  spam is removed often and in a hurry.
-- **Never an administrator's or a super administrator's account,** nor the
-  viewer's own: refused with 409 `purge_refused`, `administrator` or
-  `yourself`, as a batch purge refuses them.
-- **Only a new account,** made in the last 30 days (`SPAM_REMOVAL_MAX_DAYS`):
-  spam is new, and one here longer is disabled or deleted instead, with the
-  30 days to bring it back (the user, 2026-10-19). An older one is refused
-  with `too_old`, and the web app offers the action only while it may.
-- **Recorded** in `node_deletion_logs` as `removed-as-spam` with who decided,
-  when it is asked for; the purge then writes its own rows (`purged`,
-  `hard-deleted`).
-- The answer, and how far it has got, are as for a purge (202 with a
-  `batch_id`).
-- In the web app: **Remove as spam** in the profile's menu, and on a report's
-  case, which is then closed as `removed_as_spam`
-  ([Abuse reports](abuse-reports.md#what-administrators-do)).
+1. **Site administrators and super administrators** may, with no proof of
+   identity: the web app asks once more, saying it cannot be undone, and
+   spam is removed often and in a hurry.
+2. **Never an administrator's or a super administrator's account,** nor the
+   viewer's own: refused with 409 `purge_refused`, `administrator` or
+   `yourself`, as a batch purge refuses them.
+3. **Only a new account,** made in the last 30 days (`SPAM_REMOVAL_MAX_DAYS`):
+   spam is new, and one here longer is disabled or deleted instead, with the
+   30 days to bring it back (the user, 2026-10-19). An older one is refused
+   with `too_old`, and the web app offers the action only while it may.
+4. **Recorded** in `node_deletion_logs` as `removed-as-spam` with who decided,
+   when it is asked for; the purge then writes its own rows (`purged`,
+   `hard-deleted`).
+5. The answer, and how far it has got, are as for a purge (202 with a
+   `batch_id`).
+6. In the web app: **Remove as spam** in the profile's menu, and on a report's
+   case, which is then closed as `removed_as_spam`
+   ([Abuse reports](abuse-reports.md#what-administrators-do)).
 
 ## The accounts list
 

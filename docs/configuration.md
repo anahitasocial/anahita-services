@@ -11,25 +11,25 @@ On Kubernetes the same variables go in an overlay's `config.env` and
 
 ## Contents
 
-- [Shared](#shared)
-- [Client addresses](#client-addresses)
-- [Internal calls](#internal-calls)
-- [Site identity](#site-identity)
-- [Rules and promises](#rules-and-promises)
-- [Registration](#registration)
-- [Privacy of the installation](#privacy-of-the-installation)
-- [First super administrator](#first-super-administrator)
-- [OAuth signing and encryption](#oauth-signing-and-encryption)
-- [Storage](#storage)
-- [Locations](#locations)
-- [Mail](#mail)
-- [Abuse reports](#abuse-reports)
-- [Account cleanup](#account-cleanup)
-- [Federation](#federation)
-- [The web shell](#the-web-shell)
-- [Photos](#photos)
-- [Video](#video)
-- [Download your data](#download-your-data)
+1. [Shared](#shared)
+2. [Client addresses](#client-addresses)
+3. [Internal calls](#internal-calls)
+4. [Site identity](#site-identity)
+5. [Rules and promises](#rules-and-promises)
+6. [Registration](#registration)
+7. [Privacy of the installation](#privacy-of-the-installation)
+8. [First super administrator](#first-super-administrator)
+9. [OAuth signing and encryption](#oauth-signing-and-encryption)
+10. [Storage](#storage)
+11. [Locations](#locations)
+12. [Mail](#mail)
+13. [Abuse reports](#abuse-reports)
+14. [Account cleanup](#account-cleanup)
+15. [Federation](#federation)
+16. [The web shell](#the-web-shell)
+17. [Photos](#photos)
+18. [Video](#video)
+19. [Download your data](#download-your-data)
 
 ## Shared
 
@@ -81,17 +81,17 @@ certificate authority. A caller without one is refused.
 | `GRPC_TLS` | all | `on` or `off`. Unset means `on`, except with `ENV=dev`. `docker-compose.yml` sets `on` |
 | `GRPC_TLS_DIR` | all | The directory holding `tls.crt`, `tls.key` and `ca.crt`. Default `/run/secrets/grpc` |
 
-- **In docker-compose** `scripts/grpc-certs-init.sh` makes a development
-  authority and one certificate in `./grpc-certs`, which every service
-  mounts. `make up` and `make up_build` run it.
-- **On Kubernetes** cert-manager issues a certificate per gRPC service and
-  one for the callers: see [Deploying](deploying.md#certificates-between-the-services).
-- **Renewal needs no restart.** A service looks at the files at most once a
-  minute and uses a replaced certificate or authority from then on.
-- **With `on` and no certificates,** a gRPC service refuses to start and a
-  caller refuses to call. Nothing falls back to plain text.
-- **`off`** is for an installation where a service mesh such as Linkerd
-  encrypts and authenticates these calls instead.
+1. **In docker-compose** `scripts/grpc-certs-init.sh` makes a development
+   authority and one certificate in `./grpc-certs`, which every service
+   mounts. `make up` and `make up_build` run it.
+2. **On Kubernetes** cert-manager issues a certificate per gRPC service and
+   one for the callers: see [Deploying](deploying.md#certificates-between-the-services).
+3. **Renewal needs no restart.** A service looks at the files at most once a
+   minute and uses a replaced certificate or authority from then on.
+4. **With `on` and no certificates,** a gRPC service refuses to start and a
+   caller refuses to call. Nothing falls back to plain text.
+5. **`off`** is for an installation where a service mesh such as Linkerd
+   encrypts and authenticates these calls instead.
 
 The server's certificate must name the host that was dialled, so the names in
 `FILE_SERVICE_ADDR`, `GRAPH_SERVICE_ADDR` and `MAIL_SERVICE_ADDR` have to be
@@ -160,24 +160,24 @@ the operator's, in a JSON file read by auth-service and served on
 }
 ```
 
-- **Every text carries its own translations,** by the web app's language
-  names. A language left out falls back to another of its own (`fr-CA` to
-  `fr-FR`), then to English, so a file may be written in one language.
-- **Raising the rules' `version` asks everybody to agree again.** A
-  correction that leaves it as it is asks nobody. A version is digits and
-  dots, up to three parts.
-- **`{{days}}`** is filled in with the days a deleted account can be brought
-  back (30), so a promise never says what the site does not do.
-- **At most ten rules and ten promises;** `"items": []` is a site with no
-  rules.
-- **It is read again when it changes,** without a restart. What it leaves
-  out is as it comes, and a file that cannot be understood is not taken:
-  the built-in one is used, and auth-service says so in its log. With
-  docker-compose, change the file in place: an editor that writes a new
-  file in its place is not seen through a mount of one file until the
-  container is started again.
-- The built-in file is `auth-service/about/default.json`, and
-  `auth-defaults/site.json` is the same; a test keeps them so.
+1. **Every text carries its own translations,** by the web app's language
+   names. A language left out falls back to another of its own (`fr-CA` to
+   `fr-FR`), then to English, so a file may be written in one language.
+2. **Raising the rules' `version` asks everybody to agree again.** A
+   correction that leaves it as it is asks nobody. A version is digits and
+   dots, up to three parts.
+3. **`{{days}}`** is filled in with the days a deleted account can be brought
+   back (30), so a promise never says what the site does not do.
+4. **At most ten rules and ten promises;** `"items": []` is a site with no
+   rules.
+5. **It is read again when it changes,** without a restart. What it leaves
+   out is as it comes, and a file that cannot be understood is not taken:
+   the built-in one is used, and auth-service says so in its log. With
+   docker-compose, change the file in place: an editor that writes a new
+   file in its place is not seen through a mount of one file until the
+   container is started again.
+6. The built-in file is `auth-service/about/default.json`, and
+   `auth-defaults/site.json` is the same; a test keeps them so.
 
 ## Registration
 

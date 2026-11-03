@@ -10,41 +10,41 @@ What each route answers when the viewer may not is in the [API reference](api/in
 
 ## Contents
 
-- [Two separate settings](#two-separate-settings)
-- [Access levels](#access-levels)
-- [A members-only installation](#a-members-only-installation)
-- [Who is always allowed](#who-is-always-allowed)
-- [Seeing posts](#seeing-posts)
-  - [Choosing who can see a post](#choosing-who-can-see-a-post)
-- [Posting](#posting)
-- [Replies](#replies)
-  - [Seeing a reply](#seeing-a-reply)
-  - [Replying](#replying)
-  - [Who the author lets reply](#who-the-author-lets-reply)
-  - [Who looks after a thread](#who-looks-after-a-thread)
-  - [Editing, deleting and hiding a reply](#editing-deleting-and-hiding-a-reply)
-  - [Replying as a website](#replying-as-a-website)
-  - [Liking a reply](#liking-a-reply)
-- [Likes](#likes)
-- [Following](#following)
-- [Invitations](#invitations)
-- [Events](#events)
-- [Reposts](#reposts)
-- [Mentions](#mentions)
-- [People in pictures and videos](#people-in-pictures-and-videos)
-- [Quotes](#quotes)
-- [Saved posts](#saved-posts)
-- [Pinned posts](#pinned-posts)
-- [Downloading photos and videos](#downloading-photos-and-videos)
-- [Custom feeds](#custom-feeds)
-- [Suggestions](#suggestions)
-- [Reporting](#reporting)
-- [Account types](#account-types)
-- [Removing accounts](#removing-accounts)
-- [The defaults](#the-defaults)
-- [What profile owners can change](#what-profile-owners-can-change)
-- [Accepted values](#accepted-values)
-- [Where the code is](#where-the-code-is)
+1. [Two separate settings](#two-separate-settings)
+2. [Access levels](#access-levels)
+3. [A members-only installation](#a-members-only-installation)
+4. [Who is always allowed](#who-is-always-allowed)
+5. [Seeing posts](#seeing-posts)
+   - [Choosing who can see a post](#choosing-who-can-see-a-post)
+6. [Posting](#posting)
+7. [Replies](#replies)
+   1. [Seeing a reply](#seeing-a-reply)
+   2. [Replying](#replying)
+   3. [Who the author lets reply](#who-the-author-lets-reply)
+   4. [Who looks after a thread](#who-looks-after-a-thread)
+   5. [Editing, deleting and hiding a reply](#editing-deleting-and-hiding-a-reply)
+   6. [Replying as a website](#replying-as-a-website)
+   7. [Liking a reply](#liking-a-reply)
+8. [Likes](#likes)
+9. [Following](#following)
+10. [Invitations](#invitations)
+11. [Events](#events)
+12. [Reposts](#reposts)
+13. [Mentions](#mentions)
+14. [People in pictures and videos](#people-in-pictures-and-videos)
+15. [Quotes](#quotes)
+16. [Saved posts](#saved-posts)
+17. [Pinned posts](#pinned-posts)
+18. [Downloading photos and videos](#downloading-photos-and-videos)
+19. [Custom feeds](#custom-feeds)
+20. [Suggestions](#suggestions)
+21. [Reporting](#reporting)
+22. [Account types](#account-types)
+23. [Removing accounts](#removing-accounts)
+24. [The defaults](#the-defaults)
+25. [What profile owners can change](#what-profile-owners-can-change)
+26. [Accepted values](#accepted-values)
+27. [Where the code is](#where-the-code-is)
 
 ## Two separate settings
 
@@ -300,25 +300,25 @@ A post carries who may reply to it, in `nodes.reply_access`, returned as
 The last three can be combined, joined by commas (`followers,mentioned`), and
 somebody in any one of them may reply.
 
-- **It narrows and never widens.** The profile's rule is applied first. In a
-  group that lets only its followers comment, being mentioned in a post does
-  not let somebody outside the group reply.
-- **Measured against the author, not the profile.** They are the same for a
-  post on its author's own profile. For a post in a group, `followers` are
-  the people who follow whoever wrote it, not the group's followers.
-- **The people who look after the thread (below) reply whatever is set.**
-  Closing a post is how they stop other people, not themselves.
-- **Set when the post is made** (`reply_access` beside `access`) **or
-  afterwards** with `PATCH /{articles,notes,topics,photos}/:id/reply-access`,
-  by whoever may edit the post. A value that is not one is refused with 400
-  `reply_access_invalid`; a reply answers 422 `reply_follows_its_thread`.
-- **The older switch**, `comment_status`, is kept in step: off is `nobody`,
-  and turning it on makes `nobody` `anyone`. A post closed before this
-  setting existed has no value stored and still reads as `nobody`.
-- **A post from another server** (the fediverse or Bluesky) can be replied
-  to here by anybody who can see it, and its `reply_access` reads `anyone`.
-  Who its author lets reply is their server's to hold to; nothing of it is
-  kept here.
+1. **It narrows and never widens.** The profile's rule is applied first. In a
+   group that lets only its followers comment, being mentioned in a post does
+   not let somebody outside the group reply.
+2. **Measured against the author, not the profile.** They are the same for a
+   post on its author's own profile. For a post in a group, `followers` are
+   the people who follow whoever wrote it, not the group's followers.
+3. **The people who look after the thread (below) reply whatever is set.**
+   Closing a post is how they stop other people, not themselves.
+4. **Set when the post is made** (`reply_access` beside `access`) **or
+   afterwards** with `PATCH /{articles,notes,topics,photos}/:id/reply-access`,
+   by whoever may edit the post. A value that is not one is refused with 400
+   `reply_access_invalid`; a reply answers 422 `reply_follows_its_thread`.
+5. **The older switch**, `comment_status`, is kept in step: off is `nobody`,
+   and turning it on makes `nobody` `anyone`. A post closed before this
+   setting existed has no value stored and still reads as `nobody`.
+6. **A post from another server** (the fediverse or Bluesky) can be replied
+   to here by anybody who can see it, and its `reply_access` reads `anyone`.
+   Who its author lets reply is their server's to hold to; nothing of it is
+   kept here.
 
 The rule is `permissions.CanReply`; the values are in
 `anahita-libs/constants/reply_access.go`. The thread says the answer for the
@@ -527,28 +527,28 @@ A post mentions a profile when it names it: by its `@handle`, or by its
 address on a line of its own, which shows its card. People, groups and
 events can be mentioned, here or on another server.
 
-- **actor-service keeps the mentions,** as `edge.tag.mention.v1` from the
-  profile to the post, each time a post is added or edited: it adds what is
-  newly named and takes away what is no longer. A person's own description
-  can name people too.
-- **A person chooses who may mention them,** under Settings › Permissions,
-  "Who can mention you?": the `mention` permission of `socialgraph-service`,
-  one of `registered` (anybody signed in, the default), `followers`,
-  `leaders` (people they follow), `mutuals` or `admins` ("Nobody", but
-  themselves). Somebody they block may not mention them either. A mention
-  that isn't allowed is no edge at all, and nobody is told; the `@handle`
-  stays in the text as written. Groups and events may always be mentioned.
-  The rule is `permissions.CanMention`.
-- **The person is told,** in their notifications, "mentioned you in a post"
-  or "in a reply" (`actor_mention`, `actor_mention_reply`), from the event
-  `edge.mention.actor-service.added.v1`. Only a person here, never for a
-  draft, never for naming themselves, and only when they may see the post,
-  so being named in a private group's post tells nobody outside it that the
-  post exists. A group or an event mentioned is told nothing. Taken out of
-  the post in an edit, the news of it goes
-  (`edge.mention.actor-service.deleted.v1`).
-- **A mention is not a citation.** A post naming a post cites it; naming a
-  profile mentions it (the user, 2026-10-17).
+1. **actor-service keeps the mentions,** as `edge.tag.mention.v1` from the
+   profile to the post, each time a post is added or edited: it adds what is
+   newly named and takes away what is no longer. A person's own description
+   can name people too.
+2. **A person chooses who may mention them,** under Settings › Permissions,
+   "Who can mention you?": the `mention` permission of `socialgraph-service`,
+   one of `registered` (anybody signed in, the default), `followers`,
+   `leaders` (people they follow), `mutuals` or `admins` ("Nobody", but
+   themselves). Somebody they block may not mention them either. A mention
+   that isn't allowed is no edge at all, and nobody is told; the `@handle`
+   stays in the text as written. Groups and events may always be mentioned.
+   The rule is `permissions.CanMention`.
+3. **The person is told,** in their notifications, "mentioned you in a post"
+   or "in a reply" (`actor_mention`, `actor_mention_reply`), from the event
+   `edge.mention.actor-service.added.v1`. Only a person here, never for a
+   draft, never for naming themselves, and only when they may see the post,
+   so being named in a private group's post tells nobody outside it that the
+   post exists. A group or an event mentioned is told nothing. Taken out of
+   the post in an edit, the news of it goes
+   (`edge.mention.actor-service.deleted.v1`).
+4. **A mention is not a citation.** A post naming a post cites it; naming a
+   profile mentions it (the user, 2026-10-17).
 
 ## People in pictures and videos
 
@@ -562,31 +562,31 @@ for you", but "this person is in it" (roadmap row 103).
 | `PUT /people/:id/tags/:post_id` | the person tagged | approves |
 | `DELETE /people/:id/tags/:post_id` | the person tagged, or the post's author | declines, or takes them out |
 
-- **actor-service keeps the tags,** as `edge.tag.person.v1` from the
-  person to the post, its `meta` `pending` or `approved`. Only a photo or a
-  video, at most 20 people in one.
-- **A person chooses who may tag them,** under Settings › Permissions,
-  "Who can tag you in photos and videos?": the `tag` permission of
-  `socialgraph-service`, one of `registered` ("Anyone signed in", at once),
-  `approve` ("Approve each first", the default) or `admins` ("Nobody", but
-  themselves). Somebody
-  they block may not tag them. The rule is `permissions.TagDecision`.
-- **Only a person here may be tagged.** Somebody on another server cannot
-  approve a tag here, and approval comes first.
-- **A tag waiting is seen by the two of them only,** the person and the
-  post's author; nothing else reads it as a tag.
-- **Where tags show:** the person's **Tagged** list (`GET
-  /feeds/actor/:id/?filter=tagged`), search (a photo or a video is found by
-  the name or handle of somebody in it, and lifts what is pictured with
-  whom the searcher follows), and the fediverse, as a `Mention`
-  ([Federation](federation.md)), and Who to follow: "In photos with you"
-  and "In photos with people you follow" ([Recommendations](recommendations.md#why-somebody-is-suggested)),
-  from public posts only, never naming who or which photo. Recommendations
-  read no mentions.
-- **Events:** `edge.tag.actor-service.requested.v1` for a tag waiting,
-  `added.v1` for one made or approved, `deleted.v1` for one taken off; the
-  subject is the post's author, the object the post, the target the
-  person.
+1. **actor-service keeps the tags,** as `edge.tag.person.v1` from the
+   person to the post, its `meta` `pending` or `approved`. Only a photo or a
+   video, at most 20 people in one.
+2. **A person chooses who may tag them,** under Settings › Permissions,
+   "Who can tag you in photos and videos?": the `tag` permission of
+   `socialgraph-service`, one of `registered` ("Anyone signed in", at once),
+   `approve` ("Approve each first", the default) or `admins` ("Nobody", but
+   themselves). Somebody
+   they block may not tag them. The rule is `permissions.TagDecision`.
+3. **Only a person here may be tagged.** Somebody on another server cannot
+   approve a tag here, and approval comes first.
+4. **A tag waiting is seen by the two of them only,** the person and the
+   post's author; nothing else reads it as a tag.
+5. **Where tags show:** the person's **Tagged** list (`GET
+   /feeds/actor/:id/?filter=tagged`), search (a photo or a video is found by
+   the name or handle of somebody in it, and lifts what is pictured with
+   whom the searcher follows), and the fediverse, as a `Mention`
+   ([Federation](federation.md)), and Who to follow: "In photos with you"
+   and "In photos with people you follow" ([Recommendations](recommendations.md#why-somebody-is-suggested)),
+   from public posts only, never naming who or which photo. Recommendations
+   read no mentions.
+6. **Events:** `edge.tag.actor-service.requested.v1` for a tag waiting,
+   `added.v1` for one made or approved, `deleted.v1` for one taken off; the
+   subject is the post's author, the object the post, the target the
+   person.
 
 ## Quotes
 
@@ -602,13 +602,13 @@ else's words, so **the person quoted keeps the say**.
 
 Somebody signed in, who can see the post, when:
 
-- **it is a post at the top level and still there.** Not a reply, which
-  belongs to its thread, and not a repost;
-- **it is public**, on a profile that is public or for members. A note quoting
-  a post with a narrower audience would be one most of its readers could not
-  see the point of;
-- **its author has not blocked them**;
-- **the post's quote policy lets them**:
+1. **it is a post at the top level and still there.** Not a reply, which
+   belongs to its thread, and not a repost;
+2. **it is public**, on a profile that is public or for members. A note quoting
+   a post with a narrower audience would be one most of its readers could not
+   see the point of;
+3. **its author has not blocked them**;
+4. **the post's quote policy lets them**:
 
 | Policy | Who can quote |
 | --- | --- |
@@ -679,20 +679,20 @@ A post can be pinned to the profile it is on. It then comes first in that
 profile's posts, and first in the profile's list of its kind (notes, photos
 and so on), marked as pinned.
 
-- **A profile has one pin.** Pinning another post moves the pin to it: the
-  post that had it gives it up. One is also exactly what Bluesky has, so a
-  pin here will be a pin there with nothing left over.
-- **The pin is the profile's, not the post's.** It is set by whoever the
-  profile belongs to: a person on their own profile, and a group's
-  administrators in the group; and site administrators, who may change any
-  post. The author of a post in a group they do not run can edit and remove
-  their post, and cannot pin it.
-- **Offered in feeds to whoever runs the profile.** Feeds and lists offer Pin
-  to the profile and its administrators only; a site administrator pins from
-  the post's own page (`permissions.RunsProfile`).
-- **Only a post at the top level.** A reply is read in its thread.
-- **It changes the order and nothing else.** A pinned post is seen by exactly
-  the people who could see it anyway.
+1. **A profile has one pin.** Pinning another post moves the pin to it: the
+   post that had it gives it up. One is also exactly what Bluesky has, so a
+   pin here will be a pin there with nothing left over.
+2. **The pin is the profile's, not the post's.** It is set by whoever the
+   profile belongs to: a person on their own profile, and a group's
+   administrators in the group; and site administrators, who may change any
+   post. The author of a post in a group they do not run can edit and remove
+   their post, and cannot pin it.
+3. **Offered in feeds to whoever runs the profile.** Feeds and lists offer Pin
+   to the profile and its administrators only; a site administrator pins from
+   the post's own page (`permissions.RunsProfile`).
+4. **Only a post at the top level.** A reply is read in its thread.
+5. **It changes the order and nothing else.** A pinned post is seen by exactly
+   the people who could see it anyway.
 
 `PUT` and `DELETE /{articles,notes,topics,photos}/<id>/pin`. The rule is
 `permissions.CanPin`, and a post says whether the viewer may in
@@ -725,20 +725,20 @@ by whoever may edit the profile. See [Photo posts](photos.md#downloading).
 A custom feed is its maker's, and has an audience of its own. See
 [feeds.md](feeds.md) for what a feed is made of.
 
-- **Who may see a feed** is its `access`: `myself` unless its owner says
-  otherwise, or `followers`, `registered` or `public`. It is judged as a post
-  is, by its own access and its owner's, and a block either way hides it. One
-  that may not be seen is answered as if it were not there.
-- **What a reader sees in a feed** is decided for the reader, and never for
-  the feed's owner. Whatever a feed selects goes through the gate every feed
-  uses. A public feed built on a private group shows that group's posts to
-  its followers alone. A feed never widens what anybody may see.
-- **Whoever may see a feed** may read it, copy it, and keep it on their home
-  page. Its owner, and site administrators, may change and delete it.
-- **Making and changing one** needs somebody signed in, with the
-  `media:write` scope. A person owns 10 at most.
-- **No new public feed** on an installation that takes no new public content
-  (`MIN_CONTENT_ACCESS`). One that was public already may stay so.
+1. **Who may see a feed** is its `access`: `myself` unless its owner says
+   otherwise, or `followers`, `registered` or `public`. It is judged as a post
+   is, by its own access and its owner's, and a block either way hides it. One
+   that may not be seen is answered as if it were not there.
+2. **What a reader sees in a feed** is decided for the reader, and never for
+   the feed's owner. Whatever a feed selects goes through the gate every feed
+   uses. A public feed built on a private group shows that group's posts to
+   its followers alone. A feed never widens what anybody may see.
+3. **Whoever may see a feed** may read it, copy it, and keep it on their home
+   page. Its owner, and site administrators, may change and delete it.
+4. **Making and changing one** needs somebody signed in, with the
+   `media:write` scope. A person owns 10 at most.
+5. **No new public feed** on an installation that takes no new public content
+   (`MIN_CONTENT_ACCESS`). One that was public already may stay so.
 
 ## Suggestions
 

@@ -9,17 +9,17 @@ settings and Mastodon's content warnings. Not built.
 
 ## Contents
 
-- [Why](#why)
-- [What the networks do](#what-the-networks-do)
-- [The kinds](#the-kinds)
-- [What an author does](#what-an-author-does)
-- [What a reader chooses](#what-a-reader-chooses)
-- [What a post looks like](#what-a-post-looks-like)
-- [When a moderator adds one](#when-a-moderator-adds-one)
-- [Federation](#federation)
-- [Storage and the API](#storage-and-the-api)
-- [Out of scope](#out-of-scope)
-- [Phases](#phases)
+1. [Why](#why)
+2. [What the networks do](#what-the-networks-do)
+3. [The kinds](#the-kinds)
+4. [What an author does](#what-an-author-does)
+5. [What a reader chooses](#what-a-reader-chooses)
+6. [What a post looks like](#what-a-post-looks-like)
+7. [When a moderator adds one](#when-a-moderator-adds-one)
+8. [Federation](#federation)
+9. [Storage and the API](#storage-and-the-api)
+10. [Out of scope](#out-of-scope)
+11. [Phases](#phases)
 
 ## Why
 
@@ -131,27 +131,27 @@ none.
 
 ## Storage and the API
 
-- Two columns on `nodes`, for a medium: `warning` (one of the five keys, or
-  empty) and `warning_text` (up to 100 characters, for `other`), and
-  `warning_by_moderator`. One migration, in `init.sql` and `upgrade.sql` too.
-- Sent with every post as `warning: { kind, text, by_moderator }`, or no
-  `warning`.
-- Taken when a post is made or changed as `warning` and `warning_text`,
-  refused (`warning_not_allowed`) when a moderator's warning would be taken
-  off by its author.
-- The reader's choices in their settings, as their other choices are kept:
-  `GET` and `PATCH /people/:id/content-preferences`, `{ adult: "warn", … }`.
-- `POST /abuse-reports/cases/:id/warn` `{ kind, text }`, and the same on a
-  post for an administrator.
+1. Two columns on `nodes`, for a medium: `warning` (one of the five keys, or
+   empty) and `warning_text` (up to 100 characters, for `other`), and
+   `warning_by_moderator`. One migration, in `init.sql` and `upgrade.sql` too.
+2. Sent with every post as `warning: { kind, text, by_moderator }`, or no
+   `warning`.
+3. Taken when a post is made or changed as `warning` and `warning_text`,
+   refused (`warning_not_allowed`) when a moderator's warning would be taken
+   off by its author.
+4. The reader's choices in their settings, as their other choices are kept:
+   `GET` and `PATCH /people/:id/content-preferences`, `{ adult: "warn", … }`.
+5. `POST /abuse-reports/cases/:id/warn` `{ kind, text }`, and the same on a
+   post for an administrator.
 
 ## Out of scope
 
-- A site that hides adult content from visitors, or from everybody: the
-  operator's choice, if one asks for it.
-- Profiles marked as a whole, and their pictures and covers.
-- A reader's own words to be warned of, as Mastodon's filters are.
-- Labels from Bluesky's labellers on other people's posts.
-- Guessing a kind from a warning's words coming in.
+1. A site that hides adult content from visitors, or from everybody: the
+   operator's choice, if one asks for it.
+2. Profiles marked as a whole, and their pictures and covers.
+3. A reader's own words to be warned of, as Mastodon's filters are.
+4. Labels from Bluesky's labellers on other people's posts.
+5. Guessing a kind from a warning's words coming in.
 
 ## Phases
 

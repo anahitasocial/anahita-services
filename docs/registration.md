@@ -10,18 +10,18 @@ Its routes are in the API reference: [auth-service](api/index.html#auth-service)
 
 ## Contents
 
-- [Where it happens](#where-it-happens)
-- [Registration modes](#registration-modes)
-- [What signup asks for](#what-signup-asks-for)
-- [Email verification](#email-verification)
-- [Invitations](#invitations)
-- [The approval queue](#the-approval-queue)
-- [Protection against bots](#protection-against-bots)
-- [Terms of Service and Privacy Policy](#terms-of-service-and-privacy-policy)
-- [Onboarding](#onboarding)
-- [NodeInfo](#nodeinfo)
-- [The first super administrator](#the-first-super-administrator)
-- [Where the code is](#where-the-code-is)
+1. [Where it happens](#where-it-happens)
+2. [Registration modes](#registration-modes)
+3. [What signup asks for](#what-signup-asks-for)
+4. [Email verification](#email-verification)
+5. [Invitations](#invitations)
+6. [The approval queue](#the-approval-queue)
+7. [Protection against bots](#protection-against-bots)
+8. [Terms of Service and Privacy Policy](#terms-of-service-and-privacy-policy)
+9. [Onboarding](#onboarding)
+10. [NodeInfo](#nodeinfo)
+11. [The first super administrator](#the-first-super-administrator)
+12. [Where the code is](#where-the-code-is)
 
 ## Where it happens
 
@@ -65,14 +65,14 @@ suspends invitations already sent.
 | Bio | — | — | required |
 | Website | — | — | required |
 
-- Passwords are at least 15 characters.
-- Usernames are 3–30 letters, numbers, `_` or `-` (Mastodon's 30), and
-  share one namespace with every other profile, groups included.
-- In `approval` mode the extra fields are the request: an administrator
-  cannot decide on an email address alone.
-- A display name is optional everywhere. An empty one displays as the username.
-- Avatar, bio and pronouns for everyone else are for onboarding, after signing
-  in.
+1. Passwords are at least 15 characters.
+2. Usernames are 3–30 letters, numbers, `_` or `-` (Mastodon's 30), and
+   share one namespace with every other profile, groups included.
+3. In `approval` mode the extra fields are the request: an administrator
+   cannot decide on an email address alone.
+4. A display name is optional everywhere. An empty one displays as the username.
+5. Avatar, bio and pronouns for everyone else are for onboarding, after signing
+   in.
 
 ## Email verification
 
@@ -152,14 +152,14 @@ under Signup requests.
 
 There is no CAPTCHA. The signup form uses:
 
-- **A honeypot field**, hidden from people. A submission that fills it in is
-  shown a success page and nothing is created.
-- **A minimum fill time.** A form submitted less than 2 seconds after it was
-  rendered is refused.
-- **A CSRF token** bound to the session, used once per submission.
-- **Rate limits** per source: 3 accounts an hour from one IP address, 10 an
-  hour from one network (`/24` for IPv4, `/64` for IPv6), and 3 confirmation
-  emails an hour to one address.
+1. **A honeypot field**, hidden from people. A submission that fills it in is
+   shown a success page and nothing is created.
+2. **A minimum fill time.** A form submitted less than 2 seconds after it was
+   rendered is refused.
+3. **A CSRF token** bound to the session, used once per submission.
+4. **Rate limits** per source: 3 accounts an hour from one IP address, 10 an
+   hour from one network (`/24` for IPv4, `/64` for IPv6), and 3 confirmation
+   emails an hour to one address.
 
 ## Terms of Service and Privacy Policy
 
@@ -167,18 +167,18 @@ Agreements are not collected at signup. They are checked **every time somebody
 uses the web app**, so a revised document asks everyone again, new members and
 existing ones alike.
 
-- **The text** lives in the web app, in `src/statics/legal/`.
-- **The versions** live beside it, in `src/statics/legal/index.js`. Raising a
-  version is how a revision is published.
-- When either version is ahead of what a signed-in person accepted, the web app
-  sends them to `/agreements` before anything else. The legal pages and
-  support stay reachable.
-- Accepting calls `PATCH /agreements/tos` or `PATCH /agreements/privacy` for the
-  signed-in person. auth-service records the version together with the time,
-  IP address, user agent and operating system, which it takes from the request.
-- `TOS_URL` and `PRIVACY_URL` tell auth-service where the documents can be read,
-  for links on its own pages. They default to `/legal/tos` and `/legal/privacy`
-  on the web app.
+1. **The text** lives in the web app, in `src/statics/legal/`.
+2. **The versions** live beside it, in `src/statics/legal/index.js`. Raising a
+   version is how a revision is published.
+3. When either version is ahead of what a signed-in person accepted, the web app
+   sends them to `/agreements` before anything else. The legal pages and
+   support stay reachable.
+4. Accepting calls `PATCH /agreements/tos` or `PATCH /agreements/privacy` for the
+   signed-in person. auth-service records the version together with the time,
+   IP address, user agent and operating system, which it takes from the request.
+5. `TOS_URL` and `PRIVACY_URL` tell auth-service where the documents can be read,
+   for links on its own pages. They default to `/legal/tos` and `/legal/privacy`
+   on the web app.
 
 This is enforced by the web app's interface, not the API.
 
@@ -188,38 +188,38 @@ Everybody ticks the site's rules before their account is made, on the page
 auth-service shows for it, and again in the web app when their version is
 raised (roadmap row 102):
 
-- **Where an account is made:** open sign-up and a sign-up request
-  (`/signup`) and an invitation's acceptance (`/invites/accept`). A
-  plain checklist, a box for each rule, numbered when there are more than
-  three, and the form refused (`Tick each of
-  our rules to agree to it.`) unless every box is ticked at the version the
-  site has now. The account is made with the agreement recorded; a request
-  keeps the version it agreed to (`signup_requests.rules_accepted_version`)
-  until it is approved, and the account gets it then, with where the request
-  came from.
-- **Whoever installs Anahita**, its first super administrator, makes a
-  promise instead, on the set-password page the boot log's link opens,
-  whatever the site's rules and `SITE_RULES` say: "Anahita is built to create
-  safe online spaces…", then "I won't use Anahita to:" and six things, each
-  ticked. A promise to the people who will trust them, not a licence: it
-  binds nobody in law, and Anahita's licences are unchanged. Its words are
-  Anahita's creator's, written in the code (`auth-service/about/pledge.go`),
-  not in `site.json`, so no configuration changes them. The boot log prints
-  it beside the link, and auth-service logs who made it, when and from where.
-  The site's own rules come to them afterwards in the web app, as to anybody.
-- **After that,** a raised version sends people to `/rules` in the web app,
-  after the Terms and the Privacy Policy, ticked one at a time.
+1. **Where an account is made:** open sign-up and a sign-up request
+   (`/signup`) and an invitation's acceptance (`/invites/accept`). A
+   plain checklist, a box for each rule, numbered when there are more than
+   three, and the form refused (`Tick each of
+   our rules to agree to it.`) unless every box is ticked at the version the
+   site has now. The account is made with the agreement recorded; a request
+   keeps the version it agreed to (`signup_requests.rules_accepted_version`)
+   until it is approved, and the account gets it then, with where the request
+   came from.
+2. **Whoever installs Anahita**, its first super administrator, makes a
+   promise instead, on the set-password page the boot log's link opens,
+   whatever the site's rules and `SITE_RULES` say: "Anahita is built to create
+   safe online spaces…", then "I won't use Anahita to:" and six things, each
+   ticked. A promise to the people who will trust them, not a licence: it
+   binds nobody in law, and Anahita's licences are unchanged. Its words are
+   Anahita's creator's, written in the code (`auth-service/about/pledge.go`),
+   not in `site.json`, so no configuration changes them. The boot log prints
+   it beside the link, and auth-service logs who made it, when and from where.
+   The site's own rules come to them afterwards in the web app, as to anybody.
+3. **After that,** a raised version sends people to `/rules` in the web app,
+   after the Terms and the Privacy Policy, ticked one at a time.
 
-- **The rules and their version** are the server's, in `site.json`
-  ([Rules and promises](configuration.md#rules-and-promises)), served on
-  `GET /site`.
-- Agreeing calls `PATCH /agreements/rules` with the version `GET /site` has
-  now; any other is refused (409, `version_not_current`). It is recorded as the
-  Terms are, in `auth_accounts.rules_accepted_*`, and the version agreed to is
-  the `rules_agreement` claim of `/oauth/userinfo`.
-- **`SITE_RULES=off`** asks nobody but a super administrator who has never
-  agreed, once: a reminder of what Anahita is not for. NodeInfo says which as
-  `metadata.siteRules`.
+4. **The rules and their version** are the server's, in `site.json`
+   ([Rules and promises](configuration.md#rules-and-promises)), served on
+   `GET /site`.
+5. Agreeing calls `PATCH /agreements/rules` with the version `GET /site` has
+   now; any other is refused (409, `version_not_current`). It is recorded as the
+   Terms are, in `auth_accounts.rules_accepted_*`, and the version agreed to is
+   the `rules_agreement` claim of `/oauth/userinfo`.
+6. **`SITE_RULES=off`** asks nobody but a super administrator who has never
+   agreed, once: a reminder of what Anahita is not for. NodeInfo says which as
+   `metadata.siteRules`.
 
 ## Onboarding
 
@@ -228,17 +228,17 @@ agreements, the web app walks a signed-in person with an incomplete profile
 through adding an avatar, a display name, a bio and pronouns. Existing members
 with an empty profile get the same walk-through on their next sign-in.
 
-- **Whether they have been through it** is `auth_accounts.onboarded_at`. It is
-  set when the person reaches the dashboard through the flow, whether they
-  completed the steps or skipped them, and only once: a profile that later
-  becomes incomplete does not send them back.
-- **Whether the profile is incomplete** is read from `/oauth/userinfo`, under
-  the `profile` scope: `avatar_urls` is absent when there is no avatar, and
-  `has_bio` is false when the bio is empty or only whitespace.
-- **`onboarded_at`** is also on userinfo — the timestamp, or `null`.
-- Finishing calls `PATCH /onboarding` for the signed-in person, with no body.
-  It answers `200` with `{ "onboarded_at": "<timestamp>" }`, and a second call
-  keeps the first date.
+1. **Whether they have been through it** is `auth_accounts.onboarded_at`. It is
+   set when the person reaches the dashboard through the flow, whether they
+   completed the steps or skipped them, and only once: a profile that later
+   becomes incomplete does not send them back.
+2. **Whether the profile is incomplete** is read from `/oauth/userinfo`, under
+   the `profile` scope: `avatar_urls` is absent when there is no avatar, and
+   `has_bio` is false when the bio is empty or only whitespace.
+3. **`onboarded_at`** is also on userinfo — the timestamp, or `null`.
+4. Finishing calls `PATCH /onboarding` for the signed-in person, with no body.
+   It answers `200` with `{ "onboarded_at": "<timestamp>" }`, and a second call
+   keeps the first date.
 
 **Who invited them** is `auth_accounts.invited_by`. It is written when an
 invitation is accepted, from the invitation, and when a signup request a member
@@ -283,27 +283,27 @@ auth-service publishes [NodeInfo 2.1](https://nodeinfo.diaspora.software/) at
 `/.well-known/nodeinfo` and `/nodeinfo/2.1`. It is the standard other fediverse
 servers read, and the web app reads it too.
 
-- `protocols` — what the installation speaks to other servers: `activitypub`
-  when its operator says that service is running (`FEDERATION_PROTOCOLS`),
-  and nothing on a site that is not open to read. See
-  [Federation](federation.md#setting-it-up).
-- `metadata.networks` — the networks the site takes part in, from the same
-  setting: `activitypub`, `atproto`, or both. The web app's front page says
-  from it that the site is on Mastodon and Bluesky.
-- `openRegistrations` — true in `open` and `approval`. The web app shows its
-  "Create account" button from this.
-- `metadata` — `nodeName`, `registrationMode`, `approvalRequired`,
-  `invitationsAccepted`, `termsOfServiceUrl`, `privacyPolicyUrl`,
-  `supportEmail`, `supportPhone`, `supportWebsite` and `nodeDescription`.
-  Also `invitesFrom`, `groupsFrom`, `eventsFrom` and `locationsFrom`, the
-  least role that may invite, create a group, create an event or add a
-  location; `photoMaxFiles`, the most
-  pictures in one post; `videoUploads`, `videoMaxBytes` and
-  `videoMaxSeconds`, whether videos may be posted and how big; and
-  `readAccess`, `public`, `preview` or `registered`: what somebody who is not
-  signed in may read, and `minContentAccess`, the widest audience anything new may be
-  given (see
-  [Privacy](privacy.md#what-the-installation-allows)).
+1. `protocols` — what the installation speaks to other servers: `activitypub`
+   when its operator says that service is running (`FEDERATION_PROTOCOLS`),
+   and nothing on a site that is not open to read. See
+   [Federation](federation.md#setting-it-up).
+2. `metadata.networks` — the networks the site takes part in, from the same
+   setting: `activitypub`, `atproto`, or both. The web app's front page says
+   from it that the site is on Mastodon and Bluesky.
+3. `openRegistrations` — true in `open` and `approval`. The web app shows its
+   "Create account" button from this.
+4. `metadata` — `nodeName`, `registrationMode`, `approvalRequired`,
+   `invitationsAccepted`, `termsOfServiceUrl`, `privacyPolicyUrl`,
+   `supportEmail`, `supportPhone`, `supportWebsite` and `nodeDescription`.
+   Also `invitesFrom`, `groupsFrom`, `eventsFrom` and `locationsFrom`, the
+   least role that may invite, create a group, create an event or add a
+   location; `photoMaxFiles`, the most
+   pictures in one post; `videoUploads`, `videoMaxBytes` and
+   `videoMaxSeconds`, whether videos may be posted and how big; and
+   `readAccess`, `public`, `preview` or `registered`: what somebody who is not
+   signed in may read, and `minContentAccess`, the widest audience anything new may be
+   given (see
+   [Privacy](privacy.md#what-the-installation-allows)).
 
 ## The first super administrator
 

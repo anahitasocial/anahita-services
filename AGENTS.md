@@ -5,10 +5,10 @@ leaving Meta and X, on ActivityPub and the AT Protocol. This file is for
 anybody changing the code, a person or an agent. It holds only what the
 code cannot tell you; everything else is in the docs.
 
-- Website: <https://www.anahita.io>
-- Founder & Core Architect: Rastin Mehr
-- Maintained and developed by rmd Studio, <https://www.rmdstudio.com>
-- Commercial inquiries: <https://www.rmdstudio.com/contact>
+1. Website: <https://www.anahita.io>
+2. Founder & Core Architect: Rastin Mehr
+3. Maintained and developed by rmd Studio, <https://www.rmdstudio.com>
+4. Commercial inquiries: <https://www.rmdstudio.com/contact>
 
 ## Where to begin
 
@@ -31,7 +31,7 @@ starting one, and keep the plan's status up to date as work lands.
 | `make up_build` | Builds and starts the whole stack. Use it after a change to `anahita-libs`, the node entity or a `.proto`, not single services |
 | `make <service>` | Rebuilds and restarts one service (`make graph`, `make auth`, …) |
 | `make test` | Every module's tests, the order check of `legacy/upgrade.sql`, `make docs_check`, and `make schema_test` (needs Docker) |
-| `make docs_check` | Every link between the docs, and every `#heading`, leads somewhere |
+| `make docs_check` | Every link between the docs, and every `#heading`, leads somewhere; no list of more than three bullets |
 | `make api_docs` | Writes the API reference again; commit it with any change to a route or to what it takes or sends |
 
 Tests that need a database run only when given one, through a
@@ -73,63 +73,66 @@ and places.
 
 ## Code
 
-- Raw SQL is for people to read: each query a named constant, one clause a
-  line, one column a line when there are several, a short comment on
-  anything not obvious. Squirrel: one builder call a line.
-- A date with a time ends in `_at`; a date alone in `_on`.
-- Live sites run on Kubernetes; docker-compose is for development.
-- In zsh, write `"${var}:latest"`, not `$var:latest` (`:l` is a modifier).
+1. Raw SQL is for people to read: each query a named constant, one clause a
+   line, one column a line when there are several, a short comment on
+   anything not obvious. Squirrel: one builder call a line.
+2. A date with a time ends in `_at`; a date alone in `_on`.
+3. Live sites run on Kubernetes; docker-compose is for development.
+4. In zsh, write `"${var}:latest"`, not `$var:latest` (`:l` is a modifier).
 
 ## Product principles
 
-- Fediverse first: ActivityPub and AT Protocol natively; nothing that does
-  not federate sensibly. Federation is opt-in for each profile: sharing is
-  consented to, never assumed.
-- Sovereignty: S3-compatible storage only, never the local filesystem; no
-  service only one cloud has; offline tools where possible.
-- An optional feature is a separate, swappable service behind a small
-  contract.
-- The default feed is chronological. There is no site-wide "For You"; a
-  ranked feed is one a person makes, and is always called a **custom feed**.
-- Nobody is tracked: no profile analytics, share counts or viewer lists.
-- Old and useful counts as much as new: nothing is pushed down only for
-  being old, and how fast the past fades is the operator's choice.
-- The breadth (groups, events, articles, custom feeds) is the product, for
-  schools, newsrooms, libraries, research groups and non-profits.
-- Email is off unless a person turns it on. A notification is marked sent
-  before its email goes; a failed send never resends the batch; mail has a
-  site-wide off switch.
+1. Fediverse first: ActivityPub and AT Protocol natively; nothing that does
+   not federate sensibly. Federation is opt-in for each profile: sharing is
+   consented to, never assumed.
+2. Sovereignty: S3-compatible storage only, never the local filesystem; no
+   service only one cloud has; offline tools where possible.
+3. An optional feature is a separate, swappable service behind a small
+   contract.
+4. The default feed is chronological. There is no site-wide "For You"; a
+   ranked feed is one a person makes, and is always called a **custom feed**.
+5. Nobody is tracked: no profile analytics, share counts or viewer lists.
+6. Old and useful counts as much as new: nothing is pushed down only for
+   being old, and how fast the past fades is the operator's choice.
+7. The breadth (groups, events, articles, custom feeds) is the product, for
+   schools, newsrooms, libraries, research groups and non-profits.
+8. Email is off unless a person turns it on. A notification is marked sent
+   before its email goes; a failed send never resends the batch; mail has a
+   site-wide off switch.
 
 ## Wording, in anything people read
 
-- A group has **followers**, never members. "Member" is somebody with an
-  account on the site.
-- **Location**, as Instagram has it, for a place posts are tagged with; "Place"
-  only for the ActivityStreams type a post from elsewhere carries.
-- **Profile**, not "actor" or "account". "Actor" is the code's word;
-  "account" is for signing in.
-- **Account type** for registered, administrator or super administrator,
-  never "user type", "person type" or "role"; `person_type` is the code's
-  word.
-- **+ Follow**, with no name after it: no "Follow #tag". **+ Follow back**
-  for somebody who follows the viewer already.
-- Action labels name no entity: "Delete", not "Delete reply", unless two
-  actions in one menu would otherwise read the same.
-- Releases are **Embryo** (the main branch) and **Birth** (a tagged
-  release), not alpha and beta.
+1. A group has **followers**, never members. "Member" is somebody with an
+   account on the site.
+2. **Location**, as Instagram has it, for a place posts are tagged with; "Place"
+   only for the ActivityStreams type a post from elsewhere carries.
+3. **Profile**, not "actor" or "account". "Actor" is the code's word;
+   "account" is for signing in.
+4. **Account type** for registered, administrator or super administrator,
+   never "user type", "person type" or "role"; `person_type` is the code's
+   word.
+5. **+ Follow**, with no name after it: no "Follow #tag". **+ Follow back**
+   for somebody who follows the viewer already.
+6. Action labels name no entity: "Delete", not "Delete reply", unless two
+   actions in one menu would otherwise read the same.
+7. Releases are **Embryo** (the main branch) and **Birth** (a tagged
+   release), not alpha and beta.
 
 ## Docs
 
-- One set of docs, for people and agents alike: descriptive, plain and
-  current. The same word for the same thing every time; exact paths,
-  settings, endpoints and defaults, in tables where there are several.
-- A phase is not finished until its docs match the code. A finished plan
-  moves to `docs/plans/done/` in the same commit, with every link to it
-  fixed.
-- When a feature, a setting or an endpoint changes, grep the docs of both
-  repositories for its name and change every page that says it. Remove "not
-  built" the day it is built.
-- A renamed heading breaks the links to it: `make docs_check` names them.
+1. One set of docs, for people and agents alike: descriptive, plain and
+   current. The same word for the same thing every time; exact paths,
+   settings, endpoints and defaults, in tables where there are several.
+2. A phase is not finished until its docs match the code. A finished plan
+   moves to `docs/plans/done/` in the same commit, with every link to it
+   fixed.
+3. When a feature, a setting or an endpoint changes, grep the docs of both
+   repositories for its name and change every page that says it. Remove "not
+   built" the day it is built.
+4. A renamed heading breaks the links to it: `make docs_check` names them.
+5. A list of more than three items is numbered, so that one can be pointed
+   to ("item 4"); three or fewer are bullets. `make docs_check` names a list
+   that is not, and `python3 scripts/check_docs_lists.py --fix` numbers it.
 
 ## Commits and branches
 

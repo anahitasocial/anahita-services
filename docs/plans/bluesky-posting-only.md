@@ -51,16 +51,16 @@ it. Removing one that posts only touches nothing else.
 
 ## How
 
-- `atproto_accounts`: a column `posts_only` (0 or 1), and the unique key on
-  `did` kept for the first connection only, through a generated column that
-  holds the `did` where `posts_only` is 0 and NULL where it is 1.
-- `WhoConnected(did)` and `Shadowed()` read only the first connection;
-  `Working()`, what is read as, leaves out those posting only.
-- `PUT /atproto/settings` (connecting): where the account is connected
-  already by the viewer's own profile, the connection is made posting only
-  rather than refused, and its answer says so (`posts_only: true`).
-- Writing: unchanged. Each profile's posts are written with its own
-  connection.
+1. `atproto_accounts`: a column `posts_only` (0 or 1), and the unique key on
+   `did` kept for the first connection only, through a generated column that
+   holds the `did` where `posts_only` is 0 and NULL where it is 1.
+2. `WhoConnected(did)` and `Shadowed()` read only the first connection;
+   `Working()`, what is read as, leaves out those posting only.
+3. `PUT /atproto/settings` (connecting): where the account is connected
+   already by the viewer's own profile, the connection is made posting only
+   rather than refused, and its answer says so (`posts_only: true`).
+4. Writing: unchanged. Each profile's posts are written with its own
+   connection.
 
 ## In the web app
 
@@ -72,13 +72,13 @@ card says "Posting to @handle" rather than "Connected as @handle".
 
 ## Tests
 
-- A second profile of the same person connects as posting only; anybody
-  else's is still refused.
-- Its posts are written with its own token; a post made in Bluesky's app is
-  kept for the first profile only.
-- A reply on Bluesky to a post the second profile sent is put under it.
-- Removing the first connection ends the second; removing the second leaves
-  the first.
+1. A second profile of the same person connects as posting only; anybody
+   else's is still refused.
+2. Its posts are written with its own token; a post made in Bluesky's app is
+   kept for the first profile only.
+3. A reply on Bluesky to a post the second profile sent is put under it.
+4. Removing the first connection ends the second; removing the second leaves
+   the first.
 
 ## Documentation
 

@@ -9,24 +9,24 @@ The routes that take a language are in the API reference: [text-service](api/ind
 
 ## Contents
 
-- [What it is for](#what-it-is-for)
-- [The tags](#the-tags)
-- [On a post](#on-a-post)
-- [On a person](#on-a-person)
-- [What the web app does](#what-the-web-app-does)
-- [Where the code is](#where-the-code-is)
-- [What is not built](#what-is-not-built)
+1. [What it is for](#what-it-is-for)
+2. [The tags](#the-tags)
+3. [On a post](#on-a-post)
+4. [On a person](#on-a-person)
+5. [What the web app does](#what-the-web-app-does)
+6. [Where the code is](#where-the-code-is)
+7. [What is not built](#what-is-not-built)
 
 ## What it is for
 
-- **Screen readers.** A French post on an English page is read with French
-  pronunciation, because its text is marked with its language.
-- **Other fediverse servers.** Mastodon and Bluesky both file a post under its
-  language, and their users filter by it. Posts sent from here arrive
-  tagged with theirs.
-- **Custom feeds** can keep to posts in one language.
-- **Later:** a translate button, which needs to know what it is translating
-  from.
+1. **Screen readers.** A French post on an English page is read with French
+   pronunciation, because its text is marked with its language.
+2. **Other fediverse servers.** Mastodon and Bluesky both file a post under its
+   language, and their users filter by it. Posts sent from here arrive
+   tagged with theirs.
+3. **Custom feeds** can keep to posts in one language.
+4. **Later:** a translate button, which needs to know what it is translating
+   from.
 
 The author chooses. **Nothing guesses a language.** A post whose author did
 not say has none, and that is deliberate: other servers show an untagged post
@@ -81,16 +81,16 @@ shown in is a separate thing, chosen in the web app.
 
 ## What the web app does
 
-- **A language button in the composer**, beside the audience button, showing
-  the code (`EN`). It opens a list of about sixty languages, named in the
-  language the app is being read in.
-- **Where it starts**, in order: the posting language on their profile; the
-  browser's language, which is the computer's; English. A language chosen
-  for one post applies to that post only.
-- **Posts are marked with their language** where they are drawn, so a screen
-  reader reads each in the right one.
-- **Profile settings** have "Language you post in". Left on "My browser's
-  language", nothing is stored.
+1. **A language button in the composer**, beside the audience button, showing
+   the code (`EN`). It opens a list of about sixty languages, named in the
+   language the app is being read in.
+2. **Where it starts**, in order: the posting language on their profile; the
+   browser's language, which is the computer's; English. A language chosen
+   for one post applies to that post only.
+3. **Posts are marked with their language** where they are drawn, so a screen
+   reader reads each in the right one.
+4. **Profile settings** have "Language you post in". Left on "My browser's
+   language", nothing is stored.
 
 ## Where the code is
 
@@ -111,15 +111,15 @@ shown in is a separate thing, chosen in the web app.
 Decided on 2026-10-05, when the fuller plan was weighed against what uses a
 language today:
 
-- **Detecting the language from the text**, as a fallback when a client sends
-  none or as a "looks like French" suggestion in the composer.
-- **Tagging posts written before this existed.** They have no language. It
-  could only be guessed, and guessing is what the point above leaves out.
-- **Changing a post's language in the web app** after it is posted. The API
-  accepts it; the edit form does not offer it yet.
-- **An index on the column.** Custom feeds filter by language, without
-  one; it is worth adding when feeds that do grow slow.
-- **More than one language per post.** Bluesky allows three.
+1. **Detecting the language from the text**, as a fallback when a client sends
+   none or as a "looks like French" suggestion in the composer.
+2. **Tagging posts written before this existed.** They have no language. It
+   could only be guessed, and guessing is what the point above leaves out.
+3. **Changing a post's language in the web app** after it is posted. The API
+   accepts it; the edit form does not offer it yet.
+4. **An index on the column.** Custom feeds filter by language, without
+   one; it is worth adding when feeds that do grow slow.
+5. **More than one language per post.** Bluesky allows three.
 
 They belong with federation, a translate button or custom feeds, whichever
 first needs them.

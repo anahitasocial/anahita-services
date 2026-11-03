@@ -15,19 +15,19 @@ The routes that set who may see what are in the API reference, each with the aud
 
 ## Contents
 
-- [The audiences](#the-audiences)
-- [Who can see a post](#who-can-see-a-post)
-- [Who can see a profile or a group](#who-can-see-a-profile-or-a-group)
-- [What the installation allows](#what-the-installation-allows)
-  - [Visitors: `SITE_READ_ACCESS`](#visitors-site_read_access)
-  - [New content: `MIN_CONTENT_ACCESS`](#new-content-min_content_access)
-  - [Using them together](#using-them-together)
-  - [Making what is already public members-only](#making-what-is-already-public-members-only)
-- [Setting them](#setting-them)
-- [Checking them](#checking-them)
-- [What the web app does](#what-the-web-app-does)
-- [Where it is enforced, and how it is tested](#where-it-is-enforced-and-how-it-is-tested)
-- [Federation](#federation)
+1. [The audiences](#the-audiences)
+2. [Who can see a post](#who-can-see-a-post)
+3. [Who can see a profile or a group](#who-can-see-a-profile-or-a-group)
+4. [What the installation allows](#what-the-installation-allows)
+   1. [Visitors: `SITE_READ_ACCESS`](#visitors-site_read_access)
+   2. [New content: `MIN_CONTENT_ACCESS`](#new-content-min_content_access)
+   3. [Using them together](#using-them-together)
+   4. [Making what is already public members-only](#making-what-is-already-public-members-only)
+5. [Setting them](#setting-them)
+6. [Checking them](#checking-them)
+7. [What the web app does](#what-the-web-app-does)
+8. [Where it is enforced, and how it is tested](#where-it-is-enforced-and-how-it-is-tested)
+9. [Federation](#federation)
 
 ## The audiences
 
@@ -68,17 +68,17 @@ Which audiences a post may have depends on where it is:
 Anything else is refused with 422 `access_not_allowed`, and the answer lists
 the audiences that are allowed.
 
-- **No "only me" on somebody else's profile.** It would be a post only its
-  author and that person can see, which is a private message. This platform
-  does not have those.
-- **No "administrators only" from a follower who is not one**, for the same
-  reason.
-- **A post is never seen more widely than its profile.** On a followers-only
-  group a `public` post is still seen only by its followers.
-- A post written without saying is `public`, or `registered` where the
-  installation allows nothing new to be public.
-- Replies have no audience of their own. They are seen by whoever can see the
-  post at the top of their thread.
+1. **No "only me" on somebody else's profile.** It would be a post only its
+   author and that person can see, which is a private message. This platform
+   does not have those.
+2. **No "administrators only" from a follower who is not one**, for the same
+   reason.
+3. **A post is never seen more widely than its profile.** On a followers-only
+   group a `public` post is still seen only by its followers.
+4. A post written without saying is `public`, or `registered` where the
+   installation allows nothing new to be public.
+5. Replies have no audience of their own. They are seen by whoever can see the
+   post at the top of their thread.
 
 The API: `access` when the post is created (`POST /notes/:owner_id/`, and the
 same for articles, topics and photos; for a video, when its upload begins,
@@ -178,15 +178,15 @@ With `registered`:
 bring the rest into line, once: **Site Settings › Privacy › Make everything
 public members-only**.
 
-- It changes every public person, group and post to `registered`. Hashtags and
-  locations are left: they are nobody's content.
-- It asks for the number of things it will change to be typed (`CONVERT 8675`)
-  and for a proof of identity.
-- It is refused, with 409 `public_content_allowed`, on an installation that
-  still allows public content: there it would be undone by the next public
-  post.
-- It records who did it and how much it changed, in `site_actions`.
-- **It cannot be undone.** Nothing records what was public before.
+1. It changes every public person, group and post to `registered`. Hashtags and
+   locations are left: they are nobody's content.
+2. It asks for the number of things it will change to be typed (`CONVERT 8675`)
+   and for a proof of identity.
+3. It is refused, with 409 `public_content_allowed`, on an installation that
+   still allows public content: there it would be undone by the next public
+   post.
+4. It records who did it and how much it changed, in `site_actions`.
+5. **It cannot be undone.** Nothing records what was public before.
 
 The API: `GET /accounts/public-content` for the counts, and
 `POST /accounts/make-registered` with `{ "confirm": "CONVERT 8675" }`.
@@ -238,19 +238,19 @@ and `5` any person's id:
 
 ## What the web app does
 
-- **The audience button** offers what the server says a post may have there.
-  A choice wider than the profile is greyed out, with the reason.
-- **On a members-only site**, a visitor sees a notice with a Sign in button
-  and the home page, in place of whatever they asked for and at the same
-  address. The search box and the People, Groups, Hashtags and Locations menu
-  entries are not shown. Pages carry `robots: noindex`.
-- **On a preview site**, a visitor sees a notice above each page, "Sign in to
-  read more" under a post that was cut, and a sign-in prompt where a post's
-  replies or a profile's list of followers would be. The app does not ask the
-  server for those.
-- **Where nothing new may be public**, "Public" is not offered.
-- **Site Settings › Privacy**, for super administrators, shows the two
-  settings as the server has them.
+1. **The audience button** offers what the server says a post may have there.
+   A choice wider than the profile is greyed out, with the reason.
+2. **On a members-only site**, a visitor sees a notice with a Sign in button
+   and the home page, in place of whatever they asked for and at the same
+   address. The search box and the People, Groups, Hashtags and Locations menu
+   entries are not shown. Pages carry `robots: noindex`.
+3. **On a preview site**, a visitor sees a notice above each page, "Sign in to
+   read more" under a post that was cut, and a sign-in prompt where a post's
+   replies or a profile's list of followers would be. The app does not ask the
+   server for those.
+4. **Where nothing new may be public**, "Public" is not offered.
+5. **Site Settings › Privacy**, for super administrators, shows the two
+   settings as the server has them.
 
 ## Where it is enforced, and how it is tested
 
@@ -288,16 +288,16 @@ through `SetViewer`.
 
 ## Federation
 
-- Only `public` posts of people who chose to take part are sent to other
-  servers: on the fediverse, people who turned federation on; on Bluesky,
-  people who connected their own account. Only people whose profile
-  anybody may see take part at all.
-- With `MIN_CONTENT_ACCESS=registered`, nothing new is public, so nothing
-  new is sent.
-- With `SITE_READ_ACCESS` set to `preview` or `registered`, the installation
-  sends nothing to the fediverse or to Bluesky, and connecting a Bluesky
-  account is not offered. On a preview site, sending out would give away
-  the whole of what the preview holds back. Reading from elsewhere still
-  works.
-- What came from elsewhere is copied in, so a reader's browser never asks
-  another server for it. See [Federation](federation.md#who-owns-what).
+1. Only `public` posts of people who chose to take part are sent to other
+   servers: on the fediverse, people who turned federation on; on Bluesky,
+   people who connected their own account. Only people whose profile
+   anybody may see take part at all.
+2. With `MIN_CONTENT_ACCESS=registered`, nothing new is public, so nothing
+   new is sent.
+3. With `SITE_READ_ACCESS` set to `preview` or `registered`, the installation
+   sends nothing to the fediverse or to Bluesky, and connecting a Bluesky
+   account is not offered. On a preview site, sending out would give away
+   the whole of what the preview holds back. Reading from elsewhere still
+   works.
+4. What came from elsewhere is copied in, so a reader's browser never asks
+   another server for it. See [Federation](federation.md#who-owns-what).

@@ -10,15 +10,15 @@ Its routes are in the API reference: [abuse-report-service](api/index.html#abuse
 
 ## Contents
 
-- [Reports and cases](#reports-and-cases)
-- [Reporting something](#reporting-something)
-- [The reasons list](#the-reasons-list)
-- [Using your own reasons](#using-your-own-reasons)
-- [Breaking a rule](#breaking-a-rule)
-- [What administrators do](#what-administrators-do)
-- [When the reported thing is deleted](#when-the-reported-thing-is-deleted)
-- [Who sees what](#who-sees-what)
-- [Where the code is](#where-the-code-is)
+1. [Reports and cases](#reports-and-cases)
+2. [Reporting something](#reporting-something)
+3. [The reasons list](#the-reasons-list)
+4. [Using your own reasons](#using-your-own-reasons)
+5. [Breaking a rule](#breaking-a-rule)
+6. [What administrators do](#what-administrators-do)
+7. [When the reported thing is deleted](#when-the-reported-thing-is-deleted)
+8. [Who sees what](#who-sees-what)
+9. [Where the code is](#where-the-code-is)
 
 ## Reports and cases
 
@@ -53,14 +53,14 @@ the thing it was about.
 | 404 | There is no such thing that you can see |
 | 429 | More than 20 reports in the last hour |
 
-- **Signed in only.**
-- **You can only report what you can see.** Something hidden from you answers
-  exactly as something that does not exist, so reporting cannot be used to
-  find out what is hidden.
-- **Not yourself, and not what you wrote.**
-- **One report per person per case.** Reporting again changes yours.
-- **Details** are optional, up to 1,000 characters, except where the reason
-  requires them.
+1. **Signed in only.**
+2. **You can only report what you can see.** Something hidden from you answers
+   exactly as something that does not exist, so reporting cannot be used to
+   find out what is hidden.
+3. **Not yourself, and not what you wrote.**
+4. **One report per person per case.** Reporting again changes yours.
+5. **Details** are optional, up to 1,000 characters, except where the reason
+   requires them.
 
 ## The reasons list
 
@@ -137,16 +137,16 @@ file.
 | `rule` | The rule's title as the reporter read it, up to 100 characters |
 | `rule_profile_id` | `0` for the site's rules, or the group's or event's id |
 
-- **A group's or an event's rule is checked:** it must be one of its rules
-  now, and the thing reported must be the group or event, be posted in it,
-  or be a reply in a thread posted in it. Otherwise `rule_not_applicable`.
-- **The site's rules are taken as given.** This service does not read
-  `site.json`; the administrator reading the report has the rules in front
-  of them.
-- **Stored with the report**, in `abuse_reports.rule_title` and
-  `rule_profile_id`. The case answers with `rule`, `rule_profile_id` and the
-  profile itself as `rule_profile`.
-- **Filtered like any reason:** `GET /abuse-reports/cases?reason=rule`.
+1. **A group's or an event's rule is checked:** it must be one of its rules
+   now, and the thing reported must be the group or event, be posted in it,
+   or be a reply in a thread posted in it. Otherwise `rule_not_applicable`.
+2. **The site's rules are taken as given.** This service does not read
+   `site.json`; the administrator reading the report has the rules in front
+   of them.
+3. **Stored with the report**, in `abuse_reports.rule_title` and
+   `rule_profile_id`. The case answers with `rule`, `rule_profile_id` and the
+   profile itself as `rule_profile`.
+4. **Filtered like any reason:** `GET /abuse-reports/cases?reason=rule`.
 
 ### A group's own reports
 

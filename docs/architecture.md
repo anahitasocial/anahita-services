@@ -6,15 +6,15 @@ How the services, the gateway and the shared library fit together.
 
 ## Contents
 
-- [Components](#components)
-- [Services](#services)
-- [Routing](#routing)
-- [One service for every kind of actor](#one-service-for-every-kind-of-actor)
-- [Naming images](#naming-images)
-- [anahita-libs](#anahita-libs)
-- [What a node is called elsewhere](#what-a-node-is-called-elsewhere)
-- [Naming dates and times](#naming-dates-and-times)
-- [The database](#the-database)
+1. [Components](#components)
+2. [Services](#services)
+3. [Routing](#routing)
+4. [One service for every kind of actor](#one-service-for-every-kind-of-actor)
+5. [Naming images](#naming-images)
+6. [anahita-libs](#anahita-libs)
+7. [What a node is called elsewhere](#what-a-node-is-called-elsewhere)
+8. [Naming dates and times](#naming-dates-and-times)
+9. [The database](#the-database)
 
 ## Components
 
@@ -74,10 +74,10 @@ react. Event names are versioned constants in `anahita-libs/event`, shaped
 
 Backing services in `docker-compose.yml`:
 
-- **MySQL** (3306) — all persistent data
-- **Redis** (6379) — sessions
-- **RabbitMQ** (5672) — the `anahita_events` exchange
-- **Garage** (3900) — object storage, S3-compatible, for local development
+1. **MySQL** (3306) — all persistent data
+2. **Redis** (6379) — sessions
+3. **RabbitMQ** (5672) — the `anahita_events` exchange
+4. **Garage** (3900) — object storage, S3-compatible, for local development
 
 ## Routing
 
@@ -191,29 +191,29 @@ sentence stays a link. The text stays plain Markdown, so other servers are
 sent the link it is. How a line is read is `anahita-libs/embeds`, and the
 web app reads it the same way.
 
-- **A post here** is not copied into the article. The reader's browser asks
-  for it as for any post, so somebody who may not see it gets the link and
-  nothing more.
-- **A citation** is the edge from the article to each post here it shows
-  (`edge.medium.citation.v1`). text-service writes the citations when the
-  article or topic is added or edited, and takes away those whose line is
-  gone. An address that could not be read, or is not a post, is not cited.
-- **A mention** is a post naming a profile, a person, a group or an event:
-  by its `@handle`, or by its address on a line of its own, which shows its
-  card. It is the edge from the profile to the post (`edge.tag.mention.v1`),
-  kept by actor-service; see [Permissions](permissions.md#mentions).
-- **Who cites what.** Each post and profile keeps how many people cite it,
-  a profile counting the citations of its posts,
-  `nodes.citation_count`, which [Search](search.md) and
-  [Recommendations](recommendations.md) weigh. `GET /notes/:id/cited_by`
-  lists the posts citing a post of any kind, and the notes quoting it,
-  together, newest first, as the viewer may see them; the web app shows them
-  in a post's Cited by tab, beside Replies and Locations. A quote is listed
-  there but not counted as a citation: it has its own `quote_count`. What an article or a topic cites is listed at the
-  end of its own text.
-- **A page elsewhere** is shown by its card, kept in the post's `meta` under
-  `link_previews` and sent as `link_previews`: see
-  [Link previews](link-previews.md#cards-in-long-writing).
+1. **A post here** is not copied into the article. The reader's browser asks
+   for it as for any post, so somebody who may not see it gets the link and
+   nothing more.
+2. **A citation** is the edge from the article to each post here it shows
+   (`edge.medium.citation.v1`). text-service writes the citations when the
+   article or topic is added or edited, and takes away those whose line is
+   gone. An address that could not be read, or is not a post, is not cited.
+3. **A mention** is a post naming a profile, a person, a group or an event:
+   by its `@handle`, or by its address on a line of its own, which shows its
+   card. It is the edge from the profile to the post (`edge.tag.mention.v1`),
+   kept by actor-service; see [Permissions](permissions.md#mentions).
+4. **Who cites what.** Each post and profile keeps how many people cite it,
+   a profile counting the citations of its posts,
+   `nodes.citation_count`, which [Search](search.md) and
+   [Recommendations](recommendations.md) weigh. `GET /notes/:id/cited_by`
+   lists the posts citing a post of any kind, and the notes quoting it,
+   together, newest first, as the viewer may see them; the web app shows them
+   in a post's Cited by tab, beside Replies and Locations. A quote is listed
+   there but not counted as a citation: it has its own `quote_count`. What an article or a topic cites is listed at the
+   end of its own text.
+5. **A page elsewhere** is shown by its card, kept in the post's `meta` under
+   `link_previews` and sent as `link_previews`: see
+   [Link previews](link-previews.md#cards-in-long-writing).
 
 ### The media library
 
@@ -322,42 +322,42 @@ archived to deleted to purged. They were served by two services,
 twice, and a fix made in one was regularly missing from the other. They are
 now one, `actor-service`.
 
-- **Each kind keeps its own address.** `/people/` and `/groups/` are
-  unchanged, and the gateway sends both to `actor-service`. A client cannot
-  tell that anything moved.
-- **The old names are still in the data, as names.** A person's type is
-  `node.actor.person-service.person.v1` and a group's
-  `node.actor.group-service.group.v1`. Those strings are in every node and
-  edge ever stored and in where avatars and covers are kept, so they stay.
-  They no longer say where anything runs.
-- **What is shared is written once:** signing in the viewer, step-up before a
-  deletion, presigning images, the answers for a refused change, the
-  configuration, the start-up. **What differs stays apart:** a person is read
-  by username and cannot be created here (that is signing up, in
-  `auth-service`); a group can be created and restored and has
-  administrators.
-- **It has no database address.** It reads and writes through
-  `graph-grpc-service` and owns no tables, so it is given no database
-  credentials.
-- **A new kind of actor** is a handler and its routes in this service, not a
-  service of its own. The website, a website's feed as a profile, is built
-  that way ([plans/done/website.md](plans/done/website.md)).
-- **An event is one.** Its type is `node.actor.actor-service.event.v1`, it
-  is served at `/events/` by the handler a group has, told a different kind,
-  and what only an event has is beside it: answering going or maybe, calling
-  it off, and its calendar file. Its start and end are on the node; its time
-  zone, how many may go, where to join online and when it was called off are
-  in the `events` table. A group hosts one through an
-  `edge.actor.host.v1` edge from the group to the event, and
-  `GET /groups/<id>/events/` lists them. Who may do what is in
-  [Events](events.md#who-may-do-what).
-- **An invitation is an edge,** `edge.actor.invite.v1`, from the person
-  invited to the group or event, so every kind of actor can have them. They
-  are made and answered through `socialgraph-service`
-  (`/socialgraph/<actor>/invites` and its `accept` and `decline`, and
-  `/socialgraph/invites/` for the ones waiting for the viewer), and each is
-  announced on the bus so that the notification for it can be answered where
-  it is read. The rules are in [Permissions](permissions.md#invitations).
+1. **Each kind keeps its own address.** `/people/` and `/groups/` are
+   unchanged, and the gateway sends both to `actor-service`. A client cannot
+   tell that anything moved.
+2. **The old names are still in the data, as names.** A person's type is
+   `node.actor.person-service.person.v1` and a group's
+   `node.actor.group-service.group.v1`. Those strings are in every node and
+   edge ever stored and in where avatars and covers are kept, so they stay.
+   They no longer say where anything runs.
+3. **What is shared is written once:** signing in the viewer, step-up before a
+   deletion, presigning images, the answers for a refused change, the
+   configuration, the start-up. **What differs stays apart:** a person is read
+   by username and cannot be created here (that is signing up, in
+   `auth-service`); a group can be created and restored and has
+   administrators.
+4. **It has no database address.** It reads and writes through
+   `graph-grpc-service` and owns no tables, so it is given no database
+   credentials.
+5. **A new kind of actor** is a handler and its routes in this service, not a
+   service of its own. The website, a website's feed as a profile, is built
+   that way ([plans/done/website.md](plans/done/website.md)).
+6. **An event is one.** Its type is `node.actor.actor-service.event.v1`, it
+   is served at `/events/` by the handler a group has, told a different kind,
+   and what only an event has is beside it: answering going or maybe, calling
+   it off, and its calendar file. Its start and end are on the node; its time
+   zone, how many may go, where to join online and when it was called off are
+   in the `events` table. A group hosts one through an
+   `edge.actor.host.v1` edge from the group to the event, and
+   `GET /groups/<id>/events/` lists them. Who may do what is in
+   [Events](events.md#who-may-do-what).
+7. **An invitation is an edge,** `edge.actor.invite.v1`, from the person
+   invited to the group or event, so every kind of actor can have them. They
+   are made and answered through `socialgraph-service`
+   (`/socialgraph/<actor>/invites` and its `accept` and `decline`, and
+   `/socialgraph/invites/` for the ones waiting for the viewer), and each is
+   announced on the bus so that the notification for it can be answered where
+   it is read. The rules are in [Permissions](permissions.md#invitations).
 
 ## Naming images
 
@@ -370,28 +370,28 @@ lined up. This is what each is, and what it is called where.
 | **Cover**: the wide picture across the top | People, groups, and posts such as articles | `nodes.cover_filename` | `cover_urls` | `identity-image-service`, at `/covers/` |
 | **A photo post's images**: the photo itself | Photo posts | `photo_files`, with the first copied to `nodes.filename` | `files`, and `portrait_urls` for the first | `photo-service`; see [Photo posts](photos.md) |
 
-- **Avatars and covers are identity images:** what a profile or a post is
-  recognised by. A photo post's images are content. That is the line between
-  the two services.
-- **`nodes.filename` is the file a node *is*:** a photo post's photo today,
-  a document's file if file sharing is built. An actor has none. Until
-  2026-10-05 the same column also held an actor's avatar, so its meaning
-  depended on the kind of node; the avatar now has `avatar_filename`, beside
-  `cover_filename`, and each of the three names one thing.
-- **"Portrait"** in the code and in `portrait_urls` means a photo post's
-  image, not a picture of a person. It is not to be used for anything new,
-  and is to be retired. That is a change to the API and the web app, not
-  to the schema, and was left out when the schema was put in order
-  ([plans/done/migration-baseline.md](plans/done/migration-baseline.md)).
-- **"Avatar"** stays, in the code and the API. It is the word Mastodon and
-  Bluesky use for the same field.
-- **Where they are stored** is named for the service that looks after
-  them: `assets/v1/identity-image-service/avatars/person/<id>/…` and
-  `…/covers/…`. `v1` is the layout of the first release. The PHP
-  application's (`assets/public`) is v0 in all but name, and while this
-  platform was being built its files were under `assets/v2`, with avatars
-  and covers in folders named `avatar-service` and `cover-service`.
-  `scripts/s3-migration` moves a bucket from either.
+1. **Avatars and covers are identity images:** what a profile or a post is
+   recognised by. A photo post's images are content. That is the line between
+   the two services.
+2. **`nodes.filename` is the file a node *is*:** a photo post's photo today,
+   a document's file if file sharing is built. An actor has none. Until
+   2026-10-05 the same column also held an actor's avatar, so its meaning
+   depended on the kind of node; the avatar now has `avatar_filename`, beside
+   `cover_filename`, and each of the three names one thing.
+3. **"Portrait"** in the code and in `portrait_urls` means a photo post's
+   image, not a picture of a person. It is not to be used for anything new,
+   and is to be retired. That is a change to the API and the web app, not
+   to the schema, and was left out when the schema was put in order
+   ([plans/done/migration-baseline.md](plans/done/migration-baseline.md)).
+4. **"Avatar"** stays, in the code and the API. It is the word Mastodon and
+   Bluesky use for the same field.
+5. **Where they are stored** is named for the service that looks after
+   them: `assets/v1/identity-image-service/avatars/person/<id>/…` and
+   `…/covers/…`. `v1` is the layout of the first release. The PHP
+   application's (`assets/public`) is v0 in all but name, and while this
+   platform was being built its files were under `assets/v2`, with avatars
+   and covers in folders named `avatar-service` and `cover-service`.
+   `scripts/s3-migration` moves a bucket from either.
 
 Every uploaded image, of any of the three kinds, goes through one check
 (`images.Accept` in `anahita-libs/utils`): it is judged from its bytes and
@@ -448,47 +448,47 @@ before, and means nothing anywhere else; a username can be changed. What
 another server is told a person or a post is called is kept there for good,
 by servers this one may never hear from again.
 
-- **Every node has a UUID,** `nodes.uuid`: random (version 4), unique, and
-  never changed. The database gives it when the row is added, so nothing that
-  adds a node can forget to, and the nodes there were before it were given
-  one each when the column was added.
-- **It is read with the node** (`Node.uuid` in `graphpb`, `UUID` on
-  `entities.AnahitaNode`), and a node is found by it with the graph's
-  `ReadByUUID`, which applies no access rule, as `Read` does not. It is not
-  in what the API sends a browser: the web app has no use for it.
-- **The addresses it goes into are made in one place,** `anahita-libs/site`,
-  from one reading of the settings (`PUBLIC_DOMAIN`, `PUBLIC_WEB_URL`,
-  `PUBLIC_API_URL`; see [Configuration](configuration.md#site-identity)). Two
-  services that disagreed about the host would make one person two.
-  `CanFederate` says whether other servers could reach those addresses at
-  all: names on the internet, over https. A site on a developer's machine is
-  neither.
+1. **Every node has a UUID,** `nodes.uuid`: random (version 4), unique, and
+   never changed. The database gives it when the row is added, so nothing that
+   adds a node can forget to, and the nodes there were before it were given
+   one each when the column was added.
+2. **It is read with the node** (`Node.uuid` in `graphpb`, `UUID` on
+   `entities.AnahitaNode`), and a node is found by it with the graph's
+   `ReadByUUID`, which applies no access rule, as `Read` does not. It is not
+   in what the API sends a browser: the web app has no use for it.
+3. **The addresses it goes into are made in one place,** `anahita-libs/site`,
+   from one reading of the settings (`PUBLIC_DOMAIN`, `PUBLIC_WEB_URL`,
+   `PUBLIC_API_URL`; see [Configuration](configuration.md#site-identity)). Two
+   services that disagreed about the host would make one person two.
+   `CanFederate` says whether other servers could reach those addresses at
+   all: names on the internet, over https. A site on a developer's machine is
+   neither.
 
-- **What came from another server is a node too,** so that feeds, follows
-  and blocks need nothing new. It has a `uri`, what it is called where it
-  lives, and an `origin_domain`; a node without a `uri` was made here. A
-  person elsewhere has a type of their own, one for each protocol
-  (`node.actor.activitypub-service.person.v1`,
-  `node.actor.atproto-service.person.v1`), so whatever lists people here
-  leaves them out; a post of theirs is an ordinary note. Such nodes are
-  written only by the graph's `UpsertRemote`, which refuses anything that is
-  not a person elsewhere or a note of theirs, and anything under one of this
-  installation's own addresses (`graph-grpc-service/data/repositories/nodes_remote.go`).
+4. **What came from another server is a node too,** so that feeds, follows
+   and blocks need nothing new. It has a `uri`, what it is called where it
+   lives, and an `origin_domain`; a node without a `uri` was made here. A
+   person elsewhere has a type of their own, one for each protocol
+   (`node.actor.activitypub-service.person.v1`,
+   `node.actor.atproto-service.person.v1`), so whatever lists people here
+   leaves them out; a post of theirs is an ordinary note. Such nodes are
+   written only by the graph's `UpsertRemote`, which refuses anything that is
+   not a person elsewhere or a note of theirs, and anything under one of this
+   installation's own addresses (`graph-grpc-service/data/repositories/nodes_remote.go`).
 
-- **A public profile's pictures have an address that stays,**
-  `/avatars/<uuid>/<size>` and `/covers/<uuid>/<size>` on the API, which
-  sends whoever asks on to a freshly signed one. Another server keeps the
-  address of an avatar for weeks; the signed one lasts a quarter of an hour.
-  Only what somebody not signed in may see is answered for
-  (`identity-image-service/cmd/api/handlers/public.go`).
-- **What is to be sent to another server waits in a table** until it has
-  been sent, or tried for two days (`anahita-libs/federation`, `queue.go`).
-  The bus cannot promise that a message arrives, and another server may be
-  down for an afternoon. Each protocol's service has a table of its own and
-  any number of workers on it; a row is handed to one at a time.
-- **The web app's host answers what other servers ask it under
-  `/.well-known`** by sending them on to the API
-  ([The web shell](web-shell.md)).
+5. **A public profile's pictures have an address that stays,**
+   `/avatars/<uuid>/<size>` and `/covers/<uuid>/<size>` on the API, which
+   sends whoever asks on to a freshly signed one. Another server keeps the
+   address of an avatar for weeks; the signed one lasts a quarter of an hour.
+   Only what somebody not signed in may see is answered for
+   (`identity-image-service/cmd/api/handlers/public.go`).
+6. **What is to be sent to another server waits in a table** until it has
+   been sent, or tried for two days (`anahita-libs/federation`, `queue.go`).
+   The bus cannot promise that a message arrives, and another server may be
+   down for an afternoon. Each protocol's service has a table of its own and
+   any number of workers on it; a row is handed to one at a time.
+7. **The web app's host answers what other servers ask it under
+   `/.well-known`** by sending them on to the API
+   ([The web shell](web-shell.md)).
 
 Federation is built on this; see [Federation](federation.md), and to try
 it on one machine, [The federation lab](federation-lab.md).
@@ -553,11 +553,11 @@ insert. A reference is never 0 for none, and a point never 0,0.
 
 So the code reads a column as it is, and uses `COALESCE` only for:
 
-- what may be NULL by the table above, read as `''` or `0`;
-- a row from a `LEFT JOIN`, which may not be there;
-- an aggregate over no rows (`SUM` gives NULL, not 0);
-- a choice between two values (`COALESCE(root.access, note.access)`, the
-  first date a domain was proved).
+1. what may be NULL by the table above, read as `''` or `0`;
+2. a row from a `LEFT JOIN`, which may not be there;
+3. an aggregate over no rows (`SUM` gives NULL, not 0);
+4. a choice between two values (`COALESCE(root.access, note.access)`, the
+   first date a domain was proved).
 
 A date NULL for "never" is read as the zero time, not as now, so a check of
 how recent it is fails closed (`optionalTime` in the graph and auth

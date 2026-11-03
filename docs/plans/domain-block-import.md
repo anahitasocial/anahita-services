@@ -20,32 +20,32 @@ A CSV file, in either of two shapes:
 | Mastodon's | `#domain,#severity,#reject_media,#reject_reports,#public_comment,#obfuscate`, one server a line | Mastodon's own export, and the shared lists made for it |
 | One name a line | `spam.example` | Anything else; a first line `domain` is taken as a heading |
 
-- **Mastodon's severity:** `suspend` is a refusal, which is all Anahita has.
-  `silence` (hidden, not refused) and `noop` have no match here: they are
-  left out and counted, never taken as refusals without being asked.
-- **The reason** is `#public_comment` where it is given, and otherwise "From
-  `<file name>`, `<date>`", so that the super administrators who come after
-  can tell an imported refusal from one typed in.
-- **Names** are taken as `POST /activitypub/blocks` takes them, a name, an
-  address or a handle; one that is not a name is left out and counted. A name
-  obfuscated with `*` (`#obfuscate`) cannot be refused and is left out.
-- **Already refused:** left as it was, its reason kept.
-- **At most** 10,000 lines and 1 MB a file.
+1. **Mastodon's severity:** `suspend` is a refusal, which is all Anahita has.
+   `silence` (hidden, not refused) and `noop` have no match here: they are
+   left out and counted, never taken as refusals without being asked.
+2. **The reason** is `#public_comment` where it is given, and otherwise "From
+   `<file name>`, `<date>`", so that the super administrators who come after
+   can tell an imported refusal from one typed in.
+3. **Names** are taken as `POST /activitypub/blocks` takes them, a name, an
+   address or a handle; one that is not a name is left out and counted. A name
+   obfuscated with `*` (`#obfuscate`) cannot be refused and is left out.
+4. **Already refused:** left as it was, its reason kept.
+5. **At most** 10,000 lines and 1 MB a file.
 
 ## How
 
-- **`POST /activitypub/blocks/import`**, the file as `text/csv` or in a form,
-  super administrators only and with a step-up, as the single refusal is.
-- **Looked at before it is done.** Without `"apply": true` it changes nothing
-  and answers what it would do: how many are new, already refused, left out
-  for their severity, and not names, with a few of each.
-  With it, it refuses the new ones in one transaction and answers the same
-  counts.
-- **`GET /activitypub/blocks/export`**: the list as Mastodon's CSV, every
-  refusal `suspend` with its reason as `#public_comment`, so that a list made
-  here can be shared or moved.
-- **Nothing is sent** to the servers refused, as now; a refusal takes hold in
-  every copy of the service within half a minute.
+1. **`POST /activitypub/blocks/import`**, the file as `text/csv` or in a form,
+   super administrators only and with a step-up, as the single refusal is.
+2. **Looked at before it is done.** Without `"apply": true` it changes nothing
+   and answers what it would do: how many are new, already refused, left out
+   for their severity, and not names, with a few of each.
+   With it, it refuses the new ones in one transaction and answers the same
+   counts.
+3. **`GET /activitypub/blocks/export`**: the list as Mastodon's CSV, every
+   refusal `suspend` with its reason as `#public_comment`, so that a list made
+   here can be shared or moved.
+4. **Nothing is sent** to the servers refused, as now; a refusal takes hold in
+   every copy of the service within half a minute.
 
 ## In the web app
 
@@ -58,15 +58,15 @@ In Site settings, under Fediverse, beside the dialog to refuse one server:
 
 ## Tests
 
-- Both shapes read; a heading taken as one; blank lines and `#` comments
-  skipped.
-- `suspend` refused; `silence` and `noop` left out and counted; an obfuscated
-  name left out.
-- Looking changes nothing; applying refuses the new ones and leaves the
-  existing ones' reasons.
-- Too many lines, or too large, refused whole with a plain answer.
-- The export read back by the import changes nothing.
-- Not a super administrator: `403`; no step-up: `403 step_up_required`.
+1. Both shapes read; a heading taken as one; blank lines and `#` comments
+   skipped.
+2. `suspend` refused; `silence` and `noop` left out and counted; an obfuscated
+   name left out.
+3. Looking changes nothing; applying refuses the new ones and leaves the
+   existing ones' reasons.
+4. Too many lines, or too large, refused whole with a plain answer.
+5. The export read back by the import changes nothing.
+6. Not a super administrator: `403`; no step-up: `403 step_up_required`.
 
 ## Documentation
 

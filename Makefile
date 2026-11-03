@@ -862,9 +862,10 @@ schema_test:
 	@echo "Comparing schema/init.sql with legacy/upgrade.sql..."
 	migration-job/check_schema.sh
 
-## docs_check: every link between the docs, and every #heading, leads somewhere
+## docs_check: every link between the docs, and every #heading, leads somewhere; no list of more than three bullets
 docs_check:
 	python3 scripts/check_docs_links.py
+	python3 scripts/check_docs_lists.py
 
 test: schema_test docs_check
 	@echo "Checking legacy/upgrade.sql statement order..."

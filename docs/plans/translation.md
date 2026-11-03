@@ -36,27 +36,27 @@ written to, and the two Mastodon uses to begin with:
 
 ## Sketch
 
-- **A `translation-service`,** optional like the recommendation and
-  ActivityPub services: where it is not running, the web app shows no
-  button.
-- **One request:** `POST /translations` with the post and the language
-  wanted; the answer is the text in that language, the language it was
-  taken to be in, and which service made it, which the web app says under
-  the translation as Mastodon does.
-- **Providers behind one interface** (`Translate(text, from, to)`, and the
-  languages it has), chosen by a setting, with a second to fall back on
-  when the first does not have the language or is down.
-- **Kept:** a translation is stored by post, language and the post's
-  `updated_at`, so a changed post is translated again and an unchanged one
-  never twice.
-- **Only what the reader can already read,** and, for a service outside
-  the installation, only what is open to everybody: a post for followers
-  is not sent to a company. With a LibreTranslate the installation runs
-  itself, that limit can be lifted by the administrator.
-- **Limits** for each reader, with the shared limiter.
-- **The web app:** "Translate" under a post or a reply whose language
-  (kept since item 20, and sent by other servers with their posts) is not
-  the reader's; "Show original" to go back.
+1. **A `translation-service`,** optional like the recommendation and
+   ActivityPub services: where it is not running, the web app shows no
+   button.
+2. **One request:** `POST /translations` with the post and the language
+   wanted; the answer is the text in that language, the language it was
+   taken to be in, and which service made it, which the web app says under
+   the translation as Mastodon does.
+3. **Providers behind one interface** (`Translate(text, from, to)`, and the
+   languages it has), chosen by a setting, with a second to fall back on
+   when the first does not have the language or is down.
+4. **Kept:** a translation is stored by post, language and the post's
+   `updated_at`, so a changed post is translated again and an unchanged one
+   never twice.
+5. **Only what the reader can already read,** and, for a service outside
+   the installation, only what is open to everybody: a post for followers
+   is not sent to a company. With a LibreTranslate the installation runs
+   itself, that limit can be lifted by the administrator.
+6. **Limits** for each reader, with the shared limiter.
+7. **The web app:** "Translate" under a post or a reply whose language
+   (kept since item 20, and sent by other servers with their posts) is not
+   the reader's; "Show original" to go back.
 
 ## To decide when it is built
 

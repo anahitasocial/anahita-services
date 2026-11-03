@@ -52,25 +52,25 @@ The private-address short-circuit here is the good idea and should stay: without
 it, every auth log on a developer's machine reads "an unknown city, unknown
 country". But four things around it need fixing:
 
-- **`strings.HasPrefix(ip, "172.")` is too broad.** It claims all of
-  172.0.0.0/8 when only 172.16.0.0/12 is private, so a genuine public address
-  such as `172.32.5.9` is labelled local and never looked up. Use `net.IP`'s own
-  predicates: `IsLoopback() || IsPrivate() || IsLinkLocalUnicast() ||
-  IsUnspecified()` covers 10/8, 172.16/12, 192.168/16 and IPv6 unique-local in
-  one call. Add carrier-grade NAT (100.64.0.0/10) by hand — mobile networks put
-  real users behind it and it is equally unplaceable.
-- **Nil dereference on a network error.** Line 63 logs the error and falls
-  through into `defer resp.Body.Close()` on a nil response. Any blip reaching
-  ipapi.co panics. Return instead.
-- **Unchecked type assertions.** `json_map["city"].(string)` (line 82) and
-  `json_map["reason"].(string)` (line 77) panic on a JSON null, which ipapi.co
-  returns for `city` on plenty of ordinary addresses — datacentre ranges
-  especially. Decode into a typed struct so an absent field is empty.
-- **No timeout.** `http.Client{}` has none. **Check whether this call is
-  synchronous on the token-issuance path here** — in the sibling it was,
-  which made an unresponsive provider able to hold `POST /oauth/token` open
-  indefinitely, and that was arguably worse than the panic. It is called from
-  `cmd/api/handlers/auth_log.go:297`; I did not trace what reaches that.
+1. **`strings.HasPrefix(ip, "172.")` is too broad.** It claims all of
+   172.0.0.0/8 when only 172.16.0.0/12 is private, so a genuine public address
+   such as `172.32.5.9` is labelled local and never looked up. Use `net.IP`'s own
+   predicates: `IsLoopback() || IsPrivate() || IsLinkLocalUnicast() ||
+   IsUnspecified()` covers 10/8, 172.16/12, 192.168/16 and IPv6 unique-local in
+   one call. Add carrier-grade NAT (100.64.0.0/10) by hand — mobile networks put
+   real users behind it and it is equally unplaceable.
+2. **Nil dereference on a network error.** Line 63 logs the error and falls
+   through into `defer resp.Body.Close()` on a nil response. Any blip reaching
+   ipapi.co panics. Return instead.
+3. **Unchecked type assertions.** `json_map["city"].(string)` (line 82) and
+   `json_map["reason"].(string)` (line 77) panic on a JSON null, which ipapi.co
+   returns for `city` on plenty of ordinary addresses — datacentre ranges
+   especially. Decode into a typed struct so an absent field is empty.
+4. **No timeout.** `http.Client{}` has none. **Check whether this call is
+   synchronous on the token-issuance path here** — in the sibling it was,
+   which made an unresponsive provider able to hold `POST /oauth/token` open
+   indefinitely, and that was arguably worse than the panic. It is called from
+   `cmd/api/handlers/auth_log.go:297`; I did not trace what reaches that.
 
 Also worth deciding rather than inheriting: a malformed address should probably
 **not** be reported as local. It means something upstream is wrong — most likely
@@ -230,13 +230,13 @@ foothold that already implies worse access.
 
 Roughly 50 lines in `anahita-libs`, plus one line per server and one per client.
 
-- A `UnaryServerInterceptor` reading a token from call metadata, compared with
-  `subtle.ConstantTimeCompare`, rejecting with `codes.Unauthenticated`.
-- A matching `UnaryClientInterceptor` attaching it.
-- The secret from the existing k8s Secret; a fixed dev value in
-  docker-compose so local work is unaffected.
-- Add a **streaming** interceptor too, or streaming RPCs bypass the check
-  entirely — an easy and total gap.
+1. A `UnaryServerInterceptor` reading a token from call metadata, compared with
+   `subtle.ConstantTimeCompare`, rejecting with `codes.Unauthenticated`.
+2. A matching `UnaryClientInterceptor` attaching it.
+3. The secret from the existing k8s Secret; a fixed dev value in
+   docker-compose so local work is unaffected.
+4. Add a **streaming** interceptor too, or streaming RPCs bypass the check
+   entirely — an easy and total gap.
 
 Worth doing even if TLS never follows: it converts "anything in the namespace"
 into "anything holding the secret."
@@ -246,25 +246,25 @@ into "anything holding the secret."
 This is the part to spend the learning time on, because the certificates are the
 work and the Go code is not.
 
-- **Issuance.** cert-manager with a self-signed root: a `selfSigned` Issuer mints
-  a CA, a second `ca` Issuer signs per-service `Certificate` resources.
-  No public CA — nothing outside the cluster ever validates these.
-- **SANs must match the dialled name exactly.** Both the short service name and
-  the fully-qualified `<svc>.<ns>.svc.cluster.local`. Go verifies the name that
-  was dialled, not the one that was meant, and a mismatch reads like a config
-  error rather than a certificate one.
-- **Rotation is the part that bites.** cert-manager renews at two-thirds of
-  lifetime and rewrites the Secret; the kubelet updates the mounted files within
-  about a minute. But grpc-go has already read the certificate into memory and
-  holds it for the process lifetime. Either implement `GetCertificate` /
-  `GetClientCertificate` callbacks that re-read from disk (with an mtime check
-  and a cache — not a disk read per handshake), or restart pods on Secret change.
-  Get this wrong and it fails weeks later, at renewal, across everything at once.
-- **Local docker-compose needs a plan.** All three gRPC services run locally.
-  Either generate a dev CA and mount it, or gate TLS on an env var — and if the
-  latter, make the production path fail closed rather than silently downgrading.
-  The sibling had exactly that bug in its session backend, where a missing
-  `REDIS_ADDR` quietly selected a weaker implementation.
+1. **Issuance.** cert-manager with a self-signed root: a `selfSigned` Issuer mints
+   a CA, a second `ca` Issuer signs per-service `Certificate` resources.
+   No public CA — nothing outside the cluster ever validates these.
+2. **SANs must match the dialled name exactly.** Both the short service name and
+   the fully-qualified `<svc>.<ns>.svc.cluster.local`. Go verifies the name that
+   was dialled, not the one that was meant, and a mismatch reads like a config
+   error rather than a certificate one.
+3. **Rotation is the part that bites.** cert-manager renews at two-thirds of
+   lifetime and rewrites the Secret; the kubelet updates the mounted files within
+   about a minute. But grpc-go has already read the certificate into memory and
+   holds it for the process lifetime. Either implement `GetCertificate` /
+   `GetClientCertificate` callbacks that re-read from disk (with an mtime check
+   and a cache — not a disk read per handshake), or restart pods on Secret change.
+   Get this wrong and it fails weeks later, at renewal, across everything at once.
+4. **Local docker-compose needs a plan.** All three gRPC services run locally.
+   Either generate a dev CA and mount it, or gate TLS on an env var — and if the
+   latter, make the production path fail closed rather than silently downgrading.
+   The sibling had exactly that bug in its session backend, where a missing
+   `REDIS_ADDR` quietly selected a weaker implementation.
 
 **Also evaluate Linkerd before hand-rolling.** It provides mTLS with zero Go
 changes, rotates certificates itself on a 24-hour cycle, derives identity from
@@ -277,11 +277,11 @@ most of what makes this a useful learning exercise.
 
 Record, as you go:
 
-- Which issuance path you chose and why.
-- What rotation actually did at the first renewal — that is the claim hardest to
-  verify from documentation.
-- How much the local development story cost.
-- Whether the interceptor alone would have been enough.
+1. Which issuance path you chose and why.
+2. What rotation actually did at the first renewal — that is the claim hardest to
+   verify from documentation.
+3. How much the local development story cost.
+4. Whether the interceptor alone would have been enough.
 
 The sibling has nine gRPC servers and twelve client sites, and its
 `docs/plans/network-policy-grpc.md` holds the parked plan for the network-level
@@ -312,14 +312,14 @@ A phase is finished only when these pages match the code. When a page is added, 
 
 ## What was built for 0b (2026-10-03)
 
-- **Finding 1, `getIPLocation`:** rewritten after the sibling's fix (`auth-service/cmd/api/handlers/helpers.go`). `net.IP` predicates instead of string prefixes, carrier-grade NAT added, a 3 second timeout, a typed decode, and a return on every failure. A malformed address is no longer called local. The call is synchronous on token issuance (`buildAuthLog`), so the timeout matters.
-- **Finding 2, client address:** `main.go` installs `echo.ExtractIPFromXFFHeader()` as the `IPExtractor`, and `getClientIP` is now `c.RealIP()`. The sign-in log (`auth_log.go`) already used `c.RealIP()`, which was forgeable for the same reason until the extractor was set.
-- **Finding 4, refresh grant:** `refreshAdmitsAccount` in `data/services/oauth_token.go` refuses a disabled, deleted or archived account before the token is claimed, without revoking it. One error for every reason, so the response doesn't describe the account's state.
-- **Finding 5, TOTP freshness, plus two faults found beside it:**
-  - `PATCH /totp` no longer stamps `TotpLastVerifiedAt`; `POST /totp/recovery-codes` does, because that is where a passcode is checked.
-  - `PATCH /totp` now answers 409 unless a secret and recovery codes exist. Before, a direct call enabled 2FA on an account with nothing able to produce a passcode.
-  - `POST /totp` now answers 409 while 2FA is on. It replaces the secret and clears `TotpEnabled`, so a password alone switched a working second factor off. It also clears recovery codes left by an abandoned enrolment.
-- **Tests:** the extractor through both proxy chains, the lookup's failure modes against a local server, the refresh check, and the TOTP enrolment rules through the handlers.
+1. **Finding 1, `getIPLocation`:** rewritten after the sibling's fix (`auth-service/cmd/api/handlers/helpers.go`). `net.IP` predicates instead of string prefixes, carrier-grade NAT added, a 3 second timeout, a typed decode, and a return on every failure. A malformed address is no longer called local. The call is synchronous on token issuance (`buildAuthLog`), so the timeout matters.
+2. **Finding 2, client address:** `main.go` installs `echo.ExtractIPFromXFFHeader()` as the `IPExtractor`, and `getClientIP` is now `c.RealIP()`. The sign-in log (`auth_log.go`) already used `c.RealIP()`, which was forgeable for the same reason until the extractor was set.
+3. **Finding 4, refresh grant:** `refreshAdmitsAccount` in `data/services/oauth_token.go` refuses a disabled, deleted or archived account before the token is claimed, without revoking it. One error for every reason, so the response doesn't describe the account's state.
+4. **Finding 5, TOTP freshness, plus two faults found beside it:**
+   - `PATCH /totp` no longer stamps `TotpLastVerifiedAt`; `POST /totp/recovery-codes` does, because that is where a passcode is checked.
+   - `PATCH /totp` now answers 409 unless a secret and recovery codes exist. Before, a direct call enabled 2FA on an account with nothing able to produce a passcode.
+   - `POST /totp` now answers 409 while 2FA is on. It replaces the secret and clears `TotpEnabled`, so a password alone switched a working second factor off. It also clears recovery codes left by an abandoned enrolment.
+5. **Tests:** the extractor through both proxy chains, the lookup's failure modes against a local server, the refresh check, and the TOTP enrolment rules through the handlers.
 
 ### Still open
 - **Finding 3** (login throttle) was done with roadmap item 6 on 2026-10-03: 10 tries per identifier and 50 per address in 15 minutes, counted before the account is looked up. See `docs/signing-in.md`.
@@ -330,20 +330,20 @@ A phase is finished only when these pages match the code. When a page is added, 
 
 **The choice: certificates loaded by the services, issued by cert-manager.** Linkerd was the alternative. It needs no Go code and suits a site with services in many languages, but it is one more system for every site to run, and it exists only on Kubernetes, so docker-compose would have stayed plain text and the secured path would never have run during development. `GRPC_TLS=off` leaves the door open for a site that prefers a mesh.
 
-- **`anahita-libs/grpctls`:** `ServerOption()` and `DialOption()`, used by the three gRPC servers and all 17 clients. TLS 1.3, both sides present a certificate, and the client checks the server's certificate names the host it dialled.
-- **Settings:** `GRPC_TLS` (`on`/`off`; unset means on, except with `ENV=dev`) and `GRPC_TLS_DIR` (default `/run/secrets/grpc`, holding `tls.crt`, `tls.key`, `ca.crt`, the names cert-manager writes).
-- **Fails closed:** with TLS on and no certificates a server refuses to start and a client refuses to call. An unknown `GRPC_TLS` value is an error.
-- **Renewal without a restart:** the files are looked at once a minute at most. A replaced certificate, and a replaced authority, are used from then on. A renewal caught half-written keeps the working certificate.
-- **docker-compose:** `scripts/grpc-certs-init.sh` makes a development authority and one certificate in `./grpc-certs` (ignored by git), run by `make up` and `make up_build`. The authority's key is deleted after signing. Every service has `GRPC_TLS=on` and the mount.
-- **Kubernetes:** `k8s/base/grpc-tls.yml` has a self-signed issuer, the authority, a certificate for each gRPC service and one shared by the callers. 90 days, renewed 30 days early. `make k8s-start` installs cert-manager.
-- **No shared-secret interceptor.** The certificate does that job.
+1. **`anahita-libs/grpctls`:** `ServerOption()` and `DialOption()`, used by the three gRPC servers and all 17 clients. TLS 1.3, both sides present a certificate, and the client checks the server's certificate names the host it dialled.
+2. **Settings:** `GRPC_TLS` (`on`/`off`; unset means on, except with `ENV=dev`) and `GRPC_TLS_DIR` (default `/run/secrets/grpc`, holding `tls.crt`, `tls.key`, `ca.crt`, the names cert-manager writes).
+3. **Fails closed:** with TLS on and no certificates a server refuses to start and a client refuses to call. An unknown `GRPC_TLS` value is an error.
+4. **Renewal without a restart:** the files are looked at once a minute at most. A replaced certificate, and a replaced authority, are used from then on. A renewal caught half-written keeps the working certificate.
+5. **docker-compose:** `scripts/grpc-certs-init.sh` makes a development authority and one certificate in `./grpc-certs` (ignored by git), run by `make up` and `make up_build`. The authority's key is deleted after signing. Every service has `GRPC_TLS=on` and the mount.
+6. **Kubernetes:** `k8s/base/grpc-tls.yml` has a self-signed issuer, the authority, a certificate for each gRPC service and one shared by the callers. 90 days, renewed 30 days early. `make k8s-start` installs cert-manager.
+7. **No shared-secret interceptor.** The certificate does that job.
 
 **Answers to "what to carry outward":**
 
-- **Issuance path:** cert-manager with its own authority, as above.
-- **What rotation did:** on a minikube cluster both the graph-grpc certificate and the callers' certificate were renewed by hand. cert-manager wrote the new Secrets within seconds. person-service logged the change after about one minute and graph-grpc-service after about two (the kubelet's file sync plus the one-minute check). Neither restarted, and 40 requests made through the gateway during the change all succeeded.
-- **Local development cost:** one script, one mount per service, and starting with `make` instead of `docker-compose up`.
-- **Would the interceptor alone have been enough?** For "anything in the namespace can call", yes. It would not have encrypted the calls, and the secret would have been one value shared by everything and never rotated.
+1. **Issuance path:** cert-manager with its own authority, as above.
+2. **What rotation did:** on a minikube cluster both the graph-grpc certificate and the callers' certificate were renewed by hand. cert-manager wrote the new Secrets within seconds. person-service logged the change after about one minute and graph-grpc-service after about two (the kubelet's file sync plus the one-minute check). Neither restarted, and 40 requests made through the gateway during the change all succeeded.
+3. **Local development cost:** one script, one mount per service, and starting with `make` instead of `docker-compose up`.
+4. **Would the interceptor alone have been enough?** For "anything in the namespace can call", yes. It would not have encrypted the calls, and the secret would have been one value shared by everything and never rotated.
 
 **Tests:** `anahita-libs/grpctls` covers both sides connecting, a plain-text caller, a caller with no certificate, a caller and a server from another authority, a server under another name, renewal, a replaced authority, a broken renewal, and the settings. By hand: the dev stack serves requests with TLS on, and a plain-text call to graph-grpc's published port is refused.
 

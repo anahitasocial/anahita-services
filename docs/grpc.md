@@ -14,12 +14,12 @@ a site, and trust whoever calls them (see [Checking access](#checking-access)).
 
 ## Contents
 
-- [What you need](#what-you-need)
-- [A certificate](#a-certificate)
-- [Generating the code](#generating-the-code)
-- [Reading a node](#reading-a-node)
-- [Checking access](#checking-access)
-- [Trying it on your own machine](#trying-it-on-your-own-machine)
+1. [What you need](#what-you-need)
+2. [A certificate](#a-certificate)
+3. [Generating the code](#generating-the-code)
+4. [Reading a node](#reading-a-node)
+5. [Checking access](#checking-access)
+6. [Trying it on your own machine](#trying-it-on-your-own-machine)
 
 ## What you need
 

@@ -6,16 +6,16 @@ Running the whole stack locally with Docker Compose.
 
 ## Contents
 
-- [Requirements](#requirements)
-- [Configure](#configure)
-- [Starting](#starting)
-- [First run](#first-run)
-- [A site to work with](#a-site-to-work-with)
-- [Reachable from outside](#reachable-from-outside)
-- [Developing](#developing)
-- [Tests](#tests)
-- [Other targets](#other-targets)
-- [With an AI agent](#with-an-ai-agent)
+1. [Requirements](#requirements)
+2. [Configure](#configure)
+3. [Starting](#starting)
+4. [First run](#first-run)
+5. [A site to work with](#a-site-to-work-with)
+6. [Reachable from outside](#reachable-from-outside)
+7. [Developing](#developing)
+8. [Tests](#tests)
+9. [Other targets](#other-targets)
+10. [With an AI agent](#with-an-ai-agent)
 
 ## Requirements
 
@@ -169,17 +169,17 @@ and `make migration` runs the migration job on its own. How the job makes
 the database, and how to change the schema, are in
 [Architecture](architecture.md#the-database).
 
-- **`video` and `export` each start two containers,** the service and its
-  worker. The video worker's image has ffmpeg in it, so nothing is installed
-  on your machine. Videos are off until `VIDEO_UPLOADS=on`: see
-  [Videos](videos.md).
-- **`web_shell` is not started by `make up`.** It sends the web app's build,
-  so it has to be given one: `make web_shell WEB_BUILD=<the build folder>`.
-  Developing the web app does not need it; see [The web shell](web-shell.md).
-- **`make fedi_lab` starts the federation lab,** which is not part of `make up`
-  either: see [The federation lab](federation-lab.md).
-- **After a change to `anahita-libs` or to a `.proto` file,** rebuild
-  everything with `make up_build`: every service is built with the library.
+1. **`video` and `export` each start two containers,** the service and its
+   worker. The video worker's image has ffmpeg in it, so nothing is installed
+   on your machine. Videos are off until `VIDEO_UPLOADS=on`: see
+   [Videos](videos.md).
+2. **`web_shell` is not started by `make up`.** It sends the web app's build,
+   so it has to be given one: `make web_shell WEB_BUILD=<the build folder>`.
+   Developing the web app does not need it; see [The web shell](web-shell.md).
+3. **`make fedi_lab` starts the federation lab,** which is not part of `make up`
+   either: see [The federation lab](federation-lab.md).
+4. **After a change to `anahita-libs` or to a `.proto` file,** rebuild
+   everything with `make up_build`: every service is built with the library.
 
 ## Tests
 
@@ -189,7 +189,8 @@ make test
 
 That runs every module's tests, the check of `legacy/upgrade.sql`,
 `make docs_check`, which fails on a link between the docs that leads nowhere
-(a page that is not there, or a `#heading` it does not have), and
+(a page that is not there, or a `#heading` it does not have) and on a list
+of more than three bullets, which is to be numbered, and
 `make schema_test`, which needs Docker: it builds a database from
 `schema/init.sql` and one from the PHP schema through `legacy/upgrade.sql`,
 and fails on any column or index where the two differ. Among

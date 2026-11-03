@@ -15,12 +15,12 @@ Some people cannot use the web app, or a mobile app when there is one: a very sl
 
 ## Decisions
 
-- **Our own client, against Anahita's API, and not a Mastodon-compatible API on the server** (user, 2026-10-12). See *Considered* below.
-- **After the API reference** ([api-reference.md](done/api-reference.md)). The client's calls and types are generated from it, which is most of what makes this small, and it is the first real test of that reference before `anahita-mobile` is built on it.
-- **A repository of its own, `anahita-cli`** (user, 2026-10-12): it is a client, as anahita-web is and `anahita-mobile` will be, with its own releases. Only the device flow is work in anahita-services.
-- **One program, in Go,** with nothing to install beside it, for Linux, macOS and Windows.
-- **The detail waits for `anahita-mobile`** (React Native, once the web app has settled; user, 2026-10-12). What the two clients share is worked out then: the generated API client, signing in on a device with no browser to hand, and what is kept for a poor connection. What is written here is the shape, not the last word.
-- **Text only unless asked.** Nothing is fetched that was not asked for: no pictures, no avatars, no previews.
+1. **Our own client, against Anahita's API, and not a Mastodon-compatible API on the server** (user, 2026-10-12). See *Considered* below.
+2. **After the API reference** ([api-reference.md](done/api-reference.md)). The client's calls and types are generated from it, which is most of what makes this small, and it is the first real test of that reference before `anahita-mobile` is built on it.
+3. **A repository of its own, `anahita-cli`** (user, 2026-10-12): it is a client, as anahita-web is and `anahita-mobile` will be, with its own releases. Only the device flow is work in anahita-services.
+4. **One program, in Go,** with nothing to install beside it, for Linux, macOS and Windows.
+5. **The detail waits for `anahita-mobile`** (React Native, once the web app has settled; user, 2026-10-12). What the two clients share is worked out then: the generated API client, signing in on a device with no browser to hand, and what is kept for a poor connection. What is written here is the shape, not the last word.
+6. **Text only unless asked.** Nothing is fetched that was not asked for: no pictures, no avatars, no previews.
 
 ## Design
 
@@ -40,10 +40,10 @@ Some people cannot use the web app, or a mobile app when there is one: a very sl
 | `anahita search <words>` | People and posts |
 | `anahita open <post>` | Prints its web address, or opens it where there is a browser |
 
-- **Everything is also plain data:** `--json` on any command, one object a line, so it can be piped and scripted.
-- **Posts are numbered in what is shown,** so `anahita reply 3` answers the third one listed; the numbers are remembered until the next list.
-- **A picture in a post is a line saying there is one,** with its description and its address. `--images` fetches thumbnails for terminals that can draw them; left out by default.
-- **Long text goes through the pager;** Markdown is shown as plain text with its links listed underneath.
+1. **Everything is also plain data:** `--json` on any command, one object a line, so it can be piped and scripted.
+2. **Posts are numbered in what is shown,** so `anahita reply 3` answers the third one listed; the numbers are remembered until the next list.
+3. **A picture in a post is a line saying there is one,** with its description and its address. `--images` fetches thumbnails for terminals that can draw them; left out by default.
+4. **Long text goes through the pager;** Markdown is shown as plain text with its links listed underneath.
 
 ### Signing in
 
@@ -56,10 +56,10 @@ Tokens are kept in the system's keychain where there is one, and otherwise in a 
 
 ### For a slow connection
 
-- Small pages by default (`-n 20`), and the next page only when asked.
-- Compression asked for on every request.
-- What was last fetched is kept and shown at once, with a mark saying how old it is, while the new is fetched; `--offline` shows only what is kept.
-- A post written while offline waits in an outbox and is sent by `anahita send`.
+1. Small pages by default (`-n 20`), and the next page only when asked.
+2. Compression asked for on every request.
+3. What was last fetched is kept and shown at once, with a mark saying how old it is, while the new is fetched; `--offline` shows only what is kept.
+4. A post written while offline waits in an outbox and is sent by `anahita send`.
 
 ## Considered and not chosen
 
@@ -80,11 +80,11 @@ Tokens are kept in the system's keychain where there is one, and otherwise in a 
 
 ## Verification
 
-- On a machine with no browser, `anahita login` over SSH signs in with a code typed on a phone.
-- With the connection held to a few kilobytes a second, `anahita feed` shows what it has kept at once and the new within seconds; nothing but JSON is fetched.
-- `anahita feed --json | jq` works; `echo "hello" | anahita post` posts.
-- A post made followers-only from the command line is followers-only in the web app.
-- A screen reader reads a thread in order, with nothing drawn that it cannot say.
+1. On a machine with no browser, `anahita login` over SSH signs in with a code typed on a phone.
+2. With the connection held to a few kilobytes a second, `anahita feed` shows what it has kept at once and the new within seconds; nothing but JSON is fetched.
+3. `anahita feed --json | jq` works; `echo "hello" | anahita post` posts.
+4. A post made followers-only from the command line is followers-only in the web app.
+5. A screen reader reads a thread in order, with nothing drawn that it cannot say.
 
 ## Open questions
 

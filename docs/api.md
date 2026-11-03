@@ -5,15 +5,15 @@ is in the reference beside this page, [`docs/api/`](api/), made from the code.
 
 ## Contents
 
-- [The reference](#the-reference)
-- [Reading and writing](#reading-and-writing)
-- [Lists](#lists)
-- [Lengths](#lengths)
-- [What the viewer may do](#what-the-viewer-may-do)
-- [Signing in](#signing-in)
-- [Refusals](#refusals)
-- [Services an installation may not run](#services-an-installation-may-not-run)
-- [Describing a route](#describing-a-route)
+1. [The reference](#the-reference)
+2. [Reading and writing](#reading-and-writing)
+3. [Lists](#lists)
+4. [Lengths](#lengths)
+5. [What the viewer may do](#what-the-viewer-may-do)
+6. [Signing in](#signing-in)
+7. [Refusals](#refusals)
+8. [Services an installation may not run](#services-an-installation-may-not-run)
+9. [Describing a route](#describing-a-route)
 
 ## The reference
 
@@ -57,25 +57,25 @@ is no guide to the names.
 
 ## Reading and writing
 
-- **Names are snake_case:** `created_at`, `likes_count`.
-- **A post has a `title` and `content`**, as WordPress and ActivityPub
-  call them: every kind of post, a reply among them, is sent and taken
-  with these. A profile (a person, a group, an event), a custom feed and a
-  hashtag have a `name`, and a profile or a feed says what it is in
-  `body`. A list that holds both sends each with its own words; the type
-  (`node.medium.…` for a post) says which it is.
-- **Ids are numbers.** A person is also found by their username
-  (`/people/ana`), and `GET /actors/<alias>` says what kind of profile an
-  alias is, with its id.
-- **Times** are RFC 3339 in UTC, and their names end in `_at`. A date with no
-  time ends in `_on`.
-- **A field that is empty is often left out** rather than sent empty: the
-  reference marks as required only what is always there. A list with nothing
-  in it may be `null`.
-- **Bodies** are JSON, except where a file is sent, which is
-  `multipart/form-data`. auth-service's sign-in, sign-up and recovery
-  pages are HTML, and their forms post `application/x-www-form-urlencoded`;
-  its OAuth routes take forms, as RFC 6749 has them.
+1. **Names are snake_case:** `created_at`, `likes_count`.
+2. **A post has a `title` and `content`**, as WordPress and ActivityPub
+   call them: every kind of post, a reply among them, is sent and taken
+   with these. A profile (a person, a group, an event), a custom feed and a
+   hashtag have a `name`, and a profile or a feed says what it is in
+   `body`. A list that holds both sends each with its own words; the type
+   (`node.medium.…` for a post) says which it is.
+3. **Ids are numbers.** A person is also found by their username
+   (`/people/ana`), and `GET /actors/<alias>` says what kind of profile an
+   alias is, with its id.
+4. **Times** are RFC 3339 in UTC, and their names end in `_at`. A date with no
+   time ends in `_on`.
+5. **A field that is empty is often left out** rather than sent empty: the
+   reference marks as required only what is always there. A list with nothing
+   in it may be `null`.
+6. **Bodies** are JSON, except where a file is sent, which is
+   `multipart/form-data`. auth-service's sign-in, sign-up and recovery
+   pages are HTML, and their forms post `application/x-www-form-urlencoded`;
+   its OAuth routes take forms, as RFC 6749 has them.
 
 ## Lists
 
@@ -206,26 +206,26 @@ hashtags.GET("/:alias", r.handler.Hashtag.Read, r.setViewer).
     Refuses(http.StatusNotFound, "there is no such hashtag")
 ```
 
-- **`Takes`** is the struct the handler binds, as the handler makes it: its
-  `param`, `query`, `header`, `json` and `form` tags say where each value
-  comes from, its `validate` tags what it may be, and a value set before
-  binding is the default.
-- **`Sends`** is what the handler answers with. A list's answer is
-  `responses.List[T]`, the one shape every list has.
-- **The first paragraph of the comment on each field is its description,**
-  read from the source, so nothing is worded twice. As in Go's own
-  documentation, the first paragraph says what the field is, for whoever
-  calls the API; what follows it (why it is never left out, what broke
-  before) is for whoever works on the code, and stays out of the reference.
-  A field with no comment has no description.
-- `SendsNothing`, `Describe`, `Scope`, `StepUp`, `Internal` and `NotBuilt`
-  say the rest. A handler that reads its values one by one is described
-  with a struct it does not bind, marked `Unbound`, and an upload's file is
-  an `apidoc.File`. `Media` is the type of a route's bodies where it is
-  not JSON (`application/activity+json`, `text/html`), `TakesBody` a body
-  that is one value and not the fields of a struct, and `Router.Static` a
-  directory of files.
-  `400`, `401` and `403` are added where a route of its kind can answer them.
+1. **`Takes`** is the struct the handler binds, as the handler makes it: its
+   `param`, `query`, `header`, `json` and `form` tags say where each value
+   comes from, its `validate` tags what it may be, and a value set before
+   binding is the default.
+2. **`Sends`** is what the handler answers with. A list's answer is
+   `responses.List[T]`, the one shape every list has.
+3. **The first paragraph of the comment on each field is its description,**
+   read from the source, so nothing is worded twice. As in Go's own
+   documentation, the first paragraph says what the field is, for whoever
+   calls the API; what follows it (why it is never left out, what broke
+   before) is for whoever works on the code, and stays out of the reference.
+   A field with no comment has no description.
+4. `SendsNothing`, `Describe`, `Scope`, `StepUp`, `Internal` and `NotBuilt`
+   say the rest. A handler that reads its values one by one is described
+   with a struct it does not bind, marked `Unbound`, and an upload's file is
+   an `apidoc.File`. `Media` is the type of a route's bodies where it is
+   not JSON (`application/activity+json`, `text/html`), `TakesBody` a body
+   that is one value and not the fields of a struct, and `Router.Static` a
+   directory of files.
+   `400`, `401` and `403` are added where a route of its kind can answer them.
 
 **Register each route on a line of its own,** beginning with its group
 (`hashtags.GET("/:alias", …)`): the members-only guard in

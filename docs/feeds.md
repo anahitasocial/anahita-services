@@ -6,18 +6,18 @@ Its routes are in the API reference: [feed-service](api/index.html#feed-service)
 
 ## Contents
 
-- [The home page](#the-home-page)
-- [A feed is a node](#a-feed-is-a-node)
-- [The definition](#the-definition)
-- [Limits](#limits)
-- [Who sees a feed, and what they see in it](#who-sees-a-feed-and-what-they-see-in-it)
-- [Reading a feed](#reading-a-feed)
-- [Keeping feeds on the home page](#keeping-feeds-on-the-home-page)
-- [In search](#in-search)
-- [Discover](#discover)
-- [Endpoints](#endpoints)
-- [Where the code is](#where-the-code-is)
-- [What is not built](#what-is-not-built)
+1. [The home page](#the-home-page)
+2. [A feed is a node](#a-feed-is-a-node)
+3. [The definition](#the-definition)
+4. [Limits](#limits)
+5. [Who sees a feed, and what they see in it](#who-sees-a-feed-and-what-they-see-in-it)
+6. [Reading a feed](#reading-a-feed)
+7. [Keeping feeds on the home page](#keeping-feeds-on-the-home-page)
+8. [In search](#in-search)
+9. [Discover](#discover)
+10. [Endpoints](#endpoints)
+11. [Where the code is](#where-the-code-is)
+12. [What is not built](#what-is-not-built)
 
 ## The home page
 
@@ -27,10 +27,10 @@ Every feed orders its posts by date, newest first. (Search is the one place with
 
 ## A feed is a node
 
-- Type `node.feed.feed-service.generator.v1`, owned by the person who made it (`owner_id`), with its name in `name`, what it is for in `body`, and its audience in `access`.
-- The node's `meta` is JSON holding what it shows, the `definition`, and its `icon`: one of eighteen pictures, by name (`feeds.Icons`), with `feed` for one given none. Meta that is a definition alone, as the first feeds were kept, is read as that.
-- Keeping a feed on the home page is an edge from the person to the feed, `edge.feed.pin.v1`, with its place among the tabs in the edge's `ordering`.
-- There is no table of its own and no migration. Deleting a feed deletes its node and, with it, every edge that kept it on somebody's home page. Removing an account removes its feeds as it removes everything else it owns.
+1. Type `node.feed.feed-service.generator.v1`, owned by the person who made it (`owner_id`), with its name in `name`, what it is for in `body`, and its audience in `access`.
+2. The node's `meta` is JSON holding what it shows, the `definition`, and its `icon`: one of eighteen pictures, by name (`feeds.Icons`), with `feed` for one given none. Meta that is a definition alone, as the first feeds were kept, is read as that.
+3. Keeping a feed on the home page is an edge from the person to the feed, `edge.feed.pin.v1`, with its place among the tabs in the edge's `ordering`.
+4. There is no table of its own and no migration. Deleting a feed deletes its node and, with it, every edge that kept it on somebody's home page. Removing an account removes its feeds as it removes everything else it owns.
 
 ## The definition
 
@@ -124,10 +124,10 @@ These are two questions, and they have different answers.
 
 **What a reader sees in it** is what the definition selects, put through the same gate as every other feed, for the reader. Not for the feed's owner. So:
 
-- A public feed built on a group only its followers can read shows that group's posts to its followers and to nobody else.
-- "Whoever I follow" in a feed is whoever its owner follows, and a reader is shown, of those people's posts, the ones they could have seen on those people's profiles.
-- A post by somebody who has blocked the reader, or whom the reader has blocked, is not in it.
-- What is deleted, disabled or archived is not in it.
+1. A public feed built on a group only its followers can read shows that group's posts to its followers and to nobody else.
+2. "Whoever I follow" in a feed is whoever its owner follows, and a reader is shown, of those people's posts, the ones they could have seen on those people's profiles.
+3. A post by somebody who has blocked the reader, or whom the reader has blocked, is not in it.
+4. What is deleted, disabled or archived is not in it.
 
 A feed never widens what anybody may see. This is the rule the tests in `feed_custom_integration_test.go` are there to keep.
 
@@ -199,11 +199,11 @@ A feed is sent with its `icon`, `is_pinned` and `authorized` (`edit`, `delete`, 
 
 ## What is not built
 
-- **An order other than newest first.** See [The home page](#the-home-page).
-- **Reposts in a custom feed.** A custom feed holds posts, and replies when asked for. The feed of people you follow holds reposts as it always did.
-- **"Posts by the followers of a group"** as a source, which the plan had as `members_of`. A feed of the groups somebody follows is `following` with `actor_types: ["group"]`.
-- **"With images"** as a filter. `media_types: ["photo"]` is the photo posts.
-- **A cache of a public feed's first page.** Nothing is slow enough to need one yet.
-- **Feeds made for a new account.** The feed of people you follow is the first tab, and the rest are for each person to make.
-- **Emptying a feed's description.** A description can be changed and cannot be set back to nothing: the graph's node edit leaves an empty text as it was.
-- **Feeds across the fediverse.** A custom feed is a feature of the installation and is not sent to other servers. Posts from people followed on other servers appear in one like any others, and a feed can name such people among its profiles.
+1. **An order other than newest first.** See [The home page](#the-home-page).
+2. **Reposts in a custom feed.** A custom feed holds posts, and replies when asked for. The feed of people you follow holds reposts as it always did.
+3. **"Posts by the followers of a group"** as a source, which the plan had as `members_of`. A feed of the groups somebody follows is `following` with `actor_types: ["group"]`.
+4. **"With images"** as a filter. `media_types: ["photo"]` is the photo posts.
+5. **A cache of a public feed's first page.** Nothing is slow enough to need one yet.
+6. **Feeds made for a new account.** The feed of people you follow is the first tab, and the rest are for each person to make.
+7. **Emptying a feed's description.** A description can be changed and cannot be set back to nothing: the graph's node edit leaves an empty text as it was.
+8. **Feeds across the fediverse.** A custom feed is a feature of the installation and is not sent to other servers. Posts from people followed on other servers appear in one like any others, and a feed can name such people among its profiles.

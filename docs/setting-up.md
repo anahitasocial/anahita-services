@@ -30,13 +30,13 @@ linked where they come in.
    itself. Choose the names first: they are for good.
 7. The services a site may run or leave out. Each page says what happens
    without it:
-   - [Videos](videos.md#running-it-and-not-running-it)
-   - [Link previews](link-previews.md#running-it-and-not-running-it)
-   - [Recommendations](recommendations.md#running-it-and-not-running-it)
-   - [Download your data](data-export.md#running-it-and-not-running-it)
-   - [The web shell](web-shell.md#running-it), which gives each shared link
-     its own title and picture
-   - [Websites](websites.md): a website's feed as a profile to follow
+   1. [Videos](videos.md#running-it-and-not-running-it)
+   2. [Link previews](link-previews.md#running-it-and-not-running-it)
+   3. [Recommendations](recommendations.md#running-it-and-not-running-it)
+   4. [Download your data](data-export.md#running-it-and-not-running-it)
+   5. [The web shell](web-shell.md#running-it), which gives each shared link
+      its own title and picture
+   6. [Websites](websites.md): a website's feed as a profile to follow
 
 Next: [Customising](customising.md), then
 [Operating](operating.md).

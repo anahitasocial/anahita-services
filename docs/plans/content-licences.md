@@ -13,15 +13,15 @@
 
 ## Design
 **Catalogue:** `license-defaults/licenses.json`, following the `feed-defaults` / `reasons.json` pattern (item 4b): baked into images at `/app/defaults`, mountable in compose, and read through `anahita-libs/licenses`.
-- **Default list:**
-  - All rights reserved (`arr`, the default);
-  - CC0 1.0;
-  - CC BY 4.0, BY-SA 4.0, BY-ND 4.0, BY-NC 4.0, BY-NC-SA 4.0, BY-NC-ND 4.0.
-- **Each entry:**
-  - `key`, a `label` per language, `url` (the deed), `spdx` (for example `CC-BY-4.0`) and an icon;
-  - `allows_sharing` (false only for `arr`), `allows_commercial`, `allows_derivatives`, `requires_attribution`.
-- **Instance settings:** the file can drop licences, and `DEFAULT_CONTENT_LICENSE` sets the instance default (normally `arr`).
-- **Legacy keys:** unknown or removed keys still display for posts that already use them, but can't be chosen for new ones.
+1. **Default list:**
+   - All rights reserved (`arr`, the default);
+   - CC0 1.0;
+   - CC BY 4.0, BY-SA 4.0, BY-ND 4.0, BY-NC 4.0, BY-NC-SA 4.0, BY-NC-ND 4.0.
+2. **Each entry:**
+   - `key`, a `label` per language, `url` (the deed), `spdx` (for example `CC-BY-4.0`) and an icon;
+   - `allows_sharing` (false only for `arr`), `allows_commercial`, `allows_derivatives`, `requires_attribution`.
+3. **Instance settings:** the file can drop licences, and `DEFAULT_CONTENT_LICENSE` sets the instance default (normally `arr`).
+4. **Legacy keys:** unknown or removed keys still display for posts that already use them, but can't be chosen for new ones.
 
 **Data**
 - `nodes.license varchar(32) NULL`, where NULL means the owner's default at the time of posting was `arr`. The create handler always writes the resolved key, so NULL only appears on old rows, which read as `arr`.
@@ -29,13 +29,13 @@
 - **Profile default:** a person setting, `default_license`, on the person node (a column, or `meta` if we'd rather not widen `nodes`; decide during implementation). **Groups** get their own default too, so a group can say "everything here is CC BY-SA".
 
 **API**
-- Media create and edit accept `license`, validated against the catalogue.
-- The default is resolved in this order: the composer's choice, then the default of the profile or group it's posted to, then the author's default, then the instance default.
-- **Changing a licence later is allowed,** but the web app warns that CC licences can't be withdrawn for copies people already obtained. `license_changed_at` records when it changed.
-- Media responses gain `license: { key, label, url, spdx, allows_sharing, … }` and an `attribution` string:
-  - generated on the server, for example `"Sunset at Jericho Beach" by Ana (https://DOMAIN/photos/123-sunset) is licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)`;
-  - uses the title when the post has one, otherwise the first words.
-- `GET /licenses` returns the catalogue, public and cached.
+1. Media create and edit accept `license`, validated against the catalogue.
+2. The default is resolved in this order: the composer's choice, then the default of the profile or group it's posted to, then the author's default, then the instance default.
+3. **Changing a licence later is allowed,** but the web app warns that CC licences can't be withdrawn for copies people already obtained. `license_changed_at` records when it changed.
+4. Media responses gain `license: { key, label, url, spdx, allows_sharing, … }` and an `attribution` string:
+   - generated on the server, for example `"Sunset at Jericho Beach" by Ana (https://DOMAIN/photos/123-sunset) is licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)`;
+   - uses the title when the post has one, otherwise the first words.
+5. `GET /licenses` returns the catalogue, public and cached.
 
 **Download** (only when `allows_sharing` is true, or for the owner)
 - `GET /{ns}/:id/download` returns a 302 to a short-lived presigned URL with `Content-Disposition: attachment` and a sensible filename:
@@ -53,13 +53,13 @@
 **Open Graph (item 10):** optionally add `<link rel="license" href=…>` in the web shell's `<head>` for public posts.
 
 ## Web (anahita-web)
-- **Composer:** a compact **licence picker** next to the audience picker (item 13). It shows the resolved default ("CC BY 4.0 (your default)") and a menu with short explanations ("Others can share and adapt, even commercially, if they credit you").
-- **Settings:**
-  - a person "Content licence" section: the default licence, with an "apply to all my existing posts" button that asks for confirmation;
-  - a group Settings option for the group's default.
-- **On each post:** a small licence badge (CC icons) linking to the deed. When sharing is allowed, it also shows **Download** and **Copy attribution**, which copies the server's attribution string.
-- **Edit:** change the licence, with the warning about copies already obtained.
-- i18n: licence labels come from the catalogue, and the UI strings are added in en-GB and fr-FR.
+1. **Composer:** a compact **licence picker** next to the audience picker (item 13). It shows the resolved default ("CC BY 4.0 (your default)") and a menu with short explanations ("Others can share and adapt, even commercially, if they credit you").
+2. **Settings:**
+   - a person "Content licence" section: the default licence, with an "apply to all my existing posts" button that asks for confirmation;
+   - a group Settings option for the group's default.
+3. **On each post:** a small licence badge (CC icons) linking to the deed. When sharing is allowed, it also shows **Download** and **Copy attribution**, which copies the server's attribution string.
+4. **Edit:** change the licence, with the warning about copies already obtained.
+5. i18n: licence labels come from the catalogue, and the UI strings are added in en-GB and fr-FR.
 
 ## Estimate
 
@@ -74,19 +74,19 @@
 The ActivityPub `license` property is a one-line addition inside item 8.
 
 ## Verification
-- A post created with no choice gets the profile default, then the group default in a group, then the instance default. An explicit choice overrides all of them.
-- An `arr` post shows no Download (except to its owner), and a CC BY post shows Download and a correct attribution line.
-- A followers-only CC0 photo can't be downloaded by a stranger (403 or 404).
-- Removing BY-ND from the mounted `licenses.json` hides it from the picker, while existing BY-ND posts still show their badge.
-- The ActivityPub Note JSON (item 8) contains the `license` URL.
+1. A post created with no choice gets the profile default, then the group default in a group, then the instance default. An explicit choice overrides all of them.
+2. An `arr` post shows no Download (except to its owner), and a CC BY post shows Download and a correct attribution line.
+3. A followers-only CC0 photo can't be downloaded by a stranger (403 or 404).
+4. Removing BY-ND from the mounted `licenses.json` hides it from the picker, while existing BY-ND posts still show their badge.
+5. The ActivityPub Note JSON (item 8) contains the `license` URL.
 
 ## Dependencies
 - **Soft:**
-  - item 13 (the composer, where the licence picker sits next to the audience picker);
-  - item 17 and item 16 (which files to download);
-  - item 9 (the defaults-path fix for k8s applies to `license-defaults` too);
-  - item 8 (the `license` property in ActivityPub objects);
-  - item 10 (`rel=license` in the web shell).
+  1. item 13 (the composer, where the licence picker sits next to the audience picker);
+  2. item 17 and item 16 (which files to download);
+  3. item 9 (the defaults-path fix for k8s applies to `license-defaults` too);
+  4. item 8 (the `license` property in ActivityPub objects);
+  5. item 10 (`rel=license` in the web shell).
 
 ## Documentation
 

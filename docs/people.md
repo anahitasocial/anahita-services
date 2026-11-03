@@ -7,10 +7,10 @@ each is described.
 
 ## Contents
 
-- [Their account](#their-account)
-- [What only a person has](#what-only-a-person-has)
-- [The API](#the-api)
-- [Where the code is](#where-the-code-is)
+1. [Their account](#their-account)
+2. [What only a person has](#what-only-a-person-has)
+3. [The API](#the-api)
+4. [Where the code is](#where-the-code-is)
 
 ## Their account
 
