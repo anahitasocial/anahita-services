@@ -15,6 +15,10 @@ Each arrow is an edge; the dashed one is the post's owner_id.](images/graph.svg)
 - [Nodes](#nodes)
 - [How a type is named](#how-a-type-is-named)
 - [Every kind of node](#every-kind-of-node)
+  - [An actor](#an-actor)
+  - [A medium](#a-medium)
+  - [A tag](#a-tag)
+  - [Every type](#every-type)
 - [Edges](#edges)
 - [Every kind of edge](#every-kind-of-edge)
 - [Who may see a node](#who-may-see-a-node)
@@ -89,6 +93,63 @@ edge.<family>.<name>.v1                  edge.actor.follow.v1
 
 ## Every kind of node
 
+Each node stands for something in the life of a community, and its family
+says what kind of thing that is. Three families hold nearly everything.
+
+### An actor
+
+An actor is somebody, or a body of people, and the code's word for a
+**profile** ([Profiles](profiles.md)). A person is one; so is a collective of
+people: a group, an event, an organisation's website.
+
+- **It has an identity:** a name, a handle, a description, a profile photo,
+  an address of its own.
+- **It forms relationships:** it is followed, and a person follows others;
+  it blocks and is blocked; people are invited to follow it; a group, an
+  event or a website is looked after by its admins.
+- **It owns things:** the posts on it are its own, whoever wrote them, and
+  what may be posted on it is its own to choose.
+- **It has a right to privacy:** it chooses who may see it, and nobody
+  outside that sees anything on it.
+- **It has stories to tell:** what it posts reaches those who follow it, in
+  their feeds, newest first.
+- **It can be tagged and located:** carry a hashtag, be tied to a location,
+  be mentioned in a post, and, a person, be tagged in a photo.
+
+### A medium
+
+A medium is something an actor makes and keeps: words, a photo, a video.
+Sound is not one yet. It is a **post** to the people reading it: a note, an
+article, a topic, a photo post, a video post, and a reply, which is a note
+under another.
+
+- **It is owned:** by the profile it is on, and written by its author, who
+  need not be its owner, as a person's post in a group is the group's.
+- **It has an audience:** who may see it, chosen when it is written, never
+  wider than the profile it is on.
+- **It is answered and passed on:** replied to, liked, reposted, quoted,
+  saved.
+- **It is tied to the rest:** cited by another post, tagged with a hashtag,
+  tied to a location, naming the profiles it mentions and the people in it.
+
+### A tag
+
+A tag is what things are about, or where they are, gathering whatever
+carries it.
+
+- **A hashtag** is a subject, `#seeds`, which posts and profiles carry.
+- **A location** is a place on a map, which posts and profiles are tied to.
+
+A tag belongs to nobody. It is followed, so its posts come to a person's
+home page, it trends when many profiles use it, and its page lists what
+carries it ([Hashtags and locations](hashtags.md)).
+
+### Every type
+
+Beside the three, a **feed** is a node, so that a person's custom feed can
+be kept on their home page as an edge, and a **repost** is one, pointing to
+what it reposts.
+
 | Family | Type | What |
 | --- | --- | --- |
 | Actors | `node.actor.person-service.person.v1` | A person with an account here |
@@ -143,8 +204,8 @@ There is one edge of a type between the same two nodes, never two
 | `edge.base.voteup.v1` | A person | A post | Likes it |
 | `edge.base.bookmark.v1` | A person | A post | Saved it. Private: nobody else is told, the post's author included, and nothing is counted from it |
 | `edge.base.subscription.v1` | A person | A post or a profile | Is notified of what happens to it ([Notifications](notifications.md)) |
-| `edge.tag.hashtag.v1` | A hashtag | A post | The post carries the hashtag |
-| `edge.tag.location.v1` | A location | A post | The post is tagged with the location |
+| `edge.tag.hashtag.v1` | A hashtag | A post or a profile | It carries the hashtag |
+| `edge.tag.location.v1` | A location | A post or a profile | It is tied to the location |
 | `edge.tag.mention.v1` | A profile | A post | The post names the profile: "this is for you" |
 | `edge.tag.person.v1` | A person | A photo or video post | The person is in it, tagged by its author; shown once they approve |
 | `edge.medium.citation.v1` | A post | A post | The first shows the second within its text, as an article or a topic does an address on a line of its own |

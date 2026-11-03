@@ -350,7 +350,7 @@ now one, `actor-service`.
   in the `events` table. A group hosts one through an
   `edge.actor.host.v1` edge from the group to the event, and
   `GET /groups/<id>/events/` lists them. Who may do what is in
-  [Permissions](permissions.md#events).
+  [Events](events.md#who-may-do-what).
 - **An invitation is an edge,** `edge.actor.invite.v1`, from the person
   invited to the group or event, so every kind of actor can have them. They
   are made and answered through `socialgraph-service`

@@ -6,7 +6,10 @@ proves is theirs can be connected: a WordPress or other site, a static site,
 an app's changelog, a podcast. Each new item of the feed becomes a note of
 the website, its title, an excerpt and a link to the original, and people
 reply, like, repost and quote it as any post. Nobody posts on a website; its
-administrators answer under its posts as the website.
+admins answer under its posts as the website. What every profile has, a
+website has too ([Profiles](profiles.md)); this page is what only a website
+has. In the API it is under `/websites/`, sent as `actor.WebsiteNode`, and
+connected through syndication-service.
 
 Why it is built this way is in the plan, [plans/done/website.md](plans/done/website.md).
 

@@ -139,7 +139,36 @@ The pages, grouped by what they are about, each group in the order to read it.
    - [Groups left without an administrator](account-lifecycle.md#groups-left-without-an-administrator)
    - [Where the code is](account-lifecycle.md#where-the-code-is)
 
-### People
+### Profiles
+
+What every profile has, then each kind's own. The API reference has the same
+five, under Profiles.
+
+1. [Profiles](profiles.md) — what every person, group, event and website has alike, and each kind's address
+   - [What every profile has](profiles.md#what-every-profile-has)
+   - [Its address](profiles.md#its-address)
+   - [Its admins](profiles.md#its-admins)
+   - [The API](profiles.md#the-api)
+   - [Where the code is](profiles.md#where-the-code-is)
+2. [People](people.md) — somebody with an account: what only a person has
+   - [Their account](people.md#their-account)
+   - [What only a person has](people.md#what-only-a-person-has)
+   - [The API](people.md#the-api)
+   - [Where the code is](people.md#where-the-code-is)
+3. [Groups](groups.md) — made by members, looked after by admins, followed by people
+   - [Making one](groups.md#making-one)
+   - [What only a group has](groups.md#what-only-a-group-has)
+   - [The API](groups.md#the-api)
+   - [Where the code is](groups.md#where-the-code-is)
+4. [Events](events.md) — a group with a time and a place: going or maybe, what is on, reminders
+   - [Who may do what](events.md#who-may-do-what)
+   - [What is on](events.md#what-is-on)
+   - [Reminders and when it is over](events.md#reminders-and-when-it-is-over)
+   - [The API](events.md#the-api)
+   - [Where the code is](events.md#where-the-code-is)
+5. [Websites](websites.md) — a website's feed as a profile, under Fediverse and Bluesky below
+
+### Accounts and the graph
 
 1. [Signing in](signing-in.md) — passwords, passkeys, emailed codes and their limits
    - [The ways in](signing-in.md#the-ways-in)
