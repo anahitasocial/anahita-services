@@ -13010,6 +13010,112 @@
       }
     },
     "/events/": {
+      "get": {
+        "description": "Every event still to come or on now that the viewer may see, whoever hosts it, not called off, soonest first.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getEvents",
+        "parameters": [
+          {
+            "description": "On at some time between these, each an RFC 3339 instant: the web app works out \"this weekend\" in the viewer's own zone and sends it so. Either left out for no bound.",
+            "in": "query",
+            "name": "from",
+            "schema": {
+              "maxLength": 40,
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "maxLength": 40,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only the ones with an address to join online.",
+            "in": "query",
+            "name": "online",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Only the ones somebody the viewer follows hosts, looks after or said going or maybe to. Nothing, to somebody not signed in.",
+            "in": "query",
+            "name": "following",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send: up to 100.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "maximum": 100,
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {},
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "What is on",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*eventHandler).Discover",
+        "x-viewer": "anyone"
+      },
       "post": {
         "description": "Its own, or hosted by a group whoever makes it administers.\n\nWho may call it: somebody signed in.",
         "operationId": "postEvents",

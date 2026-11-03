@@ -91,10 +91,21 @@ message EventListRequest {
     uint64 limit = 3;
     uint64 offset = 4;
     // Instead of a person: the events a group hosts, as this viewer may
-    // see them. The filter is then upcoming or past.
+    // see them. The filter is then upcoming or past. Or, with the filter
+    // discover and neither a person nor a host, every event still to come
+    // that this viewer may see.
     int64 host_id = 5;
     int64 viewer_id = 6;
     string viewer_person_type = 7;
+    // With discover only. On at some time in this window: an RFC 3339
+    // instant at each end, either left empty for no bound.
+    string from = 8;
+    string to = 9;
+    // Only the ones with an address to join online.
+    bool online = 10;
+    // Only the ones somebody the viewer follows hosts, looks after or
+    // said going or maybe to.
+    bool following = 11;
 }
 
 message EventListResponse {

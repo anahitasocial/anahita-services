@@ -70,6 +70,11 @@ type EventsRepoInterface interface {
 	// the events this viewer may see.
 	ListHostedBy(groupID int64, viewer *entities.Viewer, filter string, limit uint64, offset uint64) ([]int64, uint64, error)
 
+	// ListOpen returns the ids of every event still to come or on now that
+	// this viewer may see and that was not called off, soonest first, and
+	// how many there are: what is on, whoever hosts it.
+	ListOpen(viewer *entities.Viewer, filter entities.EventDiscoverFilter, limit uint64, offset uint64) ([]int64, uint64, error)
+
 	// AttendeeIDs returns who answered an event: everybody, or only the
 	// ones going. For telling them something.
 	AttendeeIDs(eventID int64, goingOnly bool) ([]int64, error)
@@ -506,6 +511,96 @@ func (r *eventsRepo) ListFor(personID int64, filter string, limit uint64, offset
 	}
 
 	rows, err := r.db.Query("SELECT node.id"+from+order, append(args, limit, offset)...)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	ids := []int64{}
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, 0, err
+		}
+		ids = append(ids, id)
+	}
+
+	return ids, total, rows.Err()
+}
+
+// ListOpen lists what is on for a viewer: every event not over and not
+// called off, behind the same gate as every other list of actors, so an
+// event for its followers alone is shown to them and nobody else. A site
+// administrator is gated as anybody is: this is a list to find things to
+// go to, not a way to look at events nobody asked them to.
+func (r *eventsRepo) ListOpen(viewer *entities.Viewer, filter entities.EventDiscoverFilter, limit uint64, offset uint64) ([]int64, uint64, error) {
+	if viewer == nil {
+		viewer = entities.NewViewer()
+	}
+
+	open := func(columns string) sq.SelectBuilder {
+		query := sq.Select(columns).
+			From("nodes AS node").
+			Join("events AS event ON event.node_id = node.id").
+			Where(sq.Eq{
+				"node.type":    constants.NodeActorEventEntityType,
+				"node.enabled": true,
+			}).
+			Where("node.deleted_at IS NULL").
+			Where("node.ends_at > NOW()").
+			Where("event.cancelled_at IS NULL").
+			Where(actorAccessCondition(viewer))
+
+		// On at some time in the window: it starts before the window ends
+		// and ends after it starts, so a festival over the weekend is in
+		// Saturday's list.
+		if filter.To != nil {
+			query = query.Where(sq.Lt{"node.starts_at": filter.To.UTC()})
+		}
+		if filter.From != nil {
+			query = query.Where(sq.Gt{"node.ends_at": filter.From.UTC()})
+		}
+		if filter.Online {
+			query = query.Where("event.online_url <> ''")
+		}
+		// Hosted, looked after or answered by somebody the viewer follows.
+		// Nobody follows anybody without being signed in.
+		if filter.Following {
+			query = query.Where(sq.Expr(`
+        EXISTS (
+          SELECT 1
+          FROM edges AS mine
+          JOIN edges AS theirs ON theirs.node_a_id = mine.node_b_id
+          WHERE mine.type = ?
+            AND mine.node_a_id = ?
+            AND theirs.node_b_id = node.id
+            AND theirs.type IN (?, ?, ?)
+        )`, constants.EdgeFollowEntityType, viewer.ID,
+				constants.EdgeFollowEntityType, constants.EdgeActorAdminEntityType, constants.EdgeActorHostEntityType))
+		}
+
+		return query
+	}
+
+	countSQL, countArgs, err := open("COUNT(*)").ToSql()
+	if err != nil {
+		return nil, 0, err
+	}
+	var total uint64
+	if err := r.db.QueryRow(countSQL, countArgs...).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	listSQL, listArgs, err := open("node.id").
+		OrderBy("node.starts_at ASC", "node.id ASC").
+		Limit(limit).
+		Offset(offset).
+		ToSql()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	rows, err := r.db.Query(listSQL, listArgs...)
 	if err != nil {
 		return nil, 0, err
 	}

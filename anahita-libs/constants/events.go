@@ -41,6 +41,10 @@ const (
 	// EventListInvited: what they were invited to and have not answered,
 	// still to come, soonest first.
 	EventListInvited = "invited"
+	// EventListDiscover: everybody's, not the viewer's own: every event
+	// still to come or on now that the viewer may see, not called off,
+	// soonest first. The site's list of what is on.
+	EventListDiscover = "discover"
 )
 
 // EventArchiveAfter is how long after it ends an event is archived.

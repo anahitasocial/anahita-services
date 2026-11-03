@@ -4,6 +4,7 @@ import (
 	"actor/constants"
 	"log"
 	"net/http"
+	"time"
 
 	an_constants "anahita-libs/constants"
 	"anahita-libs/data/entities"
@@ -40,9 +41,6 @@ type EventAttendeesRequest struct {
 // maybe to, the ones they look after, and the ones they were invited to.
 //
 // GET /events/mine?filter=upcoming|past|hosting|invited
-//
-// There is no list of every event on the site. An event is found by being
-// invited to it, from the group or person hosting it, or by its address.
 //
 // An event the viewer was invited to and may not yet see is sent as its
 // name, picture and time, marked restricted, like the limited profile.
@@ -118,6 +116,122 @@ func (h *eventHandler) Mine(c echo.Context) error {
 	for _, event := range ordered {
 		// An event that is no longer theirs to see, in any way, is left
 		// out.
+		if item := eventListItem(event, rels[event.ID], viewer); item != nil {
+			resp.Data = append(resp.Data, item)
+		}
+	}
+
+	return c.JSON(http.StatusOK, resp)
+}
+
+// EventDiscoverRequest asks for what is on.
+type EventDiscoverRequest struct {
+	// On at some time between these, each an RFC 3339 instant: the web app
+	// works out "this weekend" in the viewer's own zone and sends it so.
+	// Either left out for no bound.
+	From string `query:"from" validate:"omitempty,max=40"`
+	To   string `query:"to" validate:"omitempty,max=40"`
+	// Only the ones with an address to join online.
+	Online bool `query:"online"`
+	// Only the ones somebody the viewer follows hosts, looks after or said
+	// going or maybe to. Nothing, to somebody not signed in.
+	Following bool `query:"following"`
+	// How many to pass over.
+	Offset uint64 `query:"start"`
+	// The most to send: up to 100.
+	Limit uint64 `query:"limit" validate:"omitempty,max=100"`
+}
+
+// Discover lists what is on: every event still to come or on now that the
+// viewer may see, whoever hosts it, not called off, soonest first. To
+// somebody not signed in, the public ones. An event people can come to,
+// a performance, a block party, a meeting, is found here as well as by
+// being invited, from its host, or by its address.
+//
+// GET /events/
+func (h *eventHandler) Discover(c echo.Context) error {
+	var (
+		req    = &EventDiscoverRequest{Limit: an_constants.RequestLimitDefault}
+		viewer = getViewer(c)
+	)
+
+	if err := c.Bind(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+	if err := c.Validate(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	resp := &responses.List[any]{
+		Data: []any{},
+		Pagination: responses.Pagination{
+			Limit:  req.Limit,
+			Offset: req.Offset,
+		},
+	}
+
+	filter := entities.EventDiscoverFilter{Online: req.Online, Following: req.Following}
+	for _, bound := range []struct {
+		value string
+		into  **time.Time
+	}{{req.From, &filter.From}, {req.To, &filter.To}} {
+		if bound.value == "" {
+			continue
+		}
+		at, err := time.Parse(time.RFC3339, bound.value)
+		if err != nil {
+			log.Println(err)
+			return c.NoContent(http.StatusBadRequest)
+		}
+		*bound.into = &at
+	}
+	// Following nobody, a visitor follows no events.
+	if filter.Following && viewer.ID <= 0 {
+		return c.JSON(http.StatusOK, resp)
+	}
+
+	ids, total, err := h.Srv.EventsGRPC.ListOpen(viewer, filter, req.Limit, req.Offset)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	resp.Pagination.Total = total
+
+	if len(ids) == 0 {
+		return c.JSON(http.StatusOK, resp)
+	}
+
+	readReq := services.NewActorGRPCRequest().BatchRead
+	readReq.IDs = ids
+	events, err := h.Srv.ActorsGRPC.BatchRead(readReq, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	byID := make(map[int64]*entities.AnahitaNode, len(events))
+	for _, event := range events {
+		byID[event.ID] = event
+	}
+	ordered := make([]*entities.AnahitaNode, 0, len(ids))
+	for _, id := range ids {
+		if event, ok := byID[id]; ok {
+			ordered = append(ordered, event)
+		}
+	}
+
+	rels, err := h.Srv.SocialgraphGRPC.Browse(ids, viewer.ID)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	h.setEventDetails(ordered, viewer)
+	batchPresignPaths(h.Env, ordered)
+
+	for _, event := range ordered {
 		if item := eventListItem(event, rels[event.ID], viewer); item != nil {
 			resp.Data = append(resp.Data, item)
 		}
@@ -324,9 +438,8 @@ func (h *eventHandler) HostedBy(c echo.Context) error {
 //
 //	GET /events/featured
 //
-// There is no list of every event (routes.go), so this is the one list of
-// events not the viewer's own or a group's; it holds only what a super
-// administrator chose to show everybody.
+// It holds only what a super administrator chose to show everybody;
+// Discover is every event the viewer may see.
 func (h *eventHandler) Featured(c echo.Context) error {
 	query := c.Request().URL.Query()
 	query.Set("featured", "1")

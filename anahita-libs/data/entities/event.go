@@ -28,3 +28,16 @@ type EventDetails struct {
 	// the event on.
 	Host *AnahitaNode
 }
+
+// EventDiscoverFilter narrows the list of what is on (GET /events/). The
+// zero value is every event the viewer may see.
+type EventDiscoverFilter struct {
+	// On at some time between these: each nil for no bound.
+	From *time.Time
+	To   *time.Time
+	// Only the ones with an address to join online.
+	Online bool
+	// Only the ones somebody the viewer follows hosts, looks after or said
+	// going or maybe to.
+	Following bool
+}

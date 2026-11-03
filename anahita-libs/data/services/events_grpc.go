@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/proto/graphpb"
 )
@@ -39,6 +40,9 @@ type EventsGRPCInterface interface {
 	// ListHostedBy returns the ids of the events a group hosts that this
 	// viewer may see, upcoming or past, and how many there are.
 	ListHostedBy(groupID int64, viewer *entities.Viewer, filter string, limit uint64, offset uint64) ([]int64, uint64, error)
+	// ListOpen returns the ids of every event still to come that this
+	// viewer may see, soonest first, and how many there are.
+	ListOpen(viewer *entities.Viewer, filter entities.EventDiscoverFilter, limit uint64, offset uint64) ([]int64, uint64, error)
 }
 
 type EventsGRPC struct {
@@ -198,6 +202,38 @@ func (srv *EventsGRPC) ListHostedBy(groupID int64, viewer *entities.Viewer, filt
 		Filter: filter,
 		Limit:  limit,
 		Offset: offset,
+	}
+	if viewer != nil {
+		req.ViewerId = viewer.ID
+		req.ViewerPersonType = viewer.PersonType
+	}
+
+	resp, err := client.List(context.Background(), req)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return resp.Ids, resp.Total, nil
+}
+
+func (srv *EventsGRPC) ListOpen(viewer *entities.Viewer, filter entities.EventDiscoverFilter, limit uint64, offset uint64) ([]int64, uint64, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	req := &graphpb.EventListRequest{
+		Filter:    constants.EventListDiscover,
+		Limit:     limit,
+		Offset:    offset,
+		Online:    filter.Online,
+		Following: filter.Following,
+	}
+	if filter.From != nil {
+		req.From = filter.From.UTC().Format(time.RFC3339)
+	}
+	if filter.To != nil {
+		req.To = filter.To.UTC().Format(time.RFC3339)
 	}
 	if viewer != nil {
 		req.ViewerId = viewer.ID

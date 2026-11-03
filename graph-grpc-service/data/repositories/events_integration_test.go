@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"anahita-libs/constants"
+	"anahita-libs/data/entities"
 	"anahita-libs/proto/graphpb"
 )
 
@@ -435,6 +436,127 @@ func TestEventsHostedByAGroup(t *testing.T) {
 	visible, err := NewNodesRepo(db).FilterVisible([]int64{private}, replyViewer(replyAlice))
 	if err != nil || len(visible) != 0 {
 		t.Errorf("visible to Alice before she answers: %v (err %v), want nothing", visible, err)
+	}
+}
+
+// What is on: every event not over and not called off, as each viewer may
+// see it, soonest first, whoever hosts it.
+func TestEventsThatAreOn(t *testing.T) {
+	db := accessTestDB(t)
+	seedRepliesFixture(t, db)
+	repo := NewEventsRepo(db)
+	seedEvents(t, repo, 0)
+
+	const (
+		private   = 902
+		calledOff = 903
+		sooner    = 904
+	)
+	eventType := constants.NodeActorEventEntityType
+
+	if _, err := db.Exec(`INSERT INTO nodes (id,type,service,name,alias,access,enabled,starts_at,ends_at,created_at,updated_at) VALUES
+		 (902,'` + eventType + `','actor-service','Members evening','members','followers',1,NOW() + INTERVAL 5 DAY,NOW() + INTERVAL 6 DAY,NOW(),NOW()),
+		 (903,'` + eventType + `','actor-service','Rained out','rained-out','public',1,NOW() + INTERVAL 3 DAY,NOW() + INTERVAL 4 DAY,NOW(),NOW()),
+		 (904,'` + eventType + `','actor-service','Block party','block-party','public',1,NOW() - INTERVAL 1 HOUR,NOW() + INTERVAL 3 HOUR,NOW(),NOW())`); err != nil {
+		t.Fatal(err)
+	}
+	for _, id := range []int64{private, calledOff, sooner} {
+		if err := repo.Save(&EventDetails{NodeID: id, TimezoneName: "UTC"}); err != nil {
+			t.Fatalf("save %d: %v", id, err)
+		}
+	}
+	if _, err := repo.Cancel(calledOff); err != nil {
+		t.Fatal(err)
+	}
+	// Carol follows the members evening; nobody else does.
+	if _, err := db.Exec(`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,created_at) VALUES ('edge.actor.follow.v1',4,'node.actor.person-service.person.v1',902,?,NOW())`, eventType); err != nil {
+		t.Fatal(err)
+	}
+
+	on := func(viewer int64) []int64 {
+		t.Helper()
+		ids, total, err := repo.ListOpen(replyViewer(viewer), entities.EventDiscoverFilter{}, 20, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if int(total) != len(ids) {
+			t.Errorf("counted %d, listed %d", total, len(ids))
+		}
+		return ids
+	}
+	same := func(got []int64, want ...int64) bool {
+		if len(got) != len(want) {
+			return false
+		}
+		for i := range got {
+			if got[i] != want[i] {
+				return false
+			}
+		}
+		return true
+	}
+
+	// The block party is on now, and so first; the picnic is tomorrow.
+	// Last year's is over and the rained-out one called off.
+	if got := on(0); !same(got, sooner, testEvent) {
+		t.Errorf("a visitor: %v, want the block party then the picnic", got)
+	}
+	if got := on(replyBob); !same(got, sooner, testEvent) {
+		t.Errorf("Bob: %v, want the block party then the picnic", got)
+	}
+	if got := on(replyCarol); !same(got, sooner, testEvent, private) {
+		t.Errorf("Carol, who follows the members evening: %v, want it last", got)
+	}
+
+	// Paged: the second of them alone.
+	ids, total, err := repo.ListOpen(replyViewer(0), entities.EventDiscoverFilter{}, 1, 1)
+	if err != nil || total != 2 || !same(ids, testEvent) {
+		t.Errorf("the second page: %v of %d (err %v), want the picnic of 2", ids, total, err)
+	}
+
+	narrowed := func(viewer int64, filter entities.EventDiscoverFilter) []int64 {
+		t.Helper()
+		ids, total, err := repo.ListOpen(replyViewer(viewer), filter, 20, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if int(total) != len(ids) {
+			t.Errorf("counted %d, listed %d", total, len(ids))
+		}
+		return ids
+	}
+
+	// A day from six hours on: the picnic, and not the block party, which
+	// is over by then. The next few hours: the block party. (Not midnight
+	// to midnight, which the block party would cross late in the day.)
+	now := time.Now().UTC()
+	later := now.Add(6 * time.Hour)
+	dayLater := later.Add(24 * time.Hour)
+	if got := narrowed(0, entities.EventDiscoverFilter{From: &later, To: &dayLater}); !same(got, testEvent) {
+		t.Errorf("a day from six hours on: %v, want the picnic", got)
+	}
+	soon := now.Add(2 * time.Hour)
+	if got := narrowed(0, entities.EventDiscoverFilter{From: &now, To: &soon}); !same(got, sooner) {
+		t.Errorf("the next two hours: %v, want the block party", got)
+	}
+
+	// Online: the picnic alone has an address to join.
+	if got := narrowed(0, entities.EventDiscoverFilter{Online: true}); !same(got, testEvent) {
+		t.Errorf("online: %v, want the picnic", got)
+	}
+
+	// Bob follows Carol, who is going to the block party and follows the
+	// members evening, which Bob may not see.
+	if _, err := db.Exec(`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,created_at) VALUES
+		('edge.actor.follow.v1',2,'node.actor.person-service.person.v1',4,'node.actor.person-service.person.v1',NOW()),
+		('edge.actor.follow.v1',4,'node.actor.person-service.person.v1',904,?,NOW())`, eventType); err != nil {
+		t.Fatal(err)
+	}
+	if got := narrowed(replyBob, entities.EventDiscoverFilter{Following: true}); !same(got, sooner) {
+		t.Errorf("Bob, following: %v, want the block party", got)
+	}
+	if got := narrowed(replyAlice, entities.EventDiscoverFilter{Following: true}); !same(got) {
+		t.Errorf("Alice, who follows nobody going: %v, want nothing", got)
 	}
 }
 

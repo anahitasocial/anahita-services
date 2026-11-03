@@ -551,6 +551,21 @@ maybe.
 - **Its address on the site** is set when it is made and does not change when it is
   renamed, since invitations and calendars link to it.
 
+**What is on** (`GET /events/`) lists every event still to come or on now
+that the viewer may see, by the same gate as any list of profiles, whoever
+hosts it, and not called off: soonest first, never ranked. A visitor gets
+the public ones. A site administrator is gated as anybody is: it is a list
+of things to go to. It can be narrowed:
+
+| Parameter | Narrows it to |
+| --- | --- |
+| `from`, `to` | The ones on at some time between two RFC 3339 instants. The web app sends a day, a weekend, a week or a month on the reader's own calendar |
+| `online=true` | The ones with an address to join online |
+| `following=true` | The ones somebody the viewer follows hosts, looks after, or said going or maybe to. Nothing, to a visitor |
+
+The web app's **For you** is not this list: it is the recommendation
+service's events, each with why ([Recommendations](recommendations.md)).
+
 ## Reposts
 
 Reposts have no setting under Permissions and cannot be restricted per

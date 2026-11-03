@@ -512,6 +512,13 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Viewer(apidoc.SignedIn).
 		Takes(&handlers.EventMineRequest{Limit: 20}).
 		Sends(http.StatusOK, libs_responses.List[any]{})
+	// Everybody's: what is on. A visitor gets the public ones.
+	events.GET("/", r.handler.Event.Discover, r.setViewer).
+		Summary("What is on").
+		Describe("Every event still to come or on now that the viewer may see, whoever hosts it, not called off, soonest first.").
+		Viewer(apidoc.Anyone).
+		Takes(&handlers.EventDiscoverRequest{Limit: 20}).
+		Sends(http.StatusOK, libs_responses.List[any]{})
 	// The ones a super administrator features, for onboarding.
 	events.GET("/featured", r.handler.Event.Featured, r.setViewer).
 		Summary("The events the installation features").

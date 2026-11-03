@@ -638,12 +638,23 @@ type EventListRequest struct {
 	Limit  uint64 `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
 	Offset uint64 `protobuf:"varint,4,opt,name=offset,proto3" json:"offset,omitempty"`
 	// Instead of a person: the events a group hosts, as this viewer may
-	// see them. The filter is then upcoming or past.
+	// see them. The filter is then upcoming or past. Or, with the filter
+	// discover and neither a person nor a host, every event still to come
+	// that this viewer may see.
 	HostId           int64  `protobuf:"varint,5,opt,name=host_id,json=hostId,proto3" json:"host_id,omitempty"`
 	ViewerId         int64  `protobuf:"varint,6,opt,name=viewer_id,json=viewerId,proto3" json:"viewer_id,omitempty"`
 	ViewerPersonType string `protobuf:"bytes,7,opt,name=viewer_person_type,json=viewerPersonType,proto3" json:"viewer_person_type,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	// With discover only. On at some time in this window: an RFC 3339
+	// instant at each end, either left empty for no bound.
+	From string `protobuf:"bytes,8,opt,name=from,proto3" json:"from,omitempty"`
+	To   string `protobuf:"bytes,9,opt,name=to,proto3" json:"to,omitempty"`
+	// Only the ones with an address to join online.
+	Online bool `protobuf:"varint,10,opt,name=online,proto3" json:"online,omitempty"`
+	// Only the ones somebody the viewer follows hosts, looks after or
+	// said going or maybe to.
+	Following     bool `protobuf:"varint,11,opt,name=following,proto3" json:"following,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *EventListRequest) Reset() {
@@ -723,6 +734,34 @@ func (x *EventListRequest) GetViewerPersonType() string {
 		return x.ViewerPersonType
 	}
 	return ""
+}
+
+func (x *EventListRequest) GetFrom() string {
+	if x != nil {
+		return x.From
+	}
+	return ""
+}
+
+func (x *EventListRequest) GetTo() string {
+	if x != nil {
+		return x.To
+	}
+	return ""
+}
+
+func (x *EventListRequest) GetOnline() bool {
+	if x != nil {
+		return x.Online
+	}
+	return false
+}
+
+func (x *EventListRequest) GetFollowing() bool {
+	if x != nil {
+		return x.Following
+	}
+	return false
 }
 
 type EventListResponse struct {
@@ -825,7 +864,7 @@ const file_proto_graphpb_event_proto_rawDesc = "" +
 	"\bevent_id\x18\x01 \x01(\x03R\aeventId\x12\x1b\n" +
 	"\tviewer_id\x18\x02 \x01(\x03R\bviewerId\"/\n" +
 	"\x13EventCancelResponse\x12\x18\n" +
-	"\achanged\x18\x01 \x01(\bR\achanged\"\xd9\x01\n" +
+	"\achanged\x18\x01 \x01(\bR\achanged\"\xb3\x02\n" +
 	"\x10EventListRequest\x12\x1b\n" +
 	"\tperson_id\x18\x01 \x01(\x03R\bpersonId\x12\x16\n" +
 	"\x06filter\x18\x02 \x01(\tR\x06filter\x12\x14\n" +
@@ -833,7 +872,12 @@ const file_proto_graphpb_event_proto_rawDesc = "" +
 	"\x06offset\x18\x04 \x01(\x04R\x06offset\x12\x17\n" +
 	"\ahost_id\x18\x05 \x01(\x03R\x06hostId\x12\x1b\n" +
 	"\tviewer_id\x18\x06 \x01(\x03R\bviewerId\x12,\n" +
-	"\x12viewer_person_type\x18\a \x01(\tR\x10viewerPersonType\";\n" +
+	"\x12viewer_person_type\x18\a \x01(\tR\x10viewerPersonType\x12\x12\n" +
+	"\x04from\x18\b \x01(\tR\x04from\x12\x0e\n" +
+	"\x02to\x18\t \x01(\tR\x02to\x12\x16\n" +
+	"\x06online\x18\n" +
+	" \x01(\bR\x06online\x12\x1c\n" +
+	"\tfollowing\x18\v \x01(\bR\tfollowing\";\n" +
 	"\x11EventListResponse\x12\x10\n" +
 	"\x03ids\x18\x01 \x03(\x03R\x03ids\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x04R\x05total2\x94\x03\n" +

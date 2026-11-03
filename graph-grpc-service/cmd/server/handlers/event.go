@@ -225,6 +225,30 @@ func (h *eventGrpcHandler) List(ctx context.Context, req *graphpb.EventListReque
 		limit = constants.DefaultPageSize
 	}
 
+	// Everybody's: what is on, as the viewer may see it.
+	if req.Filter == constants.EventListDiscover {
+		viewer := entities.NewViewer()
+		viewer.ID = req.ViewerId
+		viewer.PersonType = req.ViewerPersonType
+
+		filter := entities.EventDiscoverFilter{Online: req.Online, Following: req.Following}
+		var err error
+		if filter.From, err = optionalInstant(req.From); err != nil {
+			return nil, err
+		}
+		if filter.To, err = optionalInstant(req.To); err != nil {
+			return nil, err
+		}
+
+		ids, total, err := h.env.Repos.Events.ListOpen(viewer, filter, limit, req.Offset)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+
+		return &graphpb.EventListResponse{Ids: ids, Total: total}, nil
+	}
+
 	// A group's events, as the viewer may see them.
 	if req.HostId > 0 {
 		viewer := entities.NewViewer()
@@ -251,4 +275,16 @@ func (h *eventGrpcHandler) List(ctx context.Context, req *graphpb.EventListReque
 	}
 
 	return &graphpb.EventListResponse{Ids: ids, Total: total}, nil
+}
+
+// optionalInstant reads an RFC 3339 instant, or nothing from nothing.
+func optionalInstant(value string) (*time.Time, error) {
+	if value == "" {
+		return nil, nil
+	}
+	at, err := time.Parse(time.RFC3339, value)
+	if err != nil {
+		return nil, fmt.Errorf("not an instant: %q", value)
+	}
+	return &at, nil
 }

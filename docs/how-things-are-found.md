@@ -1,20 +1,21 @@
 # How things are found
 
-There are six ways somebody comes across a post or a profile on Anahita:
-their home page, a custom feed, search, suggestions of whom to follow, and
-what is trending. This page is how they fit together, and what each one
+There are seven ways somebody comes across a post or a profile on Anahita:
+their home page, a custom feed, search, a hashtag's or a location's posts,
+suggestions of whom to follow, what is trending, and the list of events
+that are on. This page is how they fit together, and what each one
 orders by. The pages it links to have the numbers.
 
 ## Contents
 
-- [Six ways in](#six-ways-in)
+- [Seven ways in](#seven-ways-in)
 - [What they share](#what-they-share)
 - [What is never used](#what-is-never-used)
 - [Interest fades; usefulness does not](#interest-fades-usefulness-does-not)
 - [Each person's own weights](#each-persons-own-weights)
 - [The operator's numbers](#the-operators-numbers)
 
-## Six ways in
+## Seven ways in
 
 | Way | What it shows | In what order | Page |
 | --- | --- | --- | --- |
@@ -24,8 +25,9 @@ orders by. The pages it links to have the numbers.
 | A hashtag's or a location's posts | The posts that carry it | Most relevant, without the words | [Hashtags and locations](hashtags.md#a-hashtags-and-a-locations-posts) |
 | Suggestions | People, groups, events and websites to follow | By the reasons for each, scored | [Recommendations](recommendations.md) |
 | Trending | The hashtags and locations the most profiles used lately | By how many profiles, each once | [Trending](hashtags.md#trending) |
+| What is on | Every event still to come that the viewer may see, whoever hosts it; narrowed by when, online, and those somebody they follow hosts or is going to | Soonest first, always | [Events](permissions.md#events) |
 
-The home page and custom feeds are by date and nothing else. Only search,
+The home page, custom feeds and what is on are by date and nothing else. Only search,
 a tag's posts and suggestions rank, and every one of them says why.
 
 ## What they share
