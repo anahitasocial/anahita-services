@@ -55,7 +55,29 @@ type Service struct {
 	Title       string
 	Description string
 
-	routes []*Route
+	routes   []*Route
+	sections []Section
+}
+
+// Section is a part of a service's routes that is shown as its own: one kind
+// of thing among several that one service serves, as actor-service serves
+// people, groups, events and websites. Each is a tag of its own in the
+// document, in place of the service's, so the reference has an entry for
+// each.
+type Section struct {
+	// Its tag: what the reference's page for it is called in its address,
+	// "groups". Unique across every service.
+	Name string
+	// What it is called, and what is particular to it.
+	Title       string
+	Description string
+}
+
+// Section adds a part of the service's routes, which a Router given it with
+// In puts its routes in.
+func (s *Service) Section(name, title, description string) *Service {
+	s.sections = append(s.sections, Section{Name: name, Title: title, Description: description})
+	return s
 }
 
 // NewService begins the description of a service.
@@ -74,6 +96,7 @@ type Router struct {
 	echo    *echo.Echo
 	group   *echo.Group
 	prefix  string
+	section string
 }
 
 // On is a Router over an echo instance.
@@ -83,7 +106,7 @@ func (s *Service) On(e *echo.Echo) *Router {
 
 // Group is a Router for the routes under a prefix, as echo.Group is.
 func (r *Router) Group(prefix string, m ...echo.MiddlewareFunc) *Router {
-	group := &Router{service: r.service, echo: r.echo, prefix: r.prefix + prefix}
+	group := &Router{service: r.service, echo: r.echo, prefix: r.prefix + prefix, section: r.section}
 	if r.group != nil {
 		group.group = r.group.Group(prefix, m...)
 	} else {
@@ -92,13 +115,21 @@ func (r *Router) Group(prefix string, m ...echo.MiddlewareFunc) *Router {
 	return group
 }
 
+// In is the same Router, putting what it registers in one of the service's
+// sections from now on.
+func (r *Router) In(section string) *Router {
+	in := *r
+	in.section = section
+	return &in
+}
+
 func (r *Router) add(method, path string, h echo.HandlerFunc, m []echo.MiddlewareFunc) *Route {
 	if r.group != nil {
 		r.group.Add(method, path, h, m...)
 	} else {
 		r.echo.Add(method, path, h, m...)
 	}
-	route := &Route{Method: method, Path: normalizePath(r.prefix + path), handler: HandlerName(h)}
+	route := &Route{Method: method, Path: normalizePath(r.prefix + path), handler: HandlerName(h), section: r.section}
 	r.service.routes = append(r.service.routes, route)
 	return route
 }
@@ -112,7 +143,7 @@ func (r *Router) Static(prefix, root string) *Route {
 	} else {
 		r.echo.Static(prefix, root)
 	}
-	route := &Route{Method: http.MethodGet, Path: normalizePath(r.prefix + prefix + "*")}
+	route := &Route{Method: http.MethodGet, Path: normalizePath(r.prefix + prefix + "*"), section: r.section}
 	r.service.routes = append(r.service.routes, route)
 	return route
 }
@@ -191,6 +222,11 @@ type Route struct {
 	unbound  bool
 	media    string
 	body     reflect.Type
+	// The service's section it is in, or "" for the service itself.
+	section string
+	// The section that explains it, when it is one of the routes every kind
+	// of thing in a service has: x-shared in the document.
+	sharedWith string
 }
 
 type answer struct {
@@ -206,6 +242,14 @@ type answer struct {
 // (anahita-libs/middleware) reads.
 func (r *Route) With(describe func(*Route)) *Route {
 	describe(r)
+	return r
+}
+
+// Shared says the route is one that every kind of thing in its service has,
+// each at its own address, and that `section` explains it once: the reference
+// shows it apart from what is particular to the kind it is under.
+func (r *Route) Shared(section string) *Route {
+	r.sharedWith = section
 	return r
 }
 

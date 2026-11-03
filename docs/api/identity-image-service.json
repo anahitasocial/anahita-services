@@ -71,12 +71,12 @@
     }
   },
   "info": {
-    "description": "The picture that stands for a profile, and the wide picture across the top of a profile or a post.",
+    "description": "A profile's photo, which stands for it, and the cover photo across the top of a profile or a post. The code calls the first an avatar.",
     "license": {
       "identifier": "AGPL-3.0-only",
       "name": "GNU Affero General Public License v3.0 only"
     },
-    "title": "Avatars and covers",
+    "title": "Profile and cover photos",
     "version": "dev"
   },
   "openapi": "3.1.0",
@@ -482,7 +482,7 @@
   ],
   "tags": [
     {
-      "description": "Avatars and covers",
+      "description": "Profile and cover photos",
       "name": "identity-image-service"
     }
   ]

@@ -44,7 +44,20 @@ func (s *Service) Document(dir string) ([]byte, error) {
 		}
 		operationIDs[id] = true
 		op["operationId"] = id
-		op["tags"] = []any{s.Name}
+		tag := s.Name
+		if route.section != "" {
+			if !s.hasSection(route.section) {
+				return nil, fmt.Errorf("%s %s: no section %q in %s", route.Method, route.Path, route.section, s.Name)
+			}
+			tag = route.section
+		}
+		op["tags"] = []any{tag}
+		if route.sharedWith != "" {
+			if !s.hasSection(route.sharedWith) {
+				return nil, fmt.Errorf("%s %s: shared with no section %q in %s", route.Method, route.Path, route.sharedWith, s.Name)
+			}
+			op["x-shared"] = route.sharedWith
+		}
 
 		item, _ := paths[key].(map[string]any)
 		if item == nil {
@@ -67,7 +80,7 @@ func (s *Service) Document(dir string) ([]byte, error) {
 			"license":     license,
 		},
 		"servers": servers,
-		"tags":    []any{map[string]any{"name": s.Name, "description": s.Title}},
+		"tags":    s.tags(),
 		"paths":   paths,
 		"components": map[string]any{
 			"schemas":         schemas.components,
@@ -75,6 +88,40 @@ func (s *Service) Document(dir string) ([]byte, error) {
 		},
 	}
 	return encode(doc)
+}
+
+// tags are the service's own, or, where it has sections, one for each, which
+// says which service it is part of (x-service) and what is particular to it
+// (x-about); and the service's own as well when a route is in none.
+func (s *Service) tags() []any {
+	if len(s.sections) == 0 {
+		return []any{map[string]any{"name": s.Name, "description": s.Title}}
+	}
+	var tags []any
+	for _, route := range s.routes {
+		if route.section == "" {
+			tags = append(tags, map[string]any{"name": s.Name, "description": s.Title})
+			break
+		}
+	}
+	for _, section := range s.sections {
+		tags = append(tags, map[string]any{
+			"name":        section.Name,
+			"description": section.Title,
+			"x-service":   s.Name,
+			"x-about":     section.Description,
+		})
+	}
+	return tags
+}
+
+func (s *Service) hasSection(name string) bool {
+	for _, section := range s.sections {
+		if section.Name == name {
+			return true
+		}
+	}
+	return false
 }
 
 // The services' licence, since the API is theirs (docs/licensing.md).

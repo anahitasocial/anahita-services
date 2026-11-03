@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strings"
 
 	"actor/cmd/api/handlers"
 	"actor/responses"
@@ -36,13 +37,40 @@ func NewRoutes(
 // the descriptions: docs/api/actor-service.json is made of them.
 func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	doc := apidoc.NewService("actor-service", "Profiles",
-		"People, groups and events: reading and changing them, who may see them and what may be posted on them, their administrators, and deleting, archiving and purging them (account-lifecycle.md).")
+		"People, groups, events and websites: reading and changing them, who may see them and what may be posted on them, their admins, and deleting, archiving and purging them (account-lifecycle.md).").
+		// The reference shows each kind apart, and what every kind has in a
+		// section of its own: the routes each kind has at its own address,
+		// alike, are marked Shared, and listed under each kind after its own.
+		Section("profiles", "Profiles",
+			"What every profile has, whatever its kind (profiles.md): who may see it and what may be posted on it, its admins, being turned off, archived, deleted and restored, being featured, and what its photos and videos start with about being downloaded. Each kind has these at its own address, `/people/`, `/groups/`, `/events/` or `/websites/`, and they are listed under each kind as every profile's. Here as well: which profile an alias is, of any kind.").
+		Section("people", "People",
+			"Somebody with an account, at their username (people.md): their own posts and replies, who may quote them, the photos and videos they are tagged in, and what they show of their reposts. A person is made by signing up (auth-service), not here.").
+		Section("groups", "Groups",
+			"Made by somebody signed in, looked after by its admins, and followed by people (groups.md): its rules, agreed to before following it, and the events it hosts.").
+		Section("events", "Events",
+			"A group with a time and a place (events.md): going or maybe, who is going, a file for a calendar, calling it off, its rules, and what is on for everybody.").
+		Section("websites", "Websites",
+			"A website's feed as a profile (websites.md), followed here and from the fediverse, and looked after by its admins. It is made by connecting the site, which proves its domain (syndication-service, `POST /websites/_connect`), so it has no route here to make one.")
 	api := doc.On(e)
 	actorReq := requests.NewActorRequest()
 	personReq := requests.NewPersonRequest()
 	adminsReq := requests.NewActorAdminsRequest()
 	stepUp := "`step_up_required`: the viewer must prove who they are again first; or the viewer may not, without a body"
 	someOrLimited := "Each a full profile, or, for one the viewer may only ask to follow, what a stranger is shown of it (`restricted`)."
+
+	// "a group", "an event": the kind's name after its article, in a
+	// summary.
+	a := func(kind string) string {
+		if strings.ContainsRune("aeiou", rune(kind[0])) {
+			return "an " + kind
+		}
+		return "a " + kind
+	}
+	// "A group", at the start of one.
+	A := func(kind string) string {
+		phrase := a(kind)
+		return strings.ToUpper(phrase[:1]) + phrase[1:]
+	}
 
 	// What each kind of profile has alike. `kind` is "person", "group" or
 	// "event".
@@ -60,7 +88,8 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	}
 	remove := func(kind string, takes any) func(*apidoc.Route) {
 		return func(route *apidoc.Route) {
-			route.Summary("Delete a "+kind).
+			route.Shared("profiles").
+				Summary("Delete "+a(kind)).
 				Describe("It is out of sight at once and destroyed after thirty days, unless it is restored before then.").
 				Viewer(apidoc.SignedIn).
 				StepUp().
@@ -72,7 +101,8 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	}
 	counts := func(kind string, sends any) func(*apidoc.Route) {
 		return func(route *apidoc.Route) {
-			route.Summary("What deleting a "+kind+" would take with it").
+			route.Shared("profiles").
+				Summary("What deleting "+a(kind)+" would take with it").
 				Describe("For the Danger zone, for whoever may delete it.").
 				Viewer(apidoc.SignedIn).
 				Takes(actorReq.Delete).
@@ -83,7 +113,8 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	}
 	purge := func(kind string) func(*apidoc.Route) {
 		return func(route *apidoc.Route) {
-			route.Summary("Destroy a "+kind+" for good").
+			route.Shared("profiles").
+				Summary("Destroy "+a(kind)+" for good").
 				Describe("Everything of it, at once and with no thirty days. Super administrators only, never on their own profile. Queued, and done by the sweeper.").
 				Viewer(apidoc.SuperAdmin).
 				StepUp().
@@ -97,7 +128,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	// A group's and an event's rules (roadmap row 102, part 5).
 	readRules := func(kind string) func(*apidoc.Route) {
 		return func(route *apidoc.Route) {
-			route.Summary("The rules of a "+kind).
+			route.Summary("The rules of "+a(kind)).
 				Describe("What somebody agrees to, each ticked, before following it or answering it: at most ten, in order, with the version they are at and the version the viewer last agreed to. For whoever may see it, and for whoever it would let ask to follow.").
 				Viewer(apidoc.Anyone).
 				Takes(actorReq.Read).
@@ -108,7 +139,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	}
 	setRules := func(kind string) func(*apidoc.Route) {
 		return func(route *apidoc.Route) {
-			route.Summary("Set the rules of a "+kind).
+			route.Summary("Set the rules of "+a(kind)).
 				Describe("The rules as they are to be from now on, in order, at most ten; an empty list takes them away. Every change raises the version, so that whoever agreed before is asked again. For whoever may change it.").
 				Viewer(apidoc.SignedIn).
 				Takes(&handlers.RulesSetRequest{}).
@@ -120,7 +151,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	}
 	agreeRules := func(kind string) func(*apidoc.Route) {
 		return func(route *apidoc.Route) {
-			route.Summary("Agree to the rules of a "+kind).
+			route.Summary("Agree to the rules of "+a(kind)).
 				Describe("The viewer agreeing, each rule ticked, to the version they were shown.").
 				Viewer(apidoc.SignedIn).
 				Takes(&handlers.RulesAgreeRequest{}).
@@ -131,7 +162,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	}
 	spam := func(kind string) func(*apidoc.Route) {
 		return func(route *apidoc.Route) {
-			route.Summary("Remove a "+kind+" as spam").
+			route.Summary("Remove "+a(kind)+" as spam").
 				Describe("A moderator's decision (roadmap row 102): everything of it destroyed at once, with no thirty days, and recorded as `removed-as-spam` with who decided. Administrators and super administrators; never an administrator's or a super administrator's account, nor one's own. Queued, and done by the sweeper.").
 				Viewer(apidoc.Admin).
 				Takes(actorReq.Delete).
@@ -166,7 +197,8 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	}
 	archive := func(kind string) func(*apidoc.Route) {
 		return func(route *apidoc.Route) {
-			route.Summary("Archive a "+kind).
+			route.Shared("profiles").
+				Summary("Archive "+a(kind)).
 				Describe("For good, and nothing is destroyed (account-lifecycle.md).").
 				Viewer(apidoc.SignedIn).
 				StepUp().
@@ -177,25 +209,37 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 				Refuses(http.StatusNotFound, "there is no such profile")
 		}
 	}
-	enabled := changed("Turn a profile on or off", "Reversible, site administrators only. Off, it is out of sight and may not act; nothing is deleted.", &handlers.EnabledRequest{})
+	enabledChange := changed("Turn a profile on or off", "Reversible, site administrators only. Off, it is out of sight and may not act; nothing is deleted.", &handlers.EnabledRequest{})
+	enabled := func(route *apidoc.Route) {
+		route.Shared("profiles").With(enabledChange)
+	}
 	featured := func(route *apidoc.Route) {
-		route.With(changed("Feature a profile, or stop", "What onboarding offers new members to follow. Super administrators only.", &handlers.FeaturedRequest{})).
+		route.Shared("profiles").
+			With(changed("Feature a profile, or stop", "What onboarding offers new members to follow. Super administrators only.", &handlers.FeaturedRequest{})).
 			Sends(http.StatusConflict, libs_responses.Refusal{}, "`not_featurable`: it is disabled, archived or deleted")
+	}
+	// Each kind's shape, for what answers with one.
+	shapes := map[string]any{
+		"group":   responses.GroupNode{},
+		"event":   responses.EventNode{},
+		"website": responses.WebsiteNode{},
 	}
 	restore := func(kind string) func(*apidoc.Route) {
 		return func(route *apidoc.Route) {
-			route.Summary("Restore a deleted "+kind).
+			route.Shared("profiles").
+				Summary("Restore a deleted "+kind).
 				Describe("Within the thirty days. Answers with it.").
 				Viewer(apidoc.SignedIn).
 				Takes(actorReq.Delete).
-				Sends(http.StatusOK, libs_responses.ActorNode{}).
+				Sends(http.StatusOK, shapes[kind]).
 				Refuses(http.StatusForbidden, "the viewer may not").
 				Refuses(http.StatusNotFound, "there is no such profile to restore")
 		}
 	}
 	access := func(takes any, sends any) func(*apidoc.Route) {
 		return func(route *apidoc.Route) {
-			route.Summary("Change who may see it").
+			route.Shared("profiles").
+				Summary("Change who may see it").
 				Describe("And whether people it is not open to may ask to follow it.").
 				Viewer(apidoc.SignedIn).
 				Takes(takes).
@@ -206,7 +250,8 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	}
 	features := func(takes any, sends any) func(*apidoc.Route) {
 		return func(route *apidoc.Route) {
-			route.Summary("Change what may be posted on it").
+			route.Shared("profiles").
+				Summary("Change what may be posted on it").
 				Describe("Each kind of post, on or off, and who may add it (permissions.md).").
 				Viewer(apidoc.SignedIn).
 				Takes(takes).
@@ -217,7 +262,8 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	}
 	downloads := func(sends any) func(*apidoc.Route) {
 		return func(route *apidoc.Route) {
-			route.Summary("Change whether new photos and videos may be downloaded").
+			route.Shared("profiles").
+				Summary("Change whether new photos and videos may be downloaded").
 				Describe("What a post starts with; each post can say otherwise.").
 				Viewer(apidoc.SignedIn).
 				Takes(&requests.ActorEditDownloadDefaultRequest{}).
@@ -228,27 +274,30 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	}
 	admins := func(kind string) (func(*apidoc.Route), func(*apidoc.Route), func(*apidoc.Route)) {
 		return func(route *apidoc.Route) {
-				route.Summary("A "+kind+"'s administrators").
+				route.Shared("profiles").
+					Summary(A(kind)+"'s admins").
 					Viewer(apidoc.SignedIn).
 					Takes(adminsReq.Browse).
 					Sends(http.StatusOK, libs_responses.Unpaged[*libs_responses.ActorNodeItem]{}).
 					Refuses(http.StatusForbidden, "the viewer may not see them").
 					Refuses(http.StatusNotFound, "there is no such "+kind)
 			}, func(route *apidoc.Route) {
-				route.Summary("Make somebody an administrator of a "+kind).
-					Describe("By one of its administrators. Answers with them.").
+				route.Shared("profiles").
+					Summary("Make somebody an admin of "+a(kind)).
+					Describe("By one of its admins. Answers with them.").
 					Viewer(apidoc.SignedIn).
 					Takes(adminsReq.Add).
 					Sends(http.StatusCreated, libs_responses.ActorNodeItem{}).
 					Refuses(http.StatusForbidden, "the viewer may not").
 					Refuses(http.StatusNotFound, "there is no such "+kind+" or person")
 			}, func(route *apidoc.Route) {
-				route.Summary("Remove an administrator of a "+kind).
+				route.Shared("profiles").
+					Summary("Remove an admin of "+a(kind)).
 					Viewer(apidoc.SignedIn).
 					Takes(adminsReq.Delete).
 					SendsNothing(http.StatusNoContent, "removed").
 					Refuses(http.StatusForbidden, "the viewer may not").
-					Refuses(http.StatusNotFound, "there is no such "+kind+" or administrator")
+					Refuses(http.StatusNotFound, "there is no such "+kind+" or admin")
 			}
 	}
 	readGroup := func(kind string) func(*apidoc.Route) {
@@ -257,14 +306,14 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 				Describe("To somebody it is not open to, but who may ask to follow it, what a stranger is shown of it.").
 				Viewer(apidoc.Anyone).
 				Takes(actorReq.Read).
-				Sends(http.StatusOK, libs_responses.ActorNode{}, "it, or what a stranger is shown of it (LimitedActor)").
+				Sends(http.StatusOK, shapes[kind], "it, or what a stranger is shown of it (LimitedActor)").
 				Refuses(http.StatusForbidden, "the viewer may not see it").
 				Refuses(http.StatusNotFound, "there is no such "+kind)
 		}
 	}
 	groupAdmins, addGroupAdmin, removeGroupAdmin := admins("group")
 	eventAdmins, addEventAdmin, removeEventAdmin := admins("event")
-	websiteAdmins, addWebsiteAdmin, removeWebsiteAdmin := admins("Website")
+	websiteAdmins, addWebsiteAdmin, removeWebsiteAdmin := admins("website")
 
 	// Each kind of actor keeps its own address: /people/ and /groups/. The
 	// gateway sends both here.
@@ -273,7 +322,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	// when a token is present, so the viewer drives access filtering.
 	// Everything else requires a valid OAuth access token.
 	// Which profile an alias is, of any kind: see handlers/handle.go.
-	api.GET("/actors/:alias", r.handler.Person.Handle, r.setViewer).
+	api.In("profiles").GET("/actors/:alias", r.handler.Person.Handle, r.setViewer).
 		Summary("What profile an alias is").
 		Describe("Of any kind: what its own address begins with, and its id. The web app finds `/@ana` by it.").
 		Viewer(apidoc.Anyone).
@@ -282,7 +331,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Sends(http.StatusOK, handlers.HandleResponse{}).
 		Refuses(http.StatusNotFound, "there is no such profile that the viewer may see")
 
-	people := api.Group("people")
+	people := api.In("people").Group("people")
 	people.GET("/", r.handler.Person.Browse, r.setViewer).
 		Summary("People").
 		Describe("Those the viewer may see. "+someOrLimited).
@@ -396,7 +445,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	// groups — Browse and Read are public but still identify the caller
 	// when a token is present, so the viewer drives access filtering.
 	// Everything else requires a valid OAuth access token.
-	groups := api.Group("groups")
+	groups := api.In("groups").Group("groups")
 	groups.GET("/", r.handler.Group.Browse, r.setViewer).
 		Summary("Groups").
 		Describe("Those the viewer may see. "+someOrLimited).
@@ -410,13 +459,13 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Describe("Whoever makes it is its first administrator. Left without `access`, only its administrators can see it until they open it.").
 		Viewer(apidoc.SignedIn).
 		Takes(actorReq.Add).
-		Sends(http.StatusCreated, libs_responses.ActorNode{}).
+		Sends(http.StatusCreated, responses.GroupNode{}).
 		Sends(http.StatusUnprocessableEntity, libs_responses.AudienceRefusal{}, "`access_not_allowed`: public, where nothing new may be, with the levels it may have")
 	groups.PATCH("/:id", r.handler.Group.Edit, r.authorize).
 		Summary("Change a group").
 		Viewer(apidoc.SignedIn).
 		Takes(actorReq.Edit).
-		Sends(http.StatusOK, libs_responses.ActorNode{}).
+		Sends(http.StatusOK, responses.GroupNode{}).
 		Refuses(http.StatusForbidden, "the viewer may not change it").
 		Refuses(http.StatusNotFound, "there is no such group")
 	groups.DELETE("/:id", r.handler.Group.Delete, r.authorize).With(remove("group", actorReq.Delete))
@@ -439,11 +488,11 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	groups.POST("/:id/restore", r.handler.Group.Restore, r.authorize).With(restore("group"))
 
 	// group edit access
-	groups.PATCH("/:id/access", r.handler.Group.EditAccess, r.authorize).With(access(actorReq.EditAccess, libs_responses.ActorNode{}))
-	groups.PATCH("/:id/download-default", r.handler.Group.EditDownloadDefault, r.authorize).With(downloads(libs_responses.ActorNode{}))
+	groups.PATCH("/:id/access", r.handler.Group.EditAccess, r.authorize).With(access(actorReq.EditAccess, responses.GroupNode{}))
+	groups.PATCH("/:id/download-default", r.handler.Group.EditDownloadDefault, r.authorize).With(downloads(responses.GroupNode{}))
 
 	// group edit features
-	groups.PATCH("/:id/features", r.handler.Group.EditFeatures, r.authorize).With(features(actorReq.EditFeatures, libs_responses.ActorNode{}))
+	groups.PATCH("/:id/features", r.handler.Group.EditFeatures, r.authorize).With(features(actorReq.EditFeatures, responses.GroupNode{}))
 	groups.GET("/:id/rules", r.handler.Group.ReadRules, r.setViewer).With(readRules("group"))
 	groups.PUT("/:id/rules", r.handler.Group.SetRules, r.authorize).With(setRules("group"))
 	groups.POST("/:id/rules/agree", r.handler.Group.AgreeRules, r.authorize).With(agreeRules("group"))
@@ -467,30 +516,30 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	// (POST /websites/_connect), so there is no POST /websites/ here; nobody
 	// posts on one, so it has no features to choose and no audience to
 	// change: it is public.
-	websites := api.Group("websites")
+	websites := api.In("websites").Group("websites")
 	websites.GET("/", r.handler.Website.Browse, r.setViewer).
 		Summary("Websites").
 		Describe("Those the viewer may see. "+someOrLimited).
 		Viewer(apidoc.Anyone).
 		Takes(actorReq.Browse).
 		Sends(http.StatusOK, libs_responses.List[any]{}).
-		Refuses(http.StatusForbidden, "the viewer may not list Websites")
-	websites.GET("/:id", r.handler.Website.Read, r.setViewer).With(readGroup("Website"))
+		Refuses(http.StatusForbidden, "the viewer may not list websites")
+	websites.GET("/:id", r.handler.Website.Read, r.setViewer).With(readGroup("website"))
 	websites.PATCH("/:id", r.handler.Website.Edit, r.authorize).
-		Summary("Change a Website").
+		Summary("Change a website").
 		Describe("Its name and its description. Its handle and its site stay as they were connected.").
 		Viewer(apidoc.SignedIn).
 		Takes(&handlers.WebsiteEditRequest{}).
-		Sends(http.StatusOK, libs_responses.ActorNode{}).
+		Sends(http.StatusOK, responses.WebsiteNode{}).
 		Refuses(http.StatusForbidden, "the viewer may not change it").
-		Refuses(http.StatusNotFound, "there is no such Website")
-	websites.DELETE("/:id", r.handler.Website.Delete, r.authorize).With(remove("Website", actorReq.Delete))
-	websites.GET("/:id/deletion-counts", r.handler.Website.DeletionCounts, r.authorize).With(counts("Website", handlers.GroupDeletionCounts{}))
-	websites.DELETE("/:id/purge", r.handler.Website.Purge, r.authorize).With(purge("Website"))
+		Refuses(http.StatusNotFound, "there is no such website")
+	websites.DELETE("/:id", r.handler.Website.Delete, r.authorize).With(remove("website", actorReq.Delete))
+	websites.GET("/:id/deletion-counts", r.handler.Website.DeletionCounts, r.authorize).With(counts("website", handlers.GroupDeletionCounts{}))
+	websites.DELETE("/:id/purge", r.handler.Website.Purge, r.authorize).With(purge("website"))
 	websites.PATCH("/:id/enabled", r.handler.Website.SetEnabled, r.authorize).With(enabled)
 	websites.PATCH("/:id/featured", r.handler.Website.SetFeatured, r.authorize).With(featured)
-	websites.POST("/:id/restore", r.handler.Website.Restore, r.authorize).With(restore("Website"))
-	websites.PATCH("/:id/download-default", r.handler.Website.EditDownloadDefault, r.authorize).With(downloads(libs_responses.ActorNode{}))
+	websites.POST("/:id/restore", r.handler.Website.Restore, r.authorize).With(restore("website"))
+	websites.PATCH("/:id/download-default", r.handler.Website.EditDownloadDefault, r.authorize).With(downloads(responses.WebsiteNode{}))
 
 	websites.GET("/:id/admins/", r.handler.WebsiteAdmin.Browse, r.authorize).With(websiteAdmins)
 	websites.POST("/:id/admins/", r.handler.WebsiteAdmin.Add, r.authorize).With(addWebsiteAdmin)
@@ -500,10 +549,10 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	// a group has, an event has, from the same handler told a different
 	// kind. What only an event has follows.
 	//
-	// There is no GET /events/: no list of every event on the site, as
-	// there is none of every note or photo. An event is found from an
-	// invitation, from whoever hosts it, or by its address.
-	events := api.Group("events")
+	// What is on, GET /events/, lists every event still to come that the
+	// viewer may see; an event is found as well from an invitation, from
+	// whoever hosts it, or by its address.
+	events := api.In("events").Group("events")
 	// The viewer's own: what they answered, look after, or were invited
 	// to. Before /:id, though a word is never mistaken for an id.
 	events.GET("/mine", r.handler.Event.Mine, r.authorize).
@@ -549,7 +598,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Describe("Its own, or hosted by a group whoever makes it administers.").
 		Viewer(apidoc.SignedIn).
 		Takes(&handlers.EventAddRequest{}).
-		Sends(http.StatusCreated, libs_responses.ActorNode{}).
+		Sends(http.StatusCreated, responses.EventNode{}).
 		Sends(http.StatusBadRequest, libs_responses.Refusal{}, "`invalid_timezone`, `invalid_time`, `ends_before_start`, `too_long` or `already_over`; or not well formed, without a body").
 		Sends(http.StatusForbidden, libs_responses.Refusal{}, "`host_not_allowed`: the viewer does not administer the group").
 		Sends(http.StatusNotFound, libs_responses.Refusal{}, "`host_not_allowed`: there is no such group")
@@ -557,7 +606,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Summary("Change an event").
 		Viewer(apidoc.SignedIn).
 		Takes(&handlers.EventEditRequest{}).
-		Sends(http.StatusOK, libs_responses.ActorNode{}).
+		Sends(http.StatusOK, responses.EventNode{}).
 		Sends(http.StatusBadRequest, libs_responses.Refusal{}, "`invalid_timezone`, `invalid_time`, `ends_before_start` or `too_long`; or not well formed, without a body").
 		Refuses(http.StatusForbidden, "the viewer may not change it").
 		Refuses(http.StatusNotFound, "there is no such event")
@@ -568,11 +617,11 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	events.PATCH("/:id/enabled", r.handler.Event.SetEnabled, r.authorize).With(enabled)
 	events.PATCH("/:id/featured", r.handler.Event.SetFeatured, r.authorize).With(featured)
 	events.POST("/:id/restore", r.handler.Event.Restore, r.authorize).With(restore("event"))
-	events.PATCH("/:id/access", r.handler.Event.EditAccess, r.authorize).With(access(actorReq.EditAccess, libs_responses.ActorNode{}))
+	events.PATCH("/:id/access", r.handler.Event.EditAccess, r.authorize).With(access(actorReq.EditAccess, responses.EventNode{}))
 	events.GET("/:id/rules", r.handler.Event.ReadRules, r.setViewer).With(readRules("event"))
 	events.PUT("/:id/rules", r.handler.Event.SetRules, r.authorize).With(setRules("event"))
 	events.POST("/:id/rules/agree", r.handler.Event.AgreeRules, r.authorize).With(agreeRules("event"))
-	events.PATCH("/:id/features", r.handler.Event.EditFeatures, r.authorize).With(features(actorReq.EditFeatures, libs_responses.ActorNode{}))
+	events.PATCH("/:id/features", r.handler.Event.EditFeatures, r.authorize).With(features(actorReq.EditFeatures, responses.EventNode{}))
 
 	events.GET("/:id/admins/", r.handler.EventAdmin.Browse, r.authorize).With(eventAdmins)
 	events.POST("/:id/admins/", r.handler.EventAdmin.Add, r.authorize).With(addEventAdmin)
@@ -584,7 +633,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Describe("Answers with the event.").
 		Viewer(apidoc.SignedIn).
 		Takes(&handlers.EventRsvpRequest{}).
-		Sends(http.StatusOK, libs_responses.ActorNode{}).
+		Sends(http.StatusOK, responses.EventNode{}).
 		Refuses(http.StatusForbidden, "the viewer may not go to it").
 		Refuses(http.StatusNotFound, "there is no such event").
 		Sends(http.StatusConflict, libs_responses.Refusal{}, "`event_full`: every place is taken; maybe is still open; or `rules_not_agreed`: it is a group or an event with rules the viewer has not agreed to; tick each and agree (`POST /groups|events/:id/rules/agree`), then ask again").
@@ -602,7 +651,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Describe("It is kept, saying so. Answers with it.").
 		Viewer(apidoc.SignedIn).
 		Takes(&handlers.EventIDRequest{}).
-		Sends(http.StatusOK, libs_responses.ActorNode{}).
+		Sends(http.StatusOK, responses.EventNode{}).
 		Refuses(http.StatusForbidden, "the viewer does not look after it").
 		Refuses(http.StatusNotFound, "there is no such event")
 

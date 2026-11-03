@@ -117,182 +117,6 @@
         ],
         "type": "object"
       },
-      "ActorNode": {
-        "properties": {
-          "access": {
-            "description": "Who may see it: `public`, `registered`, `followers`, `leaders`, `mutuals`, `admins` or `myself` (permissions.md).",
-            "type": "string"
-          },
-          "administrators": {
-            "items": {
-              "$ref": "#/components/schemas/Admin"
-            },
-            "type": "array"
-          },
-          "alias": {
-            "description": "Its handle (`ana`, or `ana@mastodon.social` for somebody on another server).",
-            "type": "string"
-          },
-          "allow_download": {
-            "description": "What this actor's new photos and videos start with: whether they may be downloaded.",
-            "type": "boolean"
-          },
-          "allow_follow_request": {
-            "description": "Whether people its profile is not open to may ask to follow it.",
-            "type": "boolean"
-          },
-          "archived_at": {
-            "description": "Permanent, and set only once archived, so the settings page can show the state rather than offering an action that no longer applies.",
-            "format": "date-time",
-            "type": "string"
-          },
-          "author": {
-            "$ref": "#/components/schemas/Author",
-            "description": "Author information"
-          },
-          "authorized": {
-            "$ref": "#/components/schemas/NodeAuthorized"
-          },
-          "avatar_urls": {
-            "additionalProperties": {
-              "$ref": "#/components/schemas/Image"
-            },
-            "description": "Its picture, in each size there is: `small`, `medium`, `large`, `square`.",
-            "type": "object"
-          },
-          "body": {
-            "description": "Its description.",
-            "type": "string"
-          },
-          "cover_urls": {
-            "additionalProperties": {
-              "$ref": "#/components/schemas/Image"
-            },
-            "description": "Its cover picture, in each size there is: `medium`, `large`.",
-            "type": "object"
-          },
-          "created_at": {
-            "description": "When it was made.",
-            "format": "date-time",
-            "type": "string"
-          },
-          "deleted_at": {
-            "description": "Present only while the actor is scheduled for deletion, so the settings page can offer Restore instead of the delete form. Deleting also clears Enabled, and a client reading only that cannot tell an account on its way out from one an administrator disabled.",
-            "format": "date-time",
-            "type": "string"
-          },
-          "editor": {
-            "$ref": "#/components/schemas/Editor"
-          },
-          "enabled": {
-            "description": "Whether it is enabled: false when a site administrator has disabled it, or while it is being deleted.",
-            "type": "boolean"
-          },
-          "event": {
-            "$ref": "#/components/schemas/Event",
-            "description": "On an event: when it is, how many may go and are going, and what the viewer answered. Left out on anything else."
-          },
-          "featured_at": {
-            "description": "Set only while the installation features this actor, so a super administrator's profile menu can show the toggle's state.",
-            "format": "date-time",
-            "type": "string"
-          },
-          "features": {
-            "items": {
-              "$ref": "#/components/schemas/NodeFeature"
-            },
-            "type": "array"
-          },
-          "follower_count": {
-            "description": "How many follow it.",
-            "format": "int64",
-            "type": "integer"
-          },
-          "id": {
-            "description": "Its id.",
-            "format": "int64",
-            "type": "integer"
-          },
-          "is_admined_by_viewer": {
-            "description": "Whether the viewer is one of its administrators.",
-            "type": "boolean"
-          },
-          "is_blocked_by_viewer": {
-            "description": "Whether the viewer has blocked it.",
-            "type": "boolean"
-          },
-          "is_following_viewer": {
-            "description": "Whether it follows the viewer.",
-            "type": "boolean"
-          },
-          "is_invited": {
-            "description": "Whether the viewer has been invited to follow this actor and is yet to answer.",
-            "type": "boolean"
-          },
-          "is_leading_viewer": {
-            "description": "Whether the viewer follows it.",
-            "type": "boolean"
-          },
-          "leader_count": {
-            "description": "How many it follows.",
-            "format": "int64",
-            "type": "integer"
-          },
-          "name": {
-            "description": "Its name.",
-            "type": "string"
-          },
-          "origin_domain": {
-            "description": "The server it came from, when it came from another.",
-            "type": "string"
-          },
-          "permissions": {
-            "additionalProperties": {
-              "type": "string"
-            },
-            "type": "object"
-          },
-          "quote_policy": {
-            "description": "On a person: who may quote their posts, when a post does not say. \"anyone\", \"followers\" or \"nobody\"; left out when they have not said, which is anyone.",
-            "type": "string"
-          },
-          "show_reposts_on_profile": {
-            "description": "Whether what this actor reposts is also among its profile's posts.",
-            "type": "boolean"
-          },
-          "type": {
-            "description": "What kind of profile it is: `node.actor.actor-service.person.v1`, `...group.v1` or `...event.v1`, or one of another server's.",
-            "type": "string"
-          },
-          "updated_at": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "uri": {
-            "description": "What it is called on the server it came from, and that server, when it came from another. Left out of everything made here.",
-            "type": "string"
-          },
-          "verified": {
-            "description": "A mark kept from earlier versions of Anahita. Nothing sets it yet.",
-            "type": "boolean"
-          },
-          "website_url": {
-            "description": "One link on the profile. Rendered as an anchor, so the value is validated to http(s) on the way in — see requests/actor.go.",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "type",
-          "enabled",
-          "access",
-          "allow_follow_request",
-          "show_reposts_on_profile",
-          "allow_download",
-          "created_at"
-        ],
-        "type": "object"
-      },
       "ActorNodeItem": {
         "description": "ActorNodeItem is a profile: a person, a group or an event.",
         "properties": {
@@ -1697,6 +1521,179 @@
         ],
         "type": "object"
       },
+      "actor.EventNode": {
+        "description": "EventNode is an event, as it is sent: a group with a time and a place, and `event` saying when it is, how many may go and are going, and what the viewer answered.",
+        "properties": {
+          "access": {
+            "description": "Who may see it: `public`, `registered`, `followers`, `leaders`, `mutuals`, `admins` or `myself` (permissions.md).",
+            "type": "string"
+          },
+          "administrators": {
+            "items": {
+              "$ref": "#/components/schemas/Admin"
+            },
+            "type": "array"
+          },
+          "alias": {
+            "description": "Its handle (`ana`, or `ana@mastodon.social` for somebody on another server).",
+            "type": "string"
+          },
+          "allow_download": {
+            "description": "What this actor's new photos and videos start with: whether they may be downloaded.",
+            "type": "boolean"
+          },
+          "allow_follow_request": {
+            "description": "Whether people its profile is not open to may ask to follow it.",
+            "type": "boolean"
+          },
+          "archived_at": {
+            "description": "Permanent, and set only once archived, so the settings page can show the state rather than offering an action that no longer applies.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "author": {
+            "$ref": "#/components/schemas/Author",
+            "description": "Author information"
+          },
+          "authorized": {
+            "$ref": "#/components/schemas/NodeAuthorized"
+          },
+          "avatar_urls": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Image"
+            },
+            "description": "Its picture, in each size there is: `small`, `medium`, `large`, `square`.",
+            "type": "object"
+          },
+          "body": {
+            "description": "Its description.",
+            "type": "string"
+          },
+          "cover_urls": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Image"
+            },
+            "description": "Its cover picture, in each size there is: `medium`, `large`.",
+            "type": "object"
+          },
+          "created_at": {
+            "description": "When it was made.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "deleted_at": {
+            "description": "Present only while the actor is scheduled for deletion, so the settings page can offer Restore instead of the delete form. Deleting also clears Enabled, and a client reading only that cannot tell an account on its way out from one an administrator disabled.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "editor": {
+            "$ref": "#/components/schemas/Editor"
+          },
+          "enabled": {
+            "description": "Whether it is enabled: false when a site administrator has disabled it, or while it is being deleted.",
+            "type": "boolean"
+          },
+          "event": {
+            "$ref": "#/components/schemas/Event",
+            "description": "On an event: when it is, how many may go and are going, and what the viewer answered. Left out on anything else."
+          },
+          "featured_at": {
+            "description": "Set only while the installation features this actor, so a super administrator's profile menu can show the toggle's state.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "features": {
+            "items": {
+              "$ref": "#/components/schemas/NodeFeature"
+            },
+            "type": "array"
+          },
+          "follower_count": {
+            "description": "How many follow it.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "id": {
+            "description": "Its id.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "is_admined_by_viewer": {
+            "description": "Whether the viewer is one of its administrators.",
+            "type": "boolean"
+          },
+          "is_blocked_by_viewer": {
+            "description": "Whether the viewer has blocked it.",
+            "type": "boolean"
+          },
+          "is_following_viewer": {
+            "description": "Whether it follows the viewer.",
+            "type": "boolean"
+          },
+          "is_invited": {
+            "description": "Whether the viewer has been invited to follow this actor and is yet to answer.",
+            "type": "boolean"
+          },
+          "is_leading_viewer": {
+            "description": "Whether the viewer follows it.",
+            "type": "boolean"
+          },
+          "leader_count": {
+            "description": "How many it follows.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "name": {
+            "description": "Its name.",
+            "type": "string"
+          },
+          "origin_domain": {
+            "description": "The server it came from, when it came from another.",
+            "type": "string"
+          },
+          "permissions": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "show_reposts_on_profile": {
+            "description": "Whether what this actor reposts is also among its profile's posts.",
+            "type": "boolean"
+          },
+          "type": {
+            "description": "What kind of profile it is: `node.actor.actor-service.person.v1`, `...group.v1` or `...event.v1`, or one of another server's.",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "uri": {
+            "description": "What it is called on the server it came from, and that server, when it came from another. Left out of everything made here.",
+            "type": "string"
+          },
+          "verified": {
+            "description": "A mark kept from earlier versions of Anahita. Nothing sets it yet.",
+            "type": "boolean"
+          },
+          "website_url": {
+            "description": "One link on the profile. Rendered as an anchor, so the value is validated to http(s) on the way in — see requests/actor.go.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "enabled",
+          "access",
+          "allow_follow_request",
+          "show_reposts_on_profile",
+          "allow_download",
+          "created_at"
+        ],
+        "type": "object"
+      },
       "actor.GroupDeletionCounts": {
         "description": "GroupDeletionCounts is what deleting a group or an event would take with it, for the Danger zone.",
         "properties": {
@@ -1730,6 +1727,175 @@
           "replies",
           "followers",
           "admins"
+        ],
+        "type": "object"
+      },
+      "actor.GroupNode": {
+        "description": "GroupNode is a group, as it is sent: followed by people, looked after by its admins, and able to host events.",
+        "properties": {
+          "access": {
+            "description": "Who may see it: `public`, `registered`, `followers`, `leaders`, `mutuals`, `admins` or `myself` (permissions.md).",
+            "type": "string"
+          },
+          "administrators": {
+            "items": {
+              "$ref": "#/components/schemas/Admin"
+            },
+            "type": "array"
+          },
+          "alias": {
+            "description": "Its handle (`ana`, or `ana@mastodon.social` for somebody on another server).",
+            "type": "string"
+          },
+          "allow_download": {
+            "description": "What this actor's new photos and videos start with: whether they may be downloaded.",
+            "type": "boolean"
+          },
+          "allow_follow_request": {
+            "description": "Whether people its profile is not open to may ask to follow it.",
+            "type": "boolean"
+          },
+          "archived_at": {
+            "description": "Permanent, and set only once archived, so the settings page can show the state rather than offering an action that no longer applies.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "author": {
+            "$ref": "#/components/schemas/Author",
+            "description": "Author information"
+          },
+          "authorized": {
+            "$ref": "#/components/schemas/NodeAuthorized"
+          },
+          "avatar_urls": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Image"
+            },
+            "description": "Its picture, in each size there is: `small`, `medium`, `large`, `square`.",
+            "type": "object"
+          },
+          "body": {
+            "description": "Its description.",
+            "type": "string"
+          },
+          "cover_urls": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Image"
+            },
+            "description": "Its cover picture, in each size there is: `medium`, `large`.",
+            "type": "object"
+          },
+          "created_at": {
+            "description": "When it was made.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "deleted_at": {
+            "description": "Present only while the actor is scheduled for deletion, so the settings page can offer Restore instead of the delete form. Deleting also clears Enabled, and a client reading only that cannot tell an account on its way out from one an administrator disabled.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "editor": {
+            "$ref": "#/components/schemas/Editor"
+          },
+          "enabled": {
+            "description": "Whether it is enabled: false when a site administrator has disabled it, or while it is being deleted.",
+            "type": "boolean"
+          },
+          "featured_at": {
+            "description": "Set only while the installation features this actor, so a super administrator's profile menu can show the toggle's state.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "features": {
+            "items": {
+              "$ref": "#/components/schemas/NodeFeature"
+            },
+            "type": "array"
+          },
+          "follower_count": {
+            "description": "How many follow it.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "id": {
+            "description": "Its id.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "is_admined_by_viewer": {
+            "description": "Whether the viewer is one of its administrators.",
+            "type": "boolean"
+          },
+          "is_blocked_by_viewer": {
+            "description": "Whether the viewer has blocked it.",
+            "type": "boolean"
+          },
+          "is_following_viewer": {
+            "description": "Whether it follows the viewer.",
+            "type": "boolean"
+          },
+          "is_invited": {
+            "description": "Whether the viewer has been invited to follow this actor and is yet to answer.",
+            "type": "boolean"
+          },
+          "is_leading_viewer": {
+            "description": "Whether the viewer follows it.",
+            "type": "boolean"
+          },
+          "leader_count": {
+            "description": "How many it follows.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "name": {
+            "description": "Its name.",
+            "type": "string"
+          },
+          "origin_domain": {
+            "description": "The server it came from, when it came from another.",
+            "type": "string"
+          },
+          "permissions": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "show_reposts_on_profile": {
+            "description": "Whether what this actor reposts is also among its profile's posts.",
+            "type": "boolean"
+          },
+          "type": {
+            "description": "What kind of profile it is: `node.actor.actor-service.person.v1`, `...group.v1` or `...event.v1`, or one of another server's.",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "uri": {
+            "description": "What it is called on the server it came from, and that server, when it came from another. Left out of everything made here.",
+            "type": "string"
+          },
+          "verified": {
+            "description": "A mark kept from earlier versions of Anahita. Nothing sets it yet.",
+            "type": "boolean"
+          },
+          "website_url": {
+            "description": "One link on the profile. Rendered as an anchor, so the value is validated to http(s) on the way in — see requests/actor.go.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "enabled",
+          "access",
+          "allow_follow_request",
+          "show_reposts_on_profile",
+          "allow_download",
+          "created_at"
         ],
         "type": "object"
       },
@@ -1800,6 +1966,7 @@
         "type": "object"
       },
       "actor.PersonNode": {
+        "description": "PersonNode is a person, as they are sent: what every profile has, and their account type, pronouns and language.",
         "properties": {
           "access": {
             "description": "Who may see it: `public`, `registered`, `followers`, `leaders`, `mutuals`, `admins` or `myself` (permissions.md).",
@@ -1863,10 +2030,6 @@
           "enabled": {
             "description": "Whether it is enabled: false when a site administrator has disabled it, or while it is being deleted.",
             "type": "boolean"
-          },
-          "event": {
-            "$ref": "#/components/schemas/Event",
-            "description": "On an event: when it is, how many may go and are going, and what the viewer answered. Left out on anything else."
           },
           "featured_at": {
             "description": "Set only while the installation features this actor, so a super administrator's profile menu can show the toggle's state.",
@@ -2056,6 +2219,175 @@
           "pending"
         ],
         "type": "object"
+      },
+      "actor.WebsiteNode": {
+        "description": "WebsiteNode is a website, as it is sent: a site's feed, followed as a profile, whose domain was proved when it was connected.",
+        "properties": {
+          "access": {
+            "description": "Who may see it: `public`, `registered`, `followers`, `leaders`, `mutuals`, `admins` or `myself` (permissions.md).",
+            "type": "string"
+          },
+          "administrators": {
+            "items": {
+              "$ref": "#/components/schemas/Admin"
+            },
+            "type": "array"
+          },
+          "alias": {
+            "description": "Its handle (`ana`, or `ana@mastodon.social` for somebody on another server).",
+            "type": "string"
+          },
+          "allow_download": {
+            "description": "What this actor's new photos and videos start with: whether they may be downloaded.",
+            "type": "boolean"
+          },
+          "allow_follow_request": {
+            "description": "Whether people its profile is not open to may ask to follow it.",
+            "type": "boolean"
+          },
+          "archived_at": {
+            "description": "Permanent, and set only once archived, so the settings page can show the state rather than offering an action that no longer applies.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "author": {
+            "$ref": "#/components/schemas/Author",
+            "description": "Author information"
+          },
+          "authorized": {
+            "$ref": "#/components/schemas/NodeAuthorized"
+          },
+          "avatar_urls": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Image"
+            },
+            "description": "Its picture, in each size there is: `small`, `medium`, `large`, `square`.",
+            "type": "object"
+          },
+          "body": {
+            "description": "Its description.",
+            "type": "string"
+          },
+          "cover_urls": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Image"
+            },
+            "description": "Its cover picture, in each size there is: `medium`, `large`.",
+            "type": "object"
+          },
+          "created_at": {
+            "description": "When it was made.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "deleted_at": {
+            "description": "Present only while the actor is scheduled for deletion, so the settings page can offer Restore instead of the delete form. Deleting also clears Enabled, and a client reading only that cannot tell an account on its way out from one an administrator disabled.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "editor": {
+            "$ref": "#/components/schemas/Editor"
+          },
+          "enabled": {
+            "description": "Whether it is enabled: false when a site administrator has disabled it, or while it is being deleted.",
+            "type": "boolean"
+          },
+          "featured_at": {
+            "description": "Set only while the installation features this actor, so a super administrator's profile menu can show the toggle's state.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "features": {
+            "items": {
+              "$ref": "#/components/schemas/NodeFeature"
+            },
+            "type": "array"
+          },
+          "follower_count": {
+            "description": "How many follow it.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "id": {
+            "description": "Its id.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "is_admined_by_viewer": {
+            "description": "Whether the viewer is one of its administrators.",
+            "type": "boolean"
+          },
+          "is_blocked_by_viewer": {
+            "description": "Whether the viewer has blocked it.",
+            "type": "boolean"
+          },
+          "is_following_viewer": {
+            "description": "Whether it follows the viewer.",
+            "type": "boolean"
+          },
+          "is_invited": {
+            "description": "Whether the viewer has been invited to follow this actor and is yet to answer.",
+            "type": "boolean"
+          },
+          "is_leading_viewer": {
+            "description": "Whether the viewer follows it.",
+            "type": "boolean"
+          },
+          "leader_count": {
+            "description": "How many it follows.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "name": {
+            "description": "Its name.",
+            "type": "string"
+          },
+          "origin_domain": {
+            "description": "The server it came from, when it came from another.",
+            "type": "string"
+          },
+          "permissions": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "show_reposts_on_profile": {
+            "description": "Whether what this actor reposts is also among its profile's posts.",
+            "type": "boolean"
+          },
+          "type": {
+            "description": "What kind of profile it is: `node.actor.actor-service.person.v1`, `...group.v1` or `...event.v1`, or one of another server's.",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "uri": {
+            "description": "What it is called on the server it came from, and that server, when it came from another. Left out of everything made here.",
+            "type": "string"
+          },
+          "verified": {
+            "description": "A mark kept from earlier versions of Anahita. Nothing sets it yet.",
+            "type": "boolean"
+          },
+          "website_url": {
+            "description": "One link on the profile. Rendered as an anchor, so the value is validated to http(s) on the way in — see requests/actor.go.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "enabled",
+          "access",
+          "allow_follow_request",
+          "show_reposts_on_profile",
+          "allow_download",
+          "created_at"
+        ],
+        "type": "object"
       }
     },
     "securitySchemes": {
@@ -2068,7 +2400,7 @@
     }
   },
   "info": {
-    "description": "People, groups and events: reading and changing them, who may see them and what may be posted on them, their administrators, and deleting, archiving and purging them (account-lifecycle.md).",
+    "description": "People, groups, events and websites: reading and changing them, who may see them and what may be posted on them, their admins, and deleting, archiving and purging them (account-lifecycle.md).",
     "license": {
       "identifier": "AGPL-3.0-only",
       "name": "GNU Affero General Public License v3.0 only"
@@ -2116,7 +2448,7 @@
         ],
         "summary": "What profile an alias is",
         "tags": [
-          "actor-service"
+          "profiles"
         ],
         "x-handler": "actor/cmd/api/handlers.(*personHandler).Handle",
         "x-viewer": "anyone"
@@ -2224,7 +2556,7 @@
         ],
         "summary": "What is on",
         "tags": [
-          "actor-service"
+          "events"
         ],
         "x-handler": "actor/cmd/api/handlers.(*eventHandler).Discover",
         "x-viewer": "anyone"
@@ -2539,7 +2871,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ActorNode"
+                  "$ref": "#/components/schemas/actor.EventNode"
                 }
               }
             },
@@ -2586,7 +2918,7 @@
         ],
         "summary": "Make an event",
         "tags": [
-          "actor-service"
+          "events"
         ],
         "x-handler": "actor/cmd/api/handlers.(*eventHandler).Add",
         "x-viewer": "signed_in"
@@ -2715,7 +3047,7 @@
         ],
         "summary": "The events the installation features",
         "tags": [
-          "actor-service"
+          "events"
         ],
         "x-handler": "actor/cmd/api/handlers.(*eventHandler).Featured",
         "x-viewer": "anyone"
@@ -2806,7 +3138,7 @@
         ],
         "summary": "The viewer's events",
         "tags": [
-          "actor-service"
+          "events"
         ],
         "x-handler": "actor/cmd/api/handlers.(*eventHandler).Mine",
         "x-viewer": "signed_in"
@@ -2857,11 +3189,12 @@
             "bearer": []
           }
         ],
-        "summary": "Delete a event",
+        "summary": "Delete an event",
         "tags": [
-          "actor-service"
+          "events"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).Delete",
+        "x-shared": "profiles",
         "x-step-up": true,
         "x-viewer": "signed_in"
       },
@@ -2885,7 +3218,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ActorNode"
+                  "$ref": "#/components/schemas/actor.EventNode"
                 }
               }
             },
@@ -2909,7 +3242,7 @@
         ],
         "summary": "One event",
         "tags": [
-          "actor-service"
+          "events"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).Read",
         "x-viewer": "anyone"
@@ -3194,7 +3527,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ActorNode"
+                  "$ref": "#/components/schemas/actor.EventNode"
                 }
               }
             },
@@ -3227,7 +3560,7 @@
         ],
         "summary": "Change an event",
         "tags": [
-          "actor-service"
+          "events"
         ],
         "x-handler": "actor/cmd/api/handlers.(*eventHandler).Edit",
         "x-viewer": "signed_in"
@@ -3309,7 +3642,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ActorNode"
+                  "$ref": "#/components/schemas/actor.EventNode"
                 }
               }
             },
@@ -3335,9 +3668,10 @@
         ],
         "summary": "Change who may see it",
         "tags": [
-          "actor-service"
+          "events"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).EditAccess",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -3436,15 +3770,16 @@
             "bearer": []
           }
         ],
-        "summary": "A event's administrators",
+        "summary": "An event's admins",
         "tags": [
-          "actor-service"
+          "events"
         ],
         "x-handler": "actor/cmd/api/handlers.(*adminHandler).Browse",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       },
       "post": {
-        "description": "By one of its administrators. Answers with them.\n\nWho may call it: somebody signed in.",
+        "description": "By one of its admins. Answers with them.\n\nWho may call it: somebody signed in.",
         "operationId": "postEventsByIdAdmins",
         "parameters": [
           {
@@ -3522,11 +3857,12 @@
             "bearer": []
           }
         ],
-        "summary": "Make somebody an administrator of a event",
+        "summary": "Make somebody an admin of an event",
         "tags": [
-          "actor-service"
+          "events"
         ],
         "x-handler": "actor/cmd/api/handlers.(*adminHandler).Add",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -3570,7 +3906,7 @@
             "description": "the viewer may not"
           },
           "404": {
-            "description": "there is no such event or administrator"
+            "description": "there is no such event or admin"
           }
         },
         "security": [
@@ -3578,11 +3914,12 @@
             "bearer": []
           }
         ],
-        "summary": "Remove an administrator of a event",
+        "summary": "Remove an admin of an event",
         "tags": [
-          "actor-service"
+          "events"
         ],
         "x-handler": "actor/cmd/api/handlers.(*adminHandler).Delete",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -3634,11 +3971,12 @@
             "bearer": []
           }
         ],
-        "summary": "Archive a event",
+        "summary": "Archive an event",
         "tags": [
-          "actor-service"
+          "events"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).Archive",
+        "x-shared": "profiles",
         "x-step-up": true,
         "x-viewer": "signed_in"
       }
@@ -3742,7 +4080,7 @@
         ],
         "summary": "Who is going to an event, or may",
         "tags": [
-          "actor-service"
+          "events"
         ],
         "x-handler": "actor/cmd/api/handlers.(*eventHandler).Attendees",
         "x-viewer": "anyone"
@@ -3769,7 +4107,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ActorNode"
+                  "$ref": "#/components/schemas/actor.EventNode"
                 }
               }
             },
@@ -3795,7 +4133,7 @@
         ],
         "summary": "Call an event off",
         "tags": [
-          "actor-service"
+          "events"
         ],
         "x-handler": "actor/cmd/api/handlers.(*eventHandler).Cancel",
         "x-viewer": "signed_in"
@@ -3846,11 +4184,12 @@
             "bearer": []
           }
         ],
-        "summary": "What deleting a event would take with it",
+        "summary": "What deleting an event would take with it",
         "tags": [
-          "actor-service"
+          "events"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).DeletionCounts",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -3916,9 +4255,10 @@
         ],
         "summary": "Turn a profile on or off",
         "tags": [
-          "actor-service"
+          "events"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).SetEnabled",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -3994,9 +4334,10 @@
         ],
         "summary": "Feature a profile, or stop",
         "tags": [
-          "actor-service"
+          "events"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).SetFeatured",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -4043,7 +4384,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ActorNode"
+                  "$ref": "#/components/schemas/actor.EventNode"
                 }
               }
             },
@@ -4069,9 +4410,10 @@
         ],
         "summary": "Change what may be posted on it",
         "tags": [
-          "actor-service"
+          "events"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).EditFeatures",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -4113,7 +4455,7 @@
         ],
         "summary": "An event for a calendar",
         "tags": [
-          "actor-service"
+          "events"
         ],
         "x-handler": "actor/cmd/api/handlers.(*eventHandler).ICS",
         "x-viewer": "anyone"
@@ -4188,11 +4530,12 @@
             "bearer": []
           }
         ],
-        "summary": "Destroy a event for good",
+        "summary": "Destroy an event for good",
         "tags": [
-          "actor-service"
+          "events"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).Purge",
+        "x-shared": "profiles",
         "x-step-up": true,
         "x-viewer": "super_admin"
       }
@@ -4218,7 +4561,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ActorNode"
+                  "$ref": "#/components/schemas/actor.EventNode"
                 }
               }
             },
@@ -4244,9 +4587,10 @@
         ],
         "summary": "Restore a deleted event",
         "tags": [
-          "actor-service"
+          "events"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).Restore",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -4290,7 +4634,7 @@
         ],
         "summary": "Not going after all",
         "tags": [
-          "actor-service"
+          "events"
         ],
         "x-handler": "actor/cmd/api/handlers.(*eventHandler).Unrsvp",
         "x-viewer": "signed_in"
@@ -4374,7 +4718,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ActorNode"
+                  "$ref": "#/components/schemas/actor.EventNode"
                 }
               }
             },
@@ -4420,7 +4764,7 @@
         ],
         "summary": "Say going, or maybe",
         "tags": [
-          "actor-service"
+          "events"
         ],
         "x-handler": "actor/cmd/api/handlers.(*eventHandler).Rsvp",
         "x-viewer": "signed_in"
@@ -4469,9 +4813,9 @@
             "bearer": []
           }
         ],
-        "summary": "The rules of a event",
+        "summary": "The rules of an event",
         "tags": [
-          "actor-service"
+          "events"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).ReadRules",
         "x-viewer": "anyone"
@@ -4545,9 +4889,9 @@
             "bearer": []
           }
         ],
-        "summary": "Set the rules of a event",
+        "summary": "Set the rules of an event",
         "tags": [
-          "actor-service"
+          "events"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).SetRules",
         "x-viewer": "signed_in"
@@ -4617,9 +4961,9 @@
             "bearer": []
           }
         ],
-        "summary": "Agree to the rules of a event",
+        "summary": "Agree to the rules of an event",
         "tags": [
-          "actor-service"
+          "events"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).AgreeRules",
         "x-viewer": "signed_in"
@@ -4751,7 +5095,7 @@
         ],
         "summary": "Groups",
         "tags": [
-          "actor-service"
+          "groups"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).Browse",
         "x-viewer": "anyone"
@@ -4851,7 +5195,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ActorNode"
+                  "$ref": "#/components/schemas/actor.GroupNode"
                 }
               }
             },
@@ -4881,7 +5225,7 @@
         ],
         "summary": "Make a group",
         "tags": [
-          "actor-service"
+          "groups"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).Add",
         "x-viewer": "signed_in"
@@ -4985,7 +5329,7 @@
         ],
         "summary": "Destroy many groups for good",
         "tags": [
-          "actor-service"
+          "groups"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).PurgeBatch",
         "x-step-up": true,
@@ -5039,7 +5383,7 @@
         ],
         "summary": "How far a purge has got",
         "tags": [
-          "actor-service"
+          "groups"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).PurgeProgress",
         "x-viewer": "super_admin"
@@ -5092,9 +5436,10 @@
         ],
         "summary": "Delete a group",
         "tags": [
-          "actor-service"
+          "groups"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).Delete",
+        "x-shared": "profiles",
         "x-step-up": true,
         "x-viewer": "signed_in"
       },
@@ -5118,7 +5463,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ActorNode"
+                  "$ref": "#/components/schemas/actor.GroupNode"
                 }
               }
             },
@@ -5142,7 +5487,7 @@
         ],
         "summary": "One group",
         "tags": [
-          "actor-service"
+          "groups"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).Read",
         "x-viewer": "anyone"
@@ -5232,7 +5577,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ActorNode"
+                  "$ref": "#/components/schemas/actor.GroupNode"
                 }
               }
             },
@@ -5258,7 +5603,7 @@
         ],
         "summary": "Change a group",
         "tags": [
-          "actor-service"
+          "groups"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).Edit",
         "x-viewer": "signed_in"
@@ -5340,7 +5685,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ActorNode"
+                  "$ref": "#/components/schemas/actor.GroupNode"
                 }
               }
             },
@@ -5366,9 +5711,10 @@
         ],
         "summary": "Change who may see it",
         "tags": [
-          "actor-service"
+          "groups"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).EditAccess",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -5467,15 +5813,16 @@
             "bearer": []
           }
         ],
-        "summary": "A group's administrators",
+        "summary": "A group's admins",
         "tags": [
-          "actor-service"
+          "groups"
         ],
         "x-handler": "actor/cmd/api/handlers.(*adminHandler).Browse",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       },
       "post": {
-        "description": "By one of its administrators. Answers with them.\n\nWho may call it: somebody signed in.",
+        "description": "By one of its admins. Answers with them.\n\nWho may call it: somebody signed in.",
         "operationId": "postGroupsByIdAdmins",
         "parameters": [
           {
@@ -5553,11 +5900,12 @@
             "bearer": []
           }
         ],
-        "summary": "Make somebody an administrator of a group",
+        "summary": "Make somebody an admin of a group",
         "tags": [
-          "actor-service"
+          "groups"
         ],
         "x-handler": "actor/cmd/api/handlers.(*adminHandler).Add",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -5601,7 +5949,7 @@
             "description": "the viewer may not"
           },
           "404": {
-            "description": "there is no such group or administrator"
+            "description": "there is no such group or admin"
           }
         },
         "security": [
@@ -5609,11 +5957,12 @@
             "bearer": []
           }
         ],
-        "summary": "Remove an administrator of a group",
+        "summary": "Remove an admin of a group",
         "tags": [
-          "actor-service"
+          "groups"
         ],
         "x-handler": "actor/cmd/api/handlers.(*adminHandler).Delete",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -5667,9 +6016,10 @@
         ],
         "summary": "Archive a group",
         "tags": [
-          "actor-service"
+          "groups"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).Archive",
+        "x-shared": "profiles",
         "x-step-up": true,
         "x-viewer": "signed_in"
       }
@@ -5721,9 +6071,10 @@
         ],
         "summary": "What deleting a group would take with it",
         "tags": [
-          "actor-service"
+          "groups"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).DeletionCounts",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -5786,7 +6137,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ActorNode"
+                  "$ref": "#/components/schemas/actor.GroupNode"
                 }
               }
             },
@@ -5812,9 +6163,10 @@
         ],
         "summary": "Change whether new photos and videos may be downloaded",
         "tags": [
-          "actor-service"
+          "groups"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).EditDownloadDefault",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -5880,9 +6232,10 @@
         ],
         "summary": "Turn a profile on or off",
         "tags": [
-          "actor-service"
+          "groups"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).SetEnabled",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -5983,7 +6336,7 @@
         ],
         "summary": "The events a group hosts",
         "tags": [
-          "actor-service"
+          "groups"
         ],
         "x-handler": "actor/cmd/api/handlers.(*eventHandler).HostedBy",
         "x-viewer": "anyone"
@@ -6061,9 +6414,10 @@
         ],
         "summary": "Feature a profile, or stop",
         "tags": [
-          "actor-service"
+          "groups"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).SetFeatured",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -6110,7 +6464,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ActorNode"
+                  "$ref": "#/components/schemas/actor.GroupNode"
                 }
               }
             },
@@ -6136,9 +6490,10 @@
         ],
         "summary": "Change what may be posted on it",
         "tags": [
-          "actor-service"
+          "groups"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).EditFeatures",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -6213,9 +6568,10 @@
         ],
         "summary": "Destroy a group for good",
         "tags": [
-          "actor-service"
+          "groups"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).Purge",
+        "x-shared": "profiles",
         "x-step-up": true,
         "x-viewer": "super_admin"
       }
@@ -6241,7 +6597,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ActorNode"
+                  "$ref": "#/components/schemas/actor.GroupNode"
                 }
               }
             },
@@ -6267,9 +6623,10 @@
         ],
         "summary": "Restore a deleted group",
         "tags": [
-          "actor-service"
+          "groups"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).Restore",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -6318,7 +6675,7 @@
         ],
         "summary": "The rules of a group",
         "tags": [
-          "actor-service"
+          "groups"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).ReadRules",
         "x-viewer": "anyone"
@@ -6394,7 +6751,7 @@
         ],
         "summary": "Set the rules of a group",
         "tags": [
-          "actor-service"
+          "groups"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).SetRules",
         "x-viewer": "signed_in"
@@ -6466,7 +6823,7 @@
         ],
         "summary": "Agree to the rules of a group",
         "tags": [
-          "actor-service"
+          "groups"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).AgreeRules",
         "x-viewer": "signed_in"
@@ -6536,7 +6893,7 @@
         ],
         "summary": "Remove a group as spam",
         "tags": [
-          "actor-service"
+          "groups"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).RemoveAsSpam",
         "x-viewer": "admin"
@@ -6668,7 +7025,7 @@
         ],
         "summary": "People",
         "tags": [
-          "actor-service"
+          "people"
         ],
         "x-handler": "actor/cmd/api/handlers.(*personHandler).Browse",
         "x-viewer": "anyone"
@@ -6772,7 +7129,7 @@
         ],
         "summary": "Destroy many persons for good",
         "tags": [
-          "actor-service"
+          "people"
         ],
         "x-handler": "actor/cmd/api/handlers.(*personHandler).PurgeBatch",
         "x-step-up": true,
@@ -6826,7 +7183,7 @@
         ],
         "summary": "How far a purge has got",
         "tags": [
-          "actor-service"
+          "people"
         ],
         "x-handler": "actor/cmd/api/handlers.(*personHandler).PurgeProgress",
         "x-viewer": "super_admin"
@@ -6889,7 +7246,7 @@
         ],
         "summary": "Who is in a photo or a video",
         "tags": [
-          "actor-service"
+          "people"
         ],
         "x-handler": "actor/cmd/api/handlers.(*personHandler).TaggedIn",
         "x-viewer": "anyone"
@@ -7001,9 +7358,10 @@
         ],
         "summary": "Change who may see it",
         "tags": [
-          "actor-service"
+          "people"
         ],
         "x-handler": "actor/cmd/api/handlers.(*personHandler).EditAccess",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -7057,9 +7415,10 @@
         ],
         "summary": "Archive a person",
         "tags": [
-          "actor-service"
+          "people"
         ],
         "x-handler": "actor/cmd/api/handlers.(*personHandler).Archive",
+        "x-shared": "profiles",
         "x-step-up": true,
         "x-viewer": "signed_in"
       }
@@ -7111,9 +7470,10 @@
         ],
         "summary": "What deleting a person would take with it",
         "tags": [
-          "actor-service"
+          "people"
         ],
         "x-handler": "actor/cmd/api/handlers.(*personHandler).DeletionCounts",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -7202,9 +7562,10 @@
         ],
         "summary": "Change whether new photos and videos may be downloaded",
         "tags": [
-          "actor-service"
+          "people"
         ],
         "x-handler": "actor/cmd/api/handlers.(*personHandler).EditDownloadDefault",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -7280,9 +7641,10 @@
         ],
         "summary": "Turn a profile on or off",
         "tags": [
-          "actor-service"
+          "people"
         ],
         "x-handler": "actor/cmd/api/handlers.(*personHandler).SetEnabled",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -7358,9 +7720,10 @@
         ],
         "summary": "Feature a profile, or stop",
         "tags": [
-          "actor-service"
+          "people"
         ],
         "x-handler": "actor/cmd/api/handlers.(*personHandler).SetFeatured",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -7433,9 +7796,10 @@
         ],
         "summary": "Change what may be posted on it",
         "tags": [
-          "actor-service"
+          "people"
         ],
         "x-handler": "actor/cmd/api/handlers.(*personHandler).EditFeatures",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -7510,9 +7874,10 @@
         ],
         "summary": "Destroy a person for good",
         "tags": [
-          "actor-service"
+          "people"
         ],
         "x-handler": "actor/cmd/api/handlers.(*personHandler).Purge",
+        "x-shared": "profiles",
         "x-step-up": true,
         "x-viewer": "super_admin"
       }
@@ -7621,7 +7986,7 @@
         ],
         "summary": "Change who may quote a person's posts",
         "tags": [
-          "actor-service"
+          "people"
         ],
         "x-handler": "actor/cmd/api/handlers.(*personHandler).EditQuotePolicy",
         "x-viewer": "signed_in"
@@ -7712,7 +8077,7 @@
         ],
         "summary": "Show reposts among a person's posts, or not",
         "tags": [
-          "actor-service"
+          "people"
         ],
         "x-handler": "actor/cmd/api/handlers.(*personHandler).EditRepostsOnProfile",
         "x-viewer": "signed_in"
@@ -7782,7 +8147,7 @@
         ],
         "summary": "Remove a person as spam",
         "tags": [
-          "actor-service"
+          "people"
         ],
         "x-handler": "actor/cmd/api/handlers.(*personHandler).RemoveAsSpam",
         "x-viewer": "admin"
@@ -7838,7 +8203,7 @@
         ],
         "summary": "Take somebody out of a photo or a video",
         "tags": [
-          "actor-service"
+          "people"
         ],
         "x-handler": "actor/cmd/api/handlers.(*personHandler).RemoveTag",
         "x-viewer": "signed_in"
@@ -7905,7 +8270,7 @@
         ],
         "summary": "Tag somebody in a photo or a video",
         "tags": [
-          "actor-service"
+          "people"
         ],
         "x-handler": "actor/cmd/api/handlers.(*personHandler).AddTag",
         "x-viewer": "signed_in"
@@ -7959,7 +8324,7 @@
         ],
         "summary": "Approve being tagged",
         "tags": [
-          "actor-service"
+          "people"
         ],
         "x-handler": "actor/cmd/api/handlers.(*personHandler).ApproveTag",
         "x-viewer": "signed_in"
@@ -8012,9 +8377,10 @@
         ],
         "summary": "Delete a person",
         "tags": [
-          "actor-service"
+          "people"
         ],
         "x-handler": "actor/cmd/api/handlers.(*personHandler).Delete",
+        "x-shared": "profiles",
         "x-step-up": true,
         "x-viewer": "signed_in"
       },
@@ -8062,7 +8428,7 @@
         ],
         "summary": "One person",
         "tags": [
-          "actor-service"
+          "people"
         ],
         "x-handler": "actor/cmd/api/handlers.(*personHandler).Read",
         "x-viewer": "anyone"
@@ -8190,7 +8556,7 @@
         ],
         "summary": "Change a person's profile",
         "tags": [
-          "actor-service"
+          "people"
         ],
         "x-handler": "actor/cmd/api/handlers.(*personHandler).Edit",
         "x-viewer": "signed_in"
@@ -8311,7 +8677,7 @@
             "description": "the request is not well formed, or a value in it is not one it may be"
           },
           "403": {
-            "description": "the viewer may not list Websites"
+            "description": "the viewer may not list websites"
           }
         },
         "security": [
@@ -8322,7 +8688,7 @@
         ],
         "summary": "Websites",
         "tags": [
-          "actor-service"
+          "websites"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).Browse",
         "x-viewer": "anyone"
@@ -8373,11 +8739,12 @@
             "bearer": []
           }
         ],
-        "summary": "Delete a Website",
+        "summary": "Delete a website",
         "tags": [
-          "actor-service"
+          "websites"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).Delete",
+        "x-shared": "profiles",
         "x-step-up": true,
         "x-viewer": "signed_in"
       },
@@ -8401,7 +8768,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ActorNode"
+                  "$ref": "#/components/schemas/actor.WebsiteNode"
                 }
               }
             },
@@ -8414,7 +8781,7 @@
             "description": "the viewer may not see it"
           },
           "404": {
-            "description": "there is no such Website"
+            "description": "there is no such website"
           }
         },
         "security": [
@@ -8423,9 +8790,9 @@
             "bearer": []
           }
         ],
-        "summary": "One Website",
+        "summary": "One website",
         "tags": [
-          "actor-service"
+          "websites"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).Read",
         "x-viewer": "anyone"
@@ -8515,7 +8882,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ActorNode"
+                  "$ref": "#/components/schemas/actor.WebsiteNode"
                 }
               }
             },
@@ -8531,7 +8898,7 @@
             "description": "the viewer may not change it"
           },
           "404": {
-            "description": "there is no such Website"
+            "description": "there is no such website"
           }
         },
         "security": [
@@ -8539,9 +8906,9 @@
             "bearer": []
           }
         ],
-        "summary": "Change a Website",
+        "summary": "Change a website",
         "tags": [
-          "actor-service"
+          "websites"
         ],
         "x-handler": "actor/cmd/api/handlers.(*websiteHandler).Edit",
         "x-viewer": "signed_in"
@@ -8634,7 +9001,7 @@
             "description": "the viewer may not see them"
           },
           "404": {
-            "description": "there is no such Website"
+            "description": "there is no such website"
           }
         },
         "security": [
@@ -8642,15 +9009,16 @@
             "bearer": []
           }
         ],
-        "summary": "A Website's administrators",
+        "summary": "A website's admins",
         "tags": [
-          "actor-service"
+          "websites"
         ],
         "x-handler": "actor/cmd/api/handlers.(*adminHandler).Browse",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       },
       "post": {
-        "description": "By one of its administrators. Answers with them.\n\nWho may call it: somebody signed in.",
+        "description": "By one of its admins. Answers with them.\n\nWho may call it: somebody signed in.",
         "operationId": "postWebsitesByIdAdmins",
         "parameters": [
           {
@@ -8720,7 +9088,7 @@
             "description": "the viewer may not"
           },
           "404": {
-            "description": "there is no such Website or person"
+            "description": "there is no such website or person"
           }
         },
         "security": [
@@ -8728,11 +9096,12 @@
             "bearer": []
           }
         ],
-        "summary": "Make somebody an administrator of a Website",
+        "summary": "Make somebody an admin of a website",
         "tags": [
-          "actor-service"
+          "websites"
         ],
         "x-handler": "actor/cmd/api/handlers.(*adminHandler).Add",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -8776,7 +9145,7 @@
             "description": "the viewer may not"
           },
           "404": {
-            "description": "there is no such Website or administrator"
+            "description": "there is no such website or admin"
           }
         },
         "security": [
@@ -8784,11 +9153,12 @@
             "bearer": []
           }
         ],
-        "summary": "Remove an administrator of a Website",
+        "summary": "Remove an admin of a website",
         "tags": [
-          "actor-service"
+          "websites"
         ],
         "x-handler": "actor/cmd/api/handlers.(*adminHandler).Delete",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -8837,11 +9207,12 @@
             "bearer": []
           }
         ],
-        "summary": "What deleting a Website would take with it",
+        "summary": "What deleting a website would take with it",
         "tags": [
-          "actor-service"
+          "websites"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).DeletionCounts",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -8904,7 +9275,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ActorNode"
+                  "$ref": "#/components/schemas/actor.WebsiteNode"
                 }
               }
             },
@@ -8930,9 +9301,10 @@
         ],
         "summary": "Change whether new photos and videos may be downloaded",
         "tags": [
-          "actor-service"
+          "websites"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).EditDownloadDefault",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -8998,9 +9370,10 @@
         ],
         "summary": "Turn a profile on or off",
         "tags": [
-          "actor-service"
+          "websites"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).SetEnabled",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -9076,9 +9449,10 @@
         ],
         "summary": "Feature a profile, or stop",
         "tags": [
-          "actor-service"
+          "websites"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).SetFeatured",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     },
@@ -9151,11 +9525,12 @@
             "bearer": []
           }
         ],
-        "summary": "Destroy a Website for good",
+        "summary": "Destroy a website for good",
         "tags": [
-          "actor-service"
+          "websites"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).Purge",
+        "x-shared": "profiles",
         "x-step-up": true,
         "x-viewer": "super_admin"
       }
@@ -9181,7 +9556,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ActorNode"
+                  "$ref": "#/components/schemas/actor.WebsiteNode"
                 }
               }
             },
@@ -9205,11 +9580,12 @@
             "bearer": []
           }
         ],
-        "summary": "Restore a deleted Website",
+        "summary": "Restore a deleted website",
         "tags": [
-          "actor-service"
+          "websites"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).Restore",
+        "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
     }
@@ -9229,7 +9605,33 @@
   "tags": [
     {
       "description": "Profiles",
-      "name": "actor-service"
+      "name": "profiles",
+      "x-about": "What every profile has, whatever its kind (profiles.md): who may see it and what may be posted on it, its admins, being turned off, archived, deleted and restored, being featured, and what its photos and videos start with about being downloaded. Each kind has these at its own address, `/people/`, `/groups/`, `/events/` or `/websites/`, and they are listed under each kind as every profile's. Here as well: which profile an alias is, of any kind.",
+      "x-service": "actor-service"
+    },
+    {
+      "description": "People",
+      "name": "people",
+      "x-about": "Somebody with an account, at their username (people.md): their own posts and replies, who may quote them, the photos and videos they are tagged in, and what they show of their reposts. A person is made by signing up (auth-service), not here.",
+      "x-service": "actor-service"
+    },
+    {
+      "description": "Groups",
+      "name": "groups",
+      "x-about": "Made by somebody signed in, looked after by its admins, and followed by people (groups.md): its rules, agreed to before following it, and the events it hosts.",
+      "x-service": "actor-service"
+    },
+    {
+      "description": "Events",
+      "name": "events",
+      "x-about": "A group with a time and a place (events.md): going or maybe, who is going, a file for a calendar, calling it off, its rules, and what is on for everybody.",
+      "x-service": "actor-service"
+    },
+    {
+      "description": "Websites",
+      "name": "websites",
+      "x-about": "A website's feed as a profile (websites.md), followed here and from the fediverse, and looked after by its admins. It is made by connecting the site, which proves its domain (syndication-service, `POST /websites/_connect`), so it has no route here to make one.",
+      "x-service": "actor-service"
     }
   ]
 }

@@ -25,7 +25,8 @@ API. Every service with routes is described.
 
 **For reading, open [`docs/api/index.html`](api/index.html) in a browser.** It
 is the same reference as a page: a section for each service, under the same
-groups as these docs (People, Posts, Fediverse and Bluesky, Run a site), each route with
+groups as these docs (Profiles, Accounts and the graph, Posts, Fediverse and
+Bluesky, Run a site), each route with
 what it takes and answers, and every shape by name, with a box that filters
 them. It is one file and fetches nothing, so it opens with the network off. A
 route is linked to by its `operationId` (`api/index.html#getHashtagsByAlias`),
@@ -263,3 +264,21 @@ A service is added to `make api_docs` when its routes are described, and to a
 group in `anahita-libs/apidoc/groups.go`: `anahita.json` carries the groups
 as `x-tagGroups`, which Redoc and Scalar show as headings, and `make test`
 fails while a service is in none.
+
+**One service, several kinds.** A service that serves several kinds of thing
+names each a section (`Service.Section`), and registers each kind's routes
+through a Router put in it (`api.In("groups")`). Each section is a tag of its
+own in the document, in place of the service's, with `x-service` naming the
+service and `x-about` what is particular to it, and goes in a group as a
+service does. actor-service has five: **profiles**, what every kind has, then
+**people**, **groups**, **events** and **websites**. A route each kind has at
+its own address alike is marked `Shared("profiles")`, written `x-shared`, and
+the reference lists it under its kind after the kind's own, pointing to the
+section that explains it ([Profiles](profiles.md#the-api)).
+
+**A shape for each kind.** A shape can be another one without what it never
+has, by a field that describes only, `` _ struct{} `json:"-" apidoc:"omit=event"` ``:
+a group is sent as `ActorNode`, and described as `actor.GroupNode`, which is
+`ActorNode` without `event`. Since the handler tests check every answer
+against the reference, and an answer with a field the shape does not name
+fails, a field left out must be one that kind is never sent.

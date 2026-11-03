@@ -146,6 +146,18 @@ func (s *schemas) properties(t reflect.Type) (map[string]any, error) {
 	if err := s.fields(t, props, &required); err != nil {
 		return nil, err
 	}
+	// What a shape made of another leaves out of it, by its JSON names: one
+	// kind of profile's shape, without what only another kind is sent.
+	for _, name := range omitted(t) {
+		delete(props, name)
+		kept := required[:0]
+		for _, r := range required {
+			if r != name {
+				kept = append(kept, r)
+			}
+		}
+		required = kept
+	}
 	schema["properties"] = props
 	if len(required) > 0 {
 		schema["required"] = required
@@ -211,6 +223,20 @@ func (s *schemas) fields(t reflect.Type, props map[string]any, required *[]strin
 		props[name] = field
 	}
 	return nil
+}
+
+// omitted is what a struct's shape leaves out of the fields it embeds, as
+// a field of its own says, tagged `apidoc:"omit=event,quote_policy"`. The
+// field is a description only, `json:"-"`, and changes nothing sent.
+func omitted(t reflect.Type) []string {
+	var names []string
+	for i := 0; i < t.NumField(); i++ {
+		tag := t.Field(i).Tag.Get("apidoc")
+		if rest, ok := strings.CutPrefix(tag, "omit="); ok {
+			names = append(names, strings.Split(rest, ",")...)
+		}
+	}
+	return names
 }
 
 // jsonName is a field's name in JSON and its options, from its tag. ""

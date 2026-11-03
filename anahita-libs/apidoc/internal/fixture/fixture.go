@@ -71,3 +71,9 @@ type Base struct {
 	// Its number.
 	ID int64 `json:"id"`
 }
+
+// Gadget is a thing without what only some things have.
+type Gadget struct {
+	Thing
+	_ struct{} `json:"-" apidoc:"omit=tags,meta"`
+}

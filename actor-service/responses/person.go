@@ -21,8 +21,13 @@ type PersonNodeItem struct {
 	Language string `json:"language,omitempty"`
 }
 
+// PersonNode is a person, as they are sent: what every profile has, and
+// their account type, pronouns and language.
 type PersonNode struct {
 	PersonNodeItem
+
+	// A description only: a person has no event block.
+	_ struct{} `json:"-" apidoc:"omit=event"`
 
 	UpdatedAt   time.Time                 `json:"updated_at,omitempty"`
 	Editor      *responses.Editor         `json:"editor,omitempty"`

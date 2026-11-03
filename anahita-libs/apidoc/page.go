@@ -39,6 +39,9 @@ type pageDoc struct {
 	Tags []struct {
 		Name        string `json:"name"`
 		Description string `json:"description"`
+		// A section of a service: which, and what is particular to it.
+		Service string `json:"x-service"`
+		About   string `json:"x-about"`
 	} `json:"tags"`
 	TagGroups []struct {
 		Name string   `json:"name"`
@@ -59,6 +62,9 @@ type pageOp struct {
 	StepUp      bool                  `json:"x-step-up"`
 	Internal    bool                  `json:"x-internal"`
 	Handler     string                `json:"x-handler"`
+	// The section that explains it, for a route every kind of thing in a
+	// service has.
+	Shared string `json:"x-shared"`
 	Security    []map[string][]string `json:"security"`
 	Parameters  []struct {
 		Name        string         `json:"name"`
@@ -88,7 +94,15 @@ func Page(dir, combined string) ([]byte, error) {
 		return nil, err
 	}
 	about := map[string]string{}
+	service := map[string]string{}
 	for _, tag := range all.Tags {
+		service[tag.Name] = tag.Name
+		if tag.Service != "" {
+			// A section: what it says of itself, under its service's name.
+			about[tag.Name] = tag.About
+			service[tag.Name] = tag.Service
+			continue
+		}
 		var doc pageDoc
 		if err := readJSON(filepath.Join(dir, tag.Name+".json"), &doc); err != nil {
 			return nil, err
@@ -110,7 +124,11 @@ func Page(dir, combined string) ([]byte, error) {
 	}
 	order := map[string]int{"get": 0, "post": 1, "put": 2, "patch": 3, "delete": 4}
 	for _, routes := range byService {
+		// A kind's own routes first, then those every kind has.
 		sort.Slice(routes, func(i, j int) bool {
+			if (routes[i].op.Shared == "") != (routes[j].op.Shared == "") {
+				return routes[i].op.Shared == ""
+			}
 			if routes[i].path != routes[j].path {
 				return routes[i].path < routes[j].path
 			}
@@ -147,8 +165,14 @@ func Page(dir, combined string) ([]byte, error) {
 	for _, g := range all.TagGroups {
 		for _, name := range g.Tags {
 			w("<section id=\"%s\" class=\"service\">\n<p class=\"group\">%s</p>\n<h2>%s <code>%s</code></h2>\n<p>%s</p>\n",
-				attr(name), html.EscapeString(g.Name), html.EscapeString(title[name]), html.EscapeString(name), prose(about[name]))
+				attr(name), html.EscapeString(g.Name), html.EscapeString(title[name]), html.EscapeString(service[name]), prose(about[name]))
+			shared := false
 			for _, r := range byService[name] {
+				if r.op.Shared != "" && !shared {
+					shared = true
+					w("<h3>As every profile</h3>\n<p>The same on every kind, at this kind's address: see <a href=\"#%s\">%s</a>.</p>\n",
+						attr(r.op.Shared), html.EscapeString(title[r.op.Shared]))
+				}
 				writeRoute(&b, r.method, r.path, r.op)
 			}
 			w("</section>\n")

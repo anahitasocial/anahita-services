@@ -1,7 +1,7 @@
 package apidoc
 
-// Group is a heading of the reference with the services under it, in the
-// order they are read.
+// Group is a heading of the reference with what is under it, in the order it
+// is read: services, and the sections of one where it has them.
 type Group struct {
 	Name     string
 	Services []string
@@ -9,12 +9,20 @@ type Group struct {
 
 // Groups are the reference's headings, the same as the docs' own
 // (docs/README.md): anahita.json carries them as x-tagGroups, and the page
-// lists its services under them. A service in none of them is an error, so
-// that a new one is put where it belongs.
+// lists what is under them. A tag in none of them is an error, so that a new
+// one is put where it belongs.
 var Groups = []Group{
-	{"People", []string{
+	// actor-service's sections (actor-service/cmd/api/routes.go): what every
+	// profile has, then each kind's own.
+	{"Profiles", []string{
+		"profiles",
+		"people",
+		"groups",
+		"events",
+		"websites",
+	}},
+	{"Accounts and the graph", []string{
 		"auth-service",
-		"actor-service",
 		"socialgraph-service",
 		"identity-image-service",
 		"notification-service",

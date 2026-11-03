@@ -32,8 +32,8 @@ func NewRoutes(
 // Init registers the routes, each with its description, and answers with
 // the descriptions: docs/api/identity-image-service.json is made of them.
 func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
-	doc := apidoc.NewService("identity-image-service", "Avatars and covers",
-		"The picture that stands for a profile, and the wide picture across the top of a profile or a post.")
+	doc := apidoc.NewService("identity-image-service", "Profile and cover photos",
+		"A profile's photo, which stands for it, and the cover photo across the top of a profile or a post. The code calls the first an avatar.")
 	api := doc.On(e)
 
 	// A public profile's pictures at an address that does not change, for
