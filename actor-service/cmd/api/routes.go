@@ -407,10 +407,11 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	groups.GET("/:id", r.handler.Group.Read, r.setViewer).With(readGroup("group"))
 	groups.POST("/", r.handler.Group.Add, r.authorize).
 		Summary("Make a group").
-		Describe("Whoever makes it is its first administrator.").
+		Describe("Whoever makes it is its first administrator. Left without `access`, only its administrators can see it until they open it.").
 		Viewer(apidoc.SignedIn).
 		Takes(actorReq.Add).
-		Sends(http.StatusCreated, libs_responses.ActorNode{})
+		Sends(http.StatusCreated, libs_responses.ActorNode{}).
+		Sends(http.StatusUnprocessableEntity, libs_responses.AudienceRefusal{}, "`access_not_allowed`: public, where nothing new may be, with the levels it may have")
 	groups.PATCH("/:id", r.handler.Group.Edit, r.authorize).
 		Summary("Change a group").
 		Viewer(apidoc.SignedIn).

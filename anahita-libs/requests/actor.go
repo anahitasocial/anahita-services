@@ -165,6 +165,10 @@ type ActorAddRequest struct {
 	// Normalised before validation so a bare "example.com" is accepted;
 	// http_url then enforces the scheme, which is what keeps a
 	// javascript: value out of an anchor href on a public profile.
+
+	// Who can see it. Left out, only its administrators, until they open it
+	// from its settings.
+	Access string `form:"access" validate:"omitempty,oneof=public registered followers admins"`
 }
 
 type ActorDeleteRequest struct {

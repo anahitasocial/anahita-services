@@ -2982,16 +2982,17 @@ who may call it: anyone, signed in or not.">
 </table>
 <p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).Browse</code></p>
 </details>
-<details class="route" id="postGroups" data-search="post /groups/ make a group whoever makes it is its first administrator.
+<details class="route" id="postGroups" data-search="post /groups/ make a group whoever makes it is its first administrator. left without `access`, only its administrators can see it until they open it.
 
 who may call it: somebody signed in.">
 <summary><span class="method post">POST</span> <code class="path">/groups/</code> <span class="summary">Make a group</span></summary>
-<div class="description"><p>Whoever makes it is its first administrator.</p></div>
+<div class="description"><p>Whoever makes it is its first administrator. Left without <code>access</code>, only its administrators can see it until they open it.</p></div>
 <p class="who"><strong>Who:</strong> somebody signed in</p>
 <h4>Takes, as <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
+<tr><td><code>access</code></td><td>string</td><td>Who can see it. Left out, only its administrators, until they open it from its settings. One of <code>public</code>, <code>registered</code>, <code>followers</code>, <code>admins</code>.</td></tr>
 <tr><td><code>body</code></td><td>string</td><td>What it says of itself. At most 500 characters.</td></tr>
 <tr><td><code>enabled</code></td><td>boolean</td><td>Whether it is enabled. <code>true</code> unless given.</td></tr>
 <tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>Its name. At most 64 characters.</td></tr>
@@ -3004,6 +3005,7 @@ who may call it: somebody signed in.">
 <tr><td class="status s2">201</td><td>Created<div class="body"><a href="#schema-ActorNode">ActorNode</a> <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">422</td><td><code>access_not_allowed</code>: public, where nothing new may be, with the levels it may have<div class="body"><a href="#schema-AudienceRefusal">AudienceRefusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).Add</code></p>

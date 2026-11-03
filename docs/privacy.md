@@ -96,8 +96,11 @@ Set on the profile's Access settings.
 | A group | `public`, `registered`, `followers`, `admins` |
 
 A new account's profile is `public`, or `registered` where the installation
-allows nothing new to be public. A new group starts as `admins`, a draft only
-its administrators see, until they open it.
+allows nothing new to be public. A new group is given its audience when it
+is made (`access` on `POST /groups/`; the web app's form asks, and offers
+`public` first). Made without one, it starts as `admins`, a draft only its
+administrators see, until they open it. `public` is refused where the
+installation allows nothing new to be public.
 
 Somebody who cannot see a profile cannot see anything on it, whatever each
 post says.

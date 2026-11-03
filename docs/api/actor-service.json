@@ -469,6 +469,30 @@
         ],
         "type": "object"
       },
+      "AudienceRefusal": {
+        "description": "AudienceRefusal refuses an audience a post may not be given, and says which it may.",
+        "properties": {
+          "allowed": {
+            "description": "The audiences it may be given, widest first.",
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "error": {
+            "description": "Always `access_not_allowed`.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "error",
+          "allowed"
+        ],
+        "type": "object"
+      },
       "Author": {
         "description": "Author is who wrote something.",
         "properties": {
@@ -4627,13 +4651,23 @@
         "x-viewer": "anyone"
       },
       "post": {
-        "description": "Whoever makes it is its first administrator.\n\nWho may call it: somebody signed in.",
+        "description": "Whoever makes it is its first administrator. Left without `access`, only its administrators can see it until they open it.\n\nWho may call it: somebody signed in.",
         "operationId": "postGroups",
         "requestBody": {
           "content": {
             "application/x-www-form-urlencoded": {
               "schema": {
                 "properties": {
+                  "access": {
+                    "description": "Who can see it. Left out, only its administrators, until they open it from its settings.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "admins"
+                    ],
+                    "type": "string"
+                  },
                   "body": {
                     "description": "What it says of itself.",
                     "maxLength": 500,
@@ -4665,6 +4699,16 @@
             "multipart/form-data": {
               "schema": {
                 "properties": {
+                  "access": {
+                    "description": "Who can see it. Left out, only its administrators, until they open it from its settings.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "admins"
+                    ],
+                    "type": "string"
+                  },
                   "body": {
                     "description": "What it says of itself.",
                     "maxLength": 500,
@@ -4712,6 +4756,16 @@
           },
           "401": {
             "description": "no token, or one that has expired"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AudienceRefusal"
+                }
+              }
+            },
+            "description": "`access_not_allowed`: public, where nothing new may be, with the levels it may have"
           }
         },
         "security": [

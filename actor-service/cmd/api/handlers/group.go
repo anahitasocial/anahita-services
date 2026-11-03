@@ -5,6 +5,7 @@ import (
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	"anahita-libs/permissions"
+	"anahita-libs/policy"
 	"anahita-libs/requests"
 	"anahita-libs/responses"
 	"anahita-libs/validators"
@@ -16,6 +17,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	an_constants "anahita-libs/constants"
+	an_handlers "anahita-libs/handlers"
 )
 
 // groupHandler serves an actor that is looked after by administrators and
@@ -269,9 +271,18 @@ func (h *groupHandler) Add(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
+	access, allowed := newGroupAccess(req.Access)
+	if !allowed {
+		log.Printf("refused: this installation does not allow a group to be made %q", req.Access)
+		return an_handlers.RefuseAccess(c, policy.Allowed([]string{
+			an_constants.AnahitaAccessPublic, an_constants.AnahitaAccessRegistered,
+			an_constants.AnahitaAccessFollowers, an_constants.AnahitaAccessAdmins,
+		}))
+	}
+
 	// Create the group entity
 	actor := entities.NewAnahitaNode()
-	actor.Access = an_constants.AnahitaAccessAdmins
+	actor.Access = access
 	actor.Name = req.Name
 	actor.Body = req.Body
 	actor.WebsiteURL = req.WebsiteURL
@@ -294,6 +305,19 @@ func (h *groupHandler) Add(c echo.Context) error {
 	resp := actorResp.MapNode(actor)
 
 	return c.JSON(http.StatusCreated, resp)
+}
+
+// newGroupAccess is who can see a group being made, from what was asked:
+// only its administrators when nothing was, as before the form asked. An
+// installation that allows nothing new to be public refuses a public group.
+func newGroupAccess(requested string) (string, bool) {
+	if requested == "" {
+		return an_constants.AnahitaAccessAdmins, true
+	}
+	if !policy.AllowsAccess(requested) {
+		return "", false
+	}
+	return an_handlers.DetermineActorNodeAccess(requested), true
 }
 
 // create makes an actor of this handler's kind from the fields given, with
