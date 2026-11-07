@@ -37,10 +37,6 @@ const (
 	MediumService_BrowseSaved_FullMethodName      = "/graph.MediumService/BrowseSaved"
 	MediumService_BrowseCitedBy_FullMethodName    = "/graph.MediumService/BrowseCitedBy"
 	MediumService_BrowseAuthored_FullMethodName   = "/graph.MediumService/BrowseAuthored"
-	MediumService_ListQuotes_FullMethodName       = "/graph.MediumService/ListQuotes"
-	MediumService_ListSaved_FullMethodName        = "/graph.MediumService/ListSaved"
-	MediumService_ListCitedBy_FullMethodName      = "/graph.MediumService/ListCitedBy"
-	MediumService_ListAuthored_FullMethodName     = "/graph.MediumService/ListAuthored"
 	MediumService_AddPhotoUpload_FullMethodName   = "/graph.MediumService/AddPhotoUpload"
 	MediumService_ReadPhotoUploads_FullMethodName = "/graph.MediumService/ReadPhotoUploads"
 	MediumService_BrowsePhotoFiles_FullMethodName = "/graph.MediumService/BrowsePhotoFiles"
@@ -71,14 +67,6 @@ type MediumServiceClient interface {
 	BrowseSaved(ctx context.Context, in *SavedBrowseRequest, opts ...grpc.CallOption) (*SavedBrowseResponse, error)
 	BrowseCitedBy(ctx context.Context, in *CitedByBrowseRequest, opts ...grpc.CallOption) (*CitedByBrowseResponse, error)
 	BrowseAuthored(ctx context.Context, in *AuthoredBrowseRequest, opts ...grpc.CallOption) (*AuthoredBrowseResponse, error)
-	// The same four under the names they had until v1.0.17, served for one
-	// release so that a service still running the release before can call
-	// them during a rolling deploy. Removed in the release after
-	// (docs/plans/done/bread-names.md).
-	ListQuotes(ctx context.Context, in *QuotesBrowseRequest, opts ...grpc.CallOption) (*QuotesBrowseResponse, error)
-	ListSaved(ctx context.Context, in *SavedBrowseRequest, opts ...grpc.CallOption) (*SavedBrowseResponse, error)
-	ListCitedBy(ctx context.Context, in *CitedByBrowseRequest, opts ...grpc.CallOption) (*CitedByBrowseResponse, error)
-	ListAuthored(ctx context.Context, in *AuthoredBrowseRequest, opts ...grpc.CallOption) (*AuthoredBrowseResponse, error)
 	// The images of photo posts. A photo is a medium, and these are its
 	// images, so they are kept by the service that keeps the post.
 	AddPhotoUpload(ctx context.Context, in *PhotoUploadAddRequest, opts ...grpc.CallOption) (*PhotoUploadAddResponse, error)
@@ -275,46 +263,6 @@ func (c *mediumServiceClient) BrowseAuthored(ctx context.Context, in *AuthoredBr
 	return out, nil
 }
 
-func (c *mediumServiceClient) ListQuotes(ctx context.Context, in *QuotesBrowseRequest, opts ...grpc.CallOption) (*QuotesBrowseResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(QuotesBrowseResponse)
-	err := c.cc.Invoke(ctx, MediumService_ListQuotes_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *mediumServiceClient) ListSaved(ctx context.Context, in *SavedBrowseRequest, opts ...grpc.CallOption) (*SavedBrowseResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(SavedBrowseResponse)
-	err := c.cc.Invoke(ctx, MediumService_ListSaved_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *mediumServiceClient) ListCitedBy(ctx context.Context, in *CitedByBrowseRequest, opts ...grpc.CallOption) (*CitedByBrowseResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CitedByBrowseResponse)
-	err := c.cc.Invoke(ctx, MediumService_ListCitedBy_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *mediumServiceClient) ListAuthored(ctx context.Context, in *AuthoredBrowseRequest, opts ...grpc.CallOption) (*AuthoredBrowseResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AuthoredBrowseResponse)
-	err := c.cc.Invoke(ctx, MediumService_ListAuthored_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *mediumServiceClient) AddPhotoUpload(ctx context.Context, in *PhotoUploadAddRequest, opts ...grpc.CallOption) (*PhotoUploadAddResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PhotoUploadAddResponse)
@@ -379,14 +327,6 @@ type MediumServiceServer interface {
 	BrowseSaved(context.Context, *SavedBrowseRequest) (*SavedBrowseResponse, error)
 	BrowseCitedBy(context.Context, *CitedByBrowseRequest) (*CitedByBrowseResponse, error)
 	BrowseAuthored(context.Context, *AuthoredBrowseRequest) (*AuthoredBrowseResponse, error)
-	// The same four under the names they had until v1.0.17, served for one
-	// release so that a service still running the release before can call
-	// them during a rolling deploy. Removed in the release after
-	// (docs/plans/done/bread-names.md).
-	ListQuotes(context.Context, *QuotesBrowseRequest) (*QuotesBrowseResponse, error)
-	ListSaved(context.Context, *SavedBrowseRequest) (*SavedBrowseResponse, error)
-	ListCitedBy(context.Context, *CitedByBrowseRequest) (*CitedByBrowseResponse, error)
-	ListAuthored(context.Context, *AuthoredBrowseRequest) (*AuthoredBrowseResponse, error)
 	// The images of photo posts. A photo is a medium, and these are its
 	// images, so they are kept by the service that keeps the post.
 	AddPhotoUpload(context.Context, *PhotoUploadAddRequest) (*PhotoUploadAddResponse, error)
@@ -456,18 +396,6 @@ func (UnimplementedMediumServiceServer) BrowseCitedBy(context.Context, *CitedByB
 }
 func (UnimplementedMediumServiceServer) BrowseAuthored(context.Context, *AuthoredBrowseRequest) (*AuthoredBrowseResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BrowseAuthored not implemented")
-}
-func (UnimplementedMediumServiceServer) ListQuotes(context.Context, *QuotesBrowseRequest) (*QuotesBrowseResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListQuotes not implemented")
-}
-func (UnimplementedMediumServiceServer) ListSaved(context.Context, *SavedBrowseRequest) (*SavedBrowseResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListSaved not implemented")
-}
-func (UnimplementedMediumServiceServer) ListCitedBy(context.Context, *CitedByBrowseRequest) (*CitedByBrowseResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListCitedBy not implemented")
-}
-func (UnimplementedMediumServiceServer) ListAuthored(context.Context, *AuthoredBrowseRequest) (*AuthoredBrowseResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListAuthored not implemented")
 }
 func (UnimplementedMediumServiceServer) AddPhotoUpload(context.Context, *PhotoUploadAddRequest) (*PhotoUploadAddResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddPhotoUpload not implemented")
@@ -826,78 +754,6 @@ func _MediumService_BrowseAuthored_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _MediumService_ListQuotes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QuotesBrowseRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MediumServiceServer).ListQuotes(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: MediumService_ListQuotes_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MediumServiceServer).ListQuotes(ctx, req.(*QuotesBrowseRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _MediumService_ListSaved_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SavedBrowseRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MediumServiceServer).ListSaved(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: MediumService_ListSaved_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MediumServiceServer).ListSaved(ctx, req.(*SavedBrowseRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _MediumService_ListCitedBy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CitedByBrowseRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MediumServiceServer).ListCitedBy(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: MediumService_ListCitedBy_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MediumServiceServer).ListCitedBy(ctx, req.(*CitedByBrowseRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _MediumService_ListAuthored_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AuthoredBrowseRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MediumServiceServer).ListAuthored(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: MediumService_ListAuthored_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MediumServiceServer).ListAuthored(ctx, req.(*AuthoredBrowseRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _MediumService_AddPhotoUpload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PhotoUploadAddRequest)
 	if err := dec(in); err != nil {
@@ -1048,22 +904,6 @@ var MediumService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BrowseAuthored",
 			Handler:    _MediumService_BrowseAuthored_Handler,
-		},
-		{
-			MethodName: "ListQuotes",
-			Handler:    _MediumService_ListQuotes_Handler,
-		},
-		{
-			MethodName: "ListSaved",
-			Handler:    _MediumService_ListSaved_Handler,
-		},
-		{
-			MethodName: "ListCitedBy",
-			Handler:    _MediumService_ListCitedBy_Handler,
-		},
-		{
-			MethodName: "ListAuthored",
-			Handler:    _MediumService_ListAuthored_Handler,
 		},
 		{
 			MethodName: "AddPhotoUpload",

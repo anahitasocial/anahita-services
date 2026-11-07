@@ -25,6 +25,13 @@ Releases before v1.0.17 are described on GitHub, under
    replies carries `thread`, how many notes it has, and `thread_next`, the
    second note.
 
+### Removed
+
+1. **The gRPC methods' names before v1.0.17:** `ListQuotes`, `ListSaved`,
+   `ListCitedBy`, `ListAuthored` and the event service's `List`, served
+   beside their BREAD names for v1.0.17. A service of one's own calls
+   `Browse…`.
+
 ## v1.0.17 Birth, 2026-11-07
 
 ### Upgrading

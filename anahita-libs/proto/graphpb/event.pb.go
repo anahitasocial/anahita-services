@@ -880,14 +880,13 @@ const file_proto_graphpb_event_proto_rawDesc = "" +
 	"\tfollowing\x18\v \x01(\bR\tfollowing\"=\n" +
 	"\x13EventBrowseResponse\x12\x10\n" +
 	"\x03ids\x18\x01 \x03(\x03R\x03ids\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\x04R\x05total2\xd9\x03\n" +
+	"\x05total\x18\x02 \x01(\x04R\x05total2\x9a\x03\n" +
 	"\fEventService\x129\n" +
 	"\x04Save\x12\x17.graph.EventSaveRequest\x1a\x18.graph.EventSaveResponse\x129\n" +
 	"\x04Read\x12\x17.graph.EventReadRequest\x1a\x18.graph.EventReadResponse\x129\n" +
 	"\x04Rsvp\x12\x17.graph.EventRsvpRequest\x1a\x18.graph.EventRsvpResponse\x12?\n" +
 	"\x06Cancel\x12\x19.graph.EventCancelRequest\x1a\x1a.graph.EventCancelResponse\x12?\n" +
-	"\x06Browse\x12\x19.graph.EventBrowseRequest\x1a\x1a.graph.EventBrowseResponse\x12=\n" +
-	"\x04List\x12\x19.graph.EventBrowseRequest\x1a\x1a.graph.EventBrowseResponse\x12W\n" +
+	"\x06Browse\x12\x19.graph.EventBrowseRequest\x1a\x1a.graph.EventBrowseResponse\x12W\n" +
 	"\x0eAnnounceChange\x12!.graph.EventAnnounceChangeRequest\x1a\".graph.EventAnnounceChangeResponseB\n" +
 	"Z\b/graphpbb\x06proto3"
 
@@ -929,17 +928,15 @@ var file_proto_graphpb_event_proto_depIdxs = []int32{
 	5,  // 5: graph.EventService.Rsvp:input_type -> graph.EventRsvpRequest
 	9,  // 6: graph.EventService.Cancel:input_type -> graph.EventCancelRequest
 	11, // 7: graph.EventService.Browse:input_type -> graph.EventBrowseRequest
-	11, // 8: graph.EventService.List:input_type -> graph.EventBrowseRequest
-	6,  // 9: graph.EventService.AnnounceChange:input_type -> graph.EventAnnounceChangeRequest
-	2,  // 10: graph.EventService.Save:output_type -> graph.EventSaveResponse
-	4,  // 11: graph.EventService.Read:output_type -> graph.EventReadResponse
-	8,  // 12: graph.EventService.Rsvp:output_type -> graph.EventRsvpResponse
-	10, // 13: graph.EventService.Cancel:output_type -> graph.EventCancelResponse
-	12, // 14: graph.EventService.Browse:output_type -> graph.EventBrowseResponse
-	12, // 15: graph.EventService.List:output_type -> graph.EventBrowseResponse
-	7,  // 16: graph.EventService.AnnounceChange:output_type -> graph.EventAnnounceChangeResponse
-	10, // [10:17] is the sub-list for method output_type
-	3,  // [3:10] is the sub-list for method input_type
+	6,  // 8: graph.EventService.AnnounceChange:input_type -> graph.EventAnnounceChangeRequest
+	2,  // 9: graph.EventService.Save:output_type -> graph.EventSaveResponse
+	4,  // 10: graph.EventService.Read:output_type -> graph.EventReadResponse
+	8,  // 11: graph.EventService.Rsvp:output_type -> graph.EventRsvpResponse
+	10, // 12: graph.EventService.Cancel:output_type -> graph.EventCancelResponse
+	12, // 13: graph.EventService.Browse:output_type -> graph.EventBrowseResponse
+	7,  // 14: graph.EventService.AnnounceChange:output_type -> graph.EventAnnounceChangeResponse
+	9,  // [9:15] is the sub-list for method output_type
+	3,  // [3:9] is the sub-list for method input_type
 	3,  // [3:3] is the sub-list for extension type_name
 	3,  // [3:3] is the sub-list for extension extendee
 	0,  // [0:3] is the sub-list for field type_name

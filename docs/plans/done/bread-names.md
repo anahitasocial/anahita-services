@@ -86,3 +86,6 @@ the handlers' names changed. Every module built and vetted, and the tests
 of each one touched passed. On the development stack, the saved posts, a
 post's quotes and what cites it, and the events lists answered through the
 new names.
+
+The old names were taken out for v1.0.18, as planned: `old_names.go` gone,
+and the five `List…` methods out of the `.proto` files.

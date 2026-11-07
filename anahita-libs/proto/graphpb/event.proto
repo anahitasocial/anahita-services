@@ -120,8 +120,5 @@ service EventService {
     rpc Rsvp(EventRsvpRequest) returns (EventRsvpResponse);
     rpc Cancel(EventCancelRequest) returns (EventCancelResponse);
     rpc Browse(EventBrowseRequest) returns (EventBrowseResponse);
-    // Browse under the name it had until v1.0.17, served for one release
-    // for a rolling deploy, and removed in the release after.
-    rpc List(EventBrowseRequest) returns (EventBrowseResponse);
     rpc AnnounceChange(EventAnnounceChangeRequest) returns (EventAnnounceChangeResponse);
 }

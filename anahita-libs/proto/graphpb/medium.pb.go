@@ -2793,7 +2793,7 @@ const file_proto_graphpb_medium_proto_rawDesc = "" +
 	"\n" +
 	"upload_ids\x18\x03 \x03(\x03R\tuploadIds\"?\n" +
 	"\x15PhotoFilesSetResponse\x12&\n" +
-	"\x05files\x18\x01 \x03(\v2\x10.graph.PhotoFileR\x05files2\xe3\x0e\n" +
+	"\x05files\x18\x01 \x03(\v2\x10.graph.PhotoFileR\x05files2\xb9\f\n" +
 	"\rMediumService\x12@\n" +
 	"\x05Count\x12\x19.graph.MediumCountRequest\x1a\x1a.graph.MediumCountResponse\"\x00\x12C\n" +
 	"\x06Browse\x12\x1a.graph.MediumBrowseRequest\x1a\x1b.graph.MediumBrowseResponse\"\x00\x12=\n" +
@@ -2812,12 +2812,7 @@ const file_proto_graphpb_medium_proto_rawDesc = "" +
 	"\bSetSaved\x12\x16.graph.SavedSetRequest\x1a\x17.graph.SavedSetResponse\"\x00\x12F\n" +
 	"\vBrowseSaved\x12\x19.graph.SavedBrowseRequest\x1a\x1a.graph.SavedBrowseResponse\"\x00\x12L\n" +
 	"\rBrowseCitedBy\x12\x1b.graph.CitedByBrowseRequest\x1a\x1c.graph.CitedByBrowseResponse\"\x00\x12O\n" +
-	"\x0eBrowseAuthored\x12\x1c.graph.AuthoredBrowseRequest\x1a\x1d.graph.AuthoredBrowseResponse\"\x00\x12G\n" +
-	"\n" +
-	"ListQuotes\x12\x1a.graph.QuotesBrowseRequest\x1a\x1b.graph.QuotesBrowseResponse\"\x00\x12D\n" +
-	"\tListSaved\x12\x19.graph.SavedBrowseRequest\x1a\x1a.graph.SavedBrowseResponse\"\x00\x12J\n" +
-	"\vListCitedBy\x12\x1b.graph.CitedByBrowseRequest\x1a\x1c.graph.CitedByBrowseResponse\"\x00\x12M\n" +
-	"\fListAuthored\x12\x1c.graph.AuthoredBrowseRequest\x1a\x1d.graph.AuthoredBrowseResponse\"\x00\x12O\n" +
+	"\x0eBrowseAuthored\x12\x1c.graph.AuthoredBrowseRequest\x1a\x1d.graph.AuthoredBrowseResponse\"\x00\x12O\n" +
 	"\x0eAddPhotoUpload\x12\x1c.graph.PhotoUploadAddRequest\x1a\x1d.graph.PhotoUploadAddResponse\"\x00\x12U\n" +
 	"\x10ReadPhotoUploads\x12\x1e.graph.PhotoUploadsReadRequest\x1a\x1f.graph.PhotoUploadsReadResponse\"\x00\x12U\n" +
 	"\x10BrowsePhotoFiles\x12\x1e.graph.PhotoFilesBrowseRequest\x1a\x1f.graph.PhotoFilesBrowseResponse\"\x00\x12L\n" +
@@ -2939,42 +2934,34 @@ var file_proto_graphpb_medium_proto_depIdxs = []int32{
 	31, // 47: graph.MediumService.BrowseSaved:input_type -> graph.SavedBrowseRequest
 	27, // 48: graph.MediumService.BrowseCitedBy:input_type -> graph.CitedByBrowseRequest
 	33, // 49: graph.MediumService.BrowseAuthored:input_type -> graph.AuthoredBrowseRequest
-	25, // 50: graph.MediumService.ListQuotes:input_type -> graph.QuotesBrowseRequest
-	31, // 51: graph.MediumService.ListSaved:input_type -> graph.SavedBrowseRequest
-	27, // 52: graph.MediumService.ListCitedBy:input_type -> graph.CitedByBrowseRequest
-	33, // 53: graph.MediumService.ListAuthored:input_type -> graph.AuthoredBrowseRequest
-	39, // 54: graph.MediumService.AddPhotoUpload:input_type -> graph.PhotoUploadAddRequest
-	41, // 55: graph.MediumService.ReadPhotoUploads:input_type -> graph.PhotoUploadsReadRequest
-	43, // 56: graph.MediumService.BrowsePhotoFiles:input_type -> graph.PhotoFilesBrowseRequest
-	45, // 57: graph.MediumService.SetPhotoFiles:input_type -> graph.PhotoFilesSetRequest
-	2,  // 58: graph.MediumService.Count:output_type -> graph.MediumCountResponse
-	4,  // 59: graph.MediumService.Browse:output_type -> graph.MediumBrowseResponse
-	6,  // 60: graph.MediumService.Read:output_type -> graph.MediumReadResponse
-	8,  // 61: graph.MediumService.BatchRead:output_type -> graph.MediumBatchReadResponse
-	10, // 62: graph.MediumService.Edit:output_type -> graph.MediumEditResponse
-	12, // 63: graph.MediumService.Add:output_type -> graph.MediumAddResponse
-	14, // 64: graph.MediumService.AddThread:output_type -> graph.MediumThreadAddResponse
-	16, // 65: graph.MediumService.Delete:output_type -> graph.MediumDeleteResponse
-	18, // 66: graph.MediumService.Ping:output_type -> graph.MediumPingResponse
-	20, // 67: graph.MediumService.Thread:output_type -> graph.MediumThreadResponse
-	22, // 68: graph.MediumService.HideReply:output_type -> graph.ReplyHideResponse
-	24, // 69: graph.MediumService.DetachQuote:output_type -> graph.QuoteDetachResponse
-	36, // 70: graph.MediumService.SetPinned:output_type -> graph.PinSetResponse
-	26, // 71: graph.MediumService.BrowseQuotes:output_type -> graph.QuotesBrowseResponse
-	30, // 72: graph.MediumService.SetSaved:output_type -> graph.SavedSetResponse
-	32, // 73: graph.MediumService.BrowseSaved:output_type -> graph.SavedBrowseResponse
-	28, // 74: graph.MediumService.BrowseCitedBy:output_type -> graph.CitedByBrowseResponse
-	34, // 75: graph.MediumService.BrowseAuthored:output_type -> graph.AuthoredBrowseResponse
-	26, // 76: graph.MediumService.ListQuotes:output_type -> graph.QuotesBrowseResponse
-	32, // 77: graph.MediumService.ListSaved:output_type -> graph.SavedBrowseResponse
-	28, // 78: graph.MediumService.ListCitedBy:output_type -> graph.CitedByBrowseResponse
-	34, // 79: graph.MediumService.ListAuthored:output_type -> graph.AuthoredBrowseResponse
-	40, // 80: graph.MediumService.AddPhotoUpload:output_type -> graph.PhotoUploadAddResponse
-	42, // 81: graph.MediumService.ReadPhotoUploads:output_type -> graph.PhotoUploadsReadResponse
-	44, // 82: graph.MediumService.BrowsePhotoFiles:output_type -> graph.PhotoFilesBrowseResponse
-	46, // 83: graph.MediumService.SetPhotoFiles:output_type -> graph.PhotoFilesSetResponse
-	58, // [58:84] is the sub-list for method output_type
-	32, // [32:58] is the sub-list for method input_type
+	39, // 50: graph.MediumService.AddPhotoUpload:input_type -> graph.PhotoUploadAddRequest
+	41, // 51: graph.MediumService.ReadPhotoUploads:input_type -> graph.PhotoUploadsReadRequest
+	43, // 52: graph.MediumService.BrowsePhotoFiles:input_type -> graph.PhotoFilesBrowseRequest
+	45, // 53: graph.MediumService.SetPhotoFiles:input_type -> graph.PhotoFilesSetRequest
+	2,  // 54: graph.MediumService.Count:output_type -> graph.MediumCountResponse
+	4,  // 55: graph.MediumService.Browse:output_type -> graph.MediumBrowseResponse
+	6,  // 56: graph.MediumService.Read:output_type -> graph.MediumReadResponse
+	8,  // 57: graph.MediumService.BatchRead:output_type -> graph.MediumBatchReadResponse
+	10, // 58: graph.MediumService.Edit:output_type -> graph.MediumEditResponse
+	12, // 59: graph.MediumService.Add:output_type -> graph.MediumAddResponse
+	14, // 60: graph.MediumService.AddThread:output_type -> graph.MediumThreadAddResponse
+	16, // 61: graph.MediumService.Delete:output_type -> graph.MediumDeleteResponse
+	18, // 62: graph.MediumService.Ping:output_type -> graph.MediumPingResponse
+	20, // 63: graph.MediumService.Thread:output_type -> graph.MediumThreadResponse
+	22, // 64: graph.MediumService.HideReply:output_type -> graph.ReplyHideResponse
+	24, // 65: graph.MediumService.DetachQuote:output_type -> graph.QuoteDetachResponse
+	36, // 66: graph.MediumService.SetPinned:output_type -> graph.PinSetResponse
+	26, // 67: graph.MediumService.BrowseQuotes:output_type -> graph.QuotesBrowseResponse
+	30, // 68: graph.MediumService.SetSaved:output_type -> graph.SavedSetResponse
+	32, // 69: graph.MediumService.BrowseSaved:output_type -> graph.SavedBrowseResponse
+	28, // 70: graph.MediumService.BrowseCitedBy:output_type -> graph.CitedByBrowseResponse
+	34, // 71: graph.MediumService.BrowseAuthored:output_type -> graph.AuthoredBrowseResponse
+	40, // 72: graph.MediumService.AddPhotoUpload:output_type -> graph.PhotoUploadAddResponse
+	42, // 73: graph.MediumService.ReadPhotoUploads:output_type -> graph.PhotoUploadsReadResponse
+	44, // 74: graph.MediumService.BrowsePhotoFiles:output_type -> graph.PhotoFilesBrowseResponse
+	46, // 75: graph.MediumService.SetPhotoFiles:output_type -> graph.PhotoFilesSetResponse
+	54, // [54:76] is the sub-list for method output_type
+	32, // [32:54] is the sub-list for method input_type
 	32, // [32:32] is the sub-list for extension type_name
 	32, // [32:32] is the sub-list for extension extendee
 	0,  // [0:32] is the sub-list for field type_name

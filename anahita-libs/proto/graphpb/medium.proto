@@ -320,15 +320,6 @@ service MediumService {
     rpc BrowseCitedBy(CitedByBrowseRequest) returns (CitedByBrowseResponse) {}
     rpc BrowseAuthored(AuthoredBrowseRequest) returns (AuthoredBrowseResponse) {}
 
-    // The same four under the names they had until v1.0.17, served for one
-    // release so that a service still running the release before can call
-    // them during a rolling deploy. Removed in the release after
-    // (docs/plans/done/bread-names.md).
-    rpc ListQuotes(QuotesBrowseRequest) returns (QuotesBrowseResponse) {}
-    rpc ListSaved(SavedBrowseRequest) returns (SavedBrowseResponse) {}
-    rpc ListCitedBy(CitedByBrowseRequest) returns (CitedByBrowseResponse) {}
-    rpc ListAuthored(AuthoredBrowseRequest) returns (AuthoredBrowseResponse) {}
-
     // The images of photo posts. A photo is a medium, and these are its
     // images, so they are kept by the service that keeps the post.
     rpc AddPhotoUpload(PhotoUploadAddRequest) returns (PhotoUploadAddResponse) {}

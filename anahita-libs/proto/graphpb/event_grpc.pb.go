@@ -24,7 +24,6 @@ const (
 	EventService_Rsvp_FullMethodName           = "/graph.EventService/Rsvp"
 	EventService_Cancel_FullMethodName         = "/graph.EventService/Cancel"
 	EventService_Browse_FullMethodName         = "/graph.EventService/Browse"
-	EventService_List_FullMethodName           = "/graph.EventService/List"
 	EventService_AnnounceChange_FullMethodName = "/graph.EventService/AnnounceChange"
 )
 
@@ -37,9 +36,6 @@ type EventServiceClient interface {
 	Rsvp(ctx context.Context, in *EventRsvpRequest, opts ...grpc.CallOption) (*EventRsvpResponse, error)
 	Cancel(ctx context.Context, in *EventCancelRequest, opts ...grpc.CallOption) (*EventCancelResponse, error)
 	Browse(ctx context.Context, in *EventBrowseRequest, opts ...grpc.CallOption) (*EventBrowseResponse, error)
-	// Browse under the name it had until v1.0.17, served for one release
-	// for a rolling deploy, and removed in the release after.
-	List(ctx context.Context, in *EventBrowseRequest, opts ...grpc.CallOption) (*EventBrowseResponse, error)
 	AnnounceChange(ctx context.Context, in *EventAnnounceChangeRequest, opts ...grpc.CallOption) (*EventAnnounceChangeResponse, error)
 }
 
@@ -101,16 +97,6 @@ func (c *eventServiceClient) Browse(ctx context.Context, in *EventBrowseRequest,
 	return out, nil
 }
 
-func (c *eventServiceClient) List(ctx context.Context, in *EventBrowseRequest, opts ...grpc.CallOption) (*EventBrowseResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(EventBrowseResponse)
-	err := c.cc.Invoke(ctx, EventService_List_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *eventServiceClient) AnnounceChange(ctx context.Context, in *EventAnnounceChangeRequest, opts ...grpc.CallOption) (*EventAnnounceChangeResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(EventAnnounceChangeResponse)
@@ -130,9 +116,6 @@ type EventServiceServer interface {
 	Rsvp(context.Context, *EventRsvpRequest) (*EventRsvpResponse, error)
 	Cancel(context.Context, *EventCancelRequest) (*EventCancelResponse, error)
 	Browse(context.Context, *EventBrowseRequest) (*EventBrowseResponse, error)
-	// Browse under the name it had until v1.0.17, served for one release
-	// for a rolling deploy, and removed in the release after.
-	List(context.Context, *EventBrowseRequest) (*EventBrowseResponse, error)
 	AnnounceChange(context.Context, *EventAnnounceChangeRequest) (*EventAnnounceChangeResponse, error)
 	mustEmbedUnimplementedEventServiceServer()
 }
@@ -158,9 +141,6 @@ func (UnimplementedEventServiceServer) Cancel(context.Context, *EventCancelReque
 }
 func (UnimplementedEventServiceServer) Browse(context.Context, *EventBrowseRequest) (*EventBrowseResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Browse not implemented")
-}
-func (UnimplementedEventServiceServer) List(context.Context, *EventBrowseRequest) (*EventBrowseResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
 }
 func (UnimplementedEventServiceServer) AnnounceChange(context.Context, *EventAnnounceChangeRequest) (*EventAnnounceChangeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AnnounceChange not implemented")
@@ -276,24 +256,6 @@ func _EventService_Browse_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _EventService_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(EventBrowseRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(EventServiceServer).List(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: EventService_List_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EventServiceServer).List(ctx, req.(*EventBrowseRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _EventService_AnnounceChange_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(EventAnnounceChangeRequest)
 	if err := dec(in); err != nil {
@@ -338,10 +300,6 @@ var EventService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Browse",
 			Handler:    _EventService_Browse_Handler,
-		},
-		{
-			MethodName: "List",
-			Handler:    _EventService_List_Handler,
 		},
 		{
 			MethodName: "AnnounceChange",
