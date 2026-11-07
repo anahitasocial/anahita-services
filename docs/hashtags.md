@@ -207,10 +207,10 @@ the next post with it makes it again, and the feed finds it.
 
 1. **While typing a hashtag**, in the short box, a reply and a long post,
    hashtags in use that begin with what was typed are offered under the line
-   being written, or above it when there is no room (on a phone, the
+   being written, or above it when there is no room (on a mobile, the
    keyboard takes the bottom of the screen). They float over the page, so
    nothing under them moves.
-   - On a phone: a row of chips; one tap puts one in.
+   - On a mobile: a row of chips; one tap puts one in.
    - On a desktop: a short list with how many posts each is on; the arrow
      keys move through it, Enter or Tab puts one in, Escape puts it away.
 2. **Under the long post editor**, a row of suggested hashtags made from

@@ -79,6 +79,16 @@ and places.
 2. A date with a time ends in `_at`; a date alone in `_on`.
 3. Live sites run on Kubernetes; docker-compose is for development.
 4. In zsh, write `"${var}:latest"`, not `$var:latest` (`:l` is a modifier).
+5. **BREAD** names what is done with a thing, in code and in addresses:
+   **Browse, Read, Edit, Add, Delete** (the user, 2026-11-07). `Add`, not
+   `Create` or `New`; `Edit`, not `Update`; `Browse`, not `List`; `Delete`,
+   not `Remove`. What a person does that is not one of the five keeps its
+   own verb (`Follow`, `Approve`, `Rsvp`). Go's own forms stay: `NewX` for
+   a constructor, and the `GetX` getters protobuf makes. The same in
+   anahita-web.
+6. **Mobile**, not "phone", for the small screen and the device, in code
+   and the docs (the user, 2026-11-07). "Phone" is kept for a telephone
+   number (`SUPPORT_PHONE`) and for names that are not ours (iPhone).
 
 ## Product principles
 
