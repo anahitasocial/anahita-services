@@ -1,6 +1,6 @@
 # Catches every message the cluster sends, and sends none on. Its web page,
 # for reading them:
-#   kubectl -n anahita port-forward deploy/mailpit 8025
+#   kubectl --kubeconfig ~/.kube/<your-site>.yaml -n anahita port-forward deploy/mailpit 8025
 # then http://localhost:8025. Kept in memory: a restart empties it.
 apiVersion: apps/v1
 kind: Deployment

@@ -137,7 +137,7 @@ each in the order of doing it:
 2. DNS: `api.` and `auth.` at the server's address.
 3. Installing k3s, and cert-manager.
 4. Object storage: the provider's, or Garage on the server.
-5. The overlay: what to fill in, then `kubectl apply -k`.
+5. The overlay: what to fill in, then `kubectl --kubeconfig ~/.kube/<your-site>.yaml apply -k`.
 6. Mail, the first administrator, and the web app.
 7. Backups and restoring one.
 8. Upgrading Anahita, k3s and the server.

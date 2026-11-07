@@ -3,7 +3,7 @@
 #
 # Where STORAGE_ACCESS_KEY is empty (AWS, with a role), the role is used.
 # To take one now:
-#   kubectl -n anahita create job --from=cronjob/mysql-backup mysql-backup-now
+#   kubectl --kubeconfig ~/.kube/<your-site>.yaml -n anahita create job --from=cronjob/mysql-backup mysql-backup-now
 apiVersion: batch/v1
 kind: CronJob
 metadata:

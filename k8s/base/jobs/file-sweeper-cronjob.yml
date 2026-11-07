@@ -11,7 +11,7 @@
 # what it would remove, and removes nothing. Read that first.
 #
 # Run it by hand with:
-#   kubectl -n anahita create job --from=cronjob/file-sweeper file-sweep-manual
+#   kubectl --kubeconfig ~/.kube/<your-site>.yaml -n anahita create job --from=cronjob/file-sweeper file-sweep-manual
 apiVersion: batch/v1
 kind: CronJob
 metadata:

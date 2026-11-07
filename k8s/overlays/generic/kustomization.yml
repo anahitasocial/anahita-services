@@ -2,7 +2,7 @@
 #
 # Copy this directory, fill in config.env, secrets.env (from the example),
 # ingress.yml, issuer.yml and oauth_seed_clients.json, then:
-#   kubectl apply -k k8s/overlays/generic
+#   kubectl --kubeconfig ~/.kube/<your-site>.yaml apply -k k8s/overlays/generic
 # docs/deploying.md walks through it.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization

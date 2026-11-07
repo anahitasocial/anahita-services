@@ -67,7 +67,13 @@ k8s/
 ~~~
 
 It is built with [Kustomize](https://kustomize.io/), which is part of
-`kubectl`: `kubectl apply -k <overlay>`. The base is not applied on its own.
+`kubectl`: `kubectl --kubeconfig ~/.kube/<your-site>.yaml apply -k <overlay>`.
+The base is not applied on its own.
+
+Every `kubectl` in these pages names the site's own kubeconfig. A terminal's
+current context may be another cluster, and a command that names none acts
+there. `<your-site>` is the name of that file; left as it is, the command
+fails rather than going anywhere.
 An overlay adds what a site decides: its hostnames, settings and secrets, and
 which backing services run inside the cluster.
 
@@ -120,8 +126,8 @@ these, or signing in fails:
 
    ~~~sh
    kubectl kustomize k8s/overlays/generic | less
-   kubectl apply -k k8s/overlays/generic
-   kubectl -n anahita get pods --watch
+   kubectl --kubeconfig ~/.kube/<your-site>.yaml apply -k k8s/overlays/generic
+   kubectl --kubeconfig ~/.kube/<your-site>.yaml -n anahita get pods --watch
    ~~~
 
 The migration job creates the schema on an empty database. Services that
@@ -132,7 +138,7 @@ and mails a link to set a password. The link is also in its log, which is the
 way to it before mail works:
 
 ~~~sh
-kubectl -n anahita logs deployment/auth-service | grep -i password
+kubectl --kubeconfig ~/.kube/<your-site>.yaml -n anahita logs deployment/auth-service | grep -i password
 ~~~
 
 If you keep secrets in a tool such as Sealed Secrets or External Secrets,
@@ -153,7 +159,7 @@ address unless told otherwise. Apply `k8s/k3s/traefik-config.yml` to the
 cluster once, before the overlay:
 
 ~~~sh
-kubectl apply -f k8s/k3s/traefik-config.yml
+kubectl --kubeconfig ~/.kube/<your-site>.yaml apply -f k8s/k3s/traefik-config.yml
 ~~~
 
 It sets Traefik's Service to `externalTrafficPolicy: Local`, which keeps the
@@ -174,7 +180,7 @@ sets it up, and there is nothing to configure:
 - A pod waits to start until its certificate exists, which takes a few
   seconds on the first deployment.
 
-To see them: `kubectl -n anahita get certificates`.
+To see them: `kubectl --kubeconfig ~/.kube/<your-site>.yaml -n anahita get certificates`.
 
 The certificates name the services as `base/config.env` dials them, such as
 `graph-grpc-service`. If you change those addresses, change `dnsNames` in
@@ -346,7 +352,7 @@ keeps the newest 14; add it to `components:` in any overlay that runs the
 `mysql` component. To take one now:
 
 ~~~sh
-kubectl -n anahita create job --from=cronjob/mysql-backup mysql-backup-now
+kubectl --kubeconfig ~/.kube/<your-site>.yaml -n anahita create job --from=cronjob/mysql-backup mysql-backup-now
 ~~~
 
 A dump is restored into an empty database with
@@ -433,8 +439,8 @@ workflow builds each architecture natively, on its own runner.
 ## Upgrading
 
 ~~~sh
-kubectl -n anahita delete job migration-job --ignore-not-found
-kubectl apply -k k8s/overlays/generic
+kubectl --kubeconfig ~/.kube/<your-site>.yaml -n anahita delete job migration-job --ignore-not-found
+kubectl --kubeconfig ~/.kube/<your-site>.yaml apply -k k8s/overlays/generic
 ~~~
 
 A finished Job cannot be changed, which is why the old one is deleted first.
@@ -482,8 +488,8 @@ To stop every email at once, for a mail server misbehaving or anything
 being sent that should not be, take mail-grpc-service down:
 
 ~~~sh
-kubectl -n anahita scale deployment mail-grpc-service --replicas=0   # off
-kubectl -n anahita scale deployment mail-grpc-service --replicas=1   # on again
+kubectl --kubeconfig ~/.kube/<your-site>.yaml -n anahita scale deployment mail-grpc-service --replicas=0   # off
+kubectl --kubeconfig ~/.kube/<your-site>.yaml -n anahita scale deployment mail-grpc-service --replicas=1   # on again
 ~~~
 
 While it is off, auth-service is refused at once and sends nothing, and

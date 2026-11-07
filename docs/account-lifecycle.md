@@ -268,7 +268,7 @@ lock, and removes what no row names any more.
    (`Browse`), so the sweeper holds no keys to the bucket.
 4. **A dry run until `FILE_SWEEP=on`.** Until then it logs, by folder, how
    many it would remove, and removes nothing. Read that log first:
-   `kubectl -n anahita logs job/<the last file-sweeper job>`.
+   `kubectl --kubeconfig ~/.kube/<your-site>.yaml -n anahita logs job/<the last file-sweeper job>`.
 5. **At most 5,000 a night** (`FilesPerNight`); the rest go on the nights
    after. The log has counts by folder, never names.
 

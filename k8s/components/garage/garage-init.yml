@@ -7,7 +7,7 @@
 # 4. Lets the web app's address PUT to it (CORS), where videos are posted.
 #
 # A Job cannot be changed once created; delete it before applying again:
-#   kubectl -n anahita delete job garage-init --ignore-not-found
+#   kubectl --kubeconfig ~/.kube/<your-site>.yaml -n anahita delete job garage-init --ignore-not-found
 apiVersion: batch/v1
 kind: Job
 metadata:

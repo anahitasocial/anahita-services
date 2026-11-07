@@ -8,7 +8,7 @@
 # nginx looks each service up once, when it starts. Service addresses do not
 # change while a Service exists, but if one is deleted and recreated, restart
 # this Deployment:
-#   kubectl -n anahita rollout restart deployment/gateway
+#   kubectl --kubeconfig ~/.kube/<your-site>.yaml -n anahita rollout restart deployment/gateway
 apiVersion: apps/v1
 kind: Deployment
 metadata:
