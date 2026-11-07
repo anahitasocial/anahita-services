@@ -6,8 +6,8 @@ click on it. We also need char counters in our composer and only make the
 + Add to thread enabled once we reach a char limit (mastodon or bsky
 whichever comes first). Also, do we have the option of just copy pasting a
 long text and automatically breaking it into threads instead of the author
-having to break their text into smaller cuts?" Not built. Planned for
-later the same day, at the user's word, after row 125.
+having to break their text into smaller cuts?" Planned for later the same
+day, at the user's word, after row 125, and done that day.
 
 ## Contents
 
@@ -33,7 +33,7 @@ With the user on 2026-11-07:
    when it goes to neither, a note's own 8,000. "Why enforce that limit? Let
    them enjoy the extra room." A post goes to the fediverse or Bluesky only
    when it is a public note on the writer's own profile and they have turned
-   that network on ([Federation](../federation.md)).
+   that network on ([Federation](../../federation.md)).
 4. **"Add to thread" is offered once a note is full,** at that limit.
 5. **Long words are split when the writer asks,** with one tap, never on
    their own: at paragraphs, then sentences, then words. The notes can be
@@ -44,7 +44,7 @@ With the user on 2026-11-07:
 
 1. **A thread is a chain of replies:** the first note, then each of the
    writer's notes answering the one before, written in one go (row 101,
-   [thread-composer.md](done/thread-composer.md)) or one at a time later.
+   [thread-composer.md](thread-composer.md)) or one at a time later.
 2. **In a list, only the first note shows,** with nothing to say more
    follows.
 3. **On its page, the chain is drawn as any replies are,** each a level
@@ -143,3 +143,18 @@ With the user on 2026-11-07:
 3. **The composer:** the count, "Add to thread" at the limit, and the split,
    in the composer and the reply form, tested in headless Chrome at both
    sizes. One session.
+
+## Done
+
+2026-11-07, in three parts, each tried in headless Chrome at both sizes:
+
+1. **A thread in a list:** `thread` and `thread_next` in the home feed, a
+   profile's and a custom feed, counted when the page is read
+   (`graph-grpc-service/data/repositories/nodes_threads.go`, `markThreads`);
+   the card's next note and "Show the thread".
+2. **On its page:** the writer's chain first, flat, then everybody else's
+   replies, a reply to a note of the chain saying which. The chain is the
+   writer's earliest reply to each note, on the card and on the page alike.
+3. **The composer and the reply form:** the count against where the post
+   goes, "Add to thread" once a note is full, and "Split into a thread",
+   with Undo.
