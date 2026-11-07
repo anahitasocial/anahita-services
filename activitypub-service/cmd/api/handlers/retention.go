@@ -21,7 +21,7 @@ func (h *Handlers) Tidy(posts, people []int64) (int, int) {
 	var removedPosts, removedPeople int
 	keeper := h.keeper()
 	for _, id := range posts {
-		was, err := keeper.RemovePost(id)
+		was, err := keeper.DeletePost(id)
 		if err != nil {
 			log.Printf("post %d, due to go, was not removed: %v", id, err)
 			continue

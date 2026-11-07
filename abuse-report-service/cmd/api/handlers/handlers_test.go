@@ -227,7 +227,7 @@ func (f *fakeCases) Reopen(id int64) (bool, error) {
 	return true, nil
 }
 
-func (f *fakeCases) RemoveReportsBy(reporterID int64) (int64, error) {
+func (f *fakeCases) DeleteReportsBy(reporterID int64) (int64, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 

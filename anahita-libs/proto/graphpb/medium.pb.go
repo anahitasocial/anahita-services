@@ -1415,7 +1415,7 @@ func (x *QuoteDetachResponse) GetSuccess() bool {
 }
 
 // The notes that quote a post, as the viewer may see them.
-type QuotesListRequest struct {
+type QuotesBrowseRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	QuotedId      int64                  `protobuf:"varint,1,opt,name=quoted_id,json=quotedId,proto3" json:"quoted_id,omitempty"`
 	Limit         uint64                 `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
@@ -1424,20 +1424,20 @@ type QuotesListRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *QuotesListRequest) Reset() {
-	*x = QuotesListRequest{}
+func (x *QuotesBrowseRequest) Reset() {
+	*x = QuotesBrowseRequest{}
 	mi := &file_proto_graphpb_medium_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *QuotesListRequest) String() string {
+func (x *QuotesBrowseRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*QuotesListRequest) ProtoMessage() {}
+func (*QuotesBrowseRequest) ProtoMessage() {}
 
-func (x *QuotesListRequest) ProtoReflect() protoreflect.Message {
+func (x *QuotesBrowseRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_graphpb_medium_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1449,53 +1449,53 @@ func (x *QuotesListRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use QuotesListRequest.ProtoReflect.Descriptor instead.
-func (*QuotesListRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use QuotesBrowseRequest.ProtoReflect.Descriptor instead.
+func (*QuotesBrowseRequest) Descriptor() ([]byte, []int) {
 	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{25}
 }
 
-func (x *QuotesListRequest) GetQuotedId() int64 {
+func (x *QuotesBrowseRequest) GetQuotedId() int64 {
 	if x != nil {
 		return x.QuotedId
 	}
 	return 0
 }
 
-func (x *QuotesListRequest) GetLimit() uint64 {
+func (x *QuotesBrowseRequest) GetLimit() uint64 {
 	if x != nil {
 		return x.Limit
 	}
 	return 0
 }
 
-func (x *QuotesListRequest) GetViewer() *Viewer {
+func (x *QuotesBrowseRequest) GetViewer() *Viewer {
 	if x != nil {
 		return x.Viewer
 	}
 	return nil
 }
 
-type QuotesListResponse struct {
+type QuotesBrowseResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Quotes        []*Node                `protobuf:"bytes,1,rep,name=quotes,proto3" json:"quotes,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *QuotesListResponse) Reset() {
-	*x = QuotesListResponse{}
+func (x *QuotesBrowseResponse) Reset() {
+	*x = QuotesBrowseResponse{}
 	mi := &file_proto_graphpb_medium_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *QuotesListResponse) String() string {
+func (x *QuotesBrowseResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*QuotesListResponse) ProtoMessage() {}
+func (*QuotesBrowseResponse) ProtoMessage() {}
 
-func (x *QuotesListResponse) ProtoReflect() protoreflect.Message {
+func (x *QuotesBrowseResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_graphpb_medium_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1507,12 +1507,12 @@ func (x *QuotesListResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use QuotesListResponse.ProtoReflect.Descriptor instead.
-func (*QuotesListResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use QuotesBrowseResponse.ProtoReflect.Descriptor instead.
+func (*QuotesBrowseResponse) Descriptor() ([]byte, []int) {
 	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{26}
 }
 
-func (x *QuotesListResponse) GetQuotes() []*Node {
+func (x *QuotesBrowseResponse) GetQuotes() []*Node {
 	if x != nil {
 		return x.Quotes
 	}
@@ -1521,7 +1521,7 @@ func (x *QuotesListResponse) GetQuotes() []*Node {
 
 // The posts that cite a post, newest first, as the viewer may see them: the
 // articles and topics that show it within their text.
-type CitedByListRequest struct {
+type CitedByBrowseRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	CitedId       int64                  `protobuf:"varint,1,opt,name=cited_id,json=citedId,proto3" json:"cited_id,omitempty"`
 	Limit         uint64                 `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
@@ -1531,20 +1531,20 @@ type CitedByListRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CitedByListRequest) Reset() {
-	*x = CitedByListRequest{}
+func (x *CitedByBrowseRequest) Reset() {
+	*x = CitedByBrowseRequest{}
 	mi := &file_proto_graphpb_medium_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CitedByListRequest) String() string {
+func (x *CitedByBrowseRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CitedByListRequest) ProtoMessage() {}
+func (*CitedByBrowseRequest) ProtoMessage() {}
 
-func (x *CitedByListRequest) ProtoReflect() protoreflect.Message {
+func (x *CitedByBrowseRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_graphpb_medium_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1556,40 +1556,40 @@ func (x *CitedByListRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CitedByListRequest.ProtoReflect.Descriptor instead.
-func (*CitedByListRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use CitedByBrowseRequest.ProtoReflect.Descriptor instead.
+func (*CitedByBrowseRequest) Descriptor() ([]byte, []int) {
 	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{27}
 }
 
-func (x *CitedByListRequest) GetCitedId() int64 {
+func (x *CitedByBrowseRequest) GetCitedId() int64 {
 	if x != nil {
 		return x.CitedId
 	}
 	return 0
 }
 
-func (x *CitedByListRequest) GetLimit() uint64 {
+func (x *CitedByBrowseRequest) GetLimit() uint64 {
 	if x != nil {
 		return x.Limit
 	}
 	return 0
 }
 
-func (x *CitedByListRequest) GetOffset() uint64 {
+func (x *CitedByBrowseRequest) GetOffset() uint64 {
 	if x != nil {
 		return x.Offset
 	}
 	return 0
 }
 
-func (x *CitedByListRequest) GetViewer() *Viewer {
+func (x *CitedByBrowseRequest) GetViewer() *Viewer {
 	if x != nil {
 		return x.Viewer
 	}
 	return nil
 }
 
-type CitedByListResponse struct {
+type CitedByBrowseResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Nodes         []*Node                `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"`
 	Total         uint64                 `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
@@ -1597,20 +1597,20 @@ type CitedByListResponse struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CitedByListResponse) Reset() {
-	*x = CitedByListResponse{}
+func (x *CitedByBrowseResponse) Reset() {
+	*x = CitedByBrowseResponse{}
 	mi := &file_proto_graphpb_medium_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CitedByListResponse) String() string {
+func (x *CitedByBrowseResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CitedByListResponse) ProtoMessage() {}
+func (*CitedByBrowseResponse) ProtoMessage() {}
 
-func (x *CitedByListResponse) ProtoReflect() protoreflect.Message {
+func (x *CitedByBrowseResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_graphpb_medium_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1622,19 +1622,19 @@ func (x *CitedByListResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CitedByListResponse.ProtoReflect.Descriptor instead.
-func (*CitedByListResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use CitedByBrowseResponse.ProtoReflect.Descriptor instead.
+func (*CitedByBrowseResponse) Descriptor() ([]byte, []int) {
 	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{28}
 }
 
-func (x *CitedByListResponse) GetNodes() []*Node {
+func (x *CitedByBrowseResponse) GetNodes() []*Node {
 	if x != nil {
 		return x.Nodes
 	}
 	return nil
 }
 
-func (x *CitedByListResponse) GetTotal() uint64 {
+func (x *CitedByBrowseResponse) GetTotal() uint64 {
 	if x != nil {
 		return x.Total
 	}
@@ -1747,7 +1747,7 @@ func (x *SavedSetResponse) GetSuccess() bool {
 }
 
 // What the viewer saved, most recently saved first.
-type SavedListRequest struct {
+type SavedBrowseRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Limit         uint64                 `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
 	Offset        uint64                 `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
@@ -1756,20 +1756,20 @@ type SavedListRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *SavedListRequest) Reset() {
-	*x = SavedListRequest{}
+func (x *SavedBrowseRequest) Reset() {
+	*x = SavedBrowseRequest{}
 	mi := &file_proto_graphpb_medium_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *SavedListRequest) String() string {
+func (x *SavedBrowseRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SavedListRequest) ProtoMessage() {}
+func (*SavedBrowseRequest) ProtoMessage() {}
 
-func (x *SavedListRequest) ProtoReflect() protoreflect.Message {
+func (x *SavedBrowseRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_graphpb_medium_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1781,33 +1781,33 @@ func (x *SavedListRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use SavedListRequest.ProtoReflect.Descriptor instead.
-func (*SavedListRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use SavedBrowseRequest.ProtoReflect.Descriptor instead.
+func (*SavedBrowseRequest) Descriptor() ([]byte, []int) {
 	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{31}
 }
 
-func (x *SavedListRequest) GetLimit() uint64 {
+func (x *SavedBrowseRequest) GetLimit() uint64 {
 	if x != nil {
 		return x.Limit
 	}
 	return 0
 }
 
-func (x *SavedListRequest) GetOffset() uint64 {
+func (x *SavedBrowseRequest) GetOffset() uint64 {
 	if x != nil {
 		return x.Offset
 	}
 	return 0
 }
 
-func (x *SavedListRequest) GetViewer() *Viewer {
+func (x *SavedBrowseRequest) GetViewer() *Viewer {
 	if x != nil {
 		return x.Viewer
 	}
 	return nil
 }
 
-type SavedListResponse struct {
+type SavedBrowseResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Nodes         []*Node                `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"`
 	Total         uint64                 `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
@@ -1815,20 +1815,20 @@ type SavedListResponse struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *SavedListResponse) Reset() {
-	*x = SavedListResponse{}
+func (x *SavedBrowseResponse) Reset() {
+	*x = SavedBrowseResponse{}
 	mi := &file_proto_graphpb_medium_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *SavedListResponse) String() string {
+func (x *SavedBrowseResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SavedListResponse) ProtoMessage() {}
+func (*SavedBrowseResponse) ProtoMessage() {}
 
-func (x *SavedListResponse) ProtoReflect() protoreflect.Message {
+func (x *SavedBrowseResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_graphpb_medium_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1840,19 +1840,19 @@ func (x *SavedListResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use SavedListResponse.ProtoReflect.Descriptor instead.
-func (*SavedListResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use SavedBrowseResponse.ProtoReflect.Descriptor instead.
+func (*SavedBrowseResponse) Descriptor() ([]byte, []int) {
 	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{32}
 }
 
-func (x *SavedListResponse) GetNodes() []*Node {
+func (x *SavedBrowseResponse) GetNodes() []*Node {
 	if x != nil {
 		return x.Nodes
 	}
 	return nil
 }
 
-func (x *SavedListResponse) GetTotal() uint64 {
+func (x *SavedBrowseResponse) GetTotal() uint64 {
 	if x != nil {
 		return x.Total
 	}
@@ -1863,7 +1863,7 @@ func (x *SavedListResponse) GetTotal() uint64 {
 // group, under somebody else's post. For that person's own copy of their
 // data. Read in pages by id, lowest first: `after_id` is the last one of the
 // page before.
-type AuthoredListRequest struct {
+type AuthoredBrowseRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	PersonId      int64                  `protobuf:"varint,1,opt,name=person_id,json=personId,proto3" json:"person_id,omitempty"`
 	AfterId       int64                  `protobuf:"varint,2,opt,name=after_id,json=afterId,proto3" json:"after_id,omitempty"`
@@ -1872,20 +1872,20 @@ type AuthoredListRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *AuthoredListRequest) Reset() {
-	*x = AuthoredListRequest{}
+func (x *AuthoredBrowseRequest) Reset() {
+	*x = AuthoredBrowseRequest{}
 	mi := &file_proto_graphpb_medium_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AuthoredListRequest) String() string {
+func (x *AuthoredBrowseRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AuthoredListRequest) ProtoMessage() {}
+func (*AuthoredBrowseRequest) ProtoMessage() {}
 
-func (x *AuthoredListRequest) ProtoReflect() protoreflect.Message {
+func (x *AuthoredBrowseRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_graphpb_medium_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1897,53 +1897,53 @@ func (x *AuthoredListRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AuthoredListRequest.ProtoReflect.Descriptor instead.
-func (*AuthoredListRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use AuthoredBrowseRequest.ProtoReflect.Descriptor instead.
+func (*AuthoredBrowseRequest) Descriptor() ([]byte, []int) {
 	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{33}
 }
 
-func (x *AuthoredListRequest) GetPersonId() int64 {
+func (x *AuthoredBrowseRequest) GetPersonId() int64 {
 	if x != nil {
 		return x.PersonId
 	}
 	return 0
 }
 
-func (x *AuthoredListRequest) GetAfterId() int64 {
+func (x *AuthoredBrowseRequest) GetAfterId() int64 {
 	if x != nil {
 		return x.AfterId
 	}
 	return 0
 }
 
-func (x *AuthoredListRequest) GetLimit() uint64 {
+func (x *AuthoredBrowseRequest) GetLimit() uint64 {
 	if x != nil {
 		return x.Limit
 	}
 	return 0
 }
 
-type AuthoredListResponse struct {
+type AuthoredBrowseResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Nodes         []*Node                `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *AuthoredListResponse) Reset() {
-	*x = AuthoredListResponse{}
+func (x *AuthoredBrowseResponse) Reset() {
+	*x = AuthoredBrowseResponse{}
 	mi := &file_proto_graphpb_medium_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AuthoredListResponse) String() string {
+func (x *AuthoredBrowseResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AuthoredListResponse) ProtoMessage() {}
+func (*AuthoredBrowseResponse) ProtoMessage() {}
 
-func (x *AuthoredListResponse) ProtoReflect() protoreflect.Message {
+func (x *AuthoredBrowseResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_graphpb_medium_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1955,12 +1955,12 @@ func (x *AuthoredListResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AuthoredListResponse.ProtoReflect.Descriptor instead.
-func (*AuthoredListResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use AuthoredBrowseResponse.ProtoReflect.Descriptor instead.
+func (*AuthoredBrowseResponse) Descriptor() ([]byte, []int) {
 	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{34}
 }
 
-func (x *AuthoredListResponse) GetNodes() []*Node {
+func (x *AuthoredBrowseResponse) GetNodes() []*Node {
 	if x != nil {
 		return x.Nodes
 	}
@@ -2718,19 +2718,19 @@ const file_proto_graphpb_medium_proto_rawDesc = "" +
 	"\anote_id\x18\x01 \x01(\x03R\x06noteId\x12\x1b\n" +
 	"\tviewer_id\x18\x02 \x01(\x03R\bviewerId\"/\n" +
 	"\x13QuoteDetachResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\"m\n" +
-	"\x11QuotesListRequest\x12\x1b\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"o\n" +
+	"\x13QuotesBrowseRequest\x12\x1b\n" +
 	"\tquoted_id\x18\x01 \x01(\x03R\bquotedId\x12\x14\n" +
 	"\x05limit\x18\x02 \x01(\x04R\x05limit\x12%\n" +
-	"\x06viewer\x18\x03 \x01(\v2\r.graph.ViewerR\x06viewer\"9\n" +
-	"\x12QuotesListResponse\x12#\n" +
-	"\x06quotes\x18\x01 \x03(\v2\v.graph.NodeR\x06quotes\"\x84\x01\n" +
-	"\x12CitedByListRequest\x12\x19\n" +
+	"\x06viewer\x18\x03 \x01(\v2\r.graph.ViewerR\x06viewer\";\n" +
+	"\x14QuotesBrowseResponse\x12#\n" +
+	"\x06quotes\x18\x01 \x03(\v2\v.graph.NodeR\x06quotes\"\x86\x01\n" +
+	"\x14CitedByBrowseRequest\x12\x19\n" +
 	"\bcited_id\x18\x01 \x01(\x03R\acitedId\x12\x14\n" +
 	"\x05limit\x18\x02 \x01(\x04R\x05limit\x12\x16\n" +
 	"\x06offset\x18\x03 \x01(\x04R\x06offset\x12%\n" +
-	"\x06viewer\x18\x04 \x01(\v2\r.graph.ViewerR\x06viewer\"N\n" +
-	"\x13CitedByListResponse\x12!\n" +
+	"\x06viewer\x18\x04 \x01(\v2\r.graph.ViewerR\x06viewer\"P\n" +
+	"\x15CitedByBrowseResponse\x12!\n" +
 	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x04R\x05total\"]\n" +
 	"\x0fSavedSetRequest\x12\x17\n" +
@@ -2738,19 +2738,19 @@ const file_proto_graphpb_medium_proto_rawDesc = "" +
 	"\x05saved\x18\x02 \x01(\bR\x05saved\x12\x1b\n" +
 	"\tviewer_id\x18\x03 \x01(\x03R\bviewerId\",\n" +
 	"\x10SavedSetResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\"g\n" +
-	"\x10SavedListRequest\x12\x14\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"i\n" +
+	"\x12SavedBrowseRequest\x12\x14\n" +
 	"\x05limit\x18\x01 \x01(\x04R\x05limit\x12\x16\n" +
 	"\x06offset\x18\x02 \x01(\x04R\x06offset\x12%\n" +
-	"\x06viewer\x18\x03 \x01(\v2\r.graph.ViewerR\x06viewer\"L\n" +
-	"\x11SavedListResponse\x12!\n" +
+	"\x06viewer\x18\x03 \x01(\v2\r.graph.ViewerR\x06viewer\"N\n" +
+	"\x13SavedBrowseResponse\x12!\n" +
 	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\x04R\x05total\"c\n" +
-	"\x13AuthoredListRequest\x12\x1b\n" +
+	"\x05total\x18\x02 \x01(\x04R\x05total\"e\n" +
+	"\x15AuthoredBrowseRequest\x12\x1b\n" +
 	"\tperson_id\x18\x01 \x01(\x03R\bpersonId\x12\x19\n" +
 	"\bafter_id\x18\x02 \x01(\x03R\aafterId\x12\x14\n" +
-	"\x05limit\x18\x03 \x01(\x04R\x05limit\"9\n" +
-	"\x14AuthoredListResponse\x12!\n" +
+	"\x05limit\x18\x03 \x01(\x04R\x05limit\";\n" +
+	"\x16AuthoredBrowseResponse\x12!\n" +
 	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes\"]\n" +
 	"\rPinSetRequest\x12\x17\n" +
 	"\anode_id\x18\x01 \x01(\x03R\x06nodeId\x12\x16\n" +
@@ -2793,7 +2793,7 @@ const file_proto_graphpb_medium_proto_rawDesc = "" +
 	"\n" +
 	"upload_ids\x18\x03 \x03(\x03R\tuploadIds\"?\n" +
 	"\x15PhotoFilesSetResponse\x12&\n" +
-	"\x05files\x18\x01 \x03(\v2\x10.graph.PhotoFileR\x05files2\xa1\f\n" +
+	"\x05files\x18\x01 \x03(\v2\x10.graph.PhotoFileR\x05files2\xe3\x0e\n" +
 	"\rMediumService\x12@\n" +
 	"\x05Count\x12\x19.graph.MediumCountRequest\x1a\x1a.graph.MediumCountResponse\"\x00\x12C\n" +
 	"\x06Browse\x12\x1a.graph.MediumBrowseRequest\x1a\x1b.graph.MediumBrowseResponse\"\x00\x12=\n" +
@@ -2807,13 +2807,17 @@ const file_proto_graphpb_medium_proto_rawDesc = "" +
 	"\x06Thread\x12\x1a.graph.MediumThreadRequest\x1a\x1b.graph.MediumThreadResponse\"\x00\x12@\n" +
 	"\tHideReply\x12\x17.graph.ReplyHideRequest\x1a\x18.graph.ReplyHideResponse\"\x00\x12F\n" +
 	"\vDetachQuote\x12\x19.graph.QuoteDetachRequest\x1a\x1a.graph.QuoteDetachResponse\"\x00\x12:\n" +
-	"\tSetPinned\x12\x14.graph.PinSetRequest\x1a\x15.graph.PinSetResponse\"\x00\x12C\n" +
+	"\tSetPinned\x12\x14.graph.PinSetRequest\x1a\x15.graph.PinSetResponse\"\x00\x12I\n" +
+	"\fBrowseQuotes\x12\x1a.graph.QuotesBrowseRequest\x1a\x1b.graph.QuotesBrowseResponse\"\x00\x12=\n" +
+	"\bSetSaved\x12\x16.graph.SavedSetRequest\x1a\x17.graph.SavedSetResponse\"\x00\x12F\n" +
+	"\vBrowseSaved\x12\x19.graph.SavedBrowseRequest\x1a\x1a.graph.SavedBrowseResponse\"\x00\x12L\n" +
+	"\rBrowseCitedBy\x12\x1b.graph.CitedByBrowseRequest\x1a\x1c.graph.CitedByBrowseResponse\"\x00\x12O\n" +
+	"\x0eBrowseAuthored\x12\x1c.graph.AuthoredBrowseRequest\x1a\x1d.graph.AuthoredBrowseResponse\"\x00\x12G\n" +
 	"\n" +
-	"ListQuotes\x12\x18.graph.QuotesListRequest\x1a\x19.graph.QuotesListResponse\"\x00\x12=\n" +
-	"\bSetSaved\x12\x16.graph.SavedSetRequest\x1a\x17.graph.SavedSetResponse\"\x00\x12@\n" +
-	"\tListSaved\x12\x17.graph.SavedListRequest\x1a\x18.graph.SavedListResponse\"\x00\x12F\n" +
-	"\vListCitedBy\x12\x19.graph.CitedByListRequest\x1a\x1a.graph.CitedByListResponse\"\x00\x12I\n" +
-	"\fListAuthored\x12\x1a.graph.AuthoredListRequest\x1a\x1b.graph.AuthoredListResponse\"\x00\x12O\n" +
+	"ListQuotes\x12\x1a.graph.QuotesBrowseRequest\x1a\x1b.graph.QuotesBrowseResponse\"\x00\x12D\n" +
+	"\tListSaved\x12\x19.graph.SavedBrowseRequest\x1a\x1a.graph.SavedBrowseResponse\"\x00\x12J\n" +
+	"\vListCitedBy\x12\x1b.graph.CitedByBrowseRequest\x1a\x1c.graph.CitedByBrowseResponse\"\x00\x12M\n" +
+	"\fListAuthored\x12\x1c.graph.AuthoredBrowseRequest\x1a\x1d.graph.AuthoredBrowseResponse\"\x00\x12O\n" +
 	"\x0eAddPhotoUpload\x12\x1c.graph.PhotoUploadAddRequest\x1a\x1d.graph.PhotoUploadAddResponse\"\x00\x12U\n" +
 	"\x10ReadPhotoUploads\x12\x1e.graph.PhotoUploadsReadRequest\x1a\x1f.graph.PhotoUploadsReadResponse\"\x00\x12U\n" +
 	"\x10BrowsePhotoFiles\x12\x1e.graph.PhotoFilesBrowseRequest\x1a\x1f.graph.PhotoFilesBrowseResponse\"\x00\x12L\n" +
@@ -2859,16 +2863,16 @@ var file_proto_graphpb_medium_proto_goTypes = []any{
 	(*ReplyHideResponse)(nil),        // 22: graph.ReplyHideResponse
 	(*QuoteDetachRequest)(nil),       // 23: graph.QuoteDetachRequest
 	(*QuoteDetachResponse)(nil),      // 24: graph.QuoteDetachResponse
-	(*QuotesListRequest)(nil),        // 25: graph.QuotesListRequest
-	(*QuotesListResponse)(nil),       // 26: graph.QuotesListResponse
-	(*CitedByListRequest)(nil),       // 27: graph.CitedByListRequest
-	(*CitedByListResponse)(nil),      // 28: graph.CitedByListResponse
+	(*QuotesBrowseRequest)(nil),      // 25: graph.QuotesBrowseRequest
+	(*QuotesBrowseResponse)(nil),     // 26: graph.QuotesBrowseResponse
+	(*CitedByBrowseRequest)(nil),     // 27: graph.CitedByBrowseRequest
+	(*CitedByBrowseResponse)(nil),    // 28: graph.CitedByBrowseResponse
 	(*SavedSetRequest)(nil),          // 29: graph.SavedSetRequest
 	(*SavedSetResponse)(nil),         // 30: graph.SavedSetResponse
-	(*SavedListRequest)(nil),         // 31: graph.SavedListRequest
-	(*SavedListResponse)(nil),        // 32: graph.SavedListResponse
-	(*AuthoredListRequest)(nil),      // 33: graph.AuthoredListRequest
-	(*AuthoredListResponse)(nil),     // 34: graph.AuthoredListResponse
+	(*SavedBrowseRequest)(nil),       // 31: graph.SavedBrowseRequest
+	(*SavedBrowseResponse)(nil),      // 32: graph.SavedBrowseResponse
+	(*AuthoredBrowseRequest)(nil),    // 33: graph.AuthoredBrowseRequest
+	(*AuthoredBrowseResponse)(nil),   // 34: graph.AuthoredBrowseResponse
 	(*PinSetRequest)(nil),            // 35: graph.PinSetRequest
 	(*PinSetResponse)(nil),           // 36: graph.PinSetResponse
 	(*PhotoFile)(nil),                // 37: graph.PhotoFile
@@ -2905,13 +2909,13 @@ var file_proto_graphpb_medium_proto_depIdxs = []int32{
 	48, // 17: graph.MediumDeleteRequest.viewer:type_name -> graph.Viewer
 	48, // 18: graph.MediumThreadRequest.viewer:type_name -> graph.Viewer
 	47, // 19: graph.MediumThreadResponse.replies:type_name -> graph.Node
-	48, // 20: graph.QuotesListRequest.viewer:type_name -> graph.Viewer
-	47, // 21: graph.QuotesListResponse.quotes:type_name -> graph.Node
-	48, // 22: graph.CitedByListRequest.viewer:type_name -> graph.Viewer
-	47, // 23: graph.CitedByListResponse.nodes:type_name -> graph.Node
-	48, // 24: graph.SavedListRequest.viewer:type_name -> graph.Viewer
-	47, // 25: graph.SavedListResponse.nodes:type_name -> graph.Node
-	47, // 26: graph.AuthoredListResponse.nodes:type_name -> graph.Node
+	48, // 20: graph.QuotesBrowseRequest.viewer:type_name -> graph.Viewer
+	47, // 21: graph.QuotesBrowseResponse.quotes:type_name -> graph.Node
+	48, // 22: graph.CitedByBrowseRequest.viewer:type_name -> graph.Viewer
+	47, // 23: graph.CitedByBrowseResponse.nodes:type_name -> graph.Node
+	48, // 24: graph.SavedBrowseRequest.viewer:type_name -> graph.Viewer
+	47, // 25: graph.SavedBrowseResponse.nodes:type_name -> graph.Node
+	47, // 26: graph.AuthoredBrowseResponse.nodes:type_name -> graph.Node
 	38, // 27: graph.PhotoUploadAddRequest.upload:type_name -> graph.PhotoUpload
 	38, // 28: graph.PhotoUploadsReadResponse.uploads:type_name -> graph.PhotoUpload
 	37, // 29: graph.PhotoFilesBrowseResponse.files:type_name -> graph.PhotoFile
@@ -2930,39 +2934,47 @@ var file_proto_graphpb_medium_proto_depIdxs = []int32{
 	21, // 42: graph.MediumService.HideReply:input_type -> graph.ReplyHideRequest
 	23, // 43: graph.MediumService.DetachQuote:input_type -> graph.QuoteDetachRequest
 	35, // 44: graph.MediumService.SetPinned:input_type -> graph.PinSetRequest
-	25, // 45: graph.MediumService.ListQuotes:input_type -> graph.QuotesListRequest
+	25, // 45: graph.MediumService.BrowseQuotes:input_type -> graph.QuotesBrowseRequest
 	29, // 46: graph.MediumService.SetSaved:input_type -> graph.SavedSetRequest
-	31, // 47: graph.MediumService.ListSaved:input_type -> graph.SavedListRequest
-	27, // 48: graph.MediumService.ListCitedBy:input_type -> graph.CitedByListRequest
-	33, // 49: graph.MediumService.ListAuthored:input_type -> graph.AuthoredListRequest
-	39, // 50: graph.MediumService.AddPhotoUpload:input_type -> graph.PhotoUploadAddRequest
-	41, // 51: graph.MediumService.ReadPhotoUploads:input_type -> graph.PhotoUploadsReadRequest
-	43, // 52: graph.MediumService.BrowsePhotoFiles:input_type -> graph.PhotoFilesBrowseRequest
-	45, // 53: graph.MediumService.SetPhotoFiles:input_type -> graph.PhotoFilesSetRequest
-	2,  // 54: graph.MediumService.Count:output_type -> graph.MediumCountResponse
-	4,  // 55: graph.MediumService.Browse:output_type -> graph.MediumBrowseResponse
-	6,  // 56: graph.MediumService.Read:output_type -> graph.MediumReadResponse
-	8,  // 57: graph.MediumService.BatchRead:output_type -> graph.MediumBatchReadResponse
-	10, // 58: graph.MediumService.Edit:output_type -> graph.MediumEditResponse
-	12, // 59: graph.MediumService.Add:output_type -> graph.MediumAddResponse
-	14, // 60: graph.MediumService.AddThread:output_type -> graph.MediumThreadAddResponse
-	16, // 61: graph.MediumService.Delete:output_type -> graph.MediumDeleteResponse
-	18, // 62: graph.MediumService.Ping:output_type -> graph.MediumPingResponse
-	20, // 63: graph.MediumService.Thread:output_type -> graph.MediumThreadResponse
-	22, // 64: graph.MediumService.HideReply:output_type -> graph.ReplyHideResponse
-	24, // 65: graph.MediumService.DetachQuote:output_type -> graph.QuoteDetachResponse
-	36, // 66: graph.MediumService.SetPinned:output_type -> graph.PinSetResponse
-	26, // 67: graph.MediumService.ListQuotes:output_type -> graph.QuotesListResponse
-	30, // 68: graph.MediumService.SetSaved:output_type -> graph.SavedSetResponse
-	32, // 69: graph.MediumService.ListSaved:output_type -> graph.SavedListResponse
-	28, // 70: graph.MediumService.ListCitedBy:output_type -> graph.CitedByListResponse
-	34, // 71: graph.MediumService.ListAuthored:output_type -> graph.AuthoredListResponse
-	40, // 72: graph.MediumService.AddPhotoUpload:output_type -> graph.PhotoUploadAddResponse
-	42, // 73: graph.MediumService.ReadPhotoUploads:output_type -> graph.PhotoUploadsReadResponse
-	44, // 74: graph.MediumService.BrowsePhotoFiles:output_type -> graph.PhotoFilesBrowseResponse
-	46, // 75: graph.MediumService.SetPhotoFiles:output_type -> graph.PhotoFilesSetResponse
-	54, // [54:76] is the sub-list for method output_type
-	32, // [32:54] is the sub-list for method input_type
+	31, // 47: graph.MediumService.BrowseSaved:input_type -> graph.SavedBrowseRequest
+	27, // 48: graph.MediumService.BrowseCitedBy:input_type -> graph.CitedByBrowseRequest
+	33, // 49: graph.MediumService.BrowseAuthored:input_type -> graph.AuthoredBrowseRequest
+	25, // 50: graph.MediumService.ListQuotes:input_type -> graph.QuotesBrowseRequest
+	31, // 51: graph.MediumService.ListSaved:input_type -> graph.SavedBrowseRequest
+	27, // 52: graph.MediumService.ListCitedBy:input_type -> graph.CitedByBrowseRequest
+	33, // 53: graph.MediumService.ListAuthored:input_type -> graph.AuthoredBrowseRequest
+	39, // 54: graph.MediumService.AddPhotoUpload:input_type -> graph.PhotoUploadAddRequest
+	41, // 55: graph.MediumService.ReadPhotoUploads:input_type -> graph.PhotoUploadsReadRequest
+	43, // 56: graph.MediumService.BrowsePhotoFiles:input_type -> graph.PhotoFilesBrowseRequest
+	45, // 57: graph.MediumService.SetPhotoFiles:input_type -> graph.PhotoFilesSetRequest
+	2,  // 58: graph.MediumService.Count:output_type -> graph.MediumCountResponse
+	4,  // 59: graph.MediumService.Browse:output_type -> graph.MediumBrowseResponse
+	6,  // 60: graph.MediumService.Read:output_type -> graph.MediumReadResponse
+	8,  // 61: graph.MediumService.BatchRead:output_type -> graph.MediumBatchReadResponse
+	10, // 62: graph.MediumService.Edit:output_type -> graph.MediumEditResponse
+	12, // 63: graph.MediumService.Add:output_type -> graph.MediumAddResponse
+	14, // 64: graph.MediumService.AddThread:output_type -> graph.MediumThreadAddResponse
+	16, // 65: graph.MediumService.Delete:output_type -> graph.MediumDeleteResponse
+	18, // 66: graph.MediumService.Ping:output_type -> graph.MediumPingResponse
+	20, // 67: graph.MediumService.Thread:output_type -> graph.MediumThreadResponse
+	22, // 68: graph.MediumService.HideReply:output_type -> graph.ReplyHideResponse
+	24, // 69: graph.MediumService.DetachQuote:output_type -> graph.QuoteDetachResponse
+	36, // 70: graph.MediumService.SetPinned:output_type -> graph.PinSetResponse
+	26, // 71: graph.MediumService.BrowseQuotes:output_type -> graph.QuotesBrowseResponse
+	30, // 72: graph.MediumService.SetSaved:output_type -> graph.SavedSetResponse
+	32, // 73: graph.MediumService.BrowseSaved:output_type -> graph.SavedBrowseResponse
+	28, // 74: graph.MediumService.BrowseCitedBy:output_type -> graph.CitedByBrowseResponse
+	34, // 75: graph.MediumService.BrowseAuthored:output_type -> graph.AuthoredBrowseResponse
+	26, // 76: graph.MediumService.ListQuotes:output_type -> graph.QuotesBrowseResponse
+	32, // 77: graph.MediumService.ListSaved:output_type -> graph.SavedBrowseResponse
+	28, // 78: graph.MediumService.ListCitedBy:output_type -> graph.CitedByBrowseResponse
+	34, // 79: graph.MediumService.ListAuthored:output_type -> graph.AuthoredBrowseResponse
+	40, // 80: graph.MediumService.AddPhotoUpload:output_type -> graph.PhotoUploadAddResponse
+	42, // 81: graph.MediumService.ReadPhotoUploads:output_type -> graph.PhotoUploadsReadResponse
+	44, // 82: graph.MediumService.BrowsePhotoFiles:output_type -> graph.PhotoFilesBrowseResponse
+	46, // 83: graph.MediumService.SetPhotoFiles:output_type -> graph.PhotoFilesSetResponse
+	58, // [58:84] is the sub-list for method output_type
+	32, // [32:58] is the sub-list for method input_type
 	32, // [32:32] is the sub-list for extension type_name
 	32, // [32:32] is the sub-list for extension extendee
 	0,  // [0:32] is the sub-list for field type_name

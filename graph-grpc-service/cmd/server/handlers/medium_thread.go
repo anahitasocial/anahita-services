@@ -200,8 +200,8 @@ func (h *mediumHandler) SetPinned(ctx context.Context, req *graphpb.PinSetReques
 	return &graphpb.PinSetResponse{Success: true}, nil
 }
 
-// ListQuotes returns the notes that quote a post and that the viewer may see.
-func (h *mediumHandler) ListQuotes(ctx context.Context, req *graphpb.QuotesListRequest) (*graphpb.QuotesListResponse, error) {
+// BrowseQuotes returns the notes that quote a post and that the viewer may see.
+func (h *mediumHandler) BrowseQuotes(ctx context.Context, req *graphpb.QuotesBrowseRequest) (*graphpb.QuotesBrowseResponse, error) {
 	if req.GetQuotedId() <= 0 {
 		return nil, status.Error(codes.InvalidArgument, "a post is required")
 	}
@@ -222,5 +222,5 @@ func (h *mediumHandler) ListQuotes(ctx context.Context, req *graphpb.QuotesListR
 
 	h.markSaved(viewer.ID, quotes)
 
-	return &graphpb.QuotesListResponse{Quotes: nodesToGrpc(quotes)}, nil
+	return &graphpb.QuotesBrowseResponse{Quotes: nodesToGrpc(quotes)}, nil
 }

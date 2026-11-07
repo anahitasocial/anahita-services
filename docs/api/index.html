@@ -323,7 +323,7 @@ who may call it: a site administrator.">
 <tr><td class="status s4">409</td><td>it cannot be removed (<code>administrator</code>, <code>yourself</code>, <code>not_found</code>, <code>wrong_type</code>); nothing was queued<div class="body"><a href="#schema-PurgeRefused">PurgeRefused</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
-<p class="handler">Answered by <code>actor/cmd/api/handlers.(*personHandler).RemoveAsSpam</code></p>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*personHandler).DeleteAsSpam</code></p>
 </details>
 <details class="route" id="postPeopleByIdTagsByPostId" data-search="post /people/{id}/tags/{post_id} tag somebody in a photo or a video for the post&#39;s author. only a person here may be tagged, and as they chose: at once, each approved first (the default), or not at all. anybody may tag themselves. at most 20 people in one post.
 
@@ -403,7 +403,7 @@ who may call it: somebody signed in.">
 <tr><td class="status s4">404</td><td>there is no such photo or video the viewer can see</td></tr>
 </tbody>
 </table>
-<p class="handler">Answered by <code>actor/cmd/api/handlers.(*personHandler).RemoveTag</code></p>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*personHandler).DeleteTag</code></p>
 </details>
 <details class="route" id="getPeopleByUsername" data-search="get /people/{username} one person by their username. to somebody they are not open to, but who may ask to follow them, what a stranger is shown of them.
 
@@ -1040,7 +1040,7 @@ who may call it: a site administrator.">
 <tr><td class="status s4">409</td><td>it cannot be removed (<code>administrator</code>, <code>yourself</code>, <code>not_found</code>, <code>wrong_type</code>); nothing was queued<div class="body"><a href="#schema-PurgeRefused">PurgeRefused</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
-<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).RemoveAsSpam</code></p>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).DeleteAsSpam</code></p>
 </details>
 <h3>As every profile</h3>
 <p>The same on every kind, at this kind's address: see <a href="#profiles">Profiles</a>.</p>
@@ -5211,7 +5211,7 @@ who may call it: somebody signed in.">
 <tr><td class="status s4">404</td><td>there is no such profile or post, or the viewer may not see it</td></tr>
 </tbody>
 </table>
-<p class="handler">Answered by <code>identityimage/cmd/api/handlers.(*imageHandler).RemoveAvatar</code></p>
+<p class="handler">Answered by <code>identityimage/cmd/api/handlers.(*imageHandler).DeleteAvatar</code></p>
 </details>
 <details class="route" id="getAvatarsByUuidBySize" data-search="get /avatars/{uuid}/{size} a public profile&#39;s avatar, at an address that does not change for other servers, which keep the address of a picture for weeks: a redirect to a freshly signed address in storage. only what anybody may see is answered for; anything else, on a site for members included, is not found, in the same words as what does not exist.
 
@@ -5290,7 +5290,7 @@ who may call it: somebody signed in.">
 <tr><td class="status s4">404</td><td>there is no such profile or post, or the viewer may not see it</td></tr>
 </tbody>
 </table>
-<p class="handler">Answered by <code>identityimage/cmd/api/handlers.(*imageHandler).RemoveCover</code></p>
+<p class="handler">Answered by <code>identityimage/cmd/api/handlers.(*imageHandler).DeleteCover</code></p>
 </details>
 <details class="route" id="getCoversByUuidBySize" data-search="get /covers/{uuid}/{size} a public profile&#39;s or post&#39;s cover, at an address that does not change for other servers, which keep the address of a picture for weeks: a redirect to a freshly signed address in storage. only what anybody may see is answered for; anything else, on a site for members included, is not found, in the same words as what does not exist.
 

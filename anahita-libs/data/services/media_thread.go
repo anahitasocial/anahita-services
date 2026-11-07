@@ -79,7 +79,7 @@ func (srv *MediaGRPC) Quotes(quotedID int64, viewer *entities.Viewer) ([]*entiti
 		return nil, err
 	}
 
-	resp, err := client.ListQuotes(context.Background(), &graphpb.QuotesListRequest{
+	resp, err := client.BrowseQuotes(context.Background(), &graphpb.QuotesBrowseRequest{
 		QuotedId: quotedID,
 		Viewer: &graphpb.Viewer{
 			Id:         viewer.ID,
@@ -123,7 +123,7 @@ func (srv *MediaGRPC) Saved(limit uint64, offset uint64, viewer *entities.Viewer
 		return nil, 0, err
 	}
 
-	resp, err := client.ListSaved(context.Background(), &graphpb.SavedListRequest{
+	resp, err := client.BrowseSaved(context.Background(), &graphpb.SavedBrowseRequest{
 		Limit:  limit,
 		Offset: offset,
 		Viewer: &graphpb.Viewer{
@@ -153,7 +153,7 @@ func (srv *MediaGRPC) CitedBy(citedID int64, limit uint64, offset uint64, viewer
 		return nil, 0, err
 	}
 
-	resp, err := client.ListCitedBy(context.Background(), &graphpb.CitedByListRequest{
+	resp, err := client.BrowseCitedBy(context.Background(), &graphpb.CitedByBrowseRequest{
 		CitedId: citedID,
 		Limit:   limit,
 		Offset:  offset,

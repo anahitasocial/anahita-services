@@ -186,7 +186,7 @@ migrations of everything before it.
 1. `anahita-libs/federation/retention.go`: which posts are due
    (`OldPosts`, one query built from the rules that are set), which people
    (`StalePeople`), and removing a post with its files
-   (`Keeper.RemovePost`).
+   (`Keeper.DeletePost`).
 2. Each service does a round every hour (`handlers/retention.go`,
    `Tidy`): the posts go as they would have had their author taken them
    away, said on the bus; then the people of whom nothing is left, by the
@@ -221,7 +221,7 @@ to do, and which is right when a picture's address has changed. So there
 is no migration.
 
 1. `anahita-libs/federation/media.go`: which posts are due
-   (`OldPicturePosts`), removing (`Keeper.RemovePictures`), copying again
+   (`OldPicturePosts`), removing (`Keeper.DeletePictures`), copying again
    (`Keeper.RestorePictures`), and what the post says of it in its meta
    (`media_removed`).
 2. Each service sweeps what came through it, every hour, and answers

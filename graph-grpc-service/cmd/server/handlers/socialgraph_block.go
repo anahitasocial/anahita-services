@@ -69,11 +69,11 @@ func (h *socialgraphBlockGrpcHandler) Add(ctx context.Context, req *graphpb.Soci
 		}
 
 		// Update counts
-		if err := h.env.Repos.SocialGraphCounts.UpdateLeaderCount(source.ID); err != nil {
+		if err := h.env.Repos.SocialGraphCounts.EditLeaderCount(source.ID); err != nil {
 			log.Println(err)
 			return nil, err
 		}
-		if err := h.env.Repos.SocialGraphCounts.UpdateFollowerCount(target.ID); err != nil {
+		if err := h.env.Repos.SocialGraphCounts.EditFollowerCount(target.ID); err != nil {
 			log.Println(err)
 			return nil, err
 		}
@@ -99,11 +99,11 @@ func (h *socialgraphBlockGrpcHandler) Add(ctx context.Context, req *graphpb.Soci
 		}
 
 		// Update counts
-		if err := h.env.Repos.SocialGraphCounts.UpdateLeaderCount(target.ID); err != nil {
+		if err := h.env.Repos.SocialGraphCounts.EditLeaderCount(target.ID); err != nil {
 			log.Println(err)
 			return nil, err
 		}
-		if err := h.env.Repos.SocialGraphCounts.UpdateFollowerCount(source.ID); err != nil {
+		if err := h.env.Repos.SocialGraphCounts.EditFollowerCount(source.ID); err != nil {
 			log.Println(err)
 			return nil, err
 		}
@@ -123,7 +123,7 @@ func (h *socialgraphBlockGrpcHandler) Add(ctx context.Context, req *graphpb.Soci
 			log.Println(err)
 			return nil, err
 		}
-		if err := h.env.Repos.SubscriptionsRel.UpdateSubscriberCount(pair[1].ID); err != nil {
+		if err := h.env.Repos.SubscriptionsRel.EditSubscriberCount(pair[1].ID); err != nil {
 			log.Println(err)
 		}
 	}
@@ -244,7 +244,7 @@ func (h *socialgraphBlockGrpcHandler) recountForBlock(blockerID, blockedID int64
 		}
 	}
 	for _, post := range liked {
-		if err := h.env.Repos.LikesRel.UpdateLikeCount(post); err != nil {
+		if err := h.env.Repos.LikesRel.EditLikeCount(post); err != nil {
 			log.Println("recounting after a block:", err)
 		}
 	}

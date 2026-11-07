@@ -124,7 +124,7 @@ func (h *repostHandler) Add(ctx context.Context, req *graphpb.RepostAddRequest) 
 		return nil, err
 	}
 
-	if err := h.env.Repos.Reposts.UpdateRepostCount(parent.ID); err != nil {
+	if err := h.env.Repos.Reposts.EditRepostCount(parent.ID); err != nil {
 		return nil, err
 	}
 
@@ -148,7 +148,7 @@ func (h *repostHandler) Delete(ctx context.Context, req *graphpb.RepostDeleteReq
 		return nil, err
 	}
 
-	if err := h.env.Repos.Reposts.UpdateRepostCount(req.ParentId); err != nil {
+	if err := h.env.Repos.Reposts.EditRepostCount(req.ParentId); err != nil {
 		return nil, err
 	}
 

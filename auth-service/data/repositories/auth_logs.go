@@ -150,14 +150,14 @@ func (repo *authLogs) Add(authLog *entities.AuthLog) (*entities.AuthLog, error) 
 	return repo.ReadByID(authLog.ID)
 }
 
-// UpdateOAuthRefreshTokenID updates the refresh-token pointer on an
+// EditOAuthRefreshTokenID updates the refresh-token pointer on an
 // auth log row. Called from the refresh flow when a refresh token
 // rotates, so the auth log continues to point at the live token.
 //
 // Note: client_id is NOT updated here — it stays the same across
 // rotations since the OAuth client is the same. Only the refresh
 // token row id changes.
-func (repo *authLogs) UpdateOAuthRefreshTokenID(authLogID, newRefreshTokenID int64) error {
+func (repo *authLogs) EditOAuthRefreshTokenID(authLogID, newRefreshTokenID int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 

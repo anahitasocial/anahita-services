@@ -30,14 +30,14 @@ func NewImageHandler(env *Env) *imageHandler {
 // SetAvatar gives an actor an avatar, in place of any it had.
 func (h *imageHandler) SetAvatar(c echo.Context) error { return h.set(c, avatar) }
 
-// RemoveAvatar takes an actor's avatar away.
-func (h *imageHandler) RemoveAvatar(c echo.Context) error { return h.remove(c, avatar) }
+// DeleteAvatar takes an actor's avatar away.
+func (h *imageHandler) DeleteAvatar(c echo.Context) error { return h.remove(c, avatar) }
 
 // SetCover gives an actor or a post a cover, in place of any it had.
 func (h *imageHandler) SetCover(c echo.Context) error { return h.set(c, cover) }
 
-// RemoveCover takes a cover away.
-func (h *imageHandler) RemoveCover(c echo.Context) error { return h.remove(c, cover) }
+// DeleteCover takes a cover away.
+func (h *imageHandler) DeleteCover(c echo.Context) error { return h.remove(c, cover) }
 
 // Why a file was refused. Sent as "error", in the words the photo service
 // uses for the same refusals, so a client handles them once.

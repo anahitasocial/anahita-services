@@ -68,7 +68,7 @@ func (h *likeGrpcHandler) Add(ctx context.Context, req *graphpb.LikeAddRequest) 
 	}
 
 	if edge.ID > 0 {
-		if err := h.env.Repos.LikesRel.UpdateLikeCount(target.ID); err != nil {
+		if err := h.env.Repos.LikesRel.EditLikeCount(target.ID); err != nil {
 			log.Printf("Error updating like count for target node: %v", err)
 		}
 	}
@@ -112,7 +112,7 @@ func (h *likeGrpcHandler) Delete(ctx context.Context, req *graphpb.LikeDeleteReq
 	}
 
 	if deleteCount > 0 {
-		if err := h.env.Repos.LikesRel.UpdateLikeCount(target.ID); err != nil {
+		if err := h.env.Repos.LikesRel.EditLikeCount(target.ID); err != nil {
 			log.Printf("Error updating like count for target node: %v", err)
 		}
 	}

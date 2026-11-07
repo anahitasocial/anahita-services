@@ -55,11 +55,11 @@ type CasesInterface interface {
 	// open case as actioned. It returns how many cases were closed.
 	MarkTargetGone(targetID int64) (int64, error)
 
-	// RemoveReportsBy deletes every report one person filed, because that
+	// DeleteReportsBy deletes every report one person filed, because that
 	// person has been purged. Each case's count drops by one, and an open
 	// case nobody else reported is removed with it: there is no complaint
 	// left to decide. It returns how many reports went.
-	RemoveReportsBy(reporterID int64) (int64, error)
+	DeleteReportsBy(reporterID int64) (int64, error)
 
 	// ForgetAddresses blanks the network address on reports filed before
 	// the cutoff, and returns how many it blanked.
@@ -665,7 +665,7 @@ func (r *cases) MarkTargetGone(targetID int64) (int64, error) {
 	return result.RowsAffected()
 }
 
-func (r *cases) RemoveReportsBy(reporterID int64) (removed int64, err error) {
+func (r *cases) DeleteReportsBy(reporterID int64) (removed int64, err error) {
 	if reporterID <= 0 {
 		return 0, nil
 	}

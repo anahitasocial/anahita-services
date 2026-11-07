@@ -82,7 +82,7 @@ func TestABlockHidesWhatTheBlockedLeftOnTheBlockers(t *testing.T) {
 	if n := count(t, db, "comment_count", 30); n != 1 {
 		t.Errorf("replies counted %d", n)
 	}
-	if err := likes.UpdateLikeCount(30); err != nil {
+	if err := likes.EditLikeCount(30); err != nil {
 		t.Fatal(err)
 	}
 	if n := count(t, db, "vote_up_count", 30); n != 1 {
@@ -138,7 +138,7 @@ func TestABlockHidesWhatTheBlockedLeftOnTheBlockers(t *testing.T) {
 		t.Errorf("hidden after the block was lifted %v", hidden)
 	}
 	_ = replies.Recount(30, 0)
-	_ = likes.UpdateLikeCount(30)
+	_ = likes.EditLikeCount(30)
 	if count(t, db, "comment_count", 30) != 2 || count(t, db, "vote_up_count", 30) != 2 {
 		t.Errorf("counts after the block was lifted: %d replies, %d likes",
 			count(t, db, "comment_count", 30), count(t, db, "vote_up_count", 30))

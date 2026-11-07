@@ -368,7 +368,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	// difference between recoverable and gone should not be a parameter.
 	// Super administrators only — enforced in the handler.
 	people.DELETE("/:id/purge", r.handler.Person.Purge, r.authorize).With(purge("person"))
-	people.POST("/:id/spam", r.handler.Person.RemoveAsSpam, r.authorize).With(spam("person"))
+	people.POST("/:id/spam", r.handler.Person.DeleteAsSpam, r.authorize).With(spam("person"))
 	// The same for many at once, and how far a request has got.
 	people.POST("/purge-batch", r.handler.Person.PurgeBatch, r.authorize).With(purgeBatch("person"))
 	people.GET("/purge-batch/:batch_id", r.handler.Person.PurgeProgress, r.authorize).With(purgeProgress)
@@ -430,7 +430,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		SendsNothing(http.StatusOK, "approved, or it was already").
 		Refuses(http.StatusForbidden, "the viewer is not the person tagged").
 		Refuses(http.StatusNotFound, "no such tag, or no such photo or video the viewer can see")
-	people.DELETE("/:id/tags/:post_id", r.handler.Person.RemoveTag, r.authorize).
+	people.DELETE("/:id/tags/:post_id", r.handler.Person.DeleteTag, r.authorize).
 		Summary("Take somebody out of a photo or a video").
 		Describe("For the person, declining or changing their mind, and for the post's author.").
 		Viewer(apidoc.SignedIn).
@@ -474,7 +474,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	groups.GET("/:id/deletion-counts", r.handler.Group.DeletionCounts, r.authorize).With(counts("group", handlers.GroupDeletionCounts{}))
 	// Hard delete. Super administrators only — enforced in the handler.
 	groups.DELETE("/:id/purge", r.handler.Group.Purge, r.authorize).With(purge("group"))
-	groups.POST("/:id/spam", r.handler.Group.RemoveAsSpam, r.authorize).With(spam("group"))
+	groups.POST("/:id/spam", r.handler.Group.DeleteAsSpam, r.authorize).With(spam("group"))
 	groups.POST("/purge-batch", r.handler.Group.PurgeBatch, r.authorize).With(purgeBatch("group"))
 	groups.GET("/purge-batch/:batch_id", r.handler.Group.PurgeProgress, r.authorize).With(purgeProgress)
 	// Archive: permanent, destroys nothing. A group administrator may.

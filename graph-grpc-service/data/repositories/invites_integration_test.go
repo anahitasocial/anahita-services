@@ -92,10 +92,10 @@ func TestInvitations(t *testing.T) {
 	if invite, err := repo.Read(replyGroup, replyBob); err != nil || invite == nil || invite.InviterID != replyAlice {
 		t.Fatalf("read: %+v (err %v), want one from Alice", invite, err)
 	}
-	if list, total, err := repo.ListForActor(replyGroup, 10, 0); err != nil || total != 1 || len(list) != 1 || list[0].InviteeID != replyBob {
+	if list, total, err := repo.BrowseForActor(replyGroup, 10, 0); err != nil || total != 1 || len(list) != 1 || list[0].InviteeID != replyBob {
 		t.Errorf("waiting to the group: %d of %+v (err %v), want Bob alone", total, list, err)
 	}
-	if list, total, err := repo.ListForInvitee(replyBob, 10, 0); err != nil || total != 1 || len(list) != 1 || list[0].ActorID != replyGroup {
+	if list, total, err := repo.BrowseForInvitee(replyBob, 10, 0); err != nil || total != 1 || len(list) != 1 || list[0].ActorID != replyGroup {
 		t.Errorf("waiting for Bob: %d of %+v (err %v), want the group alone", total, list, err)
 	}
 	if made, err := repo.CountMadeLately(replyAlice); err != nil || made != 1 {

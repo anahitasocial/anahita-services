@@ -24,17 +24,17 @@ import (
 // asks once more before sending it, and removing spam is done often and in
 // a hurry.
 
-// RemoveAsSpam removes a person as spam.
+// DeleteAsSpam removes a person as spam.
 //
 //	POST /people/:id/spam
-func (h *personHandler) RemoveAsSpam(c echo.Context) error {
+func (h *personHandler) DeleteAsSpam(c echo.Context) error {
 	return removeAsSpam(c, h.Env, constants.NodeActorPersonEntityType)
 }
 
-// RemoveAsSpam removes a group as spam.
+// DeleteAsSpam removes a group as spam.
 //
 //	POST /groups/:id/spam
-func (h *groupHandler) RemoveAsSpam(c echo.Context) error {
+func (h *groupHandler) DeleteAsSpam(c echo.Context) error {
 	return removeAsSpam(c, h.Env, h.nodeType)
 }
 

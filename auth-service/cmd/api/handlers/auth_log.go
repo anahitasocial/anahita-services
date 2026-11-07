@@ -200,7 +200,7 @@ func (h *authLogHandler) AddOrReuseSystem(c echo.Context, refreshTokenID int64, 
 		}
 	}
 
-	if err := h.Repos.AuthLogs.UpdateOAuthRefreshTokenID(existing.ID, refreshTokenID); err != nil {
+	if err := h.Repos.AuthLogs.EditOAuthRefreshTokenID(existing.ID, refreshTokenID); err != nil {
 		return nil, false, err
 	}
 

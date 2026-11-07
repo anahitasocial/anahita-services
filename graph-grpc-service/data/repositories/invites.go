@@ -39,12 +39,12 @@ type InvitesRepoInterface interface {
 	// nil.
 	Read(actorID int64, inviteeID int64) (*Invite, error)
 
-	// ListForActor returns the invitations waiting to an actor, newest
+	// BrowseForActor returns the invitations waiting to an actor, newest
 	// first, and how many there are.
-	ListForActor(actorID int64, limit uint64, offset uint64) ([]*Invite, uint64, error)
+	BrowseForActor(actorID int64, limit uint64, offset uint64) ([]*Invite, uint64, error)
 
-	// ListForInvitee returns the invitations waiting for a person.
-	ListForInvitee(inviteeID int64, limit uint64, offset uint64) ([]*Invite, uint64, error)
+	// BrowseForInvitee returns the invitations waiting for a person.
+	BrowseForInvitee(inviteeID int64, limit uint64, offset uint64) ([]*Invite, uint64, error)
 
 	// Accept makes the person a follower and removes the invitation. It
 	// returns the invitation it answered, or ErrNoInvite.
@@ -292,7 +292,7 @@ func (r *invitesRepo) Read(actorID int64, inviteeID int64) (*Invite, error) {
 	return invite, err
 }
 
-func (r *invitesRepo) ListForActor(actorID int64, limit uint64, offset uint64) ([]*Invite, uint64, error) {
+func (r *invitesRepo) BrowseForActor(actorID int64, limit uint64, offset uint64) ([]*Invite, uint64, error) {
 	var total uint64
 	if err := r.db.QueryRow(countInvitesForActor,
 		constants.EdgeActorInviteEntityType, actorID, constants.InviteMetaPending).Scan(&total); err != nil {
@@ -305,7 +305,7 @@ func (r *invitesRepo) ListForActor(actorID int64, limit uint64, offset uint64) (
 	return invites, total, err
 }
 
-func (r *invitesRepo) ListForInvitee(inviteeID int64, limit uint64, offset uint64) ([]*Invite, uint64, error) {
+func (r *invitesRepo) BrowseForInvitee(inviteeID int64, limit uint64, offset uint64) ([]*Invite, uint64, error) {
 	var total uint64
 	if err := r.db.QueryRow(countInvitesForInvitee,
 		constants.EdgeActorInviteEntityType, inviteeID, constants.InviteMetaPending).Scan(&total); err != nil {

@@ -11,8 +11,8 @@ import (
 // own copy of their data. The graph applies no access rule to it, so it is
 // asked only on behalf of that person.
 type AuthoredInterface interface {
-	// ListAuthored returns a page, lowest id first, after an id.
-	ListAuthored(personID, afterID int64, limit uint64) ([]*entities.AnahitaNode, error)
+	// BrowseAuthored returns a page, lowest id first, after an id.
+	BrowseAuthored(personID, afterID int64, limit uint64) ([]*entities.AnahitaNode, error)
 }
 
 // NewAuthoredGRPC is the media service's client, for that list.
@@ -20,7 +20,7 @@ func NewAuthoredGRPC(config MediaGRPCConfigInterface) AuthoredInterface {
 	return &MediaGRPC{config: config}
 }
 
-func (srv *MediaGRPC) ListAuthored(personID, afterID int64, limit uint64) ([]*entities.AnahitaNode, error) {
+func (srv *MediaGRPC) BrowseAuthored(personID, afterID int64, limit uint64) ([]*entities.AnahitaNode, error) {
 	client, err := srv.getClient()
 	if err != nil {
 		return nil, err
@@ -29,7 +29,7 @@ func (srv *MediaGRPC) ListAuthored(personID, afterID int64, limit uint64) ([]*en
 		return nil, nil
 	}
 
-	resp, err := client.ListAuthored(context.Background(), &graphpb.AuthoredListRequest{
+	resp, err := client.BrowseAuthored(context.Background(), &graphpb.AuthoredBrowseRequest{
 		PersonId: personID,
 		AfterId:  afterID,
 		Limit:    limit,

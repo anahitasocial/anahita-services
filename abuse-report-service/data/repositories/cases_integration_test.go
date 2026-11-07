@@ -324,7 +324,7 @@ func TestRealAPurgedReportersReportsAreRemoved(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	removed, err := repo.RemoveReportsBy(ada)
+	removed, err := repo.DeleteReportsBy(ada)
 	if err != nil || removed != 3 {
 		t.Fatalf("removed %d reports, %v; want Ada's 3", removed, err)
 	}
@@ -345,7 +345,7 @@ func TestRealAPurgedReportersReportsAreRemoved(t *testing.T) {
 	}
 
 	// Hearing it twice changes nothing.
-	if removed, err := repo.RemoveReportsBy(ada); err != nil || removed != 0 {
+	if removed, err := repo.DeleteReportsBy(ada); err != nil || removed != 0 {
 		t.Errorf("second time: removed %d, %v", removed, err)
 	}
 	if c, _ := repo.Read(shared); c.ReportCount != 1 {

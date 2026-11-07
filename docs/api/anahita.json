@@ -12178,7 +12178,7 @@
         "tags": [
           "identity-image-service"
         ],
-        "x-handler": "identityimage/cmd/api/handlers.(*imageHandler).RemoveAvatar",
+        "x-handler": "identityimage/cmd/api/handlers.(*imageHandler).DeleteAvatar",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -13066,7 +13066,7 @@
         "tags": [
           "identity-image-service"
         ],
-        "x-handler": "identityimage/cmd/api/handlers.(*imageHandler).RemoveCover",
+        "x-handler": "identityimage/cmd/api/handlers.(*imageHandler).DeleteCover",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -19056,7 +19056,7 @@
         "tags": [
           "groups"
         ],
-        "x-handler": "actor/cmd/api/handlers.(*groupHandler).RemoveAsSpam",
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).DeleteAsSpam",
         "x-viewer": "admin"
       }
     },
@@ -27788,7 +27788,7 @@
         "tags": [
           "people"
         ],
-        "x-handler": "actor/cmd/api/handlers.(*personHandler).RemoveAsSpam",
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).DeleteAsSpam",
         "x-viewer": "admin"
       }
     },
@@ -27844,7 +27844,7 @@
         "tags": [
           "people"
         ],
-        "x-handler": "actor/cmd/api/handlers.(*personHandler).RemoveTag",
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).DeleteTag",
         "x-viewer": "signed_in"
       },
       "post": {

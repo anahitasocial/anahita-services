@@ -84,7 +84,7 @@ message EventCancelResponse {
 
 // The events that are one person's: the ones they answered, were invited
 // to, or look after.
-message EventListRequest {
+message EventBrowseRequest {
     int64 person_id = 1;
     // upcoming, past, hosting or invited.
     string filter = 2;
@@ -108,7 +108,7 @@ message EventListRequest {
     bool following = 11;
 }
 
-message EventListResponse {
+message EventBrowseResponse {
     // In the order to show them.
     repeated int64 ids = 1;
     uint64 total = 2;
@@ -119,6 +119,9 @@ service EventService {
     rpc Read(EventReadRequest) returns (EventReadResponse);
     rpc Rsvp(EventRsvpRequest) returns (EventRsvpResponse);
     rpc Cancel(EventCancelRequest) returns (EventCancelResponse);
-    rpc List(EventListRequest) returns (EventListResponse);
+    rpc Browse(EventBrowseRequest) returns (EventBrowseResponse);
+    // Browse under the name it had until v1.0.17, served for one release
+    // for a rolling deploy, and removed in the release after.
+    rpc List(EventBrowseRequest) returns (EventBrowseResponse);
     rpc AnnounceChange(EventAnnounceChangeRequest) returns (EventAnnounceChangeResponse);
 }

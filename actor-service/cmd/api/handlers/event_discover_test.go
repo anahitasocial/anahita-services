@@ -29,7 +29,7 @@ type fakeDiscoverEvents struct {
 	filter entities.EventDiscoverFilter
 }
 
-func (f *fakeDiscoverEvents) ListOpen(viewer *entities.Viewer, filter entities.EventDiscoverFilter, limit uint64, offset uint64) ([]int64, uint64, error) {
+func (f *fakeDiscoverEvents) BrowseOpen(viewer *entities.Viewer, filter entities.EventDiscoverFilter, limit uint64, offset uint64) ([]int64, uint64, error) {
 	f.calls++
 	f.filter = filter
 	return []int64{}, 0, nil

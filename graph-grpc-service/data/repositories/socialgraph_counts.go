@@ -7,8 +7,8 @@ import (
 )
 
 type SocialGraphCountsInterface interface {
-	UpdateLeaderCount(actorID int64) error
-	UpdateFollowerCount(actorID int64) error
+	EditLeaderCount(actorID int64) error
+	EditFollowerCount(actorID int64) error
 }
 
 func NewSocialGraphCountsRepo(db *sql.DB) SocialGraphCountsInterface {
@@ -23,7 +23,7 @@ type socialGraphCountsRepo struct {
 	dbTimeout time.Duration
 }
 
-func (r *socialGraphCountsRepo) UpdateLeaderCount(actorID int64) error {
+func (r *socialGraphCountsRepo) EditLeaderCount(actorID int64) error {
 	query := `
 		UPDATE nodes
 		SET leader_count = COALESCE((
@@ -41,7 +41,7 @@ func (r *socialGraphCountsRepo) UpdateLeaderCount(actorID int64) error {
 	return nil
 }
 
-func (r *socialGraphCountsRepo) UpdateFollowerCount(actorID int64) error {
+func (r *socialGraphCountsRepo) EditFollowerCount(actorID int64) error {
 	query := `
 		UPDATE nodes
 		SET follower_count = COALESCE((

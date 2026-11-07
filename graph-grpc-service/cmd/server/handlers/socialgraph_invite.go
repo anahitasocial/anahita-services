@@ -110,9 +110,9 @@ func (h *socialgraphFollowGrpcHandler) InviteBrowse(ctx context.Context, req *gr
 
 	switch {
 	case req.ActorId > 0:
-		invites, total, err = h.env.Repos.Invites.ListForActor(req.ActorId, limit, req.Offset)
+		invites, total, err = h.env.Repos.Invites.BrowseForActor(req.ActorId, limit, req.Offset)
 	case req.InviteeId > 0:
-		invites, total, err = h.env.Repos.Invites.ListForInvitee(req.InviteeId, limit, req.Offset)
+		invites, total, err = h.env.Repos.Invites.BrowseForInvitee(req.InviteeId, limit, req.Offset)
 	default:
 		return nil, errors.New("an actor or a person is required")
 	}
@@ -180,10 +180,10 @@ func (h *socialgraphFollowGrpcHandler) InviteAnswer(ctx context.Context, req *gr
 		return nil, err
 	}
 
-	if err = h.env.Repos.SocialGraphCounts.UpdateLeaderCount(req.InviteeId); err != nil {
+	if err = h.env.Repos.SocialGraphCounts.EditLeaderCount(req.InviteeId); err != nil {
 		log.Println(err)
 	}
-	if err = h.env.Repos.SocialGraphCounts.UpdateFollowerCount(req.ActorId); err != nil {
+	if err = h.env.Repos.SocialGraphCounts.EditFollowerCount(req.ActorId); err != nil {
 		log.Println(err)
 	}
 

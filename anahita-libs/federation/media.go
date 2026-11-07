@@ -160,13 +160,13 @@ func OldPicturePosts(db *sql.DB, ownerType string, before time.Time, limit int) 
 		limit)
 }
 
-// RemovePictures takes a post's pictures out of storage and has the post
+// DeletePictures takes a post's pictures out of storage and has the post
 // say so. It answers with whether there were any.
 //
 // The post is told first and the files go last: stopped half way, it says
 // its pictures are gone while some are still stored, which costs a little
 // room, and never shows a picture that is not there.
-func (k *Keeper) RemovePictures(postID int64, now time.Time) (bool, error) {
+func (k *Keeper) DeletePictures(postID int64, now time.Time) (bool, error) {
 	post, err := k.Nodes.Read(postID)
 	if err != nil || post == nil || post.ID == 0 || !post.IsRemote() || post.Type != constants.NodeMediumPhotoEntityType {
 		return false, err
@@ -230,10 +230,10 @@ func (k *Keeper) RestorePictures(post *entities.AnahitaNode, pictures []Picture)
 	return len(files), k.remark(post, nil)
 }
 
-// RemoveOldPictures removes the pictures of the posts that are due, of one
+// DeleteOldPictures removes the pictures of the posts that are due, of one
 // kind of server, and answers with how many posts that was. With no days
 // set, nothing is removed.
-func (k *Keeper) RemoveOldPictures(db *sql.DB, ownerType string, now time.Time, limit int) int {
+func (k *Keeper) DeleteOldPictures(db *sql.DB, ownerType string, now time.Time, limit int) int {
 	days := MediaDays()
 	if days <= 0 || db == nil || k.Nodes == nil || k.PhotoFiles == nil || k.Files == nil {
 		return 0
@@ -246,7 +246,7 @@ func (k *Keeper) RemoveOldPictures(db *sql.DB, ownerType string, now time.Time, 
 	}
 	removed := 0
 	for _, id := range ids {
-		had, err := k.RemovePictures(id, now)
+		had, err := k.DeletePictures(id, now)
 		if err != nil {
 			log.Printf("the pictures of post %d were not removed: %v", id, err)
 			continue

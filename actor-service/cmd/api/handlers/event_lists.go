@@ -72,7 +72,7 @@ func (h *eventHandler) Mine(c echo.Context) error {
 		},
 	}
 
-	ids, total, err := h.Srv.EventsGRPC.ListFor(viewer.ID, filter, req.Limit, req.Offset)
+	ids, total, err := h.Srv.EventsGRPC.BrowseFor(viewer.ID, filter, req.Limit, req.Offset)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -192,7 +192,7 @@ func (h *eventHandler) Discover(c echo.Context) error {
 		return c.JSON(http.StatusOK, resp)
 	}
 
-	ids, total, err := h.Srv.EventsGRPC.ListOpen(viewer, filter, req.Limit, req.Offset)
+	ids, total, err := h.Srv.EventsGRPC.BrowseOpen(viewer, filter, req.Limit, req.Offset)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -384,7 +384,7 @@ func (h *eventHandler) HostedBy(c echo.Context) error {
 		},
 	}
 
-	ids, total, err := h.Srv.EventsGRPC.ListHostedBy(group.ID, viewer, filter, req.Limit, req.Offset)
+	ids, total, err := h.Srv.EventsGRPC.BrowseHostedBy(group.ID, viewer, filter, req.Limit, req.Offset)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)

@@ -82,9 +82,9 @@ func (h *mediumHandler) SetSaved(ctx context.Context, req *graphpb.SavedSetReque
 	return &graphpb.SavedSetResponse{Success: true}, nil
 }
 
-// ListSaved returns what the viewer saved, most recently saved first, as
+// BrowseSaved returns what the viewer saved, most recently saved first, as
 // they may see it now.
-func (h *mediumHandler) ListSaved(ctx context.Context, req *graphpb.SavedListRequest) (*graphpb.SavedListResponse, error) {
+func (h *mediumHandler) BrowseSaved(ctx context.Context, req *graphpb.SavedBrowseRequest) (*graphpb.SavedBrowseResponse, error) {
 	viewer := entities.NewViewer()
 	if req.Viewer != nil {
 		viewer.ID = req.Viewer.Id
@@ -123,13 +123,13 @@ func (h *mediumHandler) ListSaved(ctx context.Context, req *graphpb.SavedListReq
 		}
 	}
 
-	return &graphpb.SavedListResponse{
+	return &graphpb.SavedBrowseResponse{
 		Nodes: nodesToGrpc(nodes),
 		Total: total,
 	}, nil
 }
 
-// ListCitedBy returns the posts that cite a post, newest first, as the
+// BrowseCitedBy returns the posts that cite a post, newest first, as the
 // viewer may see them: the articles and topics that show it within their
 // text (an edge.medium.citation.v1 from each to it), and the notes that quote
 // it. Its author's own are among them, though they do not count toward its
@@ -139,7 +139,7 @@ func (h *mediumHandler) ListSaved(ctx context.Context, req *graphpb.SavedListReq
 // The two are read separately, each as far as this page reaches, and put
 // together here: a page from offset is the newest of both after the first
 // offset of them.
-func (h *mediumHandler) ListCitedBy(ctx context.Context, req *graphpb.CitedByListRequest) (*graphpb.CitedByListResponse, error) {
+func (h *mediumHandler) BrowseCitedBy(ctx context.Context, req *graphpb.CitedByBrowseRequest) (*graphpb.CitedByBrowseResponse, error) {
 	viewer := entities.NewViewer()
 	if req.Viewer != nil {
 		viewer.ID = req.Viewer.Id
@@ -197,23 +197,23 @@ func (h *mediumHandler) ListCitedBy(ctx context.Context, req *graphpb.CitedByLis
 		}
 	}
 
-	return &graphpb.CitedByListResponse{
+	return &graphpb.CitedByBrowseResponse{
 		Nodes: nodesToGrpc(nodes),
 		Total: total,
 	}, nil
 }
 
-// ListAuthored returns what one person wrote, a page at a time, for their
+// BrowseAuthored returns what one person wrote, a page at a time, for their
 // own copy of it. It asks nothing about who is asking: the services that
 // call it do so for the person themselves. See the repository.
-func (h *mediumHandler) ListAuthored(ctx context.Context, req *graphpb.AuthoredListRequest) (*graphpb.AuthoredListResponse, error) {
+func (h *mediumHandler) BrowseAuthored(ctx context.Context, req *graphpb.AuthoredBrowseRequest) (*graphpb.AuthoredBrowseResponse, error) {
 	nodes, err := h.env.Repos.Nodes.Authored(req.GetPersonId(), req.GetAfterId(), req.GetLimit())
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
 
-	return &graphpb.AuthoredListResponse{Nodes: nodesToGrpc(nodes)}, nil
+	return &graphpb.AuthoredBrowseResponse{Nodes: nodesToGrpc(nodes)}, nil
 }
 
 // newestFirst puts two lists of posts, each newest first, into one, and takes

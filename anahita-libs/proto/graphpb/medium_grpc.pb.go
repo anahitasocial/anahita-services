@@ -32,8 +32,12 @@ const (
 	MediumService_HideReply_FullMethodName        = "/graph.MediumService/HideReply"
 	MediumService_DetachQuote_FullMethodName      = "/graph.MediumService/DetachQuote"
 	MediumService_SetPinned_FullMethodName        = "/graph.MediumService/SetPinned"
-	MediumService_ListQuotes_FullMethodName       = "/graph.MediumService/ListQuotes"
+	MediumService_BrowseQuotes_FullMethodName     = "/graph.MediumService/BrowseQuotes"
 	MediumService_SetSaved_FullMethodName         = "/graph.MediumService/SetSaved"
+	MediumService_BrowseSaved_FullMethodName      = "/graph.MediumService/BrowseSaved"
+	MediumService_BrowseCitedBy_FullMethodName    = "/graph.MediumService/BrowseCitedBy"
+	MediumService_BrowseAuthored_FullMethodName   = "/graph.MediumService/BrowseAuthored"
+	MediumService_ListQuotes_FullMethodName       = "/graph.MediumService/ListQuotes"
 	MediumService_ListSaved_FullMethodName        = "/graph.MediumService/ListSaved"
 	MediumService_ListCitedBy_FullMethodName      = "/graph.MediumService/ListCitedBy"
 	MediumService_ListAuthored_FullMethodName     = "/graph.MediumService/ListAuthored"
@@ -62,11 +66,19 @@ type MediumServiceClient interface {
 	HideReply(ctx context.Context, in *ReplyHideRequest, opts ...grpc.CallOption) (*ReplyHideResponse, error)
 	DetachQuote(ctx context.Context, in *QuoteDetachRequest, opts ...grpc.CallOption) (*QuoteDetachResponse, error)
 	SetPinned(ctx context.Context, in *PinSetRequest, opts ...grpc.CallOption) (*PinSetResponse, error)
-	ListQuotes(ctx context.Context, in *QuotesListRequest, opts ...grpc.CallOption) (*QuotesListResponse, error)
+	BrowseQuotes(ctx context.Context, in *QuotesBrowseRequest, opts ...grpc.CallOption) (*QuotesBrowseResponse, error)
 	SetSaved(ctx context.Context, in *SavedSetRequest, opts ...grpc.CallOption) (*SavedSetResponse, error)
-	ListSaved(ctx context.Context, in *SavedListRequest, opts ...grpc.CallOption) (*SavedListResponse, error)
-	ListCitedBy(ctx context.Context, in *CitedByListRequest, opts ...grpc.CallOption) (*CitedByListResponse, error)
-	ListAuthored(ctx context.Context, in *AuthoredListRequest, opts ...grpc.CallOption) (*AuthoredListResponse, error)
+	BrowseSaved(ctx context.Context, in *SavedBrowseRequest, opts ...grpc.CallOption) (*SavedBrowseResponse, error)
+	BrowseCitedBy(ctx context.Context, in *CitedByBrowseRequest, opts ...grpc.CallOption) (*CitedByBrowseResponse, error)
+	BrowseAuthored(ctx context.Context, in *AuthoredBrowseRequest, opts ...grpc.CallOption) (*AuthoredBrowseResponse, error)
+	// The same four under the names they had until v1.0.17, served for one
+	// release so that a service still running the release before can call
+	// them during a rolling deploy. Removed in the release after
+	// (docs/plans/done/bread-names.md).
+	ListQuotes(ctx context.Context, in *QuotesBrowseRequest, opts ...grpc.CallOption) (*QuotesBrowseResponse, error)
+	ListSaved(ctx context.Context, in *SavedBrowseRequest, opts ...grpc.CallOption) (*SavedBrowseResponse, error)
+	ListCitedBy(ctx context.Context, in *CitedByBrowseRequest, opts ...grpc.CallOption) (*CitedByBrowseResponse, error)
+	ListAuthored(ctx context.Context, in *AuthoredBrowseRequest, opts ...grpc.CallOption) (*AuthoredBrowseResponse, error)
 	// The images of photo posts. A photo is a medium, and these are its
 	// images, so they are kept by the service that keeps the post.
 	AddPhotoUpload(ctx context.Context, in *PhotoUploadAddRequest, opts ...grpc.CallOption) (*PhotoUploadAddResponse, error)
@@ -213,10 +225,10 @@ func (c *mediumServiceClient) SetPinned(ctx context.Context, in *PinSetRequest, 
 	return out, nil
 }
 
-func (c *mediumServiceClient) ListQuotes(ctx context.Context, in *QuotesListRequest, opts ...grpc.CallOption) (*QuotesListResponse, error) {
+func (c *mediumServiceClient) BrowseQuotes(ctx context.Context, in *QuotesBrowseRequest, opts ...grpc.CallOption) (*QuotesBrowseResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(QuotesListResponse)
-	err := c.cc.Invoke(ctx, MediumService_ListQuotes_FullMethodName, in, out, cOpts...)
+	out := new(QuotesBrowseResponse)
+	err := c.cc.Invoke(ctx, MediumService_BrowseQuotes_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -233,9 +245,49 @@ func (c *mediumServiceClient) SetSaved(ctx context.Context, in *SavedSetRequest,
 	return out, nil
 }
 
-func (c *mediumServiceClient) ListSaved(ctx context.Context, in *SavedListRequest, opts ...grpc.CallOption) (*SavedListResponse, error) {
+func (c *mediumServiceClient) BrowseSaved(ctx context.Context, in *SavedBrowseRequest, opts ...grpc.CallOption) (*SavedBrowseResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(SavedListResponse)
+	out := new(SavedBrowseResponse)
+	err := c.cc.Invoke(ctx, MediumService_BrowseSaved_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mediumServiceClient) BrowseCitedBy(ctx context.Context, in *CitedByBrowseRequest, opts ...grpc.CallOption) (*CitedByBrowseResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CitedByBrowseResponse)
+	err := c.cc.Invoke(ctx, MediumService_BrowseCitedBy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mediumServiceClient) BrowseAuthored(ctx context.Context, in *AuthoredBrowseRequest, opts ...grpc.CallOption) (*AuthoredBrowseResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AuthoredBrowseResponse)
+	err := c.cc.Invoke(ctx, MediumService_BrowseAuthored_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mediumServiceClient) ListQuotes(ctx context.Context, in *QuotesBrowseRequest, opts ...grpc.CallOption) (*QuotesBrowseResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(QuotesBrowseResponse)
+	err := c.cc.Invoke(ctx, MediumService_ListQuotes_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mediumServiceClient) ListSaved(ctx context.Context, in *SavedBrowseRequest, opts ...grpc.CallOption) (*SavedBrowseResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SavedBrowseResponse)
 	err := c.cc.Invoke(ctx, MediumService_ListSaved_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -243,9 +295,9 @@ func (c *mediumServiceClient) ListSaved(ctx context.Context, in *SavedListReques
 	return out, nil
 }
 
-func (c *mediumServiceClient) ListCitedBy(ctx context.Context, in *CitedByListRequest, opts ...grpc.CallOption) (*CitedByListResponse, error) {
+func (c *mediumServiceClient) ListCitedBy(ctx context.Context, in *CitedByBrowseRequest, opts ...grpc.CallOption) (*CitedByBrowseResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CitedByListResponse)
+	out := new(CitedByBrowseResponse)
 	err := c.cc.Invoke(ctx, MediumService_ListCitedBy_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -253,9 +305,9 @@ func (c *mediumServiceClient) ListCitedBy(ctx context.Context, in *CitedByListRe
 	return out, nil
 }
 
-func (c *mediumServiceClient) ListAuthored(ctx context.Context, in *AuthoredListRequest, opts ...grpc.CallOption) (*AuthoredListResponse, error) {
+func (c *mediumServiceClient) ListAuthored(ctx context.Context, in *AuthoredBrowseRequest, opts ...grpc.CallOption) (*AuthoredBrowseResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AuthoredListResponse)
+	out := new(AuthoredBrowseResponse)
 	err := c.cc.Invoke(ctx, MediumService_ListAuthored_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -322,11 +374,19 @@ type MediumServiceServer interface {
 	HideReply(context.Context, *ReplyHideRequest) (*ReplyHideResponse, error)
 	DetachQuote(context.Context, *QuoteDetachRequest) (*QuoteDetachResponse, error)
 	SetPinned(context.Context, *PinSetRequest) (*PinSetResponse, error)
-	ListQuotes(context.Context, *QuotesListRequest) (*QuotesListResponse, error)
+	BrowseQuotes(context.Context, *QuotesBrowseRequest) (*QuotesBrowseResponse, error)
 	SetSaved(context.Context, *SavedSetRequest) (*SavedSetResponse, error)
-	ListSaved(context.Context, *SavedListRequest) (*SavedListResponse, error)
-	ListCitedBy(context.Context, *CitedByListRequest) (*CitedByListResponse, error)
-	ListAuthored(context.Context, *AuthoredListRequest) (*AuthoredListResponse, error)
+	BrowseSaved(context.Context, *SavedBrowseRequest) (*SavedBrowseResponse, error)
+	BrowseCitedBy(context.Context, *CitedByBrowseRequest) (*CitedByBrowseResponse, error)
+	BrowseAuthored(context.Context, *AuthoredBrowseRequest) (*AuthoredBrowseResponse, error)
+	// The same four under the names they had until v1.0.17, served for one
+	// release so that a service still running the release before can call
+	// them during a rolling deploy. Removed in the release after
+	// (docs/plans/done/bread-names.md).
+	ListQuotes(context.Context, *QuotesBrowseRequest) (*QuotesBrowseResponse, error)
+	ListSaved(context.Context, *SavedBrowseRequest) (*SavedBrowseResponse, error)
+	ListCitedBy(context.Context, *CitedByBrowseRequest) (*CitedByBrowseResponse, error)
+	ListAuthored(context.Context, *AuthoredBrowseRequest) (*AuthoredBrowseResponse, error)
 	// The images of photo posts. A photo is a medium, and these are its
 	// images, so they are kept by the service that keeps the post.
 	AddPhotoUpload(context.Context, *PhotoUploadAddRequest) (*PhotoUploadAddResponse, error)
@@ -382,19 +442,31 @@ func (UnimplementedMediumServiceServer) DetachQuote(context.Context, *QuoteDetac
 func (UnimplementedMediumServiceServer) SetPinned(context.Context, *PinSetRequest) (*PinSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetPinned not implemented")
 }
-func (UnimplementedMediumServiceServer) ListQuotes(context.Context, *QuotesListRequest) (*QuotesListResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListQuotes not implemented")
+func (UnimplementedMediumServiceServer) BrowseQuotes(context.Context, *QuotesBrowseRequest) (*QuotesBrowseResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BrowseQuotes not implemented")
 }
 func (UnimplementedMediumServiceServer) SetSaved(context.Context, *SavedSetRequest) (*SavedSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetSaved not implemented")
 }
-func (UnimplementedMediumServiceServer) ListSaved(context.Context, *SavedListRequest) (*SavedListResponse, error) {
+func (UnimplementedMediumServiceServer) BrowseSaved(context.Context, *SavedBrowseRequest) (*SavedBrowseResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BrowseSaved not implemented")
+}
+func (UnimplementedMediumServiceServer) BrowseCitedBy(context.Context, *CitedByBrowseRequest) (*CitedByBrowseResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BrowseCitedBy not implemented")
+}
+func (UnimplementedMediumServiceServer) BrowseAuthored(context.Context, *AuthoredBrowseRequest) (*AuthoredBrowseResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BrowseAuthored not implemented")
+}
+func (UnimplementedMediumServiceServer) ListQuotes(context.Context, *QuotesBrowseRequest) (*QuotesBrowseResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListQuotes not implemented")
+}
+func (UnimplementedMediumServiceServer) ListSaved(context.Context, *SavedBrowseRequest) (*SavedBrowseResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListSaved not implemented")
 }
-func (UnimplementedMediumServiceServer) ListCitedBy(context.Context, *CitedByListRequest) (*CitedByListResponse, error) {
+func (UnimplementedMediumServiceServer) ListCitedBy(context.Context, *CitedByBrowseRequest) (*CitedByBrowseResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCitedBy not implemented")
 }
-func (UnimplementedMediumServiceServer) ListAuthored(context.Context, *AuthoredListRequest) (*AuthoredListResponse, error) {
+func (UnimplementedMediumServiceServer) ListAuthored(context.Context, *AuthoredBrowseRequest) (*AuthoredBrowseResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAuthored not implemented")
 }
 func (UnimplementedMediumServiceServer) AddPhotoUpload(context.Context, *PhotoUploadAddRequest) (*PhotoUploadAddResponse, error) {
@@ -664,20 +736,20 @@ func _MediumService_SetPinned_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _MediumService_ListQuotes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QuotesListRequest)
+func _MediumService_BrowseQuotes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QuotesBrowseRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MediumServiceServer).ListQuotes(ctx, in)
+		return srv.(MediumServiceServer).BrowseQuotes(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: MediumService_ListQuotes_FullMethodName,
+		FullMethod: MediumService_BrowseQuotes_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MediumServiceServer).ListQuotes(ctx, req.(*QuotesListRequest))
+		return srv.(MediumServiceServer).BrowseQuotes(ctx, req.(*QuotesBrowseRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -700,8 +772,80 @@ func _MediumService_SetSaved_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MediumService_BrowseSaved_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SavedBrowseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MediumServiceServer).BrowseSaved(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MediumService_BrowseSaved_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MediumServiceServer).BrowseSaved(ctx, req.(*SavedBrowseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MediumService_BrowseCitedBy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CitedByBrowseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MediumServiceServer).BrowseCitedBy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MediumService_BrowseCitedBy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MediumServiceServer).BrowseCitedBy(ctx, req.(*CitedByBrowseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MediumService_BrowseAuthored_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthoredBrowseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MediumServiceServer).BrowseAuthored(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MediumService_BrowseAuthored_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MediumServiceServer).BrowseAuthored(ctx, req.(*AuthoredBrowseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MediumService_ListQuotes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QuotesBrowseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MediumServiceServer).ListQuotes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MediumService_ListQuotes_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MediumServiceServer).ListQuotes(ctx, req.(*QuotesBrowseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _MediumService_ListSaved_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SavedListRequest)
+	in := new(SavedBrowseRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -713,13 +857,13 @@ func _MediumService_ListSaved_Handler(srv interface{}, ctx context.Context, dec 
 		FullMethod: MediumService_ListSaved_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MediumServiceServer).ListSaved(ctx, req.(*SavedListRequest))
+		return srv.(MediumServiceServer).ListSaved(ctx, req.(*SavedBrowseRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _MediumService_ListCitedBy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CitedByListRequest)
+	in := new(CitedByBrowseRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -731,13 +875,13 @@ func _MediumService_ListCitedBy_Handler(srv interface{}, ctx context.Context, de
 		FullMethod: MediumService_ListCitedBy_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MediumServiceServer).ListCitedBy(ctx, req.(*CitedByListRequest))
+		return srv.(MediumServiceServer).ListCitedBy(ctx, req.(*CitedByBrowseRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _MediumService_ListAuthored_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AuthoredListRequest)
+	in := new(AuthoredBrowseRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -749,7 +893,7 @@ func _MediumService_ListAuthored_Handler(srv interface{}, ctx context.Context, d
 		FullMethod: MediumService_ListAuthored_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MediumServiceServer).ListAuthored(ctx, req.(*AuthoredListRequest))
+		return srv.(MediumServiceServer).ListAuthored(ctx, req.(*AuthoredBrowseRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -886,12 +1030,28 @@ var MediumService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _MediumService_SetPinned_Handler,
 		},
 		{
-			MethodName: "ListQuotes",
-			Handler:    _MediumService_ListQuotes_Handler,
+			MethodName: "BrowseQuotes",
+			Handler:    _MediumService_BrowseQuotes_Handler,
 		},
 		{
 			MethodName: "SetSaved",
 			Handler:    _MediumService_SetSaved_Handler,
+		},
+		{
+			MethodName: "BrowseSaved",
+			Handler:    _MediumService_BrowseSaved_Handler,
+		},
+		{
+			MethodName: "BrowseCitedBy",
+			Handler:    _MediumService_BrowseCitedBy_Handler,
+		},
+		{
+			MethodName: "BrowseAuthored",
+			Handler:    _MediumService_BrowseAuthored_Handler,
+		},
+		{
+			MethodName: "ListQuotes",
+			Handler:    _MediumService_ListQuotes_Handler,
 		},
 		{
 			MethodName: "ListSaved",

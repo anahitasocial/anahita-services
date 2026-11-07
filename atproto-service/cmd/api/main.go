@@ -208,7 +208,7 @@ func main() {
 	// while are removed from storage, to be copied again when asked for.
 	// Any copy may do it: what one has removed the next does not find.
 	go handlers.RunPictureSweep(ctx, time.Hour, func() int {
-		return env.Keeper.RemoveOldPictures(db, constants.NodeActorATProtoPersonEntityType, time.Now(), 200)
+		return env.Keeper.DeleteOldPictures(db, constants.NodeActorATProtoPersonEntityType, time.Now(), 200)
 	})
 
 	// And what nobody here holds to goes altogether: the posts of

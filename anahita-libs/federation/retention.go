@@ -245,10 +245,10 @@ func PhotoPostsOf(db *sql.DB, ownerID int64) ([]int64, error) {
 	return idsOf(db, photoPostsOf, ownerID, constants.NodeMediumPhotoEntityType)
 }
 
-// RemovePost takes a post from elsewhere away, with what is stored of its
+// DeletePost takes a post from elsewhere away, with what is stored of its
 // pictures. It answers with the post as it was, or nil when there was
 // nothing to take.
-func (k *Keeper) RemovePost(postID int64) (*entities.AnahitaNode, error) {
+func (k *Keeper) DeletePost(postID int64) (*entities.AnahitaNode, error) {
 	post, err := k.Nodes.Read(postID)
 	if err != nil || post == nil || post.ID == 0 || !post.IsRemote() || post.OwnerID <= 0 {
 		return nil, err

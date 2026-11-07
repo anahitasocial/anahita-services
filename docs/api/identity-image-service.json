@@ -123,7 +123,7 @@
         "tags": [
           "identity-image-service"
         ],
-        "x-handler": "identityimage/cmd/api/handlers.(*imageHandler).RemoveAvatar",
+        "x-handler": "identityimage/cmd/api/handlers.(*imageHandler).DeleteAvatar",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -316,7 +316,7 @@
         "tags": [
           "identity-image-service"
         ],
-        "x-handler": "identityimage/cmd/api/handlers.(*imageHandler).RemoveCover",
+        "x-handler": "identityimage/cmd/api/handlers.(*imageHandler).DeleteCover",
         "x-viewer": "signed_in"
       },
       "post": {

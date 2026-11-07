@@ -17,8 +17,8 @@ type SubscriptionsRelInterface interface {
 	// IsSubscribedToMany checks if a given user is subscribed to multiple targets
 	IsSubscribedToMany(personID int64, targetIDs []int64) (map[int64]*entities.SubscriptionStatus, error)
 
-	// UpdateSubscriberCount updates the subscriber count for a given target
-	UpdateSubscriberCount(targetID int64) error
+	// EditSubscriberCount updates the subscriber count for a given target
+	EditSubscriberCount(targetID int64) error
 }
 
 func NewSubscriptionsRelRepo(db *sql.DB) SubscriptionsRelInterface {
@@ -95,12 +95,12 @@ func (repo *SubscriptionsRelRepo) IsSubscribedToMany(personID int64, targetIDs [
 	return statuses, nil
 }
 
-// UpdateSubscriberCount sets a node's subscriber_count to the number of
+// EditSubscriberCount sets a node's subscriber_count to the number of
 // subscription edges pointing at it.
 //
 // It used to write the total into vote_up_count, and passed two values for
 // three placeholders, so every call failed before it could do that.
-func (repo *SubscriptionsRelRepo) UpdateSubscriberCount(targetID int64) error {
+func (repo *SubscriptionsRelRepo) EditSubscriberCount(targetID int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
 	defer cancel()
 

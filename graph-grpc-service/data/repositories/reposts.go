@@ -20,7 +20,7 @@ type RepostsRepoInterface interface {
 	ReadIdByAuthorAndParent(parentID int64, authorID int64) (int64, error)
 	Add(item *entities.AnahitaNode) (int64, error)
 	IsRepostedMany(authorID int64, nodeIDs []int64) (map[int64]bool, error)
-	UpdateRepostCount(parentID int64) error
+	EditRepostCount(parentID int64) error
 }
 
 func NewRepostsRepo(db *sql.DB) RepostsRepoInterface {
@@ -266,8 +266,8 @@ func (repo *RepostsRepo) IsRepostedMany(authorID int64, nodeIDs []int64) (map[in
 	return results, nil
 }
 
-// UpdateRepostCount updates the repost counter for a given parent node.
-func (repo *RepostsRepo) UpdateRepostCount(parentID int64) error {
+// EditRepostCount updates the repost counter for a given parent node.
+func (repo *RepostsRepo) EditRepostCount(parentID int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
 	defer cancel()
 

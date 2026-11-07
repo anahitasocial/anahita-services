@@ -277,11 +277,11 @@ func (h *socialgraphFollowGrpcHandler) addFollow(source *entities.AnahitaNode, t
 // updateCounts recounts who the source follows and who follows the target.
 // Both count follows only, so a request waiting is in neither.
 func (h *socialgraphFollowGrpcHandler) updateCounts(source *entities.AnahitaNode, target *entities.AnahitaNode) error {
-	if err := h.env.Repos.SocialGraphCounts.UpdateLeaderCount(source.ID); err != nil {
+	if err := h.env.Repos.SocialGraphCounts.EditLeaderCount(source.ID); err != nil {
 		return err
 	}
 
-	return h.env.Repos.SocialGraphCounts.UpdateFollowerCount(target.ID)
+	return h.env.Repos.SocialGraphCounts.EditFollowerCount(target.ID)
 }
 
 // publish tells the other services what happened between the source and

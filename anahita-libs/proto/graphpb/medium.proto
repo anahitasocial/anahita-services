@@ -167,26 +167,26 @@ message QuoteDetachResponse {
 }
 
 // The notes that quote a post, as the viewer may see them.
-message QuotesListRequest {
+message QuotesBrowseRequest {
     int64 quoted_id = 1;
     uint64 limit = 2;
     Viewer viewer = 3;
 }
 
-message QuotesListResponse {
+message QuotesBrowseResponse {
     repeated Node quotes = 1;
 }
 
 // The posts that cite a post, newest first, as the viewer may see them: the
 // articles and topics that show it within their text.
-message CitedByListRequest {
+message CitedByBrowseRequest {
     int64 cited_id = 1;
     uint64 limit = 2;
     uint64 offset = 3;
     Viewer viewer = 4;
 }
 
-message CitedByListResponse {
+message CitedByBrowseResponse {
     repeated Node nodes = 1;
     uint64 total = 2;
 }
@@ -203,13 +203,13 @@ message SavedSetResponse {
 }
 
 // What the viewer saved, most recently saved first.
-message SavedListRequest {
+message SavedBrowseRequest {
     uint64 limit = 1;
     uint64 offset = 2;
     Viewer viewer = 3;
 }
 
-message SavedListResponse {
+message SavedBrowseResponse {
     repeated Node nodes = 1;
     uint64 total = 2;
 }
@@ -218,13 +218,13 @@ message SavedListResponse {
 // group, under somebody else's post. For that person's own copy of their
 // data. Read in pages by id, lowest first: `after_id` is the last one of the
 // page before.
-message AuthoredListRequest {
+message AuthoredBrowseRequest {
     int64 person_id = 1;
     int64 after_id = 2;
     uint64 limit = 3;
 }
 
-message AuthoredListResponse {
+message AuthoredBrowseResponse {
     repeated Node nodes = 1;
 }
 
@@ -314,11 +314,20 @@ service MediumService {
     rpc HideReply(ReplyHideRequest) returns (ReplyHideResponse) {}
     rpc DetachQuote(QuoteDetachRequest) returns (QuoteDetachResponse) {}
     rpc SetPinned(PinSetRequest) returns (PinSetResponse) {}
-    rpc ListQuotes(QuotesListRequest) returns (QuotesListResponse) {}
+    rpc BrowseQuotes(QuotesBrowseRequest) returns (QuotesBrowseResponse) {}
     rpc SetSaved(SavedSetRequest) returns (SavedSetResponse) {}
-    rpc ListSaved(SavedListRequest) returns (SavedListResponse) {}
-    rpc ListCitedBy(CitedByListRequest) returns (CitedByListResponse) {}
-    rpc ListAuthored(AuthoredListRequest) returns (AuthoredListResponse) {}
+    rpc BrowseSaved(SavedBrowseRequest) returns (SavedBrowseResponse) {}
+    rpc BrowseCitedBy(CitedByBrowseRequest) returns (CitedByBrowseResponse) {}
+    rpc BrowseAuthored(AuthoredBrowseRequest) returns (AuthoredBrowseResponse) {}
+
+    // The same four under the names they had until v1.0.17, served for one
+    // release so that a service still running the release before can call
+    // them during a rolling deploy. Removed in the release after
+    // (docs/plans/done/bread-names.md).
+    rpc ListQuotes(QuotesBrowseRequest) returns (QuotesBrowseResponse) {}
+    rpc ListSaved(SavedBrowseRequest) returns (SavedBrowseResponse) {}
+    rpc ListCitedBy(CitedByBrowseRequest) returns (CitedByBrowseResponse) {}
+    rpc ListAuthored(AuthoredBrowseRequest) returns (AuthoredBrowseResponse) {}
 
     // The images of photo posts. A photo is a medium, and these are its
     // images, so they are kept by the service that keeps the post.

@@ -56,24 +56,24 @@ type EventsRepoInterface interface {
 	// there is no such event.
 	Cancel(eventID int64) (bool, error)
 
-	// ListFor returns the ids of the events that are one person's, in the
+	// BrowseFor returns the ids of the events that are one person's, in the
 	// order to show them, and how many there are: upcoming, past, hosting or
 	// invited (the constants.EventList* names).
 	//
 	// These are the person's own, so nothing is gated here: they answered
 	// it, look after it or were invited to it. Whoever sends them on decides
 	// how much of an event the person was only invited to is shown.
-	ListFor(personID int64, filter string, limit uint64, offset uint64) ([]int64, uint64, error)
+	BrowseFor(personID int64, filter string, limit uint64, offset uint64) ([]int64, uint64, error)
 
-	// ListHostedBy returns the ids of the events a group hosts, upcoming or
+	// BrowseHostedBy returns the ids of the events a group hosts, upcoming or
 	// past, and how many. Unlike a person's own lists these are gated: only
 	// the events this viewer may see.
-	ListHostedBy(groupID int64, viewer *entities.Viewer, filter string, limit uint64, offset uint64) ([]int64, uint64, error)
+	BrowseHostedBy(groupID int64, viewer *entities.Viewer, filter string, limit uint64, offset uint64) ([]int64, uint64, error)
 
-	// ListOpen returns the ids of every event still to come or on now that
+	// BrowseOpen returns the ids of every event still to come or on now that
 	// this viewer may see and that was not called off, soonest first, and
 	// how many there are: what is on, whoever hosts it.
-	ListOpen(viewer *entities.Viewer, filter entities.EventDiscoverFilter, limit uint64, offset uint64) ([]int64, uint64, error)
+	BrowseOpen(viewer *entities.Viewer, filter entities.EventDiscoverFilter, limit uint64, offset uint64) ([]int64, uint64, error)
 
 	// AttendeeIDs returns who answered an event: everybody, or only the
 	// ones going. For telling them something.
@@ -477,7 +477,7 @@ const eventsLatestFirst = `
 ORDER BY node.starts_at DESC, node.id DESC
 LIMIT ? OFFSET ?`
 
-func (r *eventsRepo) ListFor(personID int64, filter string, limit uint64, offset uint64) ([]int64, uint64, error) {
+func (r *eventsRepo) BrowseFor(personID int64, filter string, limit uint64, offset uint64) ([]int64, uint64, error) {
 	var (
 		from  string
 		order string
@@ -528,12 +528,12 @@ func (r *eventsRepo) ListFor(personID int64, filter string, limit uint64, offset
 	return ids, total, rows.Err()
 }
 
-// ListOpen lists what is on for a viewer: every event not over and not
+// BrowseOpen lists what is on for a viewer: every event not over and not
 // called off, behind the same gate as every other list of actors, so an
 // event for its followers alone is shown to them and nobody else. A site
 // administrator is gated as anybody is: this is a list to find things to
 // go to, not a way to look at events nobody asked them to.
-func (r *eventsRepo) ListOpen(viewer *entities.Viewer, filter entities.EventDiscoverFilter, limit uint64, offset uint64) ([]int64, uint64, error) {
+func (r *eventsRepo) BrowseOpen(viewer *entities.Viewer, filter entities.EventDiscoverFilter, limit uint64, offset uint64) ([]int64, uint64, error) {
 	if viewer == nil {
 		viewer = entities.NewViewer()
 	}
@@ -618,10 +618,10 @@ func (r *eventsRepo) ListOpen(viewer *entities.Viewer, filter entities.EventDisc
 	return ids, total, rows.Err()
 }
 
-// ListHostedBy lists a group's events for a viewer. Built with the same
+// BrowseHostedBy lists a group's events for a viewer. Built with the same
 // gate as every other list of actors, so an event for its followers alone
 // is not shown to somebody who is not one, whoever hosts it.
-func (r *eventsRepo) ListHostedBy(groupID int64, viewer *entities.Viewer, filter string, limit uint64, offset uint64) ([]int64, uint64, error) {
+func (r *eventsRepo) BrowseHostedBy(groupID int64, viewer *entities.Viewer, filter string, limit uint64, offset uint64) ([]int64, uint64, error) {
 	if viewer == nil {
 		viewer = entities.NewViewer()
 	}

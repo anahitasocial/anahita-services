@@ -40,7 +40,7 @@ func (h *eventsHandler) Handle(payload *event.EventPayload) error {
 	// A purged person's own reports go with them: what they wrote in one is
 	// theirs, and a purge removes everything a person wrote.
 	if strings.HasPrefix(payload.Name, "node.actor.") {
-		removed, err := h.Repos.Cases.RemoveReportsBy(payload.ObjectID)
+		removed, err := h.Repos.Cases.DeleteReportsBy(payload.ObjectID)
 		if err != nil {
 			log.Printf("abuse report: could not remove the reports filed by %d: %v", payload.ObjectID, err)
 			return err

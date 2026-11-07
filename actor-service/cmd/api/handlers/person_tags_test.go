@@ -263,17 +263,17 @@ func TestTheTaggedApproveOrDeclineAndTheAuthorUntags(t *testing.T) {
 	}
 
 	// A stranger cannot take them out; they and the author can.
-	if rec := f.call(http.MethodDelete, "/people/2/tags/100", tagViewer(tagNobodyID), params, f.h.RemoveTag); rec.Code != http.StatusForbidden {
+	if rec := f.call(http.MethodDelete, "/people/2/tags/100", tagViewer(tagNobodyID), params, f.h.DeleteTag); rec.Code != http.StatusForbidden {
 		t.Errorf("stranger removing: %d", rec.Code)
 	}
-	if rec := f.call(http.MethodDelete, "/people/2/tags/100", tagViewer(tagPersonID), params, f.h.RemoveTag); rec.Code != http.StatusNoContent {
+	if rec := f.call(http.MethodDelete, "/people/2/tags/100", tagViewer(tagPersonID), params, f.h.DeleteTag); rec.Code != http.StatusNoContent {
 		t.Errorf("removing themselves: %d", rec.Code)
 	}
 	if len(f.edges.edges) != 0 {
 		t.Errorf("still tagged: %d", len(f.edges.edges))
 	}
 	f.tag(tagAuthorID, "3", "100")
-	if rec := f.call(http.MethodDelete, "/people/3/tags/100", tagViewer(tagAuthorID), map[string]string{"id": "3", "post_id": "100"}, f.h.RemoveTag); rec.Code != http.StatusNoContent || len(f.edges.edges) != 0 {
+	if rec := f.call(http.MethodDelete, "/people/3/tags/100", tagViewer(tagAuthorID), map[string]string{"id": "3", "post_id": "100"}, f.h.DeleteTag); rec.Code != http.StatusNoContent || len(f.edges.edges) != 0 {
 		t.Errorf("author untagging: %d", rec.Code)
 	}
 }

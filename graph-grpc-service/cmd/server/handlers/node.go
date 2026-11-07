@@ -161,10 +161,10 @@ func (h *nodeHandler) DeleteRemoteActor(ctx context.Context, req *graphpb.NodeDe
 
 	// Whoever followed them, or was followed by them, has one fewer.
 	for _, id := range neighbours {
-		if err := h.env.Repos.SocialGraphCounts.UpdateLeaderCount(id); err != nil {
+		if err := h.env.Repos.SocialGraphCounts.EditLeaderCount(id); err != nil {
 			log.Printf("counting who %d follows failed: %v", id, err)
 		}
-		if err := h.env.Repos.SocialGraphCounts.UpdateFollowerCount(id); err != nil {
+		if err := h.env.Repos.SocialGraphCounts.EditFollowerCount(id); err != nil {
 			log.Printf("counting the followers of %d failed: %v", id, err)
 		}
 	}

@@ -281,7 +281,7 @@ func (s *OAuthService) RefreshTokenPair(
 	// Best-effort — log on failure but don't fail the refresh, since
 	// the new token pair is already valid and useful to the caller.
 	if authLog, err := s.Repos.AuthLogs.ReadByOAuthRefreshTokenID(stored.ID); err == nil {
-		if err := s.Repos.AuthLogs.UpdateOAuthRefreshTokenID(
+		if err := s.Repos.AuthLogs.EditOAuthRefreshTokenID(
 			authLog.ID,
 			persistedRefreshNew.ID,
 		); err != nil {

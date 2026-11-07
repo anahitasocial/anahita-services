@@ -2,9 +2,9 @@
 
 Asked for by the user on 2026-11-07, after anahita-web's code and addresses
 were given BREAD names the same day: "we would want to stick to BREAD as much
-as possible." The rule is in [AGENTS.md](../../AGENTS.md#code), rule 5:
-**Browse, Read, Edit, Add, Delete**. Planned for later the same day. Not
-built.
+as possible." The rule is in [AGENTS.md](../../../AGENTS.md#code), rule 5:
+**Browse, Read, Edit, Add, Delete**. Planned for later the same day, and
+done that day, for v1.0.17.
 
 ## Contents
 
@@ -75,3 +75,14 @@ after. The release notes say so.
 3. On the development stack, the pages that use the renamed calls: a
    profile's events, an event's invitations, a post's quotes, saved posts,
    what a post is cited by, removing a picture and a profile photo.
+
+## Done
+
+2026-11-07. The thirty renamed with gopls, each interface with what
+implements it; the five gRPC methods under their new names, the old ones
+served beside them in `graph-grpc-service/cmd/server/handlers/old_names.go`
+until the release after v1.0.17; the API reference made again, where only
+the handlers' names changed. Every module built and vetted, and the tests
+of each one touched passed. On the development stack, the saved posts, a
+post's quotes and what cites it, and the events lists answered through the
+new names.

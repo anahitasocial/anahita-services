@@ -116,7 +116,7 @@ func (h *subscriptionGrpcHandler) Add(ctx context.Context, req *graphpb.Subscrip
 	}
 
 	if edge.ID > 0 {
-		if err := h.env.Repos.SubscriptionsRel.UpdateSubscriberCount(target.ID); err != nil {
+		if err := h.env.Repos.SubscriptionsRel.EditSubscriberCount(target.ID); err != nil {
 			log.Printf("Error updating subscriber count for target node: %v", err)
 		}
 	}
@@ -161,7 +161,7 @@ func (h *subscriptionGrpcHandler) Delete(ctx context.Context, req *graphpb.Subsc
 	}
 
 	if deleteCount > 0 {
-		if err := h.env.Repos.SubscriptionsRel.UpdateSubscriberCount(target.ID); err != nil {
+		if err := h.env.Repos.SubscriptionsRel.EditSubscriberCount(target.ID); err != nil {
 			log.Printf("Error updating subscriber count for target node: %v", err)
 		}
 	}

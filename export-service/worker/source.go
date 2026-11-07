@@ -37,7 +37,7 @@ func (g *GraphSource) Profile(personID int64) (*entities.AnahitaNode, error) {
 }
 
 func (g *GraphSource) Authored(personID, afterID int64, limit uint64) ([]*entities.AnahitaNode, error) {
-	return g.Written.ListAuthored(personID, afterID, limit)
+	return g.Written.BrowseAuthored(personID, afterID, limit)
 }
 
 func (g *GraphSource) PhotoFiles(postIDs []int64) ([]*entities.PhotoFile, error) {

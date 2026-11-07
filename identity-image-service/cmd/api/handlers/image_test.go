@@ -436,10 +436,10 @@ func TestSomebodyElseCannotChangeAPersonsAvatar(t *testing.T) {
 	}
 
 	c, rec = request(t, http.MethodDelete, ada, grace, "", nil)
-	if err := h.RemoveAvatar(c); err != nil {
+	if err := h.DeleteAvatar(c); err != nil {
 		t.Fatal(err)
 	}
-	answers.Handler(h.RemoveAvatar, rec)
+	answers.Handler(h.DeleteAvatar, rec)
 	if rec.Code != http.StatusForbidden {
 		t.Errorf("removing: status = %d", rec.Code)
 	}
@@ -489,10 +489,10 @@ func TestRemovingClearsTheNameAndThenDeletesTheImage(t *testing.T) {
 	w.node.AvatarFilename = "old.jpg"
 
 	c, rec := request(t, http.MethodDelete, ada, ada, "", nil)
-	if err := handlerFor(w).RemoveAvatar(c); err != nil {
+	if err := handlerFor(w).DeleteAvatar(c); err != nil {
 		t.Fatal(err)
 	}
-	answers.Handler(handlerFor(w).RemoveAvatar, rec)
+	answers.Handler(handlerFor(w).DeleteAvatar, rec)
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d", rec.Code)
@@ -516,10 +516,10 @@ func TestIfTheNameCannotBeClearedTheImageIsKept(t *testing.T) {
 	w.failClear = true
 
 	c, rec := request(t, http.MethodDelete, ada, ada, "", nil)
-	if err := handlerFor(w).RemoveAvatar(c); err != nil {
+	if err := handlerFor(w).DeleteAvatar(c); err != nil {
 		t.Fatal(err)
 	}
-	answers.Handler(handlerFor(w).RemoveAvatar, rec)
+	answers.Handler(handlerFor(w).DeleteAvatar, rec)
 
 	if rec.Code != http.StatusInternalServerError {
 		t.Errorf("status = %d", rec.Code)
@@ -533,10 +533,10 @@ func TestRemovingWhatIsNotThereIsNotAFailure(t *testing.T) {
 	w := newWorld(personType)
 
 	c, rec := request(t, http.MethodDelete, ada, ada, "", nil)
-	if err := handlerFor(w).RemoveCover(c); err != nil {
+	if err := handlerFor(w).DeleteCover(c); err != nil {
 		t.Fatal(err)
 	}
-	answers.Handler(handlerFor(w).RemoveCover, rec)
+	answers.Handler(handlerFor(w).DeleteCover, rec)
 
 	if rec.Code != http.StatusOK || len(w.log) != 0 {
 		t.Errorf("status = %d, did %v", rec.Code, w.log)

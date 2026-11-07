@@ -992,7 +992,7 @@ func TestPicturesAreRemovedAndCopiedAgain(t *testing.T) {
 	}
 	now := time.Date(2026, 11, 20, 0, 0, 0, 0, time.UTC)
 
-	had, err := w.h.Keeper.RemovePictures(post.ID, now)
+	had, err := w.h.Keeper.DeletePictures(post.ID, now)
 	if err != nil || !had {
 		t.Fatalf("removed: %v, %v", had, err)
 	}
@@ -1005,7 +1005,7 @@ func TestPicturesAreRemovedAndCopiedAgain(t *testing.T) {
 		t.Errorf("after removing: %d listed, %d files, body %q", len(w.listed.kept[post.ID]), len(w.files.stored), post.Body)
 	}
 	// Asked to remove again, there is nothing to remove.
-	if had, _ := w.h.Keeper.RemovePictures(post.ID, now); had {
+	if had, _ := w.h.Keeper.DeletePictures(post.ID, now); had {
 		t.Error("removed twice")
 	}
 
@@ -1029,7 +1029,7 @@ func TestPicturesAreRemovedAndCopiedAgain(t *testing.T) {
 
 	// Removed once more, and taken away on Bluesky meanwhile: the post
 	// says they are no longer to be had, and keeps what they showed.
-	if _, err := w.h.Keeper.RemovePictures(post.ID, now); err != nil {
+	if _, err := w.h.Keeper.DeletePictures(post.ID, now); err != nil {
 		t.Fatal(err)
 	}
 	delete(w.bluesky.posts, uri)

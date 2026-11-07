@@ -312,7 +312,7 @@ func (h *personHandler) ApproveTag(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-// RemoveTag takes a person out of a post: the person, declining or
+// DeleteTag takes a person out of a post: the person, declining or
 // changing their mind, or the post's author.
 //
 //	DELETE /people/:id/tags/:post_id
@@ -320,7 +320,7 @@ func (h *personHandler) ApproveTag(c echo.Context) error {
 //	204  removed, or there was nothing to remove
 //	403  the viewer is neither the person nor the post's author
 //	404  no such photo or video the viewer can see
-func (h *personHandler) RemoveTag(c echo.Context) error {
+func (h *personHandler) DeleteTag(c echo.Context) error {
 	viewer := getViewer(c)
 	personID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil || personID <= 0 {

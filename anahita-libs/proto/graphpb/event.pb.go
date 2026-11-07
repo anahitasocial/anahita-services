@@ -630,7 +630,7 @@ func (x *EventCancelResponse) GetChanged() bool {
 
 // The events that are one person's: the ones they answered, were invited
 // to, or look after.
-type EventListRequest struct {
+type EventBrowseRequest struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	PersonId int64                  `protobuf:"varint,1,opt,name=person_id,json=personId,proto3" json:"person_id,omitempty"`
 	// upcoming, past, hosting or invited.
@@ -657,20 +657,20 @@ type EventListRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *EventListRequest) Reset() {
-	*x = EventListRequest{}
+func (x *EventBrowseRequest) Reset() {
+	*x = EventBrowseRequest{}
 	mi := &file_proto_graphpb_event_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *EventListRequest) String() string {
+func (x *EventBrowseRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*EventListRequest) ProtoMessage() {}
+func (*EventBrowseRequest) ProtoMessage() {}
 
-func (x *EventListRequest) ProtoReflect() protoreflect.Message {
+func (x *EventBrowseRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_graphpb_event_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -682,89 +682,89 @@ func (x *EventListRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use EventListRequest.ProtoReflect.Descriptor instead.
-func (*EventListRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use EventBrowseRequest.ProtoReflect.Descriptor instead.
+func (*EventBrowseRequest) Descriptor() ([]byte, []int) {
 	return file_proto_graphpb_event_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *EventListRequest) GetPersonId() int64 {
+func (x *EventBrowseRequest) GetPersonId() int64 {
 	if x != nil {
 		return x.PersonId
 	}
 	return 0
 }
 
-func (x *EventListRequest) GetFilter() string {
+func (x *EventBrowseRequest) GetFilter() string {
 	if x != nil {
 		return x.Filter
 	}
 	return ""
 }
 
-func (x *EventListRequest) GetLimit() uint64 {
+func (x *EventBrowseRequest) GetLimit() uint64 {
 	if x != nil {
 		return x.Limit
 	}
 	return 0
 }
 
-func (x *EventListRequest) GetOffset() uint64 {
+func (x *EventBrowseRequest) GetOffset() uint64 {
 	if x != nil {
 		return x.Offset
 	}
 	return 0
 }
 
-func (x *EventListRequest) GetHostId() int64 {
+func (x *EventBrowseRequest) GetHostId() int64 {
 	if x != nil {
 		return x.HostId
 	}
 	return 0
 }
 
-func (x *EventListRequest) GetViewerId() int64 {
+func (x *EventBrowseRequest) GetViewerId() int64 {
 	if x != nil {
 		return x.ViewerId
 	}
 	return 0
 }
 
-func (x *EventListRequest) GetViewerPersonType() string {
+func (x *EventBrowseRequest) GetViewerPersonType() string {
 	if x != nil {
 		return x.ViewerPersonType
 	}
 	return ""
 }
 
-func (x *EventListRequest) GetFrom() string {
+func (x *EventBrowseRequest) GetFrom() string {
 	if x != nil {
 		return x.From
 	}
 	return ""
 }
 
-func (x *EventListRequest) GetTo() string {
+func (x *EventBrowseRequest) GetTo() string {
 	if x != nil {
 		return x.To
 	}
 	return ""
 }
 
-func (x *EventListRequest) GetOnline() bool {
+func (x *EventBrowseRequest) GetOnline() bool {
 	if x != nil {
 		return x.Online
 	}
 	return false
 }
 
-func (x *EventListRequest) GetFollowing() bool {
+func (x *EventBrowseRequest) GetFollowing() bool {
 	if x != nil {
 		return x.Following
 	}
 	return false
 }
 
-type EventListResponse struct {
+type EventBrowseResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// In the order to show them.
 	Ids           []int64 `protobuf:"varint,1,rep,packed,name=ids,proto3" json:"ids,omitempty"`
@@ -773,20 +773,20 @@ type EventListResponse struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *EventListResponse) Reset() {
-	*x = EventListResponse{}
+func (x *EventBrowseResponse) Reset() {
+	*x = EventBrowseResponse{}
 	mi := &file_proto_graphpb_event_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *EventListResponse) String() string {
+func (x *EventBrowseResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*EventListResponse) ProtoMessage() {}
+func (*EventBrowseResponse) ProtoMessage() {}
 
-func (x *EventListResponse) ProtoReflect() protoreflect.Message {
+func (x *EventBrowseResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_graphpb_event_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -798,19 +798,19 @@ func (x *EventListResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use EventListResponse.ProtoReflect.Descriptor instead.
-func (*EventListResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use EventBrowseResponse.ProtoReflect.Descriptor instead.
+func (*EventBrowseResponse) Descriptor() ([]byte, []int) {
 	return file_proto_graphpb_event_proto_rawDescGZIP(), []int{12}
 }
 
-func (x *EventListResponse) GetIds() []int64 {
+func (x *EventBrowseResponse) GetIds() []int64 {
 	if x != nil {
 		return x.Ids
 	}
 	return nil
 }
 
-func (x *EventListResponse) GetTotal() uint64 {
+func (x *EventBrowseResponse) GetTotal() uint64 {
 	if x != nil {
 		return x.Total
 	}
@@ -864,8 +864,8 @@ const file_proto_graphpb_event_proto_rawDesc = "" +
 	"\bevent_id\x18\x01 \x01(\x03R\aeventId\x12\x1b\n" +
 	"\tviewer_id\x18\x02 \x01(\x03R\bviewerId\"/\n" +
 	"\x13EventCancelResponse\x12\x18\n" +
-	"\achanged\x18\x01 \x01(\bR\achanged\"\xb3\x02\n" +
-	"\x10EventListRequest\x12\x1b\n" +
+	"\achanged\x18\x01 \x01(\bR\achanged\"\xb5\x02\n" +
+	"\x12EventBrowseRequest\x12\x1b\n" +
 	"\tperson_id\x18\x01 \x01(\x03R\bpersonId\x12\x16\n" +
 	"\x06filter\x18\x02 \x01(\tR\x06filter\x12\x14\n" +
 	"\x05limit\x18\x03 \x01(\x04R\x05limit\x12\x16\n" +
@@ -877,16 +877,17 @@ const file_proto_graphpb_event_proto_rawDesc = "" +
 	"\x02to\x18\t \x01(\tR\x02to\x12\x16\n" +
 	"\x06online\x18\n" +
 	" \x01(\bR\x06online\x12\x1c\n" +
-	"\tfollowing\x18\v \x01(\bR\tfollowing\";\n" +
-	"\x11EventListResponse\x12\x10\n" +
+	"\tfollowing\x18\v \x01(\bR\tfollowing\"=\n" +
+	"\x13EventBrowseResponse\x12\x10\n" +
 	"\x03ids\x18\x01 \x03(\x03R\x03ids\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\x04R\x05total2\x94\x03\n" +
+	"\x05total\x18\x02 \x01(\x04R\x05total2\xd9\x03\n" +
 	"\fEventService\x129\n" +
 	"\x04Save\x12\x17.graph.EventSaveRequest\x1a\x18.graph.EventSaveResponse\x129\n" +
 	"\x04Read\x12\x17.graph.EventReadRequest\x1a\x18.graph.EventReadResponse\x129\n" +
 	"\x04Rsvp\x12\x17.graph.EventRsvpRequest\x1a\x18.graph.EventRsvpResponse\x12?\n" +
-	"\x06Cancel\x12\x19.graph.EventCancelRequest\x1a\x1a.graph.EventCancelResponse\x129\n" +
-	"\x04List\x12\x17.graph.EventListRequest\x1a\x18.graph.EventListResponse\x12W\n" +
+	"\x06Cancel\x12\x19.graph.EventCancelRequest\x1a\x1a.graph.EventCancelResponse\x12?\n" +
+	"\x06Browse\x12\x19.graph.EventBrowseRequest\x1a\x1a.graph.EventBrowseResponse\x12=\n" +
+	"\x04List\x12\x19.graph.EventBrowseRequest\x1a\x1a.graph.EventBrowseResponse\x12W\n" +
 	"\x0eAnnounceChange\x12!.graph.EventAnnounceChangeRequest\x1a\".graph.EventAnnounceChangeResponseB\n" +
 	"Z\b/graphpbb\x06proto3"
 
@@ -915,8 +916,8 @@ var file_proto_graphpb_event_proto_goTypes = []any{
 	(*EventRsvpResponse)(nil),           // 8: graph.EventRsvpResponse
 	(*EventCancelRequest)(nil),          // 9: graph.EventCancelRequest
 	(*EventCancelResponse)(nil),         // 10: graph.EventCancelResponse
-	(*EventListRequest)(nil),            // 11: graph.EventListRequest
-	(*EventListResponse)(nil),           // 12: graph.EventListResponse
+	(*EventBrowseRequest)(nil),          // 11: graph.EventBrowseRequest
+	(*EventBrowseResponse)(nil),         // 12: graph.EventBrowseResponse
 	nil,                                 // 13: graph.EventReadResponse.EventsEntry
 }
 var file_proto_graphpb_event_proto_depIdxs = []int32{
@@ -927,16 +928,18 @@ var file_proto_graphpb_event_proto_depIdxs = []int32{
 	3,  // 4: graph.EventService.Read:input_type -> graph.EventReadRequest
 	5,  // 5: graph.EventService.Rsvp:input_type -> graph.EventRsvpRequest
 	9,  // 6: graph.EventService.Cancel:input_type -> graph.EventCancelRequest
-	11, // 7: graph.EventService.List:input_type -> graph.EventListRequest
-	6,  // 8: graph.EventService.AnnounceChange:input_type -> graph.EventAnnounceChangeRequest
-	2,  // 9: graph.EventService.Save:output_type -> graph.EventSaveResponse
-	4,  // 10: graph.EventService.Read:output_type -> graph.EventReadResponse
-	8,  // 11: graph.EventService.Rsvp:output_type -> graph.EventRsvpResponse
-	10, // 12: graph.EventService.Cancel:output_type -> graph.EventCancelResponse
-	12, // 13: graph.EventService.List:output_type -> graph.EventListResponse
-	7,  // 14: graph.EventService.AnnounceChange:output_type -> graph.EventAnnounceChangeResponse
-	9,  // [9:15] is the sub-list for method output_type
-	3,  // [3:9] is the sub-list for method input_type
+	11, // 7: graph.EventService.Browse:input_type -> graph.EventBrowseRequest
+	11, // 8: graph.EventService.List:input_type -> graph.EventBrowseRequest
+	6,  // 9: graph.EventService.AnnounceChange:input_type -> graph.EventAnnounceChangeRequest
+	2,  // 10: graph.EventService.Save:output_type -> graph.EventSaveResponse
+	4,  // 11: graph.EventService.Read:output_type -> graph.EventReadResponse
+	8,  // 12: graph.EventService.Rsvp:output_type -> graph.EventRsvpResponse
+	10, // 13: graph.EventService.Cancel:output_type -> graph.EventCancelResponse
+	12, // 14: graph.EventService.Browse:output_type -> graph.EventBrowseResponse
+	12, // 15: graph.EventService.List:output_type -> graph.EventBrowseResponse
+	7,  // 16: graph.EventService.AnnounceChange:output_type -> graph.EventAnnounceChangeResponse
+	10, // [10:17] is the sub-list for method output_type
+	3,  // [3:10] is the sub-list for method input_type
 	3,  // [3:3] is the sub-list for extension type_name
 	3,  // [3:3] is the sub-list for extension extendee
 	0,  // [0:3] is the sub-list for field type_name

@@ -32,17 +32,17 @@ type EventsGRPCInterface interface {
 	// has changed, except whoever changed it.
 	AnnounceChange(eventID int64, viewerID int64) error
 
-	// ListFor returns the ids of the events that are one person's, in the
+	// BrowseFor returns the ids of the events that are one person's, in the
 	// order to show them, and how many there are. The filter is one of the
 	// constants.EventList* names.
-	ListFor(personID int64, filter string, limit uint64, offset uint64) ([]int64, uint64, error)
+	BrowseFor(personID int64, filter string, limit uint64, offset uint64) ([]int64, uint64, error)
 
-	// ListHostedBy returns the ids of the events a group hosts that this
+	// BrowseHostedBy returns the ids of the events a group hosts that this
 	// viewer may see, upcoming or past, and how many there are.
-	ListHostedBy(groupID int64, viewer *entities.Viewer, filter string, limit uint64, offset uint64) ([]int64, uint64, error)
-	// ListOpen returns the ids of every event still to come that this
+	BrowseHostedBy(groupID int64, viewer *entities.Viewer, filter string, limit uint64, offset uint64) ([]int64, uint64, error)
+	// BrowseOpen returns the ids of every event still to come that this
 	// viewer may see, soonest first, and how many there are.
-	ListOpen(viewer *entities.Viewer, filter entities.EventDiscoverFilter, limit uint64, offset uint64) ([]int64, uint64, error)
+	BrowseOpen(viewer *entities.Viewer, filter entities.EventDiscoverFilter, limit uint64, offset uint64) ([]int64, uint64, error)
 }
 
 type EventsGRPC struct {
@@ -172,13 +172,13 @@ func (srv *EventsGRPC) Cancel(eventID int64, viewerID int64) (bool, error) {
 	return resp.Changed, nil
 }
 
-func (srv *EventsGRPC) ListFor(personID int64, filter string, limit uint64, offset uint64) ([]int64, uint64, error) {
+func (srv *EventsGRPC) BrowseFor(personID int64, filter string, limit uint64, offset uint64) ([]int64, uint64, error) {
 	client, err := srv.getClient()
 	if err != nil {
 		return nil, 0, err
 	}
 
-	resp, err := client.List(context.Background(), &graphpb.EventListRequest{
+	resp, err := client.Browse(context.Background(), &graphpb.EventBrowseRequest{
 		PersonId: personID,
 		Filter:   filter,
 		Limit:    limit,
@@ -191,13 +191,13 @@ func (srv *EventsGRPC) ListFor(personID int64, filter string, limit uint64, offs
 	return resp.Ids, resp.Total, nil
 }
 
-func (srv *EventsGRPC) ListHostedBy(groupID int64, viewer *entities.Viewer, filter string, limit uint64, offset uint64) ([]int64, uint64, error) {
+func (srv *EventsGRPC) BrowseHostedBy(groupID int64, viewer *entities.Viewer, filter string, limit uint64, offset uint64) ([]int64, uint64, error) {
 	client, err := srv.getClient()
 	if err != nil {
 		return nil, 0, err
 	}
 
-	req := &graphpb.EventListRequest{
+	req := &graphpb.EventBrowseRequest{
 		HostId: groupID,
 		Filter: filter,
 		Limit:  limit,
@@ -208,7 +208,7 @@ func (srv *EventsGRPC) ListHostedBy(groupID int64, viewer *entities.Viewer, filt
 		req.ViewerPersonType = viewer.PersonType
 	}
 
-	resp, err := client.List(context.Background(), req)
+	resp, err := client.Browse(context.Background(), req)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -216,13 +216,13 @@ func (srv *EventsGRPC) ListHostedBy(groupID int64, viewer *entities.Viewer, filt
 	return resp.Ids, resp.Total, nil
 }
 
-func (srv *EventsGRPC) ListOpen(viewer *entities.Viewer, filter entities.EventDiscoverFilter, limit uint64, offset uint64) ([]int64, uint64, error) {
+func (srv *EventsGRPC) BrowseOpen(viewer *entities.Viewer, filter entities.EventDiscoverFilter, limit uint64, offset uint64) ([]int64, uint64, error) {
 	client, err := srv.getClient()
 	if err != nil {
 		return nil, 0, err
 	}
 
-	req := &graphpb.EventListRequest{
+	req := &graphpb.EventBrowseRequest{
 		Filter:    constants.EventListDiscover,
 		Limit:     limit,
 		Offset:    offset,
@@ -240,7 +240,7 @@ func (srv *EventsGRPC) ListOpen(viewer *entities.Viewer, filter entities.EventDi
 		req.ViewerPersonType = viewer.PersonType
 	}
 
-	resp, err := client.List(context.Background(), req)
+	resp, err := client.Browse(context.Background(), req)
 	if err != nil {
 		return nil, 0, err
 	}

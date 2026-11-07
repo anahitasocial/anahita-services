@@ -17,8 +17,8 @@ type LikesRelInterface interface {
 	// IsLikedMany returns a map of node IDs to their liked status by the actor
 	IsLikedMany(personID int64, targetIDs []int64) (map[int64]*entities.LikeStatus, error)
 
-	// UpdateLikeCount updates like count for a node
-	UpdateLikeCount(targetID int64) error
+	// EditLikeCount updates like count for a node
+	EditLikeCount(targetID int64) error
 }
 
 // NewLikes creates a new Like repository
@@ -97,7 +97,7 @@ func (repo *LikesRelRepo) IsLikedMany(personID int64, targetIDs []int64) (map[in
 }
 
 // UpdateLikeCounts updates like counts for a node
-func (repo *LikesRelRepo) UpdateLikeCount(targetID int64) error {
+func (repo *LikesRelRepo) EditLikeCount(targetID int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
 	defer cancel()
 

@@ -241,7 +241,7 @@ func TestEventListsAndWhoIsGoing(t *testing.T) {
 
 	list := func(person int64, filter string) []int64 {
 		t.Helper()
-		ids, total, err := repo.ListFor(person, filter, 20, 0)
+		ids, total, err := repo.BrowseFor(person, filter, 20, 0)
 		if err != nil {
 			t.Fatalf("%s: %v", filter, err)
 		}
@@ -282,7 +282,7 @@ func TestEventListsAndWhoIsGoing(t *testing.T) {
 	if got := list(replyBob, constants.EventListHosting); len(got) != 0 {
 		t.Errorf("Bob, hosting: %v, want nothing", got)
 	}
-	if _, _, err := repo.ListFor(replyAlice, "everything", 20, 0); err == nil {
+	if _, _, err := repo.BrowseFor(replyAlice, "everything", 20, 0); err == nil {
 		t.Error("a list there is no such thing as was given")
 	}
 
@@ -358,7 +358,7 @@ func TestEventsHostedByAGroup(t *testing.T) {
 
 	hosted := func(viewer int64, filter string) map[int64]bool {
 		t.Helper()
-		ids, total, err := repo.ListHostedBy(replyGroup, replyViewer(viewer), filter, 20, 0)
+		ids, total, err := repo.BrowseHostedBy(replyGroup, replyViewer(viewer), filter, 20, 0)
 		if err != nil {
 			t.Fatalf("%s: %v", filter, err)
 		}
@@ -390,7 +390,7 @@ func TestEventsHostedByAGroup(t *testing.T) {
 	if got := hosted(0, constants.EventListUpcoming); !sameSet(got, testEvent) {
 		t.Errorf("a visitor, upcoming: %v, want the picnic alone", got)
 	}
-	if _, _, err := repo.ListHostedBy(replyGroup, replyViewer(replyBob), constants.EventListInvited, 20, 0); err == nil {
+	if _, _, err := repo.BrowseHostedBy(replyGroup, replyViewer(replyBob), constants.EventListInvited, 20, 0); err == nil {
 		t.Error("a list a group has no such thing as was given")
 	}
 
@@ -475,7 +475,7 @@ func TestEventsThatAreOn(t *testing.T) {
 
 	on := func(viewer int64) []int64 {
 		t.Helper()
-		ids, total, err := repo.ListOpen(replyViewer(viewer), entities.EventDiscoverFilter{}, 20, 0)
+		ids, total, err := repo.BrowseOpen(replyViewer(viewer), entities.EventDiscoverFilter{}, 20, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -509,14 +509,14 @@ func TestEventsThatAreOn(t *testing.T) {
 	}
 
 	// Paged: the second of them alone.
-	ids, total, err := repo.ListOpen(replyViewer(0), entities.EventDiscoverFilter{}, 1, 1)
+	ids, total, err := repo.BrowseOpen(replyViewer(0), entities.EventDiscoverFilter{}, 1, 1)
 	if err != nil || total != 2 || !same(ids, testEvent) {
 		t.Errorf("the second page: %v of %d (err %v), want the picnic of 2", ids, total, err)
 	}
 
 	narrowed := func(viewer int64, filter entities.EventDiscoverFilter) []int64 {
 		t.Helper()
-		ids, total, err := repo.ListOpen(replyViewer(viewer), filter, 20, 0)
+		ids, total, err := repo.BrowseOpen(replyViewer(viewer), filter, 20, 0)
 		if err != nil {
 			t.Fatal(err)
 		}

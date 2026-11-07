@@ -120,10 +120,10 @@ func (h *eventGrpcHandler) Rsvp(ctx context.Context, req *graphpb.EventRsvpReque
 	}
 
 	if result == constants.EventRsvpSaved {
-		if err = h.env.Repos.SocialGraphCounts.UpdateLeaderCount(req.PersonId); err != nil {
+		if err = h.env.Repos.SocialGraphCounts.EditLeaderCount(req.PersonId); err != nil {
 			log.Println(err)
 		}
-		if err = h.env.Repos.SocialGraphCounts.UpdateFollowerCount(req.EventId); err != nil {
+		if err = h.env.Repos.SocialGraphCounts.EditFollowerCount(req.EventId); err != nil {
 			log.Println(err)
 		}
 
@@ -218,8 +218,8 @@ func EventNotice(format string, eventID int64, objectID int64, by int64) *event.
 	}
 }
 
-// List returns the ids of the events that are one person's.
-func (h *eventGrpcHandler) List(ctx context.Context, req *graphpb.EventListRequest) (*graphpb.EventListResponse, error) {
+// Browse returns the ids of the events that are one person's.
+func (h *eventGrpcHandler) Browse(ctx context.Context, req *graphpb.EventBrowseRequest) (*graphpb.EventBrowseResponse, error) {
 	limit := req.Limit
 	if limit == 0 || limit > constants.MaxPageSize {
 		limit = constants.DefaultPageSize
@@ -240,13 +240,13 @@ func (h *eventGrpcHandler) List(ctx context.Context, req *graphpb.EventListReque
 			return nil, err
 		}
 
-		ids, total, err := h.env.Repos.Events.ListOpen(viewer, filter, limit, req.Offset)
+		ids, total, err := h.env.Repos.Events.BrowseOpen(viewer, filter, limit, req.Offset)
 		if err != nil {
 			log.Println(err)
 			return nil, err
 		}
 
-		return &graphpb.EventListResponse{Ids: ids, Total: total}, nil
+		return &graphpb.EventBrowseResponse{Ids: ids, Total: total}, nil
 	}
 
 	// A group's events, as the viewer may see them.
@@ -255,26 +255,26 @@ func (h *eventGrpcHandler) List(ctx context.Context, req *graphpb.EventListReque
 		viewer.ID = req.ViewerId
 		viewer.PersonType = req.ViewerPersonType
 
-		ids, total, err := h.env.Repos.Events.ListHostedBy(req.HostId, viewer, req.Filter, limit, req.Offset)
+		ids, total, err := h.env.Repos.Events.BrowseHostedBy(req.HostId, viewer, req.Filter, limit, req.Offset)
 		if err != nil {
 			log.Println(err)
 			return nil, err
 		}
 
-		return &graphpb.EventListResponse{Ids: ids, Total: total}, nil
+		return &graphpb.EventBrowseResponse{Ids: ids, Total: total}, nil
 	}
 
 	if req.PersonId == 0 {
 		return nil, errors.New("a person or a host is required")
 	}
 
-	ids, total, err := h.env.Repos.Events.ListFor(req.PersonId, req.Filter, limit, req.Offset)
+	ids, total, err := h.env.Repos.Events.BrowseFor(req.PersonId, req.Filter, limit, req.Offset)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
 
-	return &graphpb.EventListResponse{Ids: ids, Total: total}, nil
+	return &graphpb.EventBrowseResponse{Ids: ids, Total: total}, nil
 }
 
 // optionalInstant reads an RFC 3339 instant, or nothing from nothing.

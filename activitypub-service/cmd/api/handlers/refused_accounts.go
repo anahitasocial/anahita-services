@@ -280,7 +280,7 @@ func (h *Handlers) removePhotoPosts(ownerID int64) {
 	}
 	keeper := h.keeper()
 	for _, id := range ids {
-		if _, err := keeper.RemovePost(id); err != nil {
+		if _, err := keeper.DeletePost(id); err != nil {
 			log.Printf("photo post %d of %d was not removed: %v", id, ownerID, err)
 		}
 	}

@@ -190,7 +190,7 @@ func main() {
 	// for a while are removed from storage, to be copied again when asked
 	// for. Any copy may do it: what one has removed the next does not find.
 	go handlers.RunPictureSweep(context.Background(), time.Hour, func() int {
-		return h.PictureKeeper().RemoveOldPictures(db, constants.NodeActorActivityPubPersonEntityType, time.Now(), 200)
+		return h.PictureKeeper().DeleteOldPictures(db, constants.NodeActorActivityPubPersonEntityType, time.Now(), 200)
 	})
 
 	// And what nobody here holds to goes altogether: the posts of

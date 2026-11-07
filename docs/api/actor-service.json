@@ -6895,7 +6895,7 @@
         "tags": [
           "groups"
         ],
-        "x-handler": "actor/cmd/api/handlers.(*groupHandler).RemoveAsSpam",
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).DeleteAsSpam",
         "x-viewer": "admin"
       }
     },
@@ -8149,7 +8149,7 @@
         "tags": [
           "people"
         ],
-        "x-handler": "actor/cmd/api/handlers.(*personHandler).RemoveAsSpam",
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).DeleteAsSpam",
         "x-viewer": "admin"
       }
     },
@@ -8205,7 +8205,7 @@
         "tags": [
           "people"
         ],
-        "x-handler": "actor/cmd/api/handlers.(*personHandler).RemoveTag",
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).DeleteTag",
         "x-viewer": "signed_in"
       },
       "post": {

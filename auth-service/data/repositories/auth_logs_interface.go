@@ -39,9 +39,9 @@ type AuthLogsInterface interface {
 	// Add inserts a new authLog into the database
 	Add(authLog *entities.AuthLog) (*entities.AuthLog, error)
 
-	// UpdateOAuthRefreshTokenID updates the refresh-token pointer on
+	// EditOAuthRefreshTokenID updates the refresh-token pointer on
 	// an auth log row. Called when a refresh token rotates.
-	UpdateOAuthRefreshTokenID(authLogID, newRefreshTokenID int64) error
+	EditOAuthRefreshTokenID(authLogID, newRefreshTokenID int64) error
 
 	// Trim deletes all but the last 10 authLogs for a given user
 	Trim(user *entities.User) error

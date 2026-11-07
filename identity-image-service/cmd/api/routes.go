@@ -87,11 +87,11 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 
 	avatars := api.Group("avatars", r.authorize)
 	avatars.POST("/:node_id/", r.handler.Image.SetAvatar).With(set("avatar", "a profile", &handlers.AvatarUpload{}))
-	avatars.DELETE("/:node_id/", r.handler.Image.RemoveAvatar).With(remove("avatar", "a profile"))
+	avatars.DELETE("/:node_id/", r.handler.Image.DeleteAvatar).With(remove("avatar", "a profile"))
 
 	covers := api.Group("covers", r.authorize)
 	covers.POST("/:node_id/", r.handler.Image.SetCover).With(set("cover", "a profile or a post", &handlers.CoverUpload{}))
-	covers.DELETE("/:node_id/", r.handler.Image.RemoveCover).With(remove("cover", "a profile or a post"))
+	covers.DELETE("/:node_id/", r.handler.Image.DeleteCover).With(remove("cover", "a profile or a post"))
 
 	return doc
 }
