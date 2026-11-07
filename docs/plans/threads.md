@@ -67,11 +67,13 @@ With the user on 2026-11-07:
    `thread`, the number of notes in its writer's chain, the first counted,
    and `thread_next`, the second note, shaped as any note is. Nothing for a
    chain of one.
-2. **Kept, not counted on each read:** the number is kept on the first note,
-   made one more when its writer answers the last note of their chain, and
-   one less when a note of it is deleted. A list reads the next notes of
-   its page in one query. Counted again for the notes there are now, once,
-   by the migration.
+2. **Counted on each read, not kept** (changed while building it,
+   2026-11-07): one query for a page follows each note's chain down
+   `parent_id`, and one more reads the second notes. Kept on the first note,
+   every write that adds, deletes, hides or purges a reply, in several
+   services, would have had to keep it in step, and a migration to begin
+   it; counted, it cannot be wrong. A writer who answered their own note
+   twice has both counted, and the earlier shown second.
 3. **Only the writer's chain:** a note by somebody else, or a reply by the
    writer to somebody else's reply, ends nothing and adds nothing.
 4. **The card** (anahita-web `containers/feed/components/Default.jsx`):

@@ -134,6 +134,11 @@ func nodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		grpcNode.Editor = nodeToGrpc(node.Editor)
 	}
 
+	grpcNode.ThreadCount = node.ThreadCount
+	if node.ThreadNext != nil {
+		grpcNode.ThreadNext = nodeToGrpc(node.ThreadNext)
+	}
+
 	return grpcNode
 }
 

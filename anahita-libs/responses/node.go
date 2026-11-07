@@ -33,6 +33,11 @@ type NodeItem struct {
 	Content string `json:"content,omitempty"`
 	// How many notes quote it.
 	QuoteCount int64 `json:"quote_count,omitempty"`
+	// A note that opens a chain of its writer's replies, in a list
+	// (anahita-web row 126): how many notes the chain has, the first
+	// counted, and the second, as a list item. Left out for any other.
+	Thread     int64     `json:"thread,omitempty"`
+	ThreadNext *NodeItem `json:"thread_next,omitempty"`
 	// A mark kept from earlier versions of Anahita. Nothing sets it yet.
 	Verified bool `json:"verified,omitempty"`
 	// When it was made.
@@ -135,7 +140,7 @@ func (r *NodeResponse) MapNodeItem(node *entities.AnahitaNode) *NodeItem {
 
 	words := wordsOf(node)
 
-	return &NodeItem{
+	item := &NodeItem{
 		ID:                   node.ID,
 		URI:                  node.URI,
 		OriginDomain:         node.OriginDomain,
@@ -222,6 +227,11 @@ func (r *NodeResponse) MapNodeItem(node *entities.AnahitaNode) *NodeItem {
 		}(),
 		Files: NewPhotoFiles(node.Files),
 	}
+	item.Thread = node.ThreadCount
+	if node.ThreadNext != nil {
+		item.ThreadNext = r.MapNodeItem(node.ThreadNext)
+	}
+	return item
 }
 
 func (r *NodeResponse) MapNodeItems(nodes []*entities.AnahitaNode) []*NodeItem {

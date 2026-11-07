@@ -20,6 +20,10 @@ Releases before v1.0.17 are described on GitHub, under
    it, as before.
 2. **`owned_by_followed` in the graph's node list:** only what is owned by
    somebody the viewer follows.
+3. **A thread in a list** (anahita-web row 126): in the home feed, a
+   profile's and a custom feed, a note that opens a chain of its writer's
+   replies carries `thread`, how many notes it has, and `thread_next`, the
+   second note.
 
 ## v1.0.17 Birth, 2026-11-07
 

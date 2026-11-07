@@ -10939,7 +10939,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-NodeItem" data-search="nodeitem access alias author authorized avatar_urls body comment_count content cover_urls created_at editor event feed files follower_count id is_admined_by_viewer is_blocked_by_viewer is_following_viewer is_leading_viewer is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer is_subscribed_by_viewer language likes_count link_preview media_removed mimetype name origin_domain owner parent pinned portrait_urls quote quote_count quote_id repost_count root root_id title type uri verified video">
+<div class="route schema" id="schema-NodeItem" data-search="nodeitem access alias author authorized avatar_urls body comment_count content cover_urls created_at editor event feed files follower_count id is_admined_by_viewer is_blocked_by_viewer is_following_viewer is_leading_viewer is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer is_subscribed_by_viewer language likes_count link_preview media_removed mimetype name origin_domain owner parent pinned portrait_urls quote quote_count quote_id repost_count root root_id thread thread_next title type uri verified video">
 <h3>NodeItem</h3>
 <p>A post, a reply, a profile or anything else there is, as a list or a read sends it: what it is not is left out.</p>
 <table>
@@ -10986,6 +10986,8 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>repost_count</code></td><td>integer</td><td>How many have reposted it.</td></tr>
 <tr><td><code>root</code></td><td><a href="#schema-Parent">Parent</a></td><td>On a reply: the post at the top of its thread, with the profile the thread is on.</td></tr>
 <tr><td><code>root_id</code></td><td>integer</td><td>Set on a reply: the post at the top of its thread. Its parent, what it directly answers, is sent whole as <code>parent</code>.</td></tr>
+<tr><td><code>thread</code></td><td>integer</td><td>A note that opens a chain of its writer&#39;s replies, in a list (anahita-web row 126): how many notes the chain has, the first counted, and the second, as a list item. Left out for any other.</td></tr>
+<tr><td><code>thread_next</code></td><td><a href="#schema-NodeItem">NodeItem</a></td><td></td></tr>
 <tr><td><code>title</code></td><td>string</td><td>A post&#39;s title, where it has one.</td></tr>
 <tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td>What kind of thing it is: <code>node.medium.text-service.note.v1</code> for a note, <code>node.actor.actor-service.person.v1</code> for a person, and so on.</td></tr>
 <tr><td><code>uri</code></td><td>string</td><td>What it is called on the server it came from, and that server, when it came from another. Left out of everything made here.</td></tr>

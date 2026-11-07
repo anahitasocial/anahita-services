@@ -173,6 +173,11 @@ message Node {
     bool restricted = 90;
     // Whether the viewer has asked to follow it and is waiting.
     bool is_follow_requested_by_viewer = 91;
+    // A note that opens a chain of its writer's replies, in a list (anahita-web
+    // row 126): how many notes the chain has, the first counted, and the
+    // second. Unset for any other.
+    int64 thread_count = 99;
+    Node thread_next = 100;
 }
 
 message Nodes {

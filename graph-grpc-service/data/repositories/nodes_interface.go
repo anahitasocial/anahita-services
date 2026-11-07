@@ -17,6 +17,10 @@ type NodesRepoInterface interface {
 	// Browse retrieves a list of nodes based on the provided browse request and viewer context.
 	Browse(req *requests.NodeBrowseRequest) ([]*entities.AnahitaNode, error)
 
+	// Threads says which of the notes given open a chain of their writer's,
+	// how long it is and which note comes second (nodes_threads.go).
+	Threads(ids []int64) (map[int64]Thread, error)
+
 	// Read retrieves a single node based on the provided read request and viewer context.
 	Read(id int64) (*entities.AnahitaNode, error)
 	// ReadOfType is Read restricted to a type family — see the implementation

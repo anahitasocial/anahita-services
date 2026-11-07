@@ -300,6 +300,13 @@ type AnahitaNode struct {
 	//
 	// A pointer for the same reason as the two above.
 	FeaturedAt *time.Time
+
+	// A note that opens a chain of its writer's replies, as a list shows it
+	// (anahita-web row 126): how many notes the chain has, the first
+	// counted, and the second. Zero and nil for any other, and outside a
+	// list.
+	ThreadCount int64
+	ThreadNext  *AnahitaNode
 }
 
 // IsDraft says whether it is a draft, an article or a topic still being

@@ -243,6 +243,11 @@ func grpcToGraphNode(m *graphpb.Node) *entities.AnahitaNode {
 		n.Editor.GetAvatars()
 	}
 
+	n.ThreadCount = m.ThreadCount
+	if m.ThreadNext != nil {
+		n.ThreadNext = grpcToGraphNode(m.ThreadNext)
+	}
+
 	return n
 }
 
@@ -351,6 +356,11 @@ func graphNodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 	// Only create Editor if it has data
 	if node.Editor != nil && node.Editor.ID != 0 {
 		grpcNode.Editor = graphNodeToGrpc(node.Editor)
+	}
+
+	grpcNode.ThreadCount = node.ThreadCount
+	if node.ThreadNext != nil {
+		grpcNode.ThreadNext = graphNodeToGrpc(node.ThreadNext)
 	}
 
 	return grpcNode

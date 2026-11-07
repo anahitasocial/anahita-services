@@ -1453,6 +1453,14 @@
             "format": "int64",
             "type": "integer"
           },
+          "thread": {
+            "description": "A note that opens a chain of its writer's replies, in a list (anahita-web row 126): how many notes the chain has, the first counted, and the second, as a list item. Left out for any other.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "thread_next": {
+            "$ref": "#/components/schemas/NodeItem"
+          },
           "title": {
             "description": "A post's title, where it has one.",
             "type": "string"

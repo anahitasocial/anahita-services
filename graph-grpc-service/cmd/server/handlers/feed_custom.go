@@ -78,6 +78,7 @@ func (h *feedCustomHandler) Browse(ctx context.Context, req *graphpb.FeedCustomB
 	}
 
 	markSaved(h.env, viewer.ID, results)
+	markThreads(h.env, results)
 
 	return &graphpb.FeedCustomBrowseResponse{
 		Nodes: nodesToGrpc(results),

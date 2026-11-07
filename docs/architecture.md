@@ -309,6 +309,17 @@ reply to the one before. graph-grpc-service writes them in one transaction
 (`Medium.AddThread`) and announces them in order once all are made, each
 with its place in the thread (`part` in the event).
 
+**A thread in a list** (roadmap row 126): in the home feed, a profile's and
+a custom feed, a note written here that opens a chain of its writer's
+replies, each by the same writer to the note before, carries `thread`, how
+many notes the chain has, and `thread_next`, the second note, as an item of
+the list. A note that opens none has neither. The chain is counted when the
+page is read, in one query for the page (`graph-grpc-service`,
+`data/repositories/nodes_threads.go`, called by `markThreads`), so nothing
+is kept that a reply, a deletion or a purge could leave wrong. A writer who
+answered their own note twice has both in its count, and the earlier as the
+second note. A reply deleted or turned off ends the chain there.
+
 A photo post holds up to twenty images (`PHOTO_MAX_FILES`), each uploaded in a request of its own
 and kept in `photo_files`, a table beside the post. How that works, and what
 is stored for each image, is in [Photo posts](photos.md).

@@ -90,6 +90,7 @@ func (h *feedLeadersHandler) Browse(ctx context.Context, req *graphpb.FeedLeader
 	}
 
 	markSaved(h.env, viewer.ID, results)
+	markThreads(h.env, results)
 
 	return &graphpb.FeedLeadersBrowseResponse{
 		Nodes: nodesToGrpc(results),
