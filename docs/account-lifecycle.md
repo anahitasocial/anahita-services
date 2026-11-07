@@ -242,6 +242,40 @@ Uploaded files are removed only where `FILE_SERVICE_ADDR` is set, for both the
 sweeper and graph-grpc-service. Without it the database is cleared and the
 files stay in storage.
 
+### The file sweep
+
+A purge removes an account's files as it goes, but not always all of them:
+the store may not answer, or `FILE_SERVICE_ADDR` may be unset; an avatar
+replaced leaves its old sizes; a video given up leaves its upload. Once a
+night, the `file-sweeper` CronJob runs `sweeper -files-only`, under the same
+lock, and removes what no row names any more.
+
+| Folder | Kept while |
+| --- | --- |
+| `identity-image-service/avatars/` and `…/covers/` | a node keeps that file as its `avatar_filename` or `cover_filename`, under its own id or its owner's (an article's cover is under its author's) |
+| `photo-service/photo/` | `photo_files` or `photo_uploads` has its name |
+| `video-service/uploads/` | `video_uploads` has its upload |
+| `video-service/videos/` | a video post names it, or its upload is still in `video_uploads` |
+
+1. **Only when sure.** A file goes only when its key is in one of these
+   shapes and its row is certainly not there. A key in no shape it knows,
+   and a page whose query failed, are kept. `export-service/` is left alone,
+   as its copies run out by their own rule; so is `link-preview-service/`,
+   whose pictures a preview kept in Redis for a week may name.
+2. **A day old at least,** by the store's own date, so that nothing being
+   uploaded, resized or encoded is touched.
+3. **Through file-grpc-service,** which lists `assets/v1/` and nothing else
+   (`Browse`), so the sweeper holds no keys to the bucket.
+4. **A dry run until `FILE_SWEEP=on`.** Until then it logs, by folder, how
+   many it would remove, and removes nothing. Read that log first:
+   `kubectl -n anahita logs job/<the last file-sweeper job>`.
+5. **At most 5,000 a night** (`FilesPerNight`); the rest go on the nights
+   after. The log has counts by folder, never names.
+
+By hand: `sweeper -files-only -dry-run` counts and removes nothing, whatever
+`FILE_SWEEP` says. With docker-compose:
+`docker compose run --rm account-sweeper /app/sweeper-binary -files-only`.
+
 auth-service and abuse-report-service learn of a purge through an event. If
 that event is lost, the sign-in details or the filed reports of that account
 stay until somebody removes them by hand; nothing retries.
@@ -267,4 +301,4 @@ A site administrator can then appoint one of its followers with
 | Purging now | `actor-service/cmd/api/handlers/person_purge.go`, `group_purge.go`; `graph-grpc-service/data/repositories/purge_requests.go` (`PurgeRequestMaxAttempts`), table `purge_requests` |
 | The filed reports of a purged person | `abuse-report-service/cmd/api/handlers/events.go` |
 | The accounts list | `auth-service/cmd/api/handlers/accounts.go`, `auth-service/data/repositories/accounts.go`; `auth-service/config/bootstrap.go` (`GetAccountDormantDays`), setting `ACCOUNT_DORMANT_DAYS` |
-| The sweeper | `graph-grpc-service/sweeper/sweeper.go` (`Run`; the days are `anahita-libs/constants` `AccountGraceDays()`), `graph-grpc-service/sweeper/tags.go` and `data/repositories/tags_sweep.go` (unused hashtags and locations), `graph-grpc-service/cmd/sweeper/main.go`, `k8s/base/jobs/sweeper-cronjob.yml`, `account-sweeper` in `docker-compose.yml`; settings `FILE_SERVICE_ADDR` and `ACCOUNT_GRACE_DAYS` |
+| The sweeper | `graph-grpc-service/sweeper/sweeper.go` (`Run`; the days are `anahita-libs/constants` `AccountGraceDays()`), `graph-grpc-service/sweeper/tags.go` and `data/repositories/tags_sweep.go` (unused hashtags and locations), `graph-grpc-service/sweeper/files.go` (`RunFiles`, the file sweep) and `k8s/base/jobs/file-sweeper-cronjob.yml`, `graph-grpc-service/cmd/sweeper/main.go`, `k8s/base/jobs/sweeper-cronjob.yml`, `account-sweeper` in `docker-compose.yml`; settings `FILE_SERVICE_ADDR` and `ACCOUNT_GRACE_DAYS` |

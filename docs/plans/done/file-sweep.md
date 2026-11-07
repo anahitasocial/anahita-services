@@ -1,7 +1,7 @@
 # Sweeping away stored files nothing names
 
 anahita-web roadmap row 106. Planned 2026-10-28, asked for by the user after
-banu.io's files were moved (its row 16).
+banu.io's files were moved (its row 16). Done 2026-11-07.
 
 ## Why
 
@@ -76,4 +76,27 @@ A key in none of these shapes is left alone, and counted.
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-28 |
-| Implementation | not begun |
+| Implementation | done 2026-11-07, for v1.0.17 |
+
+**Done 2026-11-07.** As planned, with four changes found while building it:
+
+1. **The call is `Browse`, not `List`,** by the services' BREAD names
+   (AGENTS.md, Code rule 5): `Browse(prefix, after, limit)` in
+   file-grpc-service, `file-grpc-service/data/services/browse.go`.
+2. **A cover is named under its owner's id,** when it has one: an article's
+   cover is kept under its author's (`AnahitaNode.GetCoverURL`), not the
+   article's. So an avatar or a cover is kept while any node keeps that file
+   name under its own id or its owner's. Judged by the node's own id alone,
+   every article's cover would have gone.
+3. **Link cards' pictures are left alone, and counted.** A picture is named
+   by what is in it and shared; a preview kept in Redis for a week
+   (`FreshFor`) may name one that no post does yet, and the sweep cannot see
+   Redis.
+4. **A video's files are named** by the post whose meta names them, or,
+   still being made, by their upload in `video_uploads`.
+
+Tried on the development stack the same day, dry: 87 avatars seen and 46
+that it would remove, 49 covers and 39, 3,284 photos and 329. A check apart
+from the sweep's own code, listing the store and looking each key up, found
+the same; four of them looked for anywhere in the database were named
+nowhere. Described in [Account lifecycle](../../account-lifecycle.md#the-file-sweep).

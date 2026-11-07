@@ -127,6 +127,30 @@ message TransferResponse {
     string url = 1;
 }
 
+// Browse lists what is stored under a folder of assets/v1/, a page at a
+// time, in the order of the keys: the file sweep reads the bucket through
+// this (docs/plans/done/file-sweep.md). Nothing outside assets/v1/.
+message BrowseRequest {
+    string prefix = 1;
+    // The last key of the page before; empty for the first.
+    string after = 2;
+    // At most this many, and never more than 1,000.
+    int32 limit = 3;
+}
+
+message BrowsedFile {
+    string path = 1;
+    int64 size = 2;
+    // When the store last wrote it, in seconds since 1970.
+    int64 modified_at = 3;
+}
+
+message BrowseResponse {
+    repeated BrowsedFile files = 1;
+    // Whether there is more after the last of these.
+    bool more = 2;
+}
+
 message PingRequest {
     string message = 1;
 }
@@ -150,5 +174,6 @@ service FileService {
     rpc Stat(StatRequest) returns (StatResponse) {}
     rpc FetchURL(TransferRequest) returns (TransferResponse) {}
     rpc StoreURL(TransferRequest) returns (TransferResponse) {}
+    rpc Browse(BrowseRequest) returns (BrowseResponse) {}
     rpc Ping(PingRequest) returns (PingResponse) {}
 }

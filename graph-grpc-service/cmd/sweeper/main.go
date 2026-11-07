@@ -11,8 +11,10 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
 	"log"
+	"os"
 
 	"anahita-libs/data"
 	"anahita-libs/data/services"
@@ -27,6 +29,11 @@ func main() {
 
 	// -tags-only runs the tag sweep alone, by hand, after a purge.
 	tagsOnly := flag.Bool("tags-only", false, "remove unused hashtags and locations, and nothing else")
+	// -files-only sweeps the stored files nothing names, and nothing else:
+	// the nightly CronJob file-sweeper (docs/account-lifecycle.md).
+	filesOnly := flag.Bool("files-only", false, "remove stored files that no row names, and nothing else")
+	// -dry-run, with -files-only, counts what would go and removes nothing.
+	dryRun := flag.Bool("dry-run", false, "with -files-only: count what would be removed, and remove nothing")
 	flag.Parse()
 
 	cfg := config.NewConfig()
@@ -39,6 +46,11 @@ func main() {
 		log.Fatal("can't connect to MySQL!")
 	}
 	defer conn.Close()
+
+	if *filesOnly {
+		sweepFiles(cfg, conn, *dryRun)
+		return
+	}
 
 	if *tagsOnly {
 		swept, err := sweeper.RunTags(conn, repositories.NewRepositories(conn))
@@ -87,4 +99,31 @@ func main() {
 	}
 
 	log.Printf("sweeper: finished, %d account(s) purged", purged)
+}
+
+// sweepFiles runs the file sweep. It removes nothing unless the operator has
+// set FILE_SWEEP=on: until then every run is a dry run, so a site sees what
+// it would remove, in the log, before anything is.
+func sweepFiles(cfg *config.Config, conn *sql.DB, dryRun bool) {
+	if cfg.GetFileServiceAddr() == "" {
+		log.Fatal("sweeper: FILE_SERVICE_ADDR unset, the stored files cannot be listed")
+	}
+	if os.Getenv("FILE_SWEEP") != "on" {
+		dryRun = true
+	}
+
+	files, ok := services.NewFilesGRPC(cfg).(sweeper.FileStore)
+	if !ok {
+		log.Fatal("sweeper: the file client cannot list the stored files")
+	}
+
+	swept, err := sweeper.RunFiles(conn, files, dryRun)
+	if err != nil {
+		log.Fatalf("sweeper: %v", err)
+	}
+	if dryRun {
+		log.Printf("sweeper: files, a dry run (FILE_SWEEP is not on), nothing removed: %s", swept)
+		return
+	}
+	log.Printf("sweeper: files: %s", swept)
 }

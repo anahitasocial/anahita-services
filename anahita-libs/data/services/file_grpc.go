@@ -4,6 +4,7 @@ import (
 	"anahita-libs/data/entities"
 	"anahita-libs/proto/filepb"
 	"context"
+	"time"
 )
 
 type FileGRPCConfigInterface interface {
@@ -147,6 +148,39 @@ func (srv *FilesGRPC) Delete(req *FileDeleteRequest) error {
 	}
 
 	return nil
+}
+
+// BrowsedFile is one file Browse lists: where it is, how big, and when the
+// store last wrote it.
+type BrowsedFile struct {
+	Path       string
+	Size       int64
+	ModifiedAt time.Time
+}
+
+// Browse lists a page of what is stored under a folder of assets/v1/, from
+// the key after `after`, and says whether there is more. Not in
+// FilesGRPCInterface: only the file sweep reads the bucket.
+func (srv *FilesGRPC) Browse(prefix, after string, limit int) ([]BrowsedFile, bool, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, false, err
+	}
+
+	res, err := client.Browse(context.Background(), &filepb.BrowseRequest{
+		Prefix: prefix,
+		After:  after,
+		Limit:  int32(limit),
+	})
+	if err != nil {
+		return nil, false, err
+	}
+
+	files := make([]BrowsedFile, 0, len(res.Files))
+	for _, file := range res.Files {
+		files = append(files, BrowsedFile{Path: file.Path, Size: file.Size, ModifiedAt: time.Unix(file.ModifiedAt, 0)})
+	}
+	return files, res.More, nil
 }
 
 // Exists checks if a file exists

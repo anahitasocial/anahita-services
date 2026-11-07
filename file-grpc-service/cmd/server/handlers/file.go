@@ -65,6 +65,16 @@ func (h *fileHandler) Delete(ctx context.Context, req *filepb.DeleteRequest) (*f
 	return &filepb.DeleteResponse{}, nil
 }
 
+// Browse lists a page of what is stored under a folder of assets/v1/,
+// for the file sweep.
+func (h *fileHandler) Browse(ctx context.Context, req *filepb.BrowseRequest) (*filepb.BrowseResponse, error) {
+	files, more, err := h.env.Services.Storage.Browse(req.Prefix, req.After, int(req.Limit))
+	if err != nil {
+		return nil, err
+	}
+	return &filepb.BrowseResponse{Files: files, More: more}, nil
+}
+
 // Exists checks if a file exists
 func (h *fileHandler) Exists(ctx context.Context, req *filepb.ExistsRequest) (*filepb.ExistsResponse, error) {
 	log.Printf("Received Exists request: %v", req.Path)

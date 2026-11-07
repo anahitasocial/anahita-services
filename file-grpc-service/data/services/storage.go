@@ -57,6 +57,10 @@ type StorageInterface interface {
 	UploadComplete(path, uploadID string, maxSize int64) (int64, error)
 	UploadAbort(path, uploadID string) error
 	Stat(path string) (exists bool, size int64, contentType string, err error)
+
+	// Browse lists a page of what is under a folder of assets/v1/. See
+	// browse.go.
+	Browse(prefix, after string, limit int) ([]*filepb.BrowsedFile, bool, error)
 	FetchURL(path string) (string, error)
 	StoreURL(path, contentType string) (string, error)
 }

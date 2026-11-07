@@ -70,7 +70,7 @@ react. Event names are versioned constants in `anahita-libs/event`, shaped
 | `file-grpc-service` | — | 50055 | File storage on any S3-compatible object store; checks what each upload really is, and signs the addresses large files are sent to directly |
 | `mail-grpc-service` | — | 50056 | Email delivery over SMTP (50051 inside its container) |
 | `migration-job` | — | — | One-shot database migrations |
-| `account-sweeper` | — | — | What is done by the clock, hourly: purges accounts past their 30-day deletion grace period, and finishes purges a super administrator asked for; removes images uploaded for a post that was never made, and invitations nobody answered; reminds people of an event a day before, and archives one thirty days after it ended. Not started by `up`; run with `docker compose run --rm account-sweeper`. See [Account lifecycle](account-lifecycle.md) |
+| `account-sweeper` | — | — | What is done by the clock, hourly: purges accounts past their 30-day deletion grace period, and finishes purges a super administrator asked for; removes images uploaded for a post that was never made, and invitations nobody answered; reminds people of an event a day before, and archives one thirty days after it ended. Once a night, as `file-sweeper` (`-files-only`), it removes stored files no row names any more. Not started by `up`; run with `docker compose run --rm account-sweeper`. See [Account lifecycle](account-lifecycle.md) |
 
 Backing services in `docker-compose.yml`:
 

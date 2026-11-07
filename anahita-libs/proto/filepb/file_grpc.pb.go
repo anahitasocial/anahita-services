@@ -33,6 +33,7 @@ const (
 	FileService_Stat_FullMethodName           = "/file.FileService/Stat"
 	FileService_FetchURL_FullMethodName       = "/file.FileService/FetchURL"
 	FileService_StoreURL_FullMethodName       = "/file.FileService/StoreURL"
+	FileService_Browse_FullMethodName         = "/file.FileService/Browse"
 	FileService_Ping_FullMethodName           = "/file.FileService/Ping"
 )
 
@@ -54,6 +55,7 @@ type FileServiceClient interface {
 	Stat(ctx context.Context, in *StatRequest, opts ...grpc.CallOption) (*StatResponse, error)
 	FetchURL(ctx context.Context, in *TransferRequest, opts ...grpc.CallOption) (*TransferResponse, error)
 	StoreURL(ctx context.Context, in *TransferRequest, opts ...grpc.CallOption) (*TransferResponse, error)
+	Browse(ctx context.Context, in *BrowseRequest, opts ...grpc.CallOption) (*BrowseResponse, error)
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
 }
 
@@ -205,6 +207,16 @@ func (c *fileServiceClient) StoreURL(ctx context.Context, in *TransferRequest, o
 	return out, nil
 }
 
+func (c *fileServiceClient) Browse(ctx context.Context, in *BrowseRequest, opts ...grpc.CallOption) (*BrowseResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BrowseResponse)
+	err := c.cc.Invoke(ctx, FileService_Browse_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *fileServiceClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PingResponse)
@@ -233,6 +245,7 @@ type FileServiceServer interface {
 	Stat(context.Context, *StatRequest) (*StatResponse, error)
 	FetchURL(context.Context, *TransferRequest) (*TransferResponse, error)
 	StoreURL(context.Context, *TransferRequest) (*TransferResponse, error)
+	Browse(context.Context, *BrowseRequest) (*BrowseResponse, error)
 	Ping(context.Context, *PingRequest) (*PingResponse, error)
 	mustEmbedUnimplementedFileServiceServer()
 }
@@ -285,6 +298,9 @@ func (UnimplementedFileServiceServer) FetchURL(context.Context, *TransferRequest
 }
 func (UnimplementedFileServiceServer) StoreURL(context.Context, *TransferRequest) (*TransferResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StoreURL not implemented")
+}
+func (UnimplementedFileServiceServer) Browse(context.Context, *BrowseRequest) (*BrowseResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Browse not implemented")
 }
 func (UnimplementedFileServiceServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
@@ -562,6 +578,24 @@ func _FileService_StoreURL_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FileService_Browse_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BrowseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileServiceServer).Browse(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileService_Browse_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileServiceServer).Browse(ctx, req.(*BrowseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _FileService_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PingRequest)
 	if err := dec(in); err != nil {
@@ -642,6 +676,10 @@ var FileService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "StoreURL",
 			Handler:    _FileService_StoreURL_Handler,
+		},
+		{
+			MethodName: "Browse",
+			Handler:    _FileService_Browse_Handler,
 		},
 		{
 			MethodName: "Ping",

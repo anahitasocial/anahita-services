@@ -19,6 +19,7 @@ resources:
   - grpc/mail-grpc.yml
   - jobs/migration-job.yml
   - jobs/sweeper-cronjob.yml
+  - jobs/file-sweeper-cronjob.yml
   - services/actor.yml
   - services/abuse-report.yml
   - services/activitypub.yml

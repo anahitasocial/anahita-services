@@ -1245,6 +1245,10 @@ services:
       # So uploaded avatars, covers and photos are deleted from storage as
       # accounts are purged. Without it the rows go and the objects stay.
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
+      # The file sweep, run as
+      #   docker compose run --rm account-sweeper /app/sweeper-binary -files-only
+      # removes only with this "on"; otherwise it is a dry run.
+      FILE_SWEEP: ${FILE_SWEEP:-}
     depends_on:
       - mysql
     volumes:

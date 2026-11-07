@@ -239,6 +239,11 @@ looks after it.
 | `assets/v1/export-service/` | People's copies of their own data, kept a week | `export-worker` |
 | `assets/v1/link-preview-service/` | The pictures of link cards | `link-preview-service` |
 
+A file that no row names any more, a replaced avatar's old sizes or a
+purged profile's photo whose removal failed, is removed by the nightly file
+sweep, once `FILE_SWEEP` is `on`
+([The file sweep](account-lifecycle.md#the-file-sweep)).
+
 Two rules on the bucket itself are worth setting:
 
 - **CORS**, letting the web app's address `PUT`, where videos are posted:

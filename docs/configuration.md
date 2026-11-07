@@ -401,6 +401,11 @@ at most 500 accounts, and a purge works through an account 500 posts at a
 time. How often the sweeper runs is its CronJob's schedule, in
 `k8s/base/jobs/sweeper-cronjob.yml`.
 
+`FILE_SWEEP` is `on` for the nightly file sweep to remove stored files that
+no row names. Unset, or anything else, it is a dry run that only counts them
+in its log ([The file sweep](account-lifecycle.md#the-file-sweep)). Its
+CronJob is `k8s/base/jobs/file-sweeper-cronjob.yml`, once a night.
+
 graph-grpc-service and the sweeper need `FILE_SERVICE_ADDR` to remove a purged
 account's uploaded files. Both have it in `docker-compose.yml` and in the
 Kubernetes manifests.

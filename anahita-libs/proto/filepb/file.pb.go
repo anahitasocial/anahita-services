@@ -1296,6 +1296,185 @@ func (x *TransferResponse) GetUrl() string {
 	return ""
 }
 
+// Browse lists what is stored under a folder of assets/v1/, a page at a
+// time, in the order of the keys: the file sweep reads the bucket through
+// this (docs/plans/done/file-sweep.md). Nothing outside assets/v1/.
+type BrowseRequest struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Prefix string                 `protobuf:"bytes,1,opt,name=prefix,proto3" json:"prefix,omitempty"`
+	// The last key of the page before; empty for the first.
+	After string `protobuf:"bytes,2,opt,name=after,proto3" json:"after,omitempty"`
+	// At most this many, and never more than 1,000.
+	Limit         int32 `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BrowseRequest) Reset() {
+	*x = BrowseRequest{}
+	mi := &file_proto_filepb_file_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BrowseRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BrowseRequest) ProtoMessage() {}
+
+func (x *BrowseRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_filepb_file_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BrowseRequest.ProtoReflect.Descriptor instead.
+func (*BrowseRequest) Descriptor() ([]byte, []int) {
+	return file_proto_filepb_file_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *BrowseRequest) GetPrefix() string {
+	if x != nil {
+		return x.Prefix
+	}
+	return ""
+}
+
+func (x *BrowseRequest) GetAfter() string {
+	if x != nil {
+		return x.After
+	}
+	return ""
+}
+
+func (x *BrowseRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type BrowsedFile struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Path  string                 `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	Size  int64                  `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
+	// When the store last wrote it, in seconds since 1970.
+	ModifiedAt    int64 `protobuf:"varint,3,opt,name=modified_at,json=modifiedAt,proto3" json:"modified_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BrowsedFile) Reset() {
+	*x = BrowsedFile{}
+	mi := &file_proto_filepb_file_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BrowsedFile) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BrowsedFile) ProtoMessage() {}
+
+func (x *BrowsedFile) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_filepb_file_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BrowsedFile.ProtoReflect.Descriptor instead.
+func (*BrowsedFile) Descriptor() ([]byte, []int) {
+	return file_proto_filepb_file_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *BrowsedFile) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
+func (x *BrowsedFile) GetSize() int64 {
+	if x != nil {
+		return x.Size
+	}
+	return 0
+}
+
+func (x *BrowsedFile) GetModifiedAt() int64 {
+	if x != nil {
+		return x.ModifiedAt
+	}
+	return 0
+}
+
+type BrowseResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Files []*BrowsedFile         `protobuf:"bytes,1,rep,name=files,proto3" json:"files,omitempty"`
+	// Whether there is more after the last of these.
+	More          bool `protobuf:"varint,2,opt,name=more,proto3" json:"more,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BrowseResponse) Reset() {
+	*x = BrowseResponse{}
+	mi := &file_proto_filepb_file_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BrowseResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BrowseResponse) ProtoMessage() {}
+
+func (x *BrowseResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_filepb_file_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BrowseResponse.ProtoReflect.Descriptor instead.
+func (*BrowseResponse) Descriptor() ([]byte, []int) {
+	return file_proto_filepb_file_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *BrowseResponse) GetFiles() []*BrowsedFile {
+	if x != nil {
+		return x.Files
+	}
+	return nil
+}
+
+func (x *BrowseResponse) GetMore() bool {
+	if x != nil {
+		return x.More
+	}
+	return false
+}
+
 type PingRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
@@ -1305,7 +1484,7 @@ type PingRequest struct {
 
 func (x *PingRequest) Reset() {
 	*x = PingRequest{}
-	mi := &file_proto_filepb_file_proto_msgTypes[27]
+	mi := &file_proto_filepb_file_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1317,7 +1496,7 @@ func (x *PingRequest) String() string {
 func (*PingRequest) ProtoMessage() {}
 
 func (x *PingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_filepb_file_proto_msgTypes[27]
+	mi := &file_proto_filepb_file_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1330,7 +1509,7 @@ func (x *PingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PingRequest.ProtoReflect.Descriptor instead.
 func (*PingRequest) Descriptor() ([]byte, []int) {
-	return file_proto_filepb_file_proto_rawDescGZIP(), []int{27}
+	return file_proto_filepb_file_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *PingRequest) GetMessage() string {
@@ -1349,7 +1528,7 @@ type PingResponse struct {
 
 func (x *PingResponse) Reset() {
 	*x = PingResponse{}
-	mi := &file_proto_filepb_file_proto_msgTypes[28]
+	mi := &file_proto_filepb_file_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1361,7 +1540,7 @@ func (x *PingResponse) String() string {
 func (*PingResponse) ProtoMessage() {}
 
 func (x *PingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_filepb_file_proto_msgTypes[28]
+	mi := &file_proto_filepb_file_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1374,7 +1553,7 @@ func (x *PingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PingResponse.ProtoReflect.Descriptor instead.
 func (*PingResponse) Descriptor() ([]byte, []int) {
-	return file_proto_filepb_file_proto_rawDescGZIP(), []int{28}
+	return file_proto_filepb_file_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *PingResponse) GetMessage() string {
@@ -1458,11 +1637,23 @@ const file_proto_filepb_file_proto_rawDesc = "" +
 	"\x04path\x18\x01 \x01(\tR\x04path\x12!\n" +
 	"\fcontent_type\x18\x02 \x01(\tR\vcontentType\"$\n" +
 	"\x10TransferResponse\x12\x10\n" +
-	"\x03url\x18\x01 \x01(\tR\x03url\"'\n" +
+	"\x03url\x18\x01 \x01(\tR\x03url\"S\n" +
+	"\rBrowseRequest\x12\x16\n" +
+	"\x06prefix\x18\x01 \x01(\tR\x06prefix\x12\x14\n" +
+	"\x05after\x18\x02 \x01(\tR\x05after\x12\x14\n" +
+	"\x05limit\x18\x03 \x01(\x05R\x05limit\"V\n" +
+	"\vBrowsedFile\x12\x12\n" +
+	"\x04path\x18\x01 \x01(\tR\x04path\x12\x12\n" +
+	"\x04size\x18\x02 \x01(\x03R\x04size\x12\x1f\n" +
+	"\vmodified_at\x18\x03 \x01(\x03R\n" +
+	"modifiedAt\"M\n" +
+	"\x0eBrowseResponse\x12'\n" +
+	"\x05files\x18\x01 \x03(\v2\x11.file.BrowsedFileR\x05files\x12\x12\n" +
+	"\x04more\x18\x02 \x01(\bR\x04more\"'\n" +
 	"\vPingRequest\x12\x18\n" +
 	"\amessage\x18\x01 \x01(\tR\amessage\"(\n" +
 	"\fPingResponse\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage2\x8b\a\n" +
+	"\amessage\x18\x01 \x01(\tR\amessage2\xc2\a\n" +
 	"\vFileService\x12/\n" +
 	"\x04Read\x12\x11.file.ReadRequest\x1a\x12.file.ReadResponse\"\x00\x12/\n" +
 	"\x04Edit\x12\x11.file.EditRequest\x1a\x12.file.EditResponse\"\x00\x12,\n" +
@@ -1477,7 +1668,8 @@ const file_proto_filepb_file_proto_rawDesc = "" +
 	"\vUploadAbort\x12\x18.file.UploadAbortRequest\x1a\x19.file.UploadAbortResponse\"\x00\x12/\n" +
 	"\x04Stat\x12\x11.file.StatRequest\x1a\x12.file.StatResponse\"\x00\x12;\n" +
 	"\bFetchURL\x12\x15.file.TransferRequest\x1a\x16.file.TransferResponse\"\x00\x12;\n" +
-	"\bStoreURL\x12\x15.file.TransferRequest\x1a\x16.file.TransferResponse\"\x00\x12/\n" +
+	"\bStoreURL\x12\x15.file.TransferRequest\x1a\x16.file.TransferResponse\"\x00\x125\n" +
+	"\x06Browse\x12\x13.file.BrowseRequest\x1a\x14.file.BrowseResponse\"\x00\x12/\n" +
 	"\x04Ping\x12\x11.file.PingRequest\x1a\x12.file.PingResponse\"\x00B\tZ\a/filepbb\x06proto3"
 
 var (
@@ -1492,7 +1684,7 @@ func file_proto_filepb_file_proto_rawDescGZIP() []byte {
 	return file_proto_filepb_file_proto_rawDescData
 }
 
-var file_proto_filepb_file_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
+var file_proto_filepb_file_proto_msgTypes = make([]protoimpl.MessageInfo, 32)
 var file_proto_filepb_file_proto_goTypes = []any{
 	(*File)(nil),                   // 0: file.File
 	(*ReadRequest)(nil),            // 1: file.ReadRequest
@@ -1521,8 +1713,11 @@ var file_proto_filepb_file_proto_goTypes = []any{
 	(*StatResponse)(nil),           // 24: file.StatResponse
 	(*TransferRequest)(nil),        // 25: file.TransferRequest
 	(*TransferResponse)(nil),       // 26: file.TransferResponse
-	(*PingRequest)(nil),            // 27: file.PingRequest
-	(*PingResponse)(nil),           // 28: file.PingResponse
+	(*BrowseRequest)(nil),          // 27: file.BrowseRequest
+	(*BrowsedFile)(nil),            // 28: file.BrowsedFile
+	(*BrowseResponse)(nil),         // 29: file.BrowseResponse
+	(*PingRequest)(nil),            // 30: file.PingRequest
+	(*PingResponse)(nil),           // 31: file.PingResponse
 }
 var file_proto_filepb_file_proto_depIdxs = []int32{
 	0,  // 0: file.ReadResponse.file:type_name -> file.File
@@ -1530,41 +1725,44 @@ var file_proto_filepb_file_proto_depIdxs = []int32{
 	0,  // 2: file.EditResponse.file:type_name -> file.File
 	0,  // 3: file.AddRequest.file:type_name -> file.File
 	0,  // 4: file.AddResponse.file:type_name -> file.File
-	1,  // 5: file.FileService.Read:input_type -> file.ReadRequest
-	3,  // 6: file.FileService.Edit:input_type -> file.EditRequest
-	5,  // 7: file.FileService.Add:input_type -> file.AddRequest
-	7,  // 8: file.FileService.Delete:input_type -> file.DeleteRequest
-	9,  // 9: file.FileService.Exists:input_type -> file.ExistsRequest
-	11, // 10: file.FileService.Presign:input_type -> file.PresignRequest
-	13, // 11: file.FileService.BatchPresign:input_type -> file.BatchPresignRequest
-	15, // 12: file.FileService.UploadStart:input_type -> file.UploadStartRequest
-	17, // 13: file.FileService.UploadParts:input_type -> file.UploadPartsRequest
-	19, // 14: file.FileService.UploadComplete:input_type -> file.UploadCompleteRequest
-	21, // 15: file.FileService.UploadAbort:input_type -> file.UploadAbortRequest
-	23, // 16: file.FileService.Stat:input_type -> file.StatRequest
-	25, // 17: file.FileService.FetchURL:input_type -> file.TransferRequest
-	25, // 18: file.FileService.StoreURL:input_type -> file.TransferRequest
-	27, // 19: file.FileService.Ping:input_type -> file.PingRequest
-	2,  // 20: file.FileService.Read:output_type -> file.ReadResponse
-	4,  // 21: file.FileService.Edit:output_type -> file.EditResponse
-	6,  // 22: file.FileService.Add:output_type -> file.AddResponse
-	8,  // 23: file.FileService.Delete:output_type -> file.DeleteResponse
-	10, // 24: file.FileService.Exists:output_type -> file.ExistsResponse
-	12, // 25: file.FileService.Presign:output_type -> file.PresignResponse
-	14, // 26: file.FileService.BatchPresign:output_type -> file.BatchPresignResponse
-	16, // 27: file.FileService.UploadStart:output_type -> file.UploadStartResponse
-	18, // 28: file.FileService.UploadParts:output_type -> file.UploadPartsResponse
-	20, // 29: file.FileService.UploadComplete:output_type -> file.UploadCompleteResponse
-	22, // 30: file.FileService.UploadAbort:output_type -> file.UploadAbortResponse
-	24, // 31: file.FileService.Stat:output_type -> file.StatResponse
-	26, // 32: file.FileService.FetchURL:output_type -> file.TransferResponse
-	26, // 33: file.FileService.StoreURL:output_type -> file.TransferResponse
-	28, // 34: file.FileService.Ping:output_type -> file.PingResponse
-	20, // [20:35] is the sub-list for method output_type
-	5,  // [5:20] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	28, // 5: file.BrowseResponse.files:type_name -> file.BrowsedFile
+	1,  // 6: file.FileService.Read:input_type -> file.ReadRequest
+	3,  // 7: file.FileService.Edit:input_type -> file.EditRequest
+	5,  // 8: file.FileService.Add:input_type -> file.AddRequest
+	7,  // 9: file.FileService.Delete:input_type -> file.DeleteRequest
+	9,  // 10: file.FileService.Exists:input_type -> file.ExistsRequest
+	11, // 11: file.FileService.Presign:input_type -> file.PresignRequest
+	13, // 12: file.FileService.BatchPresign:input_type -> file.BatchPresignRequest
+	15, // 13: file.FileService.UploadStart:input_type -> file.UploadStartRequest
+	17, // 14: file.FileService.UploadParts:input_type -> file.UploadPartsRequest
+	19, // 15: file.FileService.UploadComplete:input_type -> file.UploadCompleteRequest
+	21, // 16: file.FileService.UploadAbort:input_type -> file.UploadAbortRequest
+	23, // 17: file.FileService.Stat:input_type -> file.StatRequest
+	25, // 18: file.FileService.FetchURL:input_type -> file.TransferRequest
+	25, // 19: file.FileService.StoreURL:input_type -> file.TransferRequest
+	27, // 20: file.FileService.Browse:input_type -> file.BrowseRequest
+	30, // 21: file.FileService.Ping:input_type -> file.PingRequest
+	2,  // 22: file.FileService.Read:output_type -> file.ReadResponse
+	4,  // 23: file.FileService.Edit:output_type -> file.EditResponse
+	6,  // 24: file.FileService.Add:output_type -> file.AddResponse
+	8,  // 25: file.FileService.Delete:output_type -> file.DeleteResponse
+	10, // 26: file.FileService.Exists:output_type -> file.ExistsResponse
+	12, // 27: file.FileService.Presign:output_type -> file.PresignResponse
+	14, // 28: file.FileService.BatchPresign:output_type -> file.BatchPresignResponse
+	16, // 29: file.FileService.UploadStart:output_type -> file.UploadStartResponse
+	18, // 30: file.FileService.UploadParts:output_type -> file.UploadPartsResponse
+	20, // 31: file.FileService.UploadComplete:output_type -> file.UploadCompleteResponse
+	22, // 32: file.FileService.UploadAbort:output_type -> file.UploadAbortResponse
+	24, // 33: file.FileService.Stat:output_type -> file.StatResponse
+	26, // 34: file.FileService.FetchURL:output_type -> file.TransferResponse
+	26, // 35: file.FileService.StoreURL:output_type -> file.TransferResponse
+	29, // 36: file.FileService.Browse:output_type -> file.BrowseResponse
+	31, // 37: file.FileService.Ping:output_type -> file.PingResponse
+	22, // [22:38] is the sub-list for method output_type
+	6,  // [6:22] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_proto_filepb_file_proto_init() }
@@ -1578,7 +1776,7 @@ func file_proto_filepb_file_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_filepb_file_proto_rawDesc), len(file_proto_filepb_file_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   29,
+			NumMessages:   32,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

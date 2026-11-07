@@ -1,0 +1,98 @@
+# File sweeper.
+#
+# Removes stored files that no row names any more: a replaced avatar's old
+# sizes, a purged profile's pictures whose deletion failed, a video upload
+# that was given up. Once a night, since listing a whole bucket costs more
+# than reading a table. The same image as the account sweeper, run with
+# -files-only, under the same lock (docs/account-lifecycle.md, "The file
+# sweep").
+#
+# A dry run until FILE_SWEEP is "on" in anahita-config: it logs, by folder,
+# what it would remove, and removes nothing. Read that first.
+#
+# Run it by hand with:
+#   kubectl -n anahita create job --from=cronjob/file-sweeper file-sweep-manual
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: file-sweeper
+spec:
+  # Once a night, at a quarter past three.
+  schedule: "15 3 * * *"
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      # One attempt: what is left is there the next night.
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app: file-sweeper
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: file-sweeper
+              image: anahita/sweeper-job
+              command: ["/app/sweeper-binary"]
+              args: ["-files-only"]
+              env:
+                # "on" to remove; anything else, or unset, is a dry run.
+                - name: FILE_SWEEP
+                  valueFrom:
+                    configMapKeyRef:
+                      name: anahita-config
+                      key: FILE_SWEEP
+                      optional: true
+                - name: ENV
+                  valueFrom:
+                    configMapKeyRef:
+                      name: anahita-config
+                      key: ENV
+                # Mutual TLS on the calls to file-grpc-service.
+                - name: GRPC_TLS
+                  valueFrom:
+                    configMapKeyRef:
+                      name: anahita-config
+                      key: GRPC_TLS
+                      optional: true
+                - name: SITE_READ_ACCESS
+                  valueFrom:
+                    configMapKeyRef:
+                      name: anahita-config
+                      key: SITE_READ_ACCESS
+                      optional: true
+                - name: MIN_CONTENT_ACCESS
+                  valueFrom:
+                    configMapKeyRef:
+                      name: anahita-config
+                      key: MIN_CONTENT_ACCESS
+                      optional: true
+                - name: DSN
+                  valueFrom:
+                    secretKeyRef:
+                      name: anahita-secrets
+                      key: DSN
+                # The sweeper's config asks for it; the file sweep publishes
+                # nothing.
+                - name: AMQP_ADDR
+                  valueFrom:
+                    secretKeyRef:
+                      name: anahita-secrets
+                      key: AMQP_ADDR
+                # Where the bucket is listed and files removed.
+                - name: FILE_SERVICE_ADDR
+                  valueFrom:
+                    configMapKeyRef:
+                      name: anahita-config
+                      key: FILE_SERVICE_ADDR
+              volumeMounts:
+                - name: grpc-tls
+                  mountPath: /run/secrets/grpc
+                  readOnly: true
+          volumes:
+            - name: grpc-tls
+              secret:
+                secretName: anahita-grpc-client
