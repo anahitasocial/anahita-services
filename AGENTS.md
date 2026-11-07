@@ -153,3 +153,6 @@ and places.
   change, each beginning with its kind: `- added:`, `- changed:`,
   `- removed:`, `- fixed:` or `- note:` (what stays the same, what it goes
   with). Only the kinds that apply.
+- A change that a site, an app or somebody running it would notice adds
+  its line to `CHANGELOG.md`, under Embryo, in the same commit; a docs or
+  plan commit does not need one.

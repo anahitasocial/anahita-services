@@ -25,8 +25,11 @@ them:
 | Patch | Something is fixed, and nothing else changes |
 
 What each Birth release changes, and anything to do when upgrading to it,
-is in its notes on GitHub, under
+is in [CHANGELOG.md](../CHANGELOG.md), from v1.0.17, and in its notes on
+GitHub, under
 [Releases](https://github.com/anahitasocial/anahita-services/releases).
+What `main` has that the last release has not is the changelog's Embryo
+section.
 
 ## The history
 
@@ -62,7 +65,9 @@ For whoever maintains anahita-services:
    release before: [What is rebuilt](#what-is-rebuilt).
 4. On GitHub, Releases › Draft a new release, from the tag, named
    "v1.0.0 Birth": what it adds, changes and fixes, and what to do when
-   upgrading.
+   upgrading. That is the Embryo section of [CHANGELOG.md](../CHANGELOG.md),
+   whose heading then becomes the version and the date, in the same commit
+   as `softwareVersion`.
 
 Upgrading a site to it: [Upgrading](deploying.md#upgrading).
 
