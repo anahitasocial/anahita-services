@@ -40,7 +40,7 @@ On Kubernetes the same variables go in an overlay's `config.env` and
 | `REDIS_ADDR`, `REDIS_PASSWORD` | HTTP services | Redis for sessions, e.g. `redis:6379` |
 | `REDIS_DB` | HTTP services | Optional. The Redis database number, `0` when left out. Useful when several installations share one Redis |
 | `REDIS_TLS` | HTTP services | `true` to connect to Redis over TLS, which most managed Redis and Valkey services require. The certificate is checked against the host in `REDIS_ADDR`. Default `false` |
-| `SECURE_COOKIE_KEY` | HTTP services | Key that signs session cookies. auth-service also derives from it the key that sign-in codes are hashed with, so changing it invalidates the codes outstanding at that moment |
+| `SECURE_COOKIE_KEY` | HTTP services | Key that seals what a session holds, in its cookie or in Redis (AES-GCM: unreadable, and refused if changed). Changing it signs everybody out. auth-service also derives from it the key that sign-in codes are hashed with, so changing it invalidates the codes outstanding at that moment |
 | `AMQP_ADDR` | publishers and consumers | RabbitMQ, e.g. `amqp://rabbitmq:5672` |
 | `OAUTH_ISSUER` | all HTTP services | Issuer URL that tokens are signed with and checked against |
 | `OAUTH_JWKS_URL` | all HTTP services | Where public signing keys are fetched. Defaults to auth-service inside the network |

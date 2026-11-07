@@ -182,6 +182,11 @@ func authenticateOAuth(c echo.Context, config ConfigInterface, jwks *JWKSClient)
 		// is ordinary; rejecting on it produces intermittent 401s that
 		// look like nothing at all.
 		jwt.WithLeeway(30*time.Second),
+
+		// A token with no exp would never run out. auth-service puts one
+		// in every token it mints, so one without was not made there
+		// (roadmap row 119).
+		jwt.WithExpirationRequired(),
 	)
 	if err != nil {
 		log.Println("oauth middleware: token parse failed:", err)

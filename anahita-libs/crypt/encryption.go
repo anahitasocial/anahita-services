@@ -5,64 +5,76 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 )
 
-// Credits to https://gist.github.com/fracasula/38aa1a4e7481f9cedfa78a0cdd5f1865 for the encryption/decryption code
-
+// Encryption seals the values sessions keep, in a cookie or in Redis, with
+// AES-GCM: a value is hidden, and a value that was changed, or sealed under
+// another key, is refused rather than read as something else (roadmap row
+// 119). Until v1.0.17 this was AES-CFB, which hid a value and noticed
+// nothing; a value sealed that way is refused now, so everybody signed in
+// then signs in once more.
+//
+// What is kept for longer, as TOTP secrets and signing keys, goes through
+// Crypt (local.go, kms.go), not this.
 type Encryption struct{}
 
-// NewEncryption creates a new encryption instance
+// ErrUnreadable is a value that cannot be opened: changed, cut short, or
+// sealed under another key or the cipher before.
+var ErrUnreadable = errors.New("crypt: value cannot be read")
+
+// NewEncryption creates a new encryption instance.
 func NewEncryption() *Encryption {
 	return &Encryption{}
 }
 
-// Encrypt encrypts a string value using a key
+// Encrypt seals a value with the key: a nonce of its own, then the sealed
+// value with its tag, base64 encoded.
 func (e *Encryption) Encrypt(key []byte, value string) (string, error) {
-	byteMsg := []byte(value)
-	block, err := aes.NewCipher(key)
-
+	aead, err := gcm(key)
 	if err != nil {
-		return "", fmt.Errorf("could not create new cipher: %v", err)
+		return "", err
 	}
-
-	cipherText := make([]byte, aes.BlockSize+len(byteMsg))
-	iv := cipherText[:aes.BlockSize]
-
-	if _, err = io.ReadFull(rand.Reader, iv); err != nil {
+	nonce := make([]byte, aead.NonceSize())
+	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
 		return "", fmt.Errorf("could not encrypt: %v", err)
 	}
-
-	stream := cipher.NewCFBEncrypter(block, iv)
-	stream.XORKeyStream(cipherText[aes.BlockSize:], byteMsg)
-
-	return base64.StdEncoding.EncodeToString(cipherText), nil
+	sealed := aead.Seal(nonce, nonce, []byte(value), nil)
+	return base64.StdEncoding.EncodeToString(sealed), nil
 }
 
-// Decrypt decrypts a string value using a key
+// Decrypt opens a value Encrypt sealed with the same key. Anything else is
+// ErrUnreadable.
 func (e *Encryption) Decrypt(key []byte, value string) (string, error) {
-	cipherText, err := base64.StdEncoding.DecodeString(value)
-
+	aead, err := gcm(key)
 	if err != nil {
-		return "", fmt.Errorf("could not base64 decode: %v", err)
+		return "", err
 	}
+	sealed, err := base64.StdEncoding.DecodeString(value)
+	if err != nil {
+		return "", ErrUnreadable
+	}
+	if len(sealed) < aead.NonceSize()+aead.Overhead() {
+		return "", ErrUnreadable
+	}
+	nonce, body := sealed[:aead.NonceSize()], sealed[aead.NonceSize():]
+	opened, err := aead.Open(nil, nonce, body, nil)
+	if err != nil {
+		return "", ErrUnreadable
+	}
+	return string(opened), nil
+}
 
+func gcm(key []byte) (cipher.AEAD, error) {
 	block, err := aes.NewCipher(key)
-
 	if err != nil {
-		return "", fmt.Errorf("could not create new cipher: %v", err)
+		return nil, fmt.Errorf("could not create new cipher: %v", err)
 	}
-
-	if len(cipherText) < aes.BlockSize {
-		return "", fmt.Errorf("invalid ciphertext block size")
+	aead, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, fmt.Errorf("could not create GCM: %v", err)
 	}
-
-	iv := cipherText[:aes.BlockSize]
-	cipherText = cipherText[aes.BlockSize:]
-
-	stream := cipher.NewCFBDecrypter(block, iv)
-	stream.XORKeyStream(cipherText, cipherText)
-
-	return string(cipherText), nil
+	return aead, nil
 }

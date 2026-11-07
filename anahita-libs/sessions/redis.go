@@ -1,6 +1,7 @@
 package sessions
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -94,6 +95,11 @@ func (s *redisSession) Read(c echo.Context, key string) (string, error) {
 
 	aesKey := s.config.GetSecureCookieKey()
 	value, err := s.encrypt.Decrypt([]byte(aesKey), string(encryptedValue))
+	// Changed, or sealed under the key or the cipher before: no session,
+	// so its holder signs in again.
+	if errors.Is(err, crypt.ErrUnreadable) {
+		return "", nil
+	}
 	if err != nil {
 		return "", err
 	}

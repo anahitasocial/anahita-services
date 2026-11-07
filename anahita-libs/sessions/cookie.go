@@ -1,6 +1,7 @@
 package sessions
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
@@ -65,6 +66,11 @@ func (s *cookieSession) Read(c echo.Context, key string) (string, error) {
 	aesKey := s.config.GetSecureCookieKey()
 	decrypted, err := s.encrypt.Decrypt([]byte(aesKey), cookie.Value)
 
+	// Changed, or sealed under the key or the cipher before: no session,
+	// as if there were no cookie, so its holder signs in again.
+	if errors.Is(err, crypt.ErrUnreadable) {
+		return "", nil
+	}
 	if err != nil {
 		return "", err
 	}

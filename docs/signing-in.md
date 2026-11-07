@@ -183,6 +183,15 @@ its requests renews and the others wait for it, up to two seconds, and take
 up the new access token. A session is ended only when its refresh token is
 over: spent, revoked, expired, unknown, or its account refused.
 
+What the session holds, in its cookie or in Redis, is sealed with
+`SECURE_COOKIE_KEY` by AES-GCM: it cannot be read, and one changed by so much
+as a bit is refused and taken as no session at all, so its holder signs in
+again (`anahita-libs/crypt/encryption.go`). Before v1.0.17 it was AES-CFB,
+which hid it and noticed nothing; a session sealed then is refused the same
+way, so everybody signed in at the upgrade signs in once more. An access
+token is taken, by the gateway and by auth-service, only with an expiry
+(`exp`): every token auth-service mints has one.
+
 A refresh token revoked as rotated and presented again more than a minute
 later is a copy: whoever holds it is not the session it was given to. Every
 refresh token that person holds for that client is revoked
@@ -197,6 +206,8 @@ out of every device every fifteen minutes (banu.io, 2026-11-02).
 | What | Where |
 | --- | --- |
 | Staying signed in: renewing, rotation, copies of a refresh token | `auth-service/cmd/api/handlers/oauth_session.go` (`ReadValidate`, `refreshSessionTokens`, `awaitRenewal`), `auth-service/data/services/oauth_token.go` (`RefreshTokenPair`), table `oauth_refresh_tokens` (`rotated`) |
+| Sealing what a session holds | `anahita-libs/crypt/encryption.go`, `anahita-libs/sessions/cookie.go` and `redis.go` (`Read`); setting `SECURE_COOKIE_KEY` |
+| Checking a token's expiry | `anahita-libs/middleware/oauth.go` (`authenticateOAuth`), `auth-service/data/services/jwt.go` (`ValidateAccessToken`) |
 | Signing in with a password, then two-factor | `auth-service/cmd/api/handlers/oauth_login.go` (`AddCredentials`, `AddTotp`) |
 | Signing in with a passkey | `auth-service/cmd/api/handlers/oauth_web_authn.go`, table `webauthn_credentials` |
 | Signing in with a code | `auth-service/cmd/api/handlers/oauth_login_code.go` (`loginCodeChannels`), `oauth_login_code_test.go` |

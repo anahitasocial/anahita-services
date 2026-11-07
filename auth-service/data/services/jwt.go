@@ -216,20 +216,21 @@ func (s *OAuthService) ValidateAccessToken(ctx context.Context, tokenString stri
 		return nil, fmt.Errorf("verify signature: %w", err)
 	}
 
-	// Validate registered time-based claims. Match jwt.Parse's default
-	// behavior: exp and nbf are checked when present, not required.
-	// Our minted tokens always include exp, but a missing exp on a
-	// caller-supplied token isn't necessarily forged (it could be an
-	// older token format), so don't reject on absence.
+	// Validate registered time-based claims. exp is required: every token
+	// this service mints has one (access and ID tokens alike), so one
+	// without it was not made here, and would never run out (roadmap row
+	// 119). nbf is checked when present.
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
 		return nil, errors.New("unexpected claims type")
 	}
 	now := time.Now().Unix()
-	if exp, ok := claimFloat(claims, libs_constants.JWTClaimExp); ok {
-		if now > int64(exp) {
-			return nil, errors.New("token expired")
-		}
+	exp, ok := claimFloat(claims, libs_constants.JWTClaimExp)
+	if !ok {
+		return nil, errors.New("token has no expiry")
+	}
+	if now > int64(exp) {
+		return nil, errors.New("token expired")
 	}
 	if nbf, ok := claimFloat(claims, "nbf"); ok {
 		if now < int64(nbf) {
