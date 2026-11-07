@@ -8936,11 +8936,11 @@ who may call it: anyone, signed in or not.">
 </table>
 <p class="handler">Answered by <code>feed/cmd/api/handlers.(*feedActorHandler).Browse</code></p>
 </details>
-<details class="route" id="getFeedsDiscover" data-search="get /feeds/discover feeds people have shared the ones the viewer may see, the newest first. paged by how many came before, with no total.
+<details class="route" id="getFeedsDiscover" data-search="get /feeds/discover feeds people have shared the ones the viewer may see, the newest first and never ranked. paged by how many came before, with no total. with `whose`, the feeds page&#39;s list, for somebody signed in: `everyone`, the same with the viewer&#39;s own kept to themselves among them; `following`, the feeds of the people they follow; `mine`, theirs, all of them.
 
 who may call it: anyone, signed in or not.">
 <summary><span class="method get">GET</span> <code class="path">/feeds/discover</code> <span class="summary">Feeds people have shared</span></summary>
-<div class="description"><p>The ones the viewer may see, the newest first. Paged by how many came before, with no total.</p></div>
+<div class="description"><p>The ones the viewer may see, the newest first and never ranked. Paged by how many came before, with no total. With <code>whose</code>, the Feeds page&#39;s list, for somebody signed in: <code>everyone</code>, the same with the viewer&#39;s own kept to themselves among them; <code>following</code>, the feeds of the people they follow; <code>mine</code>, theirs, all of them.</p></div>
 <p class="who"><strong>Who:</strong> anyone, signed in or not</p>
 <h4>Takes</h4>
 <table>
@@ -8949,13 +8949,15 @@ who may call it: anyone, signed in or not.">
 <tr><td><code>q</code></td><td>query</td><td>string</td><td>Part of a name, to find a feed by. At most 100 characters.</td></tr>
 <tr><td><code>start</code></td><td>query</td><td>integer</td><td>How many to pass over. At least 0.</td></tr>
 <tr><td><code>limit</code></td><td>query</td><td>integer</td><td>The most to send: up to 40. At least 0. At most 40.</td></tr>
+<tr><td><code>whose</code></td><td>query</td><td>string</td><td>Whose feeds: everyone&#39;s the viewer may see, theirs among them; those of the people they follow; or theirs alone. Not given, the feeds other people have shared, as Recommendations lists them. One of <code>everyone</code>, <code>following</code>, <code>mine</code>.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
 <table class="answers">
 <tbody>
 <tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-feed.DiscoverPage">feed.DiscoverPage</a> <span class="media">application/json</span></div></td></tr>
-<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">400</td><td><code>whose</code> is not everyone, following or mine</td></tr>
+<tr><td class="status s4">401</td><td><code>whose</code> asked for by somebody not signed in</td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>feed/cmd/api/handlers.(*customFeedHandler).Discover</code></p>

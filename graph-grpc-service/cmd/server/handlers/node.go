@@ -38,6 +38,7 @@ func (h *nodeHandler) Browse(ctx context.Context, req *graphpb.NodeBrowseRequest
 	gReq.Viewer = viewer
 	gReq.Types = FilterValidStrings(req.Types)
 	gReq.OwnerIDs = FilterValidIDs(req.OwnerIds)
+	gReq.OwnedByFollowed = req.OwnedByFollowed
 	gReq.ParentIDs = FilterValidIDs(req.ParentIds)
 	gReq.Search = req.Search
 	gReq.NearbyLatitude = req.NearbyLatitude

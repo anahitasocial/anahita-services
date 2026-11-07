@@ -83,10 +83,12 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Sends(http.StatusOK, feedList)
 	feeds.GET("/discover", custom.Discover, r.setViewer).
 		Summary("Feeds people have shared").
-		Describe("The ones the viewer may see, the newest first. Paged by how many came before, with no total.").
+		Describe("The ones the viewer may see, the newest first and never ranked. Paged by how many came before, with no total. With `whose`, the Feeds page's list, for somebody signed in: `everyone`, the same with the viewer's own kept to themselves among them; `following`, the feeds of the people they follow; `mine`, theirs, all of them.").
 		Viewer(apidoc.Anyone).
 		Takes(&handlers.CustomFeedDiscoverRequest{}).
-		Sends(http.StatusOK, handlers.DiscoverPage{})
+		Sends(http.StatusOK, handlers.DiscoverPage{}).
+		Refuses(http.StatusBadRequest, "`whose` is not everyone, following or mine").
+		Refuses(http.StatusUnauthorized, "`whose` asked for by somebody not signed in")
 	feeds.PUT("/pins", custom.SetPins, r.authorize).
 		Summary("Set the feeds on the viewer's home page").
 		Describe("The whole list, in order. Answers with it.").

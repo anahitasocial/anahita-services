@@ -1552,7 +1552,7 @@
     },
     "/feeds/discover": {
       "get": {
-        "description": "The ones the viewer may see, the newest first. Paged by how many came before, with no total.\n\nWho may call it: anyone, signed in or not.",
+        "description": "The ones the viewer may see, the newest first and never ranked. Paged by how many came before, with no total. With `whose`, the Feeds page's list, for somebody signed in: `everyone`, the same with the viewer's own kept to themselves among them; `following`, the feeds of the people they follow; `mine`, theirs, all of them.\n\nWho may call it: anyone, signed in or not.",
         "operationId": "getFeedsDiscover",
         "parameters": [
           {
@@ -1584,6 +1584,19 @@
               "minimum": 0,
               "type": "integer"
             }
+          },
+          {
+            "description": "Whose feeds: everyone's the viewer may see, theirs among them; those of the people they follow; or theirs alone. Not given, the feeds other people have shared, as Recommendations lists them.",
+            "in": "query",
+            "name": "whose",
+            "schema": {
+              "enum": [
+                "everyone",
+                "following",
+                "mine"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1598,7 +1611,10 @@
             "description": "OK"
           },
           "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
+            "description": "`whose` is not everyone, following or mine"
+          },
+          "401": {
+            "description": "`whose` asked for by somebody not signed in"
           }
         },
         "security": [

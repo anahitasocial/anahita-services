@@ -76,6 +76,8 @@ type NodeBrowseRequest struct {
 	// The viewer's own drafts: only those, which every other list leaves
 	// out.
 	Drafts bool
+	// Only what is owned by somebody the viewer follows.
+	OwnedByFollowed bool
 }
 
 type NodeBrowseMutualConnectionsRequest struct {

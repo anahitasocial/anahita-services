@@ -55,6 +55,8 @@ type GraphNodeBrowseRequest struct {
 	OrderingDir     string           `validate:"max=4,omitempty,oneof=asc desc"`
 	Viewer          *entities.Viewer `validate:"required"`
 	AccessCheck     bool
+	// Only what is owned by somebody the viewer follows.
+	OwnedByFollowed bool
 }
 
 type GraphNodeReadRequest struct {

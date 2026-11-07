@@ -159,10 +159,19 @@ A feed among search results is a node like the others, with a `feed` block: its 
 
 ## Discover
 
-The web app's search finds shared feeds by their words. This endpoint lists them without any: it is the **Feeds** tab of the web app's Recommendations page.
-
+The web app's search finds shared feeds by their words. This endpoint lists them without any: the web app's **Feeds** page, and the **Feeds** tab of its Recommendations page.
 
 `GET /feeds/discover` lists the feeds people have shared, newest first: public ones, ones for anyone signed in, and ones for the followers of somebody the viewer follows. Each is gated for the viewer by its own audience and its owner's, as a post is. A feed kept to its owner is in nobody's list, its owner's included; the viewer's own shared feeds are in theirs, as everybody else sees them.
+
+With `whose`, for somebody signed in, it is the Feeds page's list (anahita-web roadmap row 125), never ranked:
+
+| `whose` | Lists |
+| --- | --- |
+| `everyone` | What is above, and the viewer's own feeds kept to themselves among them |
+| `following` | The feeds of the people the viewer follows, as they may see them |
+| `mine` | The viewer's own, all of them |
+
+Not signed in, `whose` is refused (401). The feeds on the viewer's home page, in their order, are `GET /feeds/pinned`.
 
 The list is of feeds, not of posts: opening or adding one shows its reader only what they could see anyway.
 
@@ -175,7 +184,7 @@ All on feed-service. Writing needs the `media:write` scope.
 | `POST /feeds/` `{ name, body, access, icon, definition }` | signed in | Makes a feed, and puts it on the home page. `access` is `myself` unless given |
 | `GET /feeds/mine` | signed in | The feeds the viewer made |
 | `GET /feeds/pinned` | signed in | The feeds on the viewer's home page, in order |
-| `GET /feeds/discover?q=&start=&limit=` | anybody | The feeds people have shared that the viewer may see, newest first. `q` is part of a name. Paged by `pagination.next_start` |
+| `GET /feeds/discover?q=&start=&limit=&whose=` | anybody; `whose` signed in | The feeds people have shared that the viewer may see, newest first. `q` is part of a name. `whose` is `everyone`, `following` or `mine` ([Discover](#discover)). Paged by `pagination.next_start` |
 | `PUT /feeds/pins` `{ ids }` | signed in | Replaces the feeds on the home page |
 | `POST /feeds/preview` `{ definition }` | signed in | The first page of a feed not saved yet, as the viewer's own |
 | `GET /feeds/<id>` | whoever may see it | The feed, with `references`: the profiles and locations it names that the viewer may see |
@@ -195,6 +204,7 @@ A feed is sent with its `icon`, `is_pinned` and `authorized` (`edit`, `delete`, 
 | The query | `graph-grpc-service/data/repositories/feed_custom.go`. Every value is a parameter. It ends with `SetFeedAccessQuery`, `SetLifecycleQuery` and `SetArchiveQuery`, for the reader |
 | That a feed never widens what anybody may see | `graph-grpc-service/data/repositories/feed_custom_integration_test.go` |
 | A feed's own visibility | `graph-grpc-service/data/repositories/nodes_visible.go` (`FilterVisible`) |
+| The feeds of the people one follows | `graph-grpc-service/data/repositories/nodes.go` (`ownedByFollowedQuery`), asked for as `OwnedByFollowed` in a node list |
 | The endpoints | `feed-service/cmd/api/handlers/custom_feed.go`. `custom_feed_test.go` runs them over a graph held in memory: who may see, change, copy and delete a feed, the limits, and the home page |
 
 ## What is not built

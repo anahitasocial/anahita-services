@@ -10,7 +10,18 @@ made.
 Releases before v1.0.17 are described on GitHub, under
 [Releases](https://github.com/anahitasocial/anahita-services/releases).
 
-## Embryo, to be v1.0.17
+## Embryo
+
+### Added
+
+1. **Whose feeds, in `GET /feeds/discover`** (anahita-web row 125):
+   `whose=everyone`, `following` or `mine`, for somebody signed in, the web
+   app's Feeds page's list ([Discover](docs/feeds.md#discover)); without
+   it, as before.
+2. **`owned_by_followed` in the graph's node list:** only what is owned by
+   somebody the viewer follows.
+
+## v1.0.17 Birth, 2026-11-07
 
 ### Upgrading
 

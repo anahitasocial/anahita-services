@@ -812,6 +812,9 @@ type NodeBrowseRequest struct {
 	Search          string                 `protobuf:"bytes,11,opt,name=search,proto3" json:"search,omitempty"`
 	Viewer          *Viewer                `protobuf:"bytes,12,opt,name=viewer,proto3" json:"viewer,omitempty"`
 	AccessCheck     bool                   `protobuf:"varint,13,opt,name=access_check,json=accessCheck,proto3" json:"access_check,omitempty"`
+	// Only what is owned by somebody the viewer follows: a feed of the
+	// people they follow, in the Feeds page's list (anahita-web row 125).
+	OwnedByFollowed bool `protobuf:"varint,14,opt,name=owned_by_followed,json=ownedByFollowed,proto3" json:"owned_by_followed,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -933,6 +936,13 @@ func (x *NodeBrowseRequest) GetViewer() *Viewer {
 func (x *NodeBrowseRequest) GetAccessCheck() bool {
 	if x != nil {
 		return x.AccessCheck
+	}
+	return false
+}
+
+func (x *NodeBrowseRequest) GetOwnedByFollowed() bool {
+	if x != nil {
+		return x.OwnedByFollowed
 	}
 	return false
 }
@@ -3271,7 +3281,7 @@ const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\x1dis_follow_requested_by_viewer\x18[ \x01(\bR\x19isFollowRequestedByViewerJ\x04\b\t\x10\n" +
 	"J\x04\b\x1e\x10\x1fJ\x04\b\f\x10\rJ\x04\b\x12\x10\x13J\x04\b\x17\x10\x18J\x04\b/\x103J\x04\b5\x106J\x04\b@\x10AJ\x04\bB\x10CJ\x04\bD\x10HJ\x04\bI\x10JR\aexcerpt\"*\n" +
 	"\x05Nodes\x12!\n" +
-	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes\"\xad\x03\n" +
+	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes\"\xd9\x03\n" +
 	"\x11NodeBrowseRequest\x12\x14\n" +
 	"\x05types\x18\x01 \x03(\tR\x05types\x12\x1b\n" +
 	"\towner_ids\x18\x02 \x03(\x03R\bownerIds\x12\x1d\n" +
@@ -3287,7 +3297,8 @@ const file_proto_graphpb_node_proto_rawDesc = "" +
 	" \x01(\x04R\x06offset\x12\x16\n" +
 	"\x06search\x18\v \x01(\tR\x06search\x12%\n" +
 	"\x06viewer\x18\f \x01(\v2\r.graph.ViewerR\x06viewer\x12!\n" +
-	"\faccess_check\x18\r \x01(\bR\vaccessCheck\"7\n" +
+	"\faccess_check\x18\r \x01(\bR\vaccessCheck\x12*\n" +
+	"\x11owned_by_followed\x18\x0e \x01(\bR\x0fownedByFollowed\"7\n" +
 	"\x12NodeBrowseResponse\x12!\n" +
 	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes\"!\n" +
 	"\x0fNodeReadRequest\x12\x0e\n" +

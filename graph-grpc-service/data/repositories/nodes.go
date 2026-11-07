@@ -26,6 +26,16 @@ type nodesRepo struct {
 	edgesRepo *edgesRepo
 }
 
+// ownedByFollowedQuery keeps a node whose owner the viewer follows: a
+// follow edge from the viewer to the owner, as the home feed asks it.
+const ownedByFollowedQuery = `EXISTS (
+	SELECT 1
+	FROM edges AS followed
+	WHERE followed.type = ?
+		AND followed.node_a_id = ?
+		AND followed.node_b_id = node.owner_id
+)`
+
 // Browse retrieves a list of nodes based on the provided browse request and viewer context.
 func (r *nodesRepo) Browse(req *requests.NodeBrowseRequest) ([]*entities.AnahitaNode, error) {
 	query := GetBaseSelectQuery()
@@ -36,6 +46,15 @@ func (r *nodesRepo) Browse(req *requests.NodeBrowseRequest) ([]*entities.Anahita
 
 	if len(req.OwnerIDs) > 0 {
 		query = query.Where(sq.Eq{"node.owner_id": req.OwnerIDs})
+	}
+
+	// Owned by somebody the viewer follows. A visitor follows nobody.
+	if req.OwnedByFollowed {
+		viewerID := int64(0)
+		if req.Viewer != nil {
+			viewerID = req.Viewer.ID
+		}
+		query = query.Where(ownedByFollowedQuery, constants.EdgeFollowEntityType, viewerID)
 	}
 
 	if len(req.ParentIDs) > 0 {
@@ -120,7 +139,8 @@ func (r *nodesRepo) Browse(req *requests.NodeBrowseRequest) ([]*entities.Anahita
 		if req.Ordering == constants.OrderingPopular {
 			query = query.OrderBy("(node.repost_count + node.comment_count + node.vote_up_count + node.subscriber_count + node.follower_count + node.citation_count) DESC")
 		} else if req.Ordering == constants.OrderingRecent {
-			query = query.OrderBy("node.created_at DESC")
+			// Two made in the same second: the later one first.
+			query = query.OrderBy("node.created_at DESC", "node.id DESC")
 		} else if column := safeOrderColumn(req.Ordering); column != "" {
 			// Checked here as well as at the API boundary: ORDER BY is
 			// concatenated, and gRPC callers never passed through that

@@ -103,7 +103,18 @@ type CustomFeedDiscoverRequest struct {
 	Start uint64 `query:"start" validate:"omitempty,numeric"`
 	// The most to send: up to 40.
 	Limit uint64 `query:"limit" validate:"omitempty,numeric,max=40"`
+	// Whose feeds: everyone's the viewer may see, theirs among them;
+	// those of the people they follow; or theirs alone. Not given, the
+	// feeds other people have shared, as Recommendations lists them.
+	Whose string `query:"whose" validate:"omitempty,oneof=everyone following mine"`
 }
+
+// The lists Discover makes, by whose feeds they are (anahita-web row 125).
+const (
+	WhoseEveryone  = "everyone"
+	WhoseFollowing = "following"
+	WhoseMine      = "mine"
+)
 
 type CustomFeedPreviewRequest struct {
 	// What it would show, as feeds.md describes it.
@@ -736,6 +747,11 @@ func (h *customFeedHandler) Mine(c echo.Context) error {
 // followers of somebody the viewer follows. A feed kept to its owner is in
 // nobody's list here, its owner's included: theirs are under their own.
 //
+// `whose` makes the Feeds page's list of it (anahita-web row 125), for
+// somebody signed in: `everyone`, the same with the viewer's own kept to
+// themselves among them; `following`, the feeds of the people they follow;
+// `mine`, theirs, all of them. Never ranked: newest first.
+//
 // The graph's list of nodes gates each feed by its own audience and its
 // owner's, for the viewer, as it does a post. The viewer's own private
 // feeds pass that gate, being theirs, and are taken out here. So a page can
@@ -755,6 +771,10 @@ func (h *customFeedHandler) Discover(c echo.Context) error {
 	if req.Limit == 0 {
 		req.Limit = feeds.PageSize
 	}
+	signedIn := viewer.Authenticated && viewer.ID > 0
+	if req.Whose != "" && !signedIn {
+		return c.NoContent(http.StatusUnauthorized)
+	}
 
 	browse := services.NewGraphNodeRequest().Browse
 	browse.Types = []string{feeds.NodeType}
@@ -764,6 +784,15 @@ func (h *customFeedHandler) Discover(c echo.Context) error {
 	browse.Limit = req.Limit + 1
 	browse.Viewer = viewer
 	browse.AccessCheck = true
+	// Newest first, said, not left to the graph: one owner's list is led
+	// by what is pinned to their profile otherwise.
+	browse.Ordering = constants.OrderingRecent
+	switch req.Whose {
+	case WhoseFollowing:
+		browse.OwnedByFollowed = true
+	case WhoseMine:
+		browse.OwnerIDs = []int64{viewer.ID}
+	}
 
 	found, err := h.Srv.GraphNodeGRPC.Browse(browse)
 	if err != nil {
@@ -778,7 +807,14 @@ func (h *customFeedHandler) Discover(c echo.Context) error {
 
 	shared := make([]*entities.AnahitaNode, 0, len(found))
 	for _, feed := range found {
-		if feed.Type == feeds.NodeType && feed.Access != constants.AnahitaAccessMyself {
+		if feed.Type != feeds.NodeType {
+			continue
+		}
+		// One kept to its owner only in their own lists: everyone's and
+		// theirs.
+		own := signedIn && feed.OwnerID == viewer.ID
+		if feed.Access != constants.AnahitaAccessMyself ||
+			(own && (req.Whose == WhoseEveryone || req.Whose == WhoseMine)) {
 			shared = append(shared, feed)
 		}
 	}

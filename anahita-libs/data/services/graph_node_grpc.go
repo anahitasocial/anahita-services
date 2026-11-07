@@ -116,6 +116,7 @@ func (srv *GraphNodeGRPC) Browse(req *GraphNodeBrowseRequest) ([]*entities.Anahi
 	resp, err := client.Browse(context.Background(), &graphpb.NodeBrowseRequest{
 		Types:           req.Types,
 		OwnerIds:        req.OwnerIDs,
+		OwnedByFollowed: req.OwnedByFollowed,
 		ParentIds:       req.ParentIDs,
 		NearbyLatitude:  req.NearbyLatitude,
 		NearbyLongitude: req.NearbyLongitude,

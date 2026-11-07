@@ -99,6 +99,16 @@ func (g *fakeGraph) owned(req *an_services.GraphNodeBrowseRequest) []*entities.A
 	return list
 }
 
+// followedBy says whether somebody follows an owner.
+func (g *fakeGraph) followedBy(owner, follower int64) bool {
+	for _, each := range g.follows[owner] {
+		if each == follower {
+			return true
+		}
+	}
+	return false
+}
+
 func (g *fakeGraph) Count(req *an_services.GraphNodeBrowseRequest) (uint64, error) {
 	return uint64(len(g.owned(req))), nil
 }
@@ -112,7 +122,8 @@ func (g *fakeGraph) Browse(req *an_services.GraphNodeBrowseRequest) ([]*entities
 
 	var ids []int64
 	for id, node := range g.nodes {
-		if node.Type == req.Types[0] && strings.Contains(strings.ToLower(node.Name), strings.ToLower(req.Search)) {
+		if node.Type == req.Types[0] && strings.Contains(strings.ToLower(node.Name), strings.ToLower(req.Search)) &&
+			(!req.OwnedByFollowed || g.followedBy(node.OwnerID, req.Viewer.ID)) {
 			ids = append(ids, id)
 		}
 	}
@@ -698,6 +709,10 @@ func (f *feedTest) callQuery(handler echo.HandlerFunc, viewer *entities.Viewer, 
 	answers.Handler(handler, rec)
 
 	answer := map[string]any{}
+	// A refusal has no body to read.
+	if rec.Code >= http.StatusBadRequest && rec.Body.Len() == 0 {
+		return rec.Code, answer
+	}
 	if err := json.Unmarshal(rec.Body.Bytes(), &answer); err != nil {
 		f.t.Fatalf("answer is not JSON: %s", rec.Body.String())
 	}
@@ -769,5 +784,64 @@ func TestDiscoverListsWhatIsSharedWithTheViewer(t *testing.T) {
 	}
 	if second["data"].([]any)[0].(map[string]any)["is_pinned"] != true {
 		t.Errorf("a feed on the viewer's home page is not marked as there")
+	}
+}
+
+// The Feeds page's list (anahita-web row 125): everyone's the viewer may
+// see, their own kept to themselves among them; the feeds of the people
+// they follow; or theirs alone. Only for somebody signed in.
+func TestDiscoverListsWhoseFeedsTheyAre(t *testing.T) {
+	f := newFeedTest(t)
+	// Bob follows Alice.
+	f.graph.follows[testAlice] = []int64{testBob}
+
+	const carol = 3
+
+	alicePublic := f.make(testAlice, `{"name":"Gardens","access":"public","definition":{"sources":{"following":true}}}`)
+	aliceFollowers := f.make(testAlice, `{"name":"For followers","access":"followers","definition":{"sources":{"following":true}}}`)
+	alicePrivate := f.make(testAlice, followingFeed)
+	bobPrivate := f.make(testBob, followingFeed)
+	bobPublic := f.make(testBob, `{"name":"Harbours","access":"public","definition":{"sources":{"following":true}}}`)
+	carolPublic := f.make(carol, `{"name":"Kitchens","access":"public","definition":{"sources":{"following":true}}}`)
+
+	sorted := func(ids []int64) string {
+		sort.Slice(ids, func(i, j int) bool { return ids[i] < ids[j] })
+		return fmt.Sprint(ids)
+	}
+	cases := []struct {
+		what  string
+		query string
+		want  []int64
+	}{
+		{"everyone's, Bob's own private one among them", "whose=everyone",
+			[]int64{alicePublic, aliceFollowers, bobPrivate, bobPublic, carolPublic}},
+		{"the people Bob follows", "whose=following", []int64{alicePublic, aliceFollowers}},
+		{"Bob's own, all of them", "whose=mine", []int64{bobPrivate, bobPublic}},
+		{"not said: what others have shared, as before", "", []int64{alicePublic, aliceFollowers, bobPublic, carolPublic}},
+	}
+	for _, c := range cases {
+		status, answer := f.callQuery(f.handler.Discover, person(testBob), c.query)
+		if got := discovered(answer); status != http.StatusOK || sorted(got) != sorted(c.want) {
+			t.Errorf("%s: answered %d with %v, want %v", c.what, status, got, c.want)
+		}
+		for _, id := range discovered(answer) {
+			if id == alicePrivate {
+				t.Errorf("%s: Bob was shown a feed Alice keeps to herself", c.what)
+			}
+		}
+	}
+
+	// Newest first: Bob's own, the later one before the earlier.
+	_, answer := f.callQuery(f.handler.Discover, person(testBob), "whose=everyone")
+	if got := discovered(answer); len(got) > 1 && got[0] < got[1] {
+		t.Errorf("not newest first: %v", got)
+	}
+
+	// A visitor has no list of whose: only what is shared.
+	if status, _ := f.callQuery(f.handler.Discover, person(0), "whose=mine"); status != http.StatusUnauthorized {
+		t.Errorf("a visitor asking for theirs: %d, want 401", status)
+	}
+	if status, _ := f.callQuery(f.handler.Discover, person(testBob), "whose=nobody"); status != http.StatusBadRequest {
+		t.Errorf("an unknown whose: %d, want 400", status)
 	}
 }

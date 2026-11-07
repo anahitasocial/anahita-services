@@ -193,6 +193,9 @@ message NodeBrowseRequest {
     string search = 11;
     Viewer viewer = 12;
     bool access_check = 13;
+    // Only what is owned by somebody the viewer follows: a feed of the
+    // people they follow, in the Feeds page's list (anahita-web row 125).
+    bool owned_by_followed = 14;
 }
 
 message NodeBrowseResponse {
