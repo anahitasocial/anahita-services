@@ -316,9 +316,10 @@ many notes the chain has, and `thread_next`, the second note, as an item of
 the list. A note that opens none has neither. The chain is counted when the
 page is read, in one query for the page (`graph-grpc-service`,
 `data/repositories/nodes_threads.go`, called by `markThreads`), so nothing
-is kept that a reply, a deletion or a purge could leave wrong. A writer who
-answered their own note twice has both in its count, and the earlier as the
-second note. A reply deleted or turned off ends the chain there.
+is kept that a reply, a deletion or a purge could leave wrong. The chain is
+the writer's earliest reply to each note, as the thread's page draws it: a
+later reply of theirs to the same note is a reply like anybody's. A reply
+deleted or turned off ends the chain there.
 
 A photo post holds up to twenty images (`PHOTO_MAX_FILES`), each uploaded in a request of its own
 and kept in `photo_files`, a table beside the post. How that works, and what

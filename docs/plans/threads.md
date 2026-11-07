@@ -72,8 +72,9 @@ With the user on 2026-11-07:
    `parent_id`, and one more reads the second notes. Kept on the first note,
    every write that adds, deletes, hides or purges a reply, in several
    services, would have had to keep it in step, and a migration to begin
-   it; counted, it cannot be wrong. A writer who answered their own note
-   twice has both counted, and the earlier shown second.
+   it; counted, it cannot be wrong. The chain is the writer's earliest
+   reply to each note, as the page draws it; a later reply of theirs to the
+   same note is a reply like anybody's.
 3. **Only the writer's chain:** a note by somebody else, or a reply by the
    writer to somebody else's reply, ends nothing and adds nothing.
 4. **The card** (anahita-web `containers/feed/components/Default.jsx`):
