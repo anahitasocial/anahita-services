@@ -86,9 +86,10 @@ and places.
    own verb (`Follow`, `Approve`, `Rsvp`). Go's own forms stay: `NewX` for
    a constructor, and the `GetX` getters protobuf makes. The same in
    anahita-web.
-6. **Mobile**, not "phone", for the small screen and the device, in code
-   and the docs (the user, 2026-11-07). "Phone" is kept for a telephone
-   number (`SUPPORT_PHONE`) and for names that are not ours (iPhone).
+6. **Mobile**, not "phone", in code and the docs (the user, 2026-11-07).
+   "Phone" only where phone numbers are meant, and what goes with them, as
+   text messages (SMS): `SUPPORT_PHONE`, "a verified phone number". Names
+   that are not ours stay as they are (iPhone).
 
 ## Product principles
 
