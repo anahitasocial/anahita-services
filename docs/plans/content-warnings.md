@@ -5,7 +5,9 @@ atproto, is there a way to flag a post as 18+ or violent content? Can we
 blur them with a warning so viewing them requires clicking on a view
 button?", and then: "We don't want to censor, but we want to give viewers
 consent." Shaped with the user the same day, after Bluesky's moderation
-settings and Mastodon's content warnings. Not built.
+settings and Mastodon's content warnings. **Made with AI** added as a sixth
+kind on 2026-11-07, at the user's word, after asking how to tell AI images
+apart ([Made with AI](#made-with-ai)). Not built.
 
 ## Contents
 
@@ -18,8 +20,9 @@ settings and Mastodon's content warnings. Not built.
 7. [When a moderator adds one](#when-a-moderator-adds-one)
 8. [Federation](#federation)
 9. [Storage and the API](#storage-and-the-api)
-10. [Out of scope](#out-of-scope)
-11. [Phases](#phases)
+10. [Made with AI](#made-with-ai)
+11. [Out of scope](#out-of-scope)
+12. [Phases](#phases)
 
 ## Why
 
@@ -50,8 +53,9 @@ label; labellers can label other people's posts.
 
 ## The kinds
 
-Bluesky's four, so that labels cross both ways one for one, and a fifth for
-the warnings in words that the fediverse writes.
+Bluesky's four, so that labels cross both ways one for one, a fifth for
+the warnings in words that the fediverse writes, and a sixth for what was
+made with AI ([Made with AI](#made-with-ai)).
 
 | Kind (`warning`) | Said to people | AT label | ActivityPub |
 | --- | --- | --- | --- |
@@ -60,6 +64,7 @@ the warnings in words that the fediverse writes.
 | `graphic` | Graphic media: violence, gore, disturbing images | `graphic-media` | `sensitive`, `summary` "Graphic media" |
 | `nudity` | Non-sexual nudity: artistic nudes, for example | `nudity` | `sensitive`, `summary` "Nudity" |
 | `other` | Other warnings, in the author's words: spoilers, grief… | none | `sensitive`, `summary` the author's words |
+| `ai` | Made with AI: pictures or video made or changed by AI | none | none, for now |
 
 The `summary` sent for the first four is in the installation's default
 language.
@@ -78,7 +83,8 @@ Editing a post can add, change or take off its warning.
 
 A **Content** tab in a person's settings, one card: each kind with its name,
 its line, and a full-width row of **Show · Warn · Hide**. Every kind starts
-at **Warn**, for everybody, so that seeing any of it is chosen. Somebody not
+at **Warn**, for everybody, so that seeing any of it is chosen, but Made with
+AI, which starts at **Show**: it says what a post is, not what it holds. Somebody not
 signed in has Warn and no choice.
 
 ## What a post looks like
@@ -144,6 +150,36 @@ none.
 5. `POST /abuse-reports/cases/:id/warn` `{ kind, text }`, and the same on a
    post for an administrator.
 
+## Made with AI
+
+Asked about on 2026-11-07: how to tell AI images from others. Camera details
+in a file prove nothing (they are written in seconds, and Anahita drops them
+on upload, with the place a photo was taken). What can be believed without
+checking is a file saying it **was** made with AI: nobody gains by faking that
+against themselves. A file saying it came from a camera means something only
+with a signature that checks out, which is roadmap row 131
+([content-credentials.md](content-credentials.md)).
+
+1. **The author says so,** with the sixth kind, in the composer as any other.
+2. **The file says so.** On upload, before a photo is made again at its
+   sizes and a video transcoded, the photo and video services look for the
+   two plain signs: IPTC's `digitalSourceType` of `trainedAlgorithmicMedia`
+   or `compositeWithTrainedAlgorithmicMedia` in its XMP, and a C2PA manifest
+   whose actions say the same. Either answers the upload with
+   `made_with_ai: true`; the composer then chooses Made with AI, with a line
+   saying why ("This picture says it was made with AI"). The author sees it
+   and may take it off; nothing is marked behind their back.
+3. **A reader asks for it:** **Made with AI, not marked** is a reason to
+   report a post (`needs_ai_label`), and the administrators who decide it add
+   the kind, as for any warning.
+4. **No guessing.** No classifier says whether a picture was made with AI:
+   they are wrong often enough to mark real people's photos, and a cost to
+   run.
+5. **Federation.** Neither network has a field for it. Sent as a warning, it
+   would hide the post behind it on Mastodon, which is more than it says, so
+   it is not sent, and not read coming in. Looked at again when either
+   network has one.
+
 ## Out of scope
 
 1. A site that hides adult content from visitors, or from everybody: the
@@ -161,5 +197,7 @@ none.
 3. **Federation** in and out, pictures from elsewhere kept and blurred.
 4. **Moderators:** the report reason, the case's action, the post's menu,
    the notification.
+5. **Made with AI:** the sixth kind, the signs read from a file on upload,
+   the composer choosing it, the report reason: about one session.
 
-About three days in all, services and web.
+About four days in all, services and web.
