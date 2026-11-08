@@ -12,6 +12,20 @@ Releases before v1.0.17 are described on GitHub, under
 
 ## Embryo
 
+### Added
+
+1. **The cluster's own MySQL, RabbitMQ and Garage accounts** are in
+   `docs/configuration.md`: `MYSQL_*`, `RABBITMQ_*`, `GARAGE_RPC_SECRET` and
+   `GARAGE_ADMIN_TOKEN`, who reads each and how to make it.
+
+### Changed
+
+1. **The overlays pull Anahita's images from GitHub's registry,**
+   `ghcr.io/anahitasocial/<image>`, the gateway as `gateway`, in `k3s`,
+   `aws` and `generic`; before, they named `anahita/<image>`, which no
+   public registry serves. A site that already sets `newName` changes
+   nothing.
+
 ## v1.0.19 Birth, 2026-11-07
 
 ### Added

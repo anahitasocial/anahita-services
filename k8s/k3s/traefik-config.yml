@@ -1,5 +1,6 @@
 # For the cluster, not the site: applied once to a k3s server, before the
-# overlay (docs/deploying-k3s.md), and by `make k3d-start`.
+# overlay (docs/deploying.md, Addresses behind a load balancer), and by
+# `make k3d-start`.
 #
 # Keeps the visitor's address. k3s's load balancer otherwise rewrites the
 # source of every connection to the node's own, so Traefik, and after it

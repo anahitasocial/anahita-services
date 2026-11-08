@@ -14,22 +14,23 @@ On Kubernetes the same variables go in an overlay's `config.env` and
 1. [Shared](#shared)
 2. [Client addresses](#client-addresses)
 3. [Internal calls](#internal-calls)
-4. [Site identity](#site-identity)
-5. [Rules and promises](#rules-and-promises)
-6. [Registration](#registration)
-7. [Privacy of the installation](#privacy-of-the-installation)
-8. [First super administrator](#first-super-administrator)
-9. [OAuth signing and encryption](#oauth-signing-and-encryption)
-10. [Storage](#storage)
-11. [Locations](#locations)
-12. [Mail](#mail)
-13. [Abuse reports](#abuse-reports)
-14. [Account cleanup](#account-cleanup)
-15. [Federation](#federation)
-16. [The web shell](#the-web-shell)
-17. [Photos](#photos)
-18. [Video](#video)
-19. [Download your data](#download-your-data)
+4. [MySQL, RabbitMQ and Garage on the cluster](#mysql-rabbitmq-and-garage-on-the-cluster)
+5. [Site identity](#site-identity)
+6. [Rules and promises](#rules-and-promises)
+7. [Registration](#registration)
+8. [Privacy of the installation](#privacy-of-the-installation)
+9. [First super administrator](#first-super-administrator)
+10. [OAuth signing and encryption](#oauth-signing-and-encryption)
+11. [Storage](#storage)
+12. [Locations](#locations)
+13. [Mail](#mail)
+14. [Abuse reports](#abuse-reports)
+15. [Account cleanup](#account-cleanup)
+16. [Federation](#federation)
+17. [The web shell](#the-web-shell)
+18. [Photos](#photos)
+19. [Video](#video)
+20. [Download your data](#download-your-data)
 
 ## Shared
 
@@ -100,6 +101,26 @@ on the certificates.
 A service written in another language joins in by loading the same three
 files in its gRPC library: present `tls.crt` and `tls.key`, trust `ca.crt`,
 and, for a server, require a client certificate.
+
+### MySQL, RabbitMQ and Garage on the cluster
+
+Read on Kubernetes only, by the migration job and the components that run a
+database, the event bus or a store on the cluster itself, as the `k3s`
+overlay does ([Database, Redis and RabbitMQ](deploying.md#database-redis-and-rabbitmq)).
+The services themselves read `DSN`, `AMQP_ADDR` and the `STORAGE_*`
+settings, which repeat the same accounts.
+
+| Variable | Read by | Value |
+| --- | --- | --- |
+| `MYSQL_HOST`, `MYSQL_DATABASE` | the migration job, `mysql-backup` | The database's host and name. `mysql` and `anahita` in the base's `config.env` |
+| `MYSQL_USER`, `MYSQL_PASSWORD` | the migration job, `mysql` | The account the services use, the same as in `DSN`. The `mysql` component creates it at first start |
+| `MYSQL_ROOT_PASSWORD` | `mysql`, `mysql-backup` | MySQL's root password, set at first start; the nightly backup signs in with it |
+| `RABBITMQ_USER`, `RABBITMQ_PASSWORD` | `rabbitmq` | The event bus's account, the same as in `AMQP_ADDR` |
+| `GARAGE_RPC_SECRET` | `garage` | 64 hex characters: `openssl rand -hex 32` |
+| `GARAGE_ADMIN_TOKEN` | `garage`, `garage-init` | For `garage-init`, which makes the bucket and the key in `STORAGE_ACCESS_KEY` and `STORAGE_SECRET_KEY`: `openssl rand -base64 32` |
+
+Changing a password here after the first start changes nothing in MySQL or
+RabbitMQ, which keep the one they began with: change it there too.
 
 ## Site identity
 

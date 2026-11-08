@@ -35,64 +35,95 @@ secretGenerator:
     envs:
       - secrets.env
 
-# Which build to run. Pin newTag to a release, and add newName to pull from
-# ECR or another registry of your own.
+# Which build to run: the images of a Birth release, from GitHub's registry
+# (docs/deploying.md, Images). latest is the newest release, for trying
+# Anahita out; a site pins newTag to the version it runs, the same on every
+# line. Change newName to pull from a registry of your own.
 images:
   - name: anahita/abuse-report-service
+    newName: ghcr.io/anahitasocial/abuse-report-service
     newTag: latest
   - name: anahita/activitypub-service
+    newName: ghcr.io/anahitasocial/activitypub-service
     newTag: latest
   - name: anahita/atproto-service
+    newName: ghcr.io/anahitasocial/atproto-service
     newTag: latest
   - name: anahita/actor-service
+    newName: ghcr.io/anahitasocial/actor-service
     newTag: latest
   - name: anahita/auth-service
+    newName: ghcr.io/anahitasocial/auth-service
     newTag: latest
   - name: anahita/feed-service
+    newName: ghcr.io/anahitasocial/feed-service
     newTag: latest
   - name: anahita/file-grpc-service
+    newName: ghcr.io/anahitasocial/file-grpc-service
     newTag: latest
   - name: anahita/graph-grpc-service
+    newName: ghcr.io/anahitasocial/graph-grpc-service
     newTag: latest
   - name: anahita/hashtag-service
+    newName: ghcr.io/anahitasocial/hashtag-service
     newTag: latest
   - name: anahita/identity-image-service
+    newName: ghcr.io/anahitasocial/identity-image-service
     newTag: latest
   - name: anahita/like-service
+    newName: ghcr.io/anahitasocial/like-service
     newTag: latest
   - name: anahita/link-preview-service
+    newName: ghcr.io/anahitasocial/link-preview-service
     newTag: latest
   - name: anahita/syndication-service
+    newName: ghcr.io/anahitasocial/syndication-service
     newTag: latest
   - name: anahita/syndication-worker
+    newName: ghcr.io/anahitasocial/syndication-worker
     newTag: latest
   - name: anahita/location-service
+    newName: ghcr.io/anahitasocial/location-service
     newTag: latest
   - name: anahita/mail-grpc-service
+    newName: ghcr.io/anahitasocial/mail-grpc-service
     newTag: latest
   - name: anahita/migration-job
+    newName: ghcr.io/anahitasocial/migration-job
     newTag: latest
   - name: anahita/nginx
+    newName: ghcr.io/anahitasocial/gateway
     newTag: latest
   - name: anahita/notification-service
+    newName: ghcr.io/anahitasocial/notification-service
     newTag: latest
   - name: anahita/photo-service
+    newName: ghcr.io/anahitasocial/photo-service
     newTag: latest
   - name: anahita/video-service
+    newName: ghcr.io/anahitasocial/video-service
     newTag: latest
   - name: anahita/video-worker
+    newName: ghcr.io/anahitasocial/video-worker
     newTag: latest
   - name: anahita/export-service
+    newName: ghcr.io/anahitasocial/export-service
     newTag: latest
   - name: anahita/export-worker
+    newName: ghcr.io/anahitasocial/export-worker
     newTag: latest
   - name: anahita/recommendation-service
+    newName: ghcr.io/anahitasocial/recommendation-service
     newTag: latest
   - name: anahita/search-service
+    newName: ghcr.io/anahitasocial/search-service
     newTag: latest
   - name: anahita/socialgraph-service
+    newName: ghcr.io/anahitasocial/socialgraph-service
     newTag: latest
   - name: anahita/sweeper-job
+    newName: ghcr.io/anahitasocial/sweeper-job
     newTag: latest
   - name: anahita/text-service
+    newName: ghcr.io/anahitasocial/text-service
     newTag: latest
