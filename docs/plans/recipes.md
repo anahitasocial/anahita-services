@@ -100,7 +100,7 @@ microservices architecture.")
 
 | Recipe | Like | What it runs and puts first | Gaps it shows | When |
 | --- | --- | --- | --- | --- |
-| **php-migration** | | Moving a site from Anahita PHP: row 92, made simple from what was done for banu.io. Archive the old site and prove the archive; copy the files to a new bucket; `upgrade.sql`; check; the old site retired. One `make` target a step, each one that changes anything shown first with nothing changed (`tidy`, then `tidy-apply`, as banu.io does). Examples of thinning a site, from banu.io's `migration/` (the user, 2026-11-08): inactive accounts purged but a list kept; old posts by kind and date; posts whose author is gone; photos moved to another profile with their files; groups purged; then the file sweep. Each counts first and keeps a copy of what it removes | Each step tried on a copy | First |
+| **php-migration** | | Moving a site from Anahita PHP: row 92, made simple from what was done for banu.io. The move alone: the new site is made first with `commons`, and the old one moved into it (the user, 2026-11-08). Archive the old site and prove the archive; copy the files to a new bucket; `upgrade.sql`; check; the old site retired. One `make` target a step, each one that changes anything shown first with nothing changed (`tidy`, then `tidy-apply`, as banu.io does). Examples of thinning a site, from banu.io's `migration/` (the user, 2026-11-08): inactive accounts purged but a list kept; old posts by kind and date; posts whose author is gone; photos moved to another profile with their files; groups purged; then the file sweep. Each counts first and keeps a copy of what it removes | Each step tried on a copy | First |
 | **commons** | Mastodon and Pixelfed, but more | Everything: notes, photos, video, articles, groups, events, federation on both networks. What `generic` is now | | First |
 | **coffeehouse** | Mastodon, Bluesky | Notes and photos; articles, topics, events and websites off; short limits on video | Needs row 139's switches | First, once 139 is built |
 | **journal** | WordPress, Medium | Articles first: a home of article cards with their covers, notes beside them | RSS feeds; newsletters by email | Later |
@@ -115,6 +115,8 @@ commons/                each recipe a directory; copy one, and it is a site
                         decide before the first person joins, and the steps
                         from an empty server to the first person signed in
   Makefile              every task one word; `make` lists them
+  scripts/              init.sh and server.sh, what make init and make
+                        server run
   k8s/
     kustomization.yml   anahita-services' manifests at a version, and the
                         site's names
@@ -124,8 +126,8 @@ commons/                each recipe a directory; copy one, and it is a site
   deploy/               the server and its DNS: aws/, ovhcloud/, hetzner/
   web/                  the theme, build.sh and publish.sh, as banu.io's
 coffeehouse/            laid out the same
-php-migration/          the same README and Makefile; migration/ in place
-                        of k8s/
+php-migration/          the move alone: a README and Makefile of its own,
+                        and migration/; used on a commons site made first
 docs/providers.md       where a recipe runs, tried and untried
 ```
 
