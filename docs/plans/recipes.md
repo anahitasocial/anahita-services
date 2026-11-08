@@ -164,10 +164,11 @@ docs/providers.md       where a recipe runs, tried and untried
 2. **The copies agree:** the same check says when what the recipes share
    (the Makefile's common tasks, `deploy/`, `web/`) differs between them.
 3. **Every setting a recipe names exists,** checked against anahita-services'
-   `docs/configuration.md` at the version the recipe names.
-4. **A recipe is tried for real** before it is published: a server made
-   from it, the first person signed in, a post made, and the server taken
-   down after.
+   `docs/configuration.md` at the version the recipe names, or on main.
+4. **Tried by the people who use it** (the user, 2026-11-08): no trial of
+   our own, as banu.io was made this way once already. Each recipe says it
+   is not tried yet, and asks for reports in an issue; what they find is
+   fixed, and a recipe tried end to end says so.
 
 ## Phases
 
@@ -203,4 +204,4 @@ docs/providers.md       where a recipe runs, tried and untried
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-11 by kind of organisation; written again 2026-11-07 by purpose; each recipe a directory that stands alone, named, and three providers chosen, 2026-11-08 |
-| Implementation | not started |
+| Implementation | 2026-11-08: phase 1, `commons`, and phase 2, `php-migration`, written in anahita-recipes, with `check.sh` run on every push; not tried end to end, which is left to the people who use them. `php-migration` may find few sites to move: Anahita PHP may have none left but anahita.io |

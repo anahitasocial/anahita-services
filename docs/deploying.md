@@ -6,6 +6,14 @@ How to run a live site on Kubernetes, on any provider. For development on
 your own machine, use docker-compose instead: see
 [Getting started](getting-started.md).
 
+**Choose a recipe first.** [Anahita Recipes](https://github.com/anahitasocial/anahita-recipes)
+are sites ready to run on one server, each a folder to copy with its
+settings chosen and explained, and every task one `make` word: `commons`,
+everything Anahita does, and `php-migration`, to move a site from Anahita
+PHP into it. They need no knowledge of Kubernetes. This page is for what
+they do not cover: a cluster of your own, a larger site, or a provider's
+managed database.
+
 ## Contents
 
 1. [What you need](#what-you-need)
