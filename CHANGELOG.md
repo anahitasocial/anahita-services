@@ -24,7 +24,11 @@ Releases before v1.0.17 are described on GitHub, under
    `hide_notifications` and `for` (`day`, `week`, `month`, or until
    unmuted). A person's own alone; nobody is told. Profiles say
    `is_muted_by_viewer`, `mute_ends_at` and `mute_hides_notifications`.
-   What a mute hides follows in the same row.
+   While a mute lasts, what the muted person wrote, reposted or had
+   reposted, and what is on their profile, is left out of the muter's
+   Following feed, custom feeds, a hashtag's and a location's posts and
+   search, and their replies and what is under them out of threads; they
+   are not suggested. Their own profile, opened, is whole.
 
 ### Changed
 

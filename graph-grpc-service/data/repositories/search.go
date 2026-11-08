@@ -343,6 +343,7 @@ func (repo *SearchRepo) Count(req *graphpb.SearchCountRequest, viewer *entities.
 
 	query = repo.getScopeQuery(query, req.Scope)
 	query = SetSearchAccessQuery(query, viewer)
+	query = SetMutedQuery(query, viewer)
 	query = SetLifecycleQuery(query, viewer)
 	query = SetArchiveSearchQuery(query, viewer)
 
@@ -399,6 +400,7 @@ func (repo *SearchRepo) Browse(req *graphpb.SearchBrowseRequest, viewer *entitie
 func (repo *SearchRepo) filtered(query sq.SelectBuilder, req *graphpb.SearchBrowseRequest, viewer *entities.Viewer) sq.SelectBuilder {
 	query = repo.getScopeQuery(query, req.Scope)
 	query = SetSearchAccessQuery(query, viewer)
+	query = SetMutedQuery(query, viewer)
 	query = SetLifecycleQuery(query, viewer)
 	query = SetArchiveSearchQuery(query, viewer)
 

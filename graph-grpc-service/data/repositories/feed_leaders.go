@@ -80,6 +80,7 @@ func (repo *FeedLeadersRepo) Count(req *graphpb.FeedLeadersCountRequest, viewer 
 	sb = sb.Where("node.root_id IS NULL")
 
 	sb = SetFeedAccessQuery(sb, viewer)
+	sb = SetMutedQuery(sb, viewer)
 
 	sqlStr, args, err := sb.ToSql()
 	if err != nil {
@@ -130,6 +131,7 @@ func (repo *FeedLeadersRepo) Browse(req *graphpb.FeedLeadersBrowseRequest, viewe
 	query = query.Where("node.root_id IS NULL")
 
 	query = SetFeedAccessQuery(query, viewer)
+	query = SetMutedQuery(query, viewer)
 
 	// Sort & paginate
 	query = query.OrderBy("node.created_at DESC, node.id DESC").

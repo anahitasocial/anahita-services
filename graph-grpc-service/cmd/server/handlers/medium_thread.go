@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"graph/data/repositories"
 	"log"
 	"strings"
 
@@ -70,6 +71,12 @@ func (h *mediumHandler) Thread(ctx context.Context, req *graphpb.MediumThreadReq
 	}
 
 	replies, err := h.env.Repos.Replies.Thread(req.RootId, viewer)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	replies, err = h.withoutMuted(req.RootId, replies, viewer)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -223,4 +230,32 @@ func (h *mediumHandler) BrowseQuotes(ctx context.Context, req *graphpb.QuotesBro
 	h.markSaved(viewer.ID, quotes)
 
 	return &graphpb.QuotesBrowseResponse{Quotes: nodesToGrpc(quotes)}, nil
+}
+
+// withoutMuted takes out of a thread what the viewer would rather not see:
+// the replies of people they muted, and what is under them (roadmap row
+// 133). Under a post by somebody they muted, nothing: they opened it.
+func (h *mediumHandler) withoutMuted(rootID int64, replies []*entities.AnahitaNode, viewer *entities.Viewer) ([]*entities.AnahitaNode, error) {
+	if viewer.ID <= 0 || len(replies) == 0 {
+		return replies, nil
+	}
+
+	root, err := h.env.Repos.Nodes.Read(rootID)
+	if err != nil {
+		return nil, err
+	}
+
+	authors := []int64{root.OwnerID, root.CreatedBy}
+	for _, reply := range replies {
+		authors = append(authors, reply.CreatedBy)
+	}
+	muted, err := h.env.Repos.SocialgraphRel.MutedAmong(viewer.ID, authors)
+	if err != nil {
+		return nil, err
+	}
+	if muted[root.OwnerID] || muted[root.CreatedBy] {
+		return replies, nil
+	}
+
+	return repositories.WithoutMuted(replies, muted), nil
 }

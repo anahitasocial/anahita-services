@@ -44,6 +44,7 @@ func (repo *FeedActorRepo) Count(req *graphpb.FeedActorCountRequest, viewer *ent
 	sb = sb.Where(actorFeedCondition(req.ActorId, req.Filter, req.MediumEntityTypes, req.IncludeReposts))
 
 	sb = SetFeedAccessQuery(sb, viewer)
+	sb = SetMutedQueryOnProfile(sb, viewer, req.ActorId)
 
 	sqlStr, args, err := sb.ToSql()
 	if err != nil {
@@ -65,6 +66,7 @@ func (repo *FeedActorRepo) Browse(req *graphpb.FeedActorBrowseRequest, viewer *e
 	query = query.Where(actorFeedCondition(req.ActorId, req.Filter, req.MediumEntityTypes, req.IncludeReposts))
 
 	query = SetFeedAccessQuery(query, viewer)
+	query = SetMutedQueryOnProfile(query, viewer, req.ActorId)
 
 	// The posts are led by what is pinned to the profile, most recently
 	// pinned first. One ordering over the whole list, so a pinned post is

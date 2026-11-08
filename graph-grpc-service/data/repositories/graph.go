@@ -87,6 +87,7 @@ func (r *graphRepo) BrowseNeighbours(req *graphpb.BrowseNeighboursRequest, viewe
 	query = setNeighbourAccessQuery(query, viewer, req.EdgeTypes)
 	query = setLiveNeighboursQuery(query, req.EdgeTypes, viewer)
 	query = setLastingMutesQuery(query, req.EdgeTypes)
+	query = setMutedNeighboursQuery(query, req.EdgeTypes, viewer)
 	// A hashtag's or a place's posts are a listing (listed.go).
 	query = listedQuery(query)
 	query = setBlockedLikersQuery(query, req.EdgeTypes, req.Direction)
@@ -190,6 +191,7 @@ func (r *graphRepo) CountNeighbours(req *graphpb.BrowseNeighboursRequest, viewer
 	query = setNeighbourAccessQuery(query, viewer, req.EdgeTypes)
 	query = setLiveNeighboursQuery(query, req.EdgeTypes, viewer)
 	query = setLastingMutesQuery(query, req.EdgeTypes)
+	query = setMutedNeighboursQuery(query, req.EdgeTypes, viewer)
 	// A hashtag's or a place's posts are a listing (listed.go).
 	query = listedQuery(query)
 	query = setBlockedLikersQuery(query, req.EdgeTypes, req.Direction)

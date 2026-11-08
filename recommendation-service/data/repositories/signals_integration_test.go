@@ -696,3 +696,24 @@ func TestInterestsPickedAreRecommendedBy(t *testing.T) {
 		t.Errorf("spellings put together: %+v", interests)
 	}
 }
+
+// THE RULE THIS GUARDS: somebody the viewer muted is not suggested to them
+// while the mute lasts, and is again once it has ended (roadmap row 133).
+func TestSignalsLeaveOutWhomTheViewerMuted(t *testing.T) {
+	const aPerson = "'node.actor.person-service.person.v1'"
+	db := testDB(t)
+	seed(t, db)
+	if _, err := db.Exec(`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,ends_at,created_at) VALUES
+		 ('edge.actor.mute.v1',1,` + aPerson + `,24,` + aPerson + `,NULL,NOW()),
+		 ('edge.actor.mute.v1',1,` + aPerson + `,9,` + aPerson + `,UTC_TIMESTAMP() - INTERVAL 1 HOUR,NOW())`); err != nil {
+		t.Fatal(err)
+	}
+
+	found, err := NewSignals(db).Find(viewer, constants.KindPerson, true, false, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := fmt.Sprint(idsOf(found[constants.ReasonInviter])); got != "[9]" {
+		t.Errorf("inviter and invited, Y muted and I's mute ended: %s", got)
+	}
+}

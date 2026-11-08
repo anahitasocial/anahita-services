@@ -14,6 +14,8 @@ type SocialgraphRelInterface interface {
 	// For many actorA IDs vs one actorB (viewer)
 	GetMany(actorAIDs []int64, actorBID int64) (map[int64]*entities.ActorRelation, error)
 	GetOne(actorAID int64, actorBID int64) (*entities.ActorRelation, error)
+	// Which of these profiles the viewer mutes, while the mute lasts.
+	MutedAmong(viewerID int64, actorIDs []int64) (map[int64]bool, error)
 }
 
 type socialgraphRelRepo struct {

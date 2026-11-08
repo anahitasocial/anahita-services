@@ -115,6 +115,7 @@ func (repo *FeedCustomRepo) Browse(def *feeds.Definition, ownerID int64, before 
 	// What may be seen, by whoever is reading. A feed is sent to people, so
 	// what was archived is left out of it as well.
 	query = SetFeedAccessQuery(query, viewer)
+	query = SetMutedQuery(query, viewer)
 	query = SetLifecycleQuery(query, viewer)
 	query = SetArchiveQuery(query, viewer)
 

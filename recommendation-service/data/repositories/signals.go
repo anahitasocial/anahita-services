@@ -26,8 +26,8 @@ import (
 
 // The candidate, `c`, may be suggested to the viewer: it is of the kind
 // asked for, is somebody else, is there and in use, is not followed or asked
-// to be followed already (for an event: not answered), has no block with the
-// viewer either way, was not turned down by them, has not asked to be left
+// to be followed already (for an event: not answered), is not muted by the
+// viewer while the mute lasts, has no block with the viewer either way, was not turned down by them, has not asked to be left
 // out of suggestions, and, for a person, has confirmed their email address.
 //
 // {{kind}} is one more condition that depends on the kind asked for, and
@@ -41,9 +41,10 @@ const eligibleCandidate = `(c.type = ?{{elsewhere}})
   AND NOT EXISTS (
       SELECT 1
       FROM edges AS held
-      WHERE held.type IN (?, ?)
+      WHERE held.type IN (?, ?, ?)
         AND held.node_a_id = ?
         AND held.node_b_id = c.id
+        AND (held.type <> ? OR held.ends_at IS NULL OR held.ends_at > UTC_TIMESTAMP())
   )
   AND NOT EXISTS (
       SELECT 1
@@ -133,8 +134,9 @@ func eligibleArgs(kindType string, viewerID int64) []any {
 	return []any{
 		kindType,
 		viewerID,
-		an_const.EdgeFollowEntityType, an_const.EdgeFollowRequestEntityType,
+		an_const.EdgeFollowEntityType, an_const.EdgeFollowRequestEntityType, an_const.EdgeMuteEntityType,
 		viewerID,
+		an_const.EdgeMuteEntityType,
 		an_const.EdgeBlockEntityType,
 		viewerID, viewerID,
 		viewerID,
