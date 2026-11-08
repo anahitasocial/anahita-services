@@ -85,18 +85,22 @@ and filters wait for those features (Out of scope).
 **Between two Anahitas, the download's JSON** (the user, 2026-11-08): a
 download from one Anahita, as a zip, is read whole by another. Its
 `data/following.json`, `blocked.json`, `muted.json` and `saved.json` carry
-more than Mastodon's files can: groups, events, hashtags and locations
-followed, a mute's length and whether it hides notifications. Each entry
-gains what another server needs to find it again:
+more than Mastodon's files can: groups and events followed, people on
+Bluesky, a mute's length and whether it hides notifications. Each entry
+gains what another server needs to find it again (built 2026-11-08):
 
 | Field | Holds |
 | --- | --- |
-| `address` | Its fediverse handle, `ana@banu.io` or `alice@mastodon.social`; a hashtag's or a location's name |
+| `address` | A person's handle, `ana@banu.io`, `alice@mastodon.social` or `alice.bsky.social` |
 | `uri` | Its ActivityPub id, for a profile or a saved post on the fediverse |
 | `hide_notifications`, `ends_at` | In `muted.json`: whether its notifications were hidden, and when the mute ends, if it does |
 
 and the download says which version of these files it is (`data/profile.json`,
-`format`), so that a later Anahita reads an earlier one's.
+`format`, 2), so that a later Anahita reads an earlier one's.
+
+Following a hashtag is not an entry here: it is a custom feed with the
+hashtag in it, which is one of a person's posts (`posts.ndjson`), and comes
+with them in part 4.
 
 **To and from everybody else, Mastodon's files,** in the same download, in
 a folder beside the JSON, `mastodon/`, which Mastodon, Misskey, GoToSocial,
@@ -126,8 +130,7 @@ download (from this Anahita or another) or a single CSV from anywhere.
    or by federation (WebFinger), and followed, blocked, muted, or its post
    fetched and saved, by the same rules as by hand: a group with rules asks
    for them to be agreed first; a profile that approves its followers is
-   asked; one blocked either way is not followed. A hashtag or a location
-   is followed here by its name. A group or an event on the old Anahita
+   asked; one blocked either way is not followed. A group or an event on the old Anahita
    cannot be followed from the new one, as groups are not on the fediverse:
    it is listed, with its address, among what was not done.
 5. **In the background,** as a job in import-export-service (row 142, phase 1,

@@ -4,6 +4,7 @@
 package worker
 
 import (
+	"anahita-libs/site"
 	"context"
 	"errors"
 	"fmt"
@@ -44,6 +45,8 @@ type Worker struct {
 	Remover   Remover
 	WebURL    string
 	SiteName  string
+	// The installation's addresses, for handles and ActivityPub ids.
+	Site site.Addresses
 	// Where an archive is made before it is stored.
 	Dir string
 	// How long an archive is kept once it is ready.
@@ -125,6 +128,7 @@ func (w *Worker) make(ctx context.Context, export *repositories.Export, key stri
 		Files:    w.Files,
 		WebURL:   w.WebURL,
 		SiteName: w.SiteName,
+		Site:     w.Site,
 		// Asked between each page of posts and each file: an export given
 		// up is not gone on with.
 		Stopped: func() bool {

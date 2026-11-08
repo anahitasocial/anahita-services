@@ -93,6 +93,8 @@ func (s *source) Connected(id int64, kind string, offset uint64) ([]*entities.An
 }
 func (s *source) Saved(id int64, offset uint64) ([]*entities.AnahitaNode, error) { return nil, nil }
 
+func (s *source) Mutes(id int64) (map[int64]archive.Mute, error) { return nil, nil }
+
 type noFiles struct{}
 
 func (noFiles) Open(ctx context.Context, key string) (io.ReadCloser, error) {

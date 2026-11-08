@@ -13,7 +13,10 @@
 //	README.txt          what each file is
 //	data/profile.json   the profile
 //	data/posts.ndjson   everything written, one post on each line
-//	data/following.json, followers.json, blocked.json, liked.json, saved.json
+//	data/following.json, followers.json, blocked.json, muted.json,
+//	                    liked.json, saved.json
+//	mastodon/           who is followed, blocked and muted, and what was
+//	                    saved, in Mastodon's own files, for any server
 //	actor.json, outbox.json   the same posts as ActivityStreams, the form
 //	                    other fediverse software reads
 //	media/              the pictures and videos, by the post they are of
@@ -32,6 +35,7 @@ import (
 
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/site"
 	"anahita-libs/videos"
 )
 
@@ -47,6 +51,15 @@ type Source interface {
 	Connected(personID int64, kind string, offset uint64) ([]*entities.AnahitaNode, error)
 	// Saved is a page of the posts they saved.
 	Saved(personID int64, offset uint64) ([]*entities.AnahitaNode, error)
+	// Mutes is how each of their mutes was made, by whom is muted.
+	Mutes(personID int64) (map[int64]Mute, error)
+}
+
+// Mute is how a mute was made: whether it hides the muted person's
+// notifications, and when it ends, zero for until unmuted.
+type Mute struct {
+	HideNotifications bool
+	EndsAt            time.Time
 }
 
 // Files opens a stored file. ErrNoFile when there is none by that key.
@@ -78,6 +91,9 @@ type Builder struct {
 	// The site's address, "https://www.example.org", for the links in the
 	// archive back to where each thing is.
 	WebURL string
+	// The installation's addresses: a person's handle and the ActivityPub
+	// ids, which another server finds them again by (roadmap row 124).
+	Site site.Addresses
 	// The site's name, for the page's heading.
 	SiteName string
 	// Asked now and then: true to give up.
@@ -123,15 +139,33 @@ type Post struct {
 	Reposts       int64    `json:"reposts"`
 }
 
-// Ref names somebody or something else: enough to recognise it and find it.
+// Ref names somebody or something else: enough to recognise it and find it,
+// here and from another server (roadmap row 124).
 type Ref struct {
+	// This installation's own id: for the archive's page, and nowhere else.
 	ID   int64  `json:"id"`
 	Kind string `json:"kind"`
 	Name string `json:"name,omitempty"`
-	// A person's handle.
+	// A person's username here, or their whole handle when elsewhere.
 	Alias string `json:"alias,omitempty"`
 	URL   string `json:"url"`
+	// What another server looks somebody up by: their handle,
+	// ana@example.org or alice.bsky.social. A person's only.
+	Address string `json:"address,omitempty"`
+	// Its ActivityPub id, for a person or a post on the fediverse: what
+	// another server fetches. None for a group or an event, which are not
+	// on the fediverse.
+	URI string `json:"uri,omitempty"`
+	// On a mute: whether it hides the muted person's notifications, and
+	// when it ends, if it does.
+	HideNotifications *bool      `json:"hide_notifications,omitempty"`
+	EndsAt            *time.Time `json:"ends_at,omitempty"`
 }
+
+// Format is the version of the files in data/, in data/profile.json: 2
+// since entries say their address and uri (2026-11-08). A download with
+// none is the first.
+const Format = 2
 
 // kindOf is the short word for a type: "note", "photo", "person".
 func kindOf(nodeType string) string {
@@ -161,12 +195,40 @@ func (b *Builder) refOf(node *entities.AnahitaNode) *Ref {
 	if node == nil || node.ID == 0 {
 		return nil
 	}
-	return &Ref{
+	ref := &Ref{
 		ID:    node.ID,
 		Kind:  kindOf(node.Type),
 		Name:  node.Name,
 		Alias: node.Alias,
 		URL:   b.urlOf(node),
+	}
+	b.addressOf(node, ref)
+	return ref
+}
+
+// addressOf fills in what another server finds a person or a post by.
+//
+// Somebody from elsewhere is called what they are called there, which is
+// already their alias here (alice@mastodon.social, alice.bsky.social), and
+// fetched at the id their server gave them. Somebody here is called by
+// their handle on this installation, and fetched at the id made of their
+// UUID. A post the same: its own id when from elsewhere, the one made of
+// its UUID when from here.
+func (b *Builder) addressOf(node *entities.AnahitaNode, ref *Ref) {
+	switch {
+	case node.IsRemote():
+		ref.URI = node.URI
+		if node.IsPerson() {
+			ref.Address = node.Alias
+		}
+	case b.Site.Domain == "":
+	case node.IsPerson():
+		ref.Address = b.Site.Handle(node.Alias)
+		if node.UUID != "" {
+			ref.URI = b.Site.ActorID(node.UUID)
+		}
+	case node.IsMedium() && node.UUID != "":
+		ref.URI = b.Site.NoteID(node.UUID)
 	}
 }
 
@@ -287,6 +349,11 @@ func (b *Builder) Write(ctx context.Context, w io.Writer, personID int64) (*Summ
 		if err != nil {
 			return nil, err
 		}
+		if list.kind == Muted {
+			if err := b.withMutes(personID, refs); err != nil {
+				return nil, err
+			}
+		}
 		*list.into = refs
 		if err := writeJSON(z, "data/"+list.kind+".json", refs); err != nil {
 			return nil, err
@@ -299,6 +366,10 @@ func (b *Builder) Write(ctx context.Context, w io.Writer, personID int64) (*Summ
 	}
 	page.Saved = saved
 	if err := writeJSON(z, "data/saved.json", saved); err != nil {
+		return nil, err
+	}
+
+	if err := b.writeMastodon(z, page); err != nil {
 		return nil, err
 	}
 
@@ -551,4 +622,25 @@ func writeText(z *zip.Writer, name, text string) error {
 	}
 	_, err = io.WriteString(out, text)
 	return err
+}
+
+// withMutes says, on each muted person, how the mute was made.
+func (b *Builder) withMutes(personID int64, refs []*Ref) error {
+	mutes, err := b.Source.Mutes(personID)
+	if err != nil {
+		return err
+	}
+	for _, ref := range refs {
+		mute, ok := mutes[ref.ID]
+		if !ok {
+			continue
+		}
+		hide := mute.HideNotifications
+		ref.HideNotifications = &hide
+		if !mute.EndsAt.IsZero() {
+			ends := mute.EndsAt.UTC()
+			ref.EndsAt = &ends
+		}
+	}
+	return nil
 }

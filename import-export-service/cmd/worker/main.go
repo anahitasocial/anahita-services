@@ -4,6 +4,7 @@ package main
 
 import (
 	"anahita-libs/data"
+	"anahita-libs/site"
 	"context"
 	"log"
 	"os"
@@ -38,12 +39,14 @@ func main() {
 			Written: services.NewAuthoredGRPC(config),
 			Media:   services.NewMediaGRPC(config),
 			Graph:   services.NewGraphGRPC(config),
+			Edges:   services.NewGraphEdgeGRPC(config),
 		},
 		Files:     &worker.StoredFiles{Transfers: transfers},
 		Transfers: transfers,
 		Remover:   services.NewFilesGRPC(config),
 		WebURL:    config.PublicWebURL,
 		SiteName:  config.SiteName,
+		Site:      site.FromEnv(),
 		Dir:       os.Getenv("EXPORT_WORK_DIR"),
 		KeepFor:   time.Duration(config.KeepDays) * 24 * time.Hour,
 	}

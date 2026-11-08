@@ -1043,7 +1043,13 @@ services:
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       EXPORT_KEEP_DAYS: ${EXPORT_KEEP_DAYS:-}
       # For the links in an archive back to the site, and its heading.
+      # Where the installation is, as other servers know it: a person's
+      # handle and the ActivityPub ids in a download (roadmap row 124),
+      # the same as activitypub-service's.
+      DOMAIN_NAME: ${DOMAIN_NAME}
+      PUBLIC_DOMAIN: ${PUBLIC_DOMAIN:-}
       PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:-}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-}
       SITE_NAME: ${SITE_NAME:-}
     volumes:
       - ./grpc-certs:/run/secrets/grpc:ro

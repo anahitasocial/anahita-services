@@ -20,6 +20,7 @@ type GraphSource struct {
 	Written services.AuthoredInterface
 	Media   services.MediaGRPCInterface
 	Graph   services.GraphGRPCInterface
+	Edges   services.GraphEdgeGRPCInterface
 }
 
 // as is the person, for the calls that ask who is looking.
@@ -115,4 +116,26 @@ func (s *StoredFiles) Open(ctx context.Context, key string) (io.ReadCloser, erro
 		return nil, fmt.Errorf("reading %s answered %d", key, res.StatusCode)
 	}
 	return res.Body, nil
+}
+
+// Mutes is how each of the person's mutes was made, by whom is muted. One
+// read of them all: somebody's mutes are few.
+func (g *GraphSource) Mutes(personID int64) (map[int64]archive.Mute, error) {
+	edges, err := g.Edges.BatchReadByFilters(&services.GraphEdgeBatchReadByFiltersRequest{
+		NodeAID: personID,
+		Types:   []string{constants.EdgeMuteEntityType},
+	})
+	if err != nil {
+		return nil, err
+	}
+	mutes := make(map[int64]archive.Mute, len(edges))
+	for _, edge := range edges {
+		mute := archive.Mute{HideNotifications: edge.Meta != constants.MuteMetaNotifications}
+		// An edge with no end comes back at the Unix epoch, not as zero.
+		if edge.EndsAt.Unix() > 0 {
+			mute.EndsAt = edge.EndsAt
+		}
+		mutes[edge.NodeBID] = mute
+	}
+	return mutes, nil
 }

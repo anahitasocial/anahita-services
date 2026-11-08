@@ -126,7 +126,9 @@ RabbitMQ, which keep the one they began with: change it there too.
 
 Read by auth-service, and mail-grpc-service for the branding. `PUBLIC_DOMAIN`
 and `PUBLIC_API_URL` are for what speaks to other servers
-(`anahita-libs/site`): `activitypub-service`, whose other settings and the
+(`anahita-libs/site`): `activitypub-service`, and `import-export-worker`,
+which writes each person's handle and ActivityPub ids into a download, so
+that another server finds them again; `activitypub-service`'s other settings and the
 order to do things in are in [Federation](federation.md#setting-it-up).
 `atproto-service` reads and writes Bluesky and needs none of them; its
 settings are under [Federation](#federation).

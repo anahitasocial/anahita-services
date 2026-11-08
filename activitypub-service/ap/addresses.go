@@ -19,7 +19,7 @@ type Addresses struct {
 }
 
 // Actor is a person's own address: what they are called between servers.
-func (a Addresses) Actor(uuid string) string { return a.Site.API("/ap/users/" + uuid) }
+func (a Addresses) Actor(uuid string) string { return a.Site.ActorID(uuid) }
 
 func (a Addresses) Inbox(uuid string) string     { return a.Actor(uuid) + "/inbox" }
 func (a Addresses) Outbox(uuid string) string    { return a.Actor(uuid) + "/outbox" }
@@ -32,7 +32,7 @@ func (a Addresses) Activity(uuid string) string { return a.Site.API("/ap/activit
 
 // Note is the address of a post made here, and NoteCreate of its having
 // been posted. Made of the post's UUID, like a person's.
-func (a Addresses) Note(uuid string) string       { return a.Site.API("/ap/notes/" + uuid) }
+func (a Addresses) Note(uuid string) string       { return a.Site.NoteID(uuid) }
 func (a Addresses) NoteCreate(uuid string) string { return a.Note(uuid) + "/activity" }
 
 // NotePage is where a note is read, in the web app.

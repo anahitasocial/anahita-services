@@ -57,16 +57,27 @@ Where the request came from, its address and browser, is kept on the row.
 | --- | --- |
 | `index.html` | Everything here as a page to read. It has its own styles, no scripts, and fetches nothing: it works with no connection |
 | `README.txt` | What each file is, and how many posts and files there are |
-| `data/profile.json` | The profile |
+| `data/profile.json` | The profile, and `format`, the version of the files in `data/`: 2 since 2026-11-08, when entries began to say their `address` and `uri` |
 | `data/posts.ndjson` | Everything written, one post on each line: notes, articles, topics, photos, videos, replies, reposts and custom feeds, wherever each was posted, **including what only its author may see** |
 | `data/following.json`, `followers.json`, `blocked.json`, `muted.json` | Who they follow, who follows them, who they blocked, who they muted while the mute lasts |
 | `data/liked.json`, `saved.json` | What they liked and saved, by name and address |
+| `mastodon/` | Who they follow, block and mute, and what they saved, in Mastodon's own files, which Mastodon, Misskey, GoToSocial and others import: `following_accounts.csv`, `blocked_accounts.csv`, `muted_accounts.csv` and `bookmarks.csv`. People on the fediverse only, by their handle |
 | `actor.json`, `outbox.json` | The profile and the posts as ActivityStreams, the form other fediverse software reads. What was not public is addressed to nobody |
 | `media/<post id>/` | Each post's pictures at the largest size kept, a video at its largest size, an article's cover |
 | `media/profile/` | The avatar and the cover |
 
 Every name and every post is somebody's text, and is written into the page
 as text: the page is made with a template that escapes all of it.
+
+**Each entry in those lists** says what another server finds it again by
+(roadmap row 124), so that the download moves to another Anahita whole:
+
+| Field | Holds |
+| --- | --- |
+| `id`, `kind`, `name`, `alias`, `url` | This installation's id, the kind (`person`, `group`, `note`…), the name, the username here (or the whole handle of somebody elsewhere), and its page here |
+| `address` | A person's handle: `ana@example.org` for somebody here, `alice@mastodon.social` or `alice.bsky.social` for somebody elsewhere |
+| `uri` | The ActivityPub id of a person or a post: the one their server gave, or, for what is here, `PUBLIC_API_URL/ap/users/<uuid>` and `/ap/notes/<uuid>`. None for a group or an event, which are not on the fediverse |
+| `hide_notifications`, `ends_at` | In `muted.json`: whether the mute hides their notifications, and when it ends, if it does |
 
 ## What is not
 

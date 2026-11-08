@@ -1,6 +1,7 @@
 package archive
 
 import (
+	"anahita-libs/site"
 	"archive/zip"
 	"bytes"
 	"context"
@@ -26,8 +27,11 @@ type fakeSource struct {
 	files     []*entities.PhotoFile
 	connected map[string][]*entities.AnahitaNode
 	saved     []*entities.AnahitaNode
+	mutes     map[int64]Mute
 	pages     int
 }
+
+func (f *fakeSource) Mutes(id int64) (map[int64]Mute, error) { return f.mutes, nil }
 
 func (f *fakeSource) Profile(id int64) (*entities.AnahitaNode, error) { return f.profile, nil }
 
@@ -169,7 +173,12 @@ func build(t *testing.T, source *fakeSource, files fakeFiles) (map[string]string
 		Files:    files,
 		WebURL:   "https://www.example.org",
 		SiteName: "The Allotment",
-		Now:      func() time.Time { return time.Date(2026, 10, 11, 8, 0, 0, 0, time.UTC) },
+		Site: site.Addresses{
+			Domain: "example.org",
+			WebURL: "https://www.example.org",
+			APIURL: "https://api.example.org",
+		},
+		Now: func() time.Time { return time.Date(2026, 10, 11, 8, 0, 0, 0, time.UTC) },
 	}
 	summary, err := b.Write(context.Background(), &buffer, 5)
 	if err != nil {
@@ -369,5 +378,77 @@ func TestAnExportGivenUpStops(t *testing.T) {
 	b = &Builder{Source: &fakeSource{}, Files: files}
 	if _, err := b.Write(context.Background(), io.Discard, 5); err == nil {
 		t.Errorf("an archive was made of nobody")
+	}
+}
+
+// THE RULE THIS GUARDS (roadmap row 124): what somebody follows, blocks,
+// mutes and saved can be found again from another server: each entry says
+// its handle and its ActivityPub id, a mute how it was made, and Mastodon's
+// own files carry the people on the fediverse and the saved posts.
+func TestTheListsCanBeFoundAgainElsewhere(t *testing.T) {
+	source, files := account()
+
+	bob := person(6, "Bob", "bob")
+	bob.UUID = "b0b"
+	alice := person(20, "Alice", "alice@mastodon.example")
+	alice.Type = constants.NodeActorActivityPubPersonEntityType
+	alice.URI = "https://mastodon.example/users/alice"
+	sky := person(21, "Sky", "sky.bsky.social")
+	sky.Type = constants.NodeActorATProtoPersonEntityType
+	sky.URI = "at://did:plc:sky"
+	naomi := person(9, "Naomi", "naomi")
+	naomi.UUID = "n40m1"
+	saved := node(82, "article", "text-service")
+	saved.UUID = "a2t1c1e"
+	elsewhere := node(83, "note", "activitypub-service")
+	elsewhere.URI = "https://mastodon.example/users/alice/statuses/1"
+
+	source.connected[Following] = []*entities.AnahitaNode{bob, alice, sky}
+	source.connected[Blocked] = []*entities.AnahitaNode{alice}
+	source.connected[Muted] = []*entities.AnahitaNode{naomi}
+	source.saved = []*entities.AnahitaNode{saved, elsewhere}
+	ends := time.Date(2026, 11, 15, 12, 0, 0, 0, time.UTC)
+	source.mutes = map[int64]Mute{9: {HideNotifications: false, EndsAt: ends}}
+
+	entries, _ := build(t, source, files)
+
+	var following []*Ref
+	if err := json.Unmarshal([]byte(entries["data/following.json"]), &following); err != nil {
+		t.Fatal(err)
+	}
+	want := map[string][2]string{
+		"bob":                    {"bob@example.org", "https://api.example.org/ap/users/b0b"},
+		"alice@mastodon.example": {"alice@mastodon.example", "https://mastodon.example/users/alice"},
+		"sky.bsky.social":        {"sky.bsky.social", "at://did:plc:sky"},
+	}
+	for _, ref := range following {
+		if got := [2]string{ref.Address, ref.URI}; got != want[ref.Alias] {
+			t.Errorf("%s: %v, want %v", ref.Alias, got, want[ref.Alias])
+		}
+	}
+
+	var muted []*Ref
+	if err := json.Unmarshal([]byte(entries["data/muted.json"]), &muted); err != nil {
+		t.Fatal(err)
+	}
+	if len(muted) != 1 || muted[0].HideNotifications == nil || *muted[0].HideNotifications ||
+		muted[0].EndsAt == nil || !muted[0].EndsAt.Equal(ends) {
+		t.Errorf("the mute: %+v", muted)
+	}
+
+	if !strings.Contains(entries["data/profile.json"], `"format": 2`) {
+		t.Errorf("the profile says no format")
+	}
+
+	files2 := map[string]string{
+		"mastodon/following_accounts.csv": "Account address,Show boosts,Notify on new posts,Languages\nbob@example.org,true,false,\nalice@mastodon.example,true,false,\n",
+		"mastodon/blocked_accounts.csv":   "alice@mastodon.example\n",
+		"mastodon/muted_accounts.csv":     "Account address,Hide notifications\nnaomi@example.org,false\n",
+		"mastodon/bookmarks.csv":          "https://api.example.org/ap/notes/a2t1c1e\nhttps://mastodon.example/users/alice/statuses/1\n",
+	}
+	for name, body := range files2 {
+		if entries[name] != body {
+			t.Errorf("%s:\n%q\nwant\n%q", name, entries[name], body)
+		}
 	}
 }

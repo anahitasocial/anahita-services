@@ -51,7 +51,27 @@ spec:
                   name: anahita-config
                   key: EXPORT_KEEP_DAYS
                   optional: true
-            # For the links in an archive back to the site, and its heading.
+            # Where the installation is, as other servers know it: a
+            # person's handle and the ActivityPub ids in a download (roadmap
+            # row 124), the same as activitypub-service's; the web app's
+            # address for the links in an archive back to the site.
+            - name: DOMAIN_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: DOMAIN_NAME
+            - name: PUBLIC_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: PUBLIC_DOMAIN
+                  optional: true
+            - name: PUBLIC_API_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: PUBLIC_API_URL
+                  optional: true
             - name: PUBLIC_WEB_URL
               valueFrom:
                 configMapKeyRef:

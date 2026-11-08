@@ -32,6 +32,14 @@ Releases before v1.0.17 are described on GitHub, under
    `hide_notifications`, what they do tells the muter nothing while the
    mute lasts. The download has `data/muted.json` and a Muted section; the
    sweeper deletes mutes that have ended.
+3. **A download says where to find each one again** (roadmap row 124):
+   every person and post in `following.json`, `blocked.json`,
+   `muted.json` and `saved.json` has its `address` (`ana@example.org`) and
+   its ActivityPub `uri`, and a mute how it was made; `profile.json` says
+   `format: 2`. A new folder, `mastodon/`, holds Mastodon's own four files,
+   which Mastodon, Misskey, GoToSocial and others import.
+   `import-export-worker` reads `DOMAIN_NAME`, `PUBLIC_DOMAIN` and
+   `PUBLIC_API_URL`, as activitypub-service does.
 
 ### Changed
 

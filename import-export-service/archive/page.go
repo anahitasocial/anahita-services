@@ -33,6 +33,8 @@ type pageData struct {
 
 // Profile is the profile as it is in data/profile.json.
 type Profile struct {
+	// The version of the files in data/ (Format).
+	Format    int       `json:"format"`
 	ID        int64     `json:"id"`
 	Name      string    `json:"name"`
 	Alias     string    `json:"alias"`
@@ -55,6 +57,7 @@ type Profile struct {
 
 func (b *Builder) profileOf(node *entities.AnahitaNode, page *pageData) *Profile {
 	return &Profile{
+		Format:        Format,
 		ID:            node.ID,
 		Name:          node.Name,
 		Alias:         node.Alias,
@@ -218,6 +221,9 @@ anywhere: it works with no connection.
   data/muted.json      who is muted
   data/liked.json      what was liked
   data/saved.json      what was saved
+  mastodon/            who is followed, blocked and muted, and what was
+                       saved, in Mastodon's files, which Mastodon, Misskey,
+                       GoToSocial and others import
   actor.json           the profile, as ActivityStreams
   outbox.json          the posts, as ActivityStreams: the form other
                        fediverse software reads

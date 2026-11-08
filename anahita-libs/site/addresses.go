@@ -104,6 +104,18 @@ func (a Addresses) Handle(alias string) string {
 	return alias + "@" + a.Domain
 }
 
+// ActorID is a person's ActivityPub id, made of their node's UUID, which
+// never changes. Kept for good by every server told it.
+func (a Addresses) ActorID(uuid string) string {
+	return a.API("/ap/users/" + uuid)
+}
+
+// NoteID is a post's ActivityPub id, whatever kind of post: notes, photos,
+// videos and articles all go between servers as notes.
+func (a Addresses) NoteID(uuid string) string {
+	return a.API("/ap/notes/" + uuid)
+}
+
 // IsOurs says whether an address is one of this installation's, by its host.
 // For telling what was made here from what came from elsewhere.
 func (a Addresses) IsOurs(address string) bool {
