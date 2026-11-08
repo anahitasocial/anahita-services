@@ -96,7 +96,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 </ul>
 <p class="group">Reference</p>
 <ul>
-<li><a href="#schemas">Shapes</a> <span class="count">168</span></li>
+<li><a href="#schemas">Shapes</a> <span class="count">169</span></li>
 </ul>
 </nav>
 <main>
@@ -10817,7 +10817,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-ActorNodeItem" data-search="actornodeitem access alias allow_download allow_follow_request archived_at author avatar_urls body cover_urls created_at deleted_at enabled event featured_at follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer leader_count mute_ends_at mute_hides_notifications name origin_domain quote_policy show_reposts_on_profile type uri verified website_url">
+<div class="route schema" id="schema-ActorNodeItem" data-search="actornodeitem access alias allow_download allow_follow_request archived_at author avatar_urls body cover_urls created_at deleted_at enabled event featured_at follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer leader_count moved_to mute_ends_at mute_hides_notifications name origin_domain quote_policy show_reposts_on_profile type uri verified website_url">
 <h3>ActorNodeItem</h3>
 <p>A profile: a person, a group or an event.</p>
 <table>
@@ -10847,6 +10847,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>is_leading_viewer</code></td><td>boolean</td><td>Whether the viewer follows it.</td></tr>
 <tr><td><code>is_muted_by_viewer</code></td><td>boolean</td><td>Whether the viewer has muted it.</td></tr>
 <tr><td><code>leader_count</code></td><td>integer</td><td>How many it follows.</td></tr>
+<tr><td><code>moved_to</code></td><td><a href="#schema-MovedTo">MovedTo</a></td><td>The profile its person moved to, for somebody from another server who moved their account (roadmap row 124, part 2); absent otherwise.</td></tr>
 <tr><td><code>mute_ends_at</code></td><td>time</td><td>When the viewer&#39;s mute of it ends; absent for until unmuted.</td></tr>
 <tr><td><code>mute_hides_notifications</code></td><td>boolean</td><td>Whether the viewer, muting it, is not told of what it does.</td></tr>
 <tr><td><code>name</code></td><td>string</td><td>Its name.</td></tr>
@@ -11145,6 +11146,18 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td>What kind of post it is: <code>node.medium.text-service.note.v1</code> for a note, and so on.</td></tr>
 <tr><td><code>uri</code></td><td>string</td><td>What it is called on the server it came from, and that server, when it came from another. Left out of everything made here.</td></tr>
 <tr><td><code>video</code></td><td><a href="#schema-Video">Video</a></td><td>What a video post plays.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-MovedTo" data-search="movedto alias id name">
+<h3>MovedTo</h3>
+<p>The profile somebody moved to: enough to name it and go there.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>alias</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+<tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td></td></tr>
+<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td></td></tr>
 </tbody>
 </table>
 </div>
@@ -11868,7 +11881,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-actor.EventNode" data-search="actor.eventnode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled event featured_at features follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer leader_count mute_ends_at mute_hides_notifications name origin_domain permissions show_reposts_on_profile type updated_at uri verified website_url">
+<div class="route schema" id="schema-actor.EventNode" data-search="actor.eventnode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled event featured_at features follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer leader_count moved_to mute_ends_at mute_hides_notifications name origin_domain permissions show_reposts_on_profile type updated_at uri verified website_url">
 <h3>actor.EventNode</h3>
 <p>An event, as it is sent: a group with a time and a place, and <code>event</code> saying when it is, how many may go and are going, and what the viewer answered.</p>
 <table>
@@ -11902,6 +11915,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>is_leading_viewer</code></td><td>boolean</td><td>Whether the viewer follows it.</td></tr>
 <tr><td><code>is_muted_by_viewer</code></td><td>boolean</td><td>Whether the viewer has muted it.</td></tr>
 <tr><td><code>leader_count</code></td><td>integer</td><td>How many it follows.</td></tr>
+<tr><td><code>moved_to</code></td><td><a href="#schema-MovedTo">MovedTo</a></td><td>The profile its person moved to, for somebody from another server who moved their account (roadmap row 124, part 2); absent otherwise.</td></tr>
 <tr><td><code>mute_ends_at</code></td><td>time</td><td>When the viewer&#39;s mute of it ends; absent for until unmuted.</td></tr>
 <tr><td><code>mute_hides_notifications</code></td><td>boolean</td><td>Whether the viewer, muting it, is not told of what it does.</td></tr>
 <tr><td><code>name</code></td><td>string</td><td>Its name.</td></tr>
@@ -11930,7 +11944,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-actor.GroupNode" data-search="actor.groupnode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer leader_count mute_ends_at mute_hides_notifications name origin_domain permissions show_reposts_on_profile type updated_at uri verified website_url">
+<div class="route schema" id="schema-actor.GroupNode" data-search="actor.groupnode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer leader_count moved_to mute_ends_at mute_hides_notifications name origin_domain permissions show_reposts_on_profile type updated_at uri verified website_url">
 <h3>actor.GroupNode</h3>
 <p>A group, as it is sent: followed by people, looked after by its admins, and able to host events.</p>
 <table>
@@ -11963,6 +11977,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>is_leading_viewer</code></td><td>boolean</td><td>Whether the viewer follows it.</td></tr>
 <tr><td><code>is_muted_by_viewer</code></td><td>boolean</td><td>Whether the viewer has muted it.</td></tr>
 <tr><td><code>leader_count</code></td><td>integer</td><td>How many it follows.</td></tr>
+<tr><td><code>moved_to</code></td><td><a href="#schema-MovedTo">MovedTo</a></td><td>The profile its person moved to, for somebody from another server who moved their account (roadmap row 124, part 2); absent otherwise.</td></tr>
 <tr><td><code>mute_ends_at</code></td><td>time</td><td>When the viewer&#39;s mute of it ends; absent for until unmuted.</td></tr>
 <tr><td><code>mute_hides_notifications</code></td><td>boolean</td><td>Whether the viewer, muting it, is not told of what it does.</td></tr>
 <tr><td><code>name</code></td><td>string</td><td>Its name.</td></tr>
@@ -12004,7 +12019,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-actor.PersonNode" data-search="actor.personnode access alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer language leader_count mute_ends_at mute_hides_notifications name origin_domain permissions person_pronouns person_type quote_policy show_reposts_on_profile type updated_at uri verified website_url">
+<div class="route schema" id="schema-actor.PersonNode" data-search="actor.personnode access alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer language leader_count moved_to mute_ends_at mute_hides_notifications name origin_domain permissions person_pronouns person_type quote_policy show_reposts_on_profile type updated_at uri verified website_url">
 <h3>actor.PersonNode</h3>
 <p>A person, as they are sent: what every profile has, and their account type, pronouns and language.</p>
 <table>
@@ -12037,6 +12052,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>is_muted_by_viewer</code></td><td>boolean</td><td>Whether the viewer has muted it.</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>The language this person usually posts in. Left out when not set.</td></tr>
 <tr><td><code>leader_count</code></td><td>integer</td><td>How many it follows.</td></tr>
+<tr><td><code>moved_to</code></td><td><a href="#schema-MovedTo">MovedTo</a></td><td>The profile its person moved to, for somebody from another server who moved their account (roadmap row 124, part 2); absent otherwise.</td></tr>
 <tr><td><code>mute_ends_at</code></td><td>time</td><td>When the viewer&#39;s mute of it ends; absent for until unmuted.</td></tr>
 <tr><td><code>mute_hides_notifications</code></td><td>boolean</td><td>Whether the viewer, muting it, is not told of what it does.</td></tr>
 <tr><td><code>name</code></td><td>string</td><td>Its name.</td></tr>
@@ -12089,7 +12105,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-actor.WebsiteNode" data-search="actor.websitenode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer leader_count mute_ends_at mute_hides_notifications name origin_domain permissions show_reposts_on_profile type updated_at uri verified website_url">
+<div class="route schema" id="schema-actor.WebsiteNode" data-search="actor.websitenode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer leader_count moved_to mute_ends_at mute_hides_notifications name origin_domain permissions show_reposts_on_profile type updated_at uri verified website_url">
 <h3>actor.WebsiteNode</h3>
 <p>A website, as it is sent: a site&#39;s feed, followed as a profile, whose domain was proved when it was connected.</p>
 <table>
@@ -12122,6 +12138,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>is_leading_viewer</code></td><td>boolean</td><td>Whether the viewer follows it.</td></tr>
 <tr><td><code>is_muted_by_viewer</code></td><td>boolean</td><td>Whether the viewer has muted it.</td></tr>
 <tr><td><code>leader_count</code></td><td>integer</td><td>How many it follows.</td></tr>
+<tr><td><code>moved_to</code></td><td><a href="#schema-MovedTo">MovedTo</a></td><td>The profile its person moved to, for somebody from another server who moved their account (roadmap row 124, part 2); absent otherwise.</td></tr>
 <tr><td><code>mute_ends_at</code></td><td>time</td><td>When the viewer&#39;s mute of it ends; absent for until unmuted.</td></tr>
 <tr><td><code>mute_hides_notifications</code></td><td>boolean</td><td>Whether the viewer, muting it, is not told of what it does.</td></tr>
 <tr><td><code>name</code></td><td>string</td><td>Its name.</td></tr>

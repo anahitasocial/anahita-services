@@ -170,6 +170,11 @@ func (h *personHandler) Read(c echo.Context) error {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+	// Somebody from another server who moved their account: where to.
+	// Read with their profile alone, not in lists.
+	if person.IsRemote() {
+		person.MovedTo = h.movedTo(person.ID, viewer)
+	}
 
 	batchPresignPaths(h.Env, []*entities.AnahitaNode{&person.AnahitaNode})
 
@@ -649,6 +654,27 @@ func (h *personHandler) DeletionCounts(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, resp)
+}
+
+// movedTo is the profile somebody from another server moved to, as the
+// viewer may see it (roadmap row 124, part 2), or nil.
+func (h *personHandler) movedTo(oldID int64, viewer *entities.Viewer) *entities.AnahitaNode {
+	req := services.NewGraphEdgeRequest().BatchReadByFilters
+	req.NodeAID = oldID
+	req.Types = []string{constants.EdgeMovedEntityType}
+	edges, err := h.Srv.GraphEdgeGRPC.BatchReadByFilters(req)
+	if err != nil {
+		log.Println("where they moved to:", err)
+		return nil
+	}
+	if len(edges) == 0 {
+		return nil
+	}
+	moved, err := h.Srv.ActorsGRPC.Read(edges[0].NodeBID, viewer)
+	if err != nil || moved == nil || moved.ID == 0 {
+		return nil
+	}
+	return moved
 }
 
 // onAfterFetched sets the authorized fields for a person

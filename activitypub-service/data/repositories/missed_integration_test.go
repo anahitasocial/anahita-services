@@ -215,3 +215,35 @@ VALUES (?, ?, ?, ?, 'accepted', ?, ?)`, local, far, direction, fmt.Sprintf("a-%d
 		t.Errorf("people: %v (%v)", people, err)
 	}
 }
+
+// Profiles that moved and are still followed from here (roadmap row 124,
+// part 2): 20 moved an hour ago and is followed; 21 moved and is asked to
+// be followed; 22 moved and nobody follows it; 23 moved a moment ago, and
+// its followers are still being moved.
+func TestMovedProfilesStillFollowedAreFound(t *testing.T) {
+	db := missedDB(t)
+	repo := NewMissed(db)
+	now := time.Date(2026, 11, 8, 12, 0, 0, 0, time.UTC)
+	edge := func(kind string, a, b int64, made time.Time) {
+		t.Helper()
+		if _, err := db.Exec(`INSERT INTO edges (type, node_a_id, node_a_type, node_b_id, node_b_type, created_at) VALUES (?, ?, 'x', ?, 'x', ?)`,
+			kind, a, b, made); err != nil {
+			t.Fatal(err)
+		}
+	}
+	hourAgo := now.Add(-time.Hour)
+	for _, old := range []int64{20, 21, 22} {
+		edge(constants.EdgeMovedEntityType, old, 30, hourAgo)
+	}
+	edge(constants.EdgeMovedEntityType, 23, 30, now)
+	edge(constants.EdgeFollowEntityType, 1, 20, hourAgo)
+	edge(constants.EdgeFollowEntityType, 2, 20, hourAgo)
+	edge(constants.EdgeFollowRequestEntityType, 1, 21, hourAgo)
+	edge(constants.EdgeBlockEntityType, 1, 22, hourAgo)
+	edge(constants.EdgeFollowEntityType, 1, 23, hourAgo)
+
+	found, err := repo.MovedAndFollowed(now.Add(-2*time.Minute), 50)
+	if err != nil || fmt.Sprint(found) != "[20 21]" {
+		t.Errorf("moved and followed: %v (%v)", found, err)
+	}
+}

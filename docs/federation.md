@@ -31,23 +31,24 @@ Bluesky account they already have. See [Bluesky](#bluesky).
 10. [Looking somebody up on another server](#looking-somebody-up-on-another-server)
 11. [Being followed from another server](#being-followed-from-another-server)
 12. [Following somebody on another server](#following-somebody-on-another-server)
-13. [Posts going out](#posts-going-out)
-14. [Posts coming in](#posts-coming-in)
-15. [What can be done with what came from elsewhere](#what-can-be-done-with-what-came-from-elsewhere)
-16. [The inbox](#the-inbox)
-17. [What is sent, and when it does not arrive](#what-is-sent-and-when-it-does-not-arrive)
-18. [Signing keys and signed requests](#signing-keys-and-signed-requests)
-19. [The API](#the-api)
-20. [Leaving, and what follows a person's changes](#leaving-and-what-follows-a-persons-changes)
-21. [Replies](#replies)
-22. [Likes and reposts](#likes-and-reposts)
-23. [Servers that are refused](#servers-that-are-refused)
-24. [Accounts that are refused](#accounts-that-are-refused)
-25. [Pictures that are removed](#pictures-that-are-removed)
-26. [Posts and people that are removed](#posts-and-people-that-are-removed)
-27. [Bluesky](#bluesky)
-28. [Where the code is](#where-the-code-is)
-29. [Further reading](#further-reading)
+13. [Somebody who moved](#somebody-who-moved)
+14. [Posts going out](#posts-going-out)
+15. [Posts coming in](#posts-coming-in)
+16. [What can be done with what came from elsewhere](#what-can-be-done-with-what-came-from-elsewhere)
+17. [The inbox](#the-inbox)
+18. [What is sent, and when it does not arrive](#what-is-sent-and-when-it-does-not-arrive)
+19. [Signing keys and signed requests](#signing-keys-and-signed-requests)
+20. [The API](#the-api)
+21. [Leaving, and what follows a person's changes](#leaving-and-what-follows-a-persons-changes)
+22. [Replies](#replies)
+23. [Likes and reposts](#likes-and-reposts)
+24. [Servers that are refused](#servers-that-are-refused)
+25. [Accounts that are refused](#accounts-that-are-refused)
+26. [Pictures that are removed](#pictures-that-are-removed)
+27. [Posts and people that are removed](#posts-and-people-that-are-removed)
+28. [Bluesky](#bluesky)
+29. [Where the code is](#where-the-code-is)
+30. [Further reading](#further-reading)
 
 ## What it is
 
@@ -540,6 +541,41 @@ to know to look them up again.
   The same for a request; and a request still waiting is not taken for a
   follow that is gone.
 
+## Somebody who moved
+
+Somebody on another server, followed, blocked or muted from here, moves
+their account, as Mastodon, Misskey, GoToSocial and the rest let them: the
+new account names the old one as another of its own (`alsoKnownAs`), and
+the old one sends its followers' servers a `Move` (roadmap row 124, part 2;
+[Moving](plans/moving.md#part-2-following-somebody-who-moved)).
+
+**Believed** when it is signed by the old account and names it as what
+moved, as everything in the inbox is checked, and when the new account,
+read afresh from its own server, names the old one in its `alsoKnownAs`.
+Neither may be on a server or an account this site refuses
+([Servers that are refused](#servers-that-are-refused),
+[Accounts that are refused](#accounts-that-are-refused)). A `Move` of
+somebody nobody here has kept does nothing.
+
+**Then,** in the background, after the inbox has answered:
+
+| What | Done |
+| --- | --- |
+| The new account | Kept, as anybody looked up is |
+| The old profile | Points to the new one, by the edge `edge.actor.moved.v1` ([The graph](the-graph.md)); its profile says "Moved to", with View new profile in place of + Follow (`moved_to` in `GET /people/:id`). A move back, from the new account to the old, turns it round |
+| Who follows the old account from here, or asked to | Follows the new one, or asks to when it approves its followers, and stops following the old: through the graph, as by hand, so the `Follow` and the `Undo` go out as they would. Not across a block, either way; one who follows the new account already only stops following the old |
+| Each of them | Is told: `actor_moved`, or `actor_moved_asked` ([Notifications](notifications.md)) |
+| Who blocked the old account here | Blocks the new one too; it is told, as any block is |
+| Who muted it | Mutes the new one too, until the same end, with the same choice about its notifications; told to nobody |
+
+What is moved is moved once, so a `Move` heard again finds nothing left to
+do. A follow left on a profile that moved, by a restart in the middle of
+moving, is found by the sweep (below) and moved then. Somebody moving to a
+profile on this installation is not yet heeded: that is moving in
+([Moving](plans/moving.md#part-3-moving-yourself), part 3).
+
+Tried in [the lab](federation-lab.md), with GoToSocial's own move.
+
 ## Posts going out
 
 What is sent to another server cannot be called back, so what is sent is
@@ -905,7 +941,9 @@ says, until it is known who sent it:
    done: `Follow` and its `Undo`; `Accept` or `Reject` of a follow asked
    for from here; `Create`, `Update` and `Delete` of a note; `Like` and
    `Announce` (a repost) and their `Undo`; `Update` and `Delete` of the
-   person themselves. Everything else is answered `202` and ignored.
+   person themselves; `Move` of the person to another account
+   ([Somebody who moved](#somebody-who-moved)). Everything else is
+   answered `202` and ignored.
 
 A message of more than a megabyte is refused. What cannot be checked is
 answered `401`, and nothing is kept of whoever sent it.
@@ -947,6 +985,7 @@ differ:
 | A note other servers have that was changed here since they were last sent it | They are sent the change |
 | Somebody whose profile was changed since their followers' servers were last sent it | They are sent it as it is now |
 | Somebody on the fediverse whose profile is no longer open to everybody, or is disabled or gone | They leave, as they would have |
+| A follow, or a request, of somebody elsewhere who moved | It is moved to the new account, as the `Move` would have ([Somebody who moved](#somebody-who-moved)) |
 
 Each is handed to what would have handled the event, which decides again
 from the thing as it is now and does its work once however often it is
@@ -1614,6 +1653,7 @@ app.
 | Following from here | `cmd/api/handlers/events.go`, listening for `edge.follow.*` on the bus (`AMQP_ADDR`) |
 | Posts going out | `cmd/api/handlers/notes.go`, `ap/note.go`, listening for `node.medium.*`, table `activitypub_objects` |
 | Posts coming in | `cmd/api/handlers/inbox.go`: `received`, `withdrawn` |
+| Somebody who moved | `cmd/api/handlers/moving.go`; `alsoKnownAs` read in `remote/actor.go` |
 | Leaving, and profile changes | `cmd/api/handlers/leaving.go`; from the other side, `inbox.go`: `forget`, `refreshed`; the graph's `DeleteRemoteActor` |
 | Servers that are refused | `cmd/api/handlers/blocks.go`, `data/repositories/blocks.go`, table `federation_domain_blocks` |
 | What NodeInfo says is spoken | `auth-service/cmd/api/handlers/node_info.go`: `federationProtocols` (`FEDERATION_PROTOCOLS`) |

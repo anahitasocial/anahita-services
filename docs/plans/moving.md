@@ -6,8 +6,8 @@ moving their leaders over, and perhaps leaving a redirect mechanism to their
 new profile on the old server"; and moving between Anahita and Mastodon or
 servers like it. Brought forward on 2026-11-08, at the user's word ("focus
 on helping people moving in and out"), before the WordPress import, with
-the lists that Mastodon, Misskey and Pixelfed move between them. Part 1 is
-built; parts 2 to 4 are not.
+the lists that Mastodon, Misskey and Pixelfed move between them. Parts 1
+and 2 are built; parts 3 and 4 are not.
 
 ## Contents
 
@@ -39,9 +39,11 @@ them on every server that does it Mastodon's way.
    ([Download your data](../data-export.md)). Nothing reads it back in.
    (`blocked.json` was empty until 2026-11-08, from the same fault as a
    person's own Blocked list.)
-2. **Nothing of moving:** no `alsoKnownAs` on a profile, no `Move` sent or
-   heeded, no `movedTo`. When somebody followed from here moves on Mastodon,
-   the people here who follow them go on following the old account.
+2. **Others' moves are heeded** (part 2, 2026-11-08): a `Move` from
+   somebody followed from here has their followers follow the new account
+   ([Federation](../federation.md#somebody-who-moved)). Nobody here can
+   move yet: no `alsoKnownAs` on a profile here, no `Move` sent, no
+   `movedTo`.
 
 ## How others do it
 
@@ -242,7 +244,9 @@ installation, and nothing there changes.
    without what only posts need), the files in the download, the import
    with its preview: about two sessions. **Done 2026-11-08**
    ([Bring your lists in](../imports.md)), in Settings › Your data.
-2. **Following somebody who moved:** one session. Decided 2026-11-08.
+2. **Following somebody who moved:** one session. **Done 2026-11-08**
+   ([Somebody who moved](../federation.md#somebody-who-moved)), tried in the
+   lab with GoToSocial's own move.
 3. **Moving, out and in,** with the signpost: three to four sessions.
 4. **Bringing your posts,** from Anahita, then perhaps from Mastodon: three
    to four sessions, decided apart.

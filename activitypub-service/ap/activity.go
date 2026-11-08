@@ -12,6 +12,8 @@ type Activity struct {
 	Type   string          `json:"type"`
 	Actor  json.RawMessage `json:"actor"`
 	Object json.RawMessage `json:"object"`
+	// Where it went: in a Move, the account moved to.
+	Target json.RawMessage `json:"target,omitempty"`
 }
 
 // ActorID is who did it. Sent as an address, or as a description with one.
@@ -19,6 +21,9 @@ func (a *Activity) ActorID() string { return idOf(a.Actor) }
 
 // ObjectID is the address of what it was done to.
 func (a *Activity) ObjectID() string { return idOf(a.Object) }
+
+// TargetID is where it went, in a Move the account moved to.
+func (a *Activity) TargetID() string { return idOf(a.Target) }
 
 // Inner is what it was done to, when that is itself something done: the
 // Follow inside an Undo or an Accept. Nil when it is only an address.

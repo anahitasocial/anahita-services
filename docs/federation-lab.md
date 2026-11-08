@@ -17,10 +17,11 @@ each at a name of its own, speaking to each other over https.
 10. [Posts, both ways](#posts-both-ways)
 11. [Looking somebody on GoToSocial up from here](#looking-somebody-on-gotosocial-up-from-here)
 12. [Asking as another server would](#asking-as-another-server-would)
-13. [Stopping and emptying it](#stopping-and-emptying-it)
-14. [Real servers, from the lab](#real-servers-from-the-lab)
-15. [What it is not](#what-it-is-not)
-16. [Where the code is](#where-the-code-is)
+13. [Somebody moving their account](#somebody-moving-their-account)
+14. [Stopping and emptying it](#stopping-and-emptying-it)
+15. [Real servers, from the lab](#real-servers-from-the-lab)
+16. [What it is not](#what-it-is-not)
+17. [Where the code is](#where-the-code-is)
 
 ## Why it is needed
 
@@ -224,6 +225,30 @@ docker run --rm --network anahita-services_anahita-network \
 A service of ours that is to speak to the lab has to trust the same
 authority: mount `./fedi-lab/certs` into it and set `SSL_CERT_FILE` to the
 `ca.crt` there, as the `gotosocial` entry in `docker-compose.yml` does.
+
+## Somebody moving their account
+
+What a person here who follows somebody on GoToSocial sees when that
+somebody moves ([Federation](federation.md#somebody-who-moved)). With two
+accounts there, `naomi` followed from here (as above) and `nagata`, each
+with a token:
+
+~~~sh
+# nagata names naomi as another of her own. Sent as JSON: GoToSocial
+# keeps nothing of the same sent as a form.
+G -X POST "https://gts.test/api/v1/accounts/alias" -H "Content-Type: application/json" \
+  -d '{"also_known_as_uris":["https://gts.test/users/naomi"]}'
+
+# naomi moves, with her password.
+G -X POST "https://gts.test/api/v1/accounts/move" \
+  -F "password=<her password>" -F "moved_to_uri=https://gts.test/users/nagata"
+~~~
+
+The first as nagata, the second as naomi. GoToSocial sends a `Move` to
+every server that follows naomi; here, whoever followed her follows nagata
+and is told, and the log says `moving: naomi@gts.test to nagata@gts.test`
+with what was carried over. GoToSocial says nagata is not aliased for a
+while after the alias is set, and an account moves only once.
 
 ## Stopping and emptying it
 

@@ -38,3 +38,16 @@ func RemoteNoteEvent(created bool) string {
 	}
 	return remoteNoteEdited
 }
+
+// Somebody followed from here, on another server, having moved their
+// account (roadmap row 124, part 2): said once for each follower here, who
+// now follows the new account, or has asked to. The subject is the old
+// profile, the object the new one, the target the follower.
+const (
+	RemoteMovedTopic = "federation.moved.*.*.*.v1"
+	// RemoteMovedFollowed: the follower follows the new account.
+	RemoteMovedFollowed = "federation.moved.activitypub-service.person.followed.v1"
+	// RemoteMovedAsked: the new account approves its followers, and the
+	// follower has asked.
+	RemoteMovedAsked = "federation.moved.activitypub-service.person.asked.v1"
+)

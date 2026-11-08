@@ -31,6 +31,7 @@ is gathered at the end, [for planning](#not-built).
 | --- | --- | --- |
 | Move to another server with followers | planned | [Moving](plans/moving.md) |
 | Accept followers moving in | planned | [Moving](plans/moving.md) |
+| Follow somebody who moved | yes | Who follows them here follows their new account; blocks and mutes carry over too ([Federation](federation.md#somebody-who-moved)) |
 | Export your data | yes | [Download your data](data-export.md) |
 | Import follows, blocks and mutes | yes | And saved posts: from another Anahita's download, or Mastodon's or Misskey's files ([Bring your lists in](imports.md)); follows from one's own Bluesky account too ([Federation](federation.md)) |
 | Delete your own account | yes | Thirty days to undo ([Account lifecycle](account-lifecycle.md)) |
@@ -214,8 +215,8 @@ Every **no** and **planned** above, gathered for planning.
 
 **Planned,** each with its plan:
 
-1. Moving to another server with followers, followers moving in, and
-   importing follows and blocks: [Moving](plans/moving.md)
+1. Moving to another server with followers, and followers moving in:
+   [Moving](plans/moving.md)
 2. Content warnings and sensitive media:
    [Content warnings](plans/content-warnings.md)
 3. Direct messages: [Direct messages](plans/direct-messages.md)

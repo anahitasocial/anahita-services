@@ -22,6 +22,9 @@ type fakeMissed struct {
 	notesEdited, edited  []int64
 }
 
+func (f *fakeMissed) MovedAndFollowed(time.Time, int) ([]int64, error) {
+	return nil, nil
+}
 func (f *fakeMissed) FollowsNotAsked(time.Time, int) ([]repositories.Pair, error) {
 	return f.notAsked, nil
 }

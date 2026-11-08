@@ -39,6 +39,8 @@ var topicOf = map[string]string{
 	"actor_follow":                TopicFollows,
 	"actor_follow_request":        TopicFollows,
 	"actor_follow_request_accept": TopicFollows,
+	"actor_moved":                 TopicFollows,
+	"actor_moved_asked":           TopicFollows,
 	"note_add":                    TopicPosts,
 	"article_add":                 TopicPosts,
 	"photo_add":                   TopicPosts,

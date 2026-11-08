@@ -40,11 +40,11 @@ var errNotOne = errors.New("not one that goes out")
 
 // Swept is what one sweep found and put right, for the log.
 type Swept struct {
-	Follows, Unfollows, Blocked, Notes, NotesGone, NotesEdited, PeopleEdited, Left int
+	Follows, Unfollows, Blocked, Notes, NotesGone, NotesEdited, PeopleEdited, Left, Moved int
 }
 
 func (s Swept) any() bool {
-	return s.Follows+s.Unfollows+s.Blocked+s.Notes+s.NotesGone+s.NotesEdited+s.PeopleEdited+s.Left > 0
+	return s.Follows+s.Unfollows+s.Blocked+s.Notes+s.NotesGone+s.NotesEdited+s.PeopleEdited+s.Left+s.Moved > 0
 }
 
 // Sweep looks once for what was lost and puts it right.
@@ -119,6 +119,14 @@ func (h *Handlers) Sweep(ctx context.Context, now time.Time) Swept {
 			}
 		}
 		return nil
+	})
+
+	// Somebody elsewhere who moved, still followed from here: a restart in
+	// the middle of moving their followers, or a message lost, left them
+	// (moving.go). What is left is carried over now.
+	moved, err := h.Missed.MovedAndFollowed(now.Add(-sweepGrace), sweepBatch)
+	swept.Moved = each("follows of somebody who moved", ids(moved), err, func(pair repositories.Pair) error {
+		return h.movedLeft(pair.LocalID)
 	})
 
 	// A post that should have gone out and did not.

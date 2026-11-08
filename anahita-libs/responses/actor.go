@@ -100,6 +100,9 @@ type ActorNodeItem struct {
 	MuteEndsAt *time.Time `json:"mute_ends_at,omitempty"`
 	// Whether the viewer, muting it, is not told of what it does.
 	MuteHidesNotifications bool `json:"mute_hides_notifications,omitempty"`
+	// The profile its person moved to, for somebody from another server
+	// who moved their account (roadmap row 124, part 2); absent otherwise.
+	MovedTo *MovedTo `json:"moved_to,omitempty"`
 	// Whether the viewer has been invited to follow this actor and is yet
 	// to answer.
 	IsInvited bool `json:"is_invited,omitempty"`
@@ -220,6 +223,7 @@ func (r *ActorResponse) MapNodeItem(node *entities.AnahitaNode) *ActorNodeItem {
 		IsMutedByViewer:           node.IsMutedByViewer,
 		MuteEndsAt:                muteEndsAt(node),
 		MuteHidesNotifications:    node.IsMutedByViewer && node.MuteHidesNotifications,
+		MovedTo:                   newMovedTo(node.MovedTo),
 		IsInvited:                 node.IsInvitedViewer,
 		Event:                     NewEvent(node),
 		Avatar: func() map[string]Image {
@@ -235,6 +239,20 @@ func (r *ActorResponse) MapNodeItem(node *entities.AnahitaNode) *ActorNodeItem {
 			return nil
 		}(),
 	}
+}
+
+// MovedTo is the profile somebody moved to: enough to name it and go there.
+type MovedTo struct {
+	ID    int64  `json:"id"`
+	Alias string `json:"alias"`
+	Name  string `json:"name"`
+}
+
+func newMovedTo(node *entities.AnahitaNode) *MovedTo {
+	if node == nil || node.ID == 0 {
+		return nil
+	}
+	return &MovedTo{ID: node.ID, Alias: node.Alias, Name: node.Name}
 }
 
 // muteEndsAt is when the viewer's mute of the node ends, nil when it lasts

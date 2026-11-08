@@ -53,6 +53,7 @@ the top of their list, unread: an event moved twice says so once.
 | `actor_tag_accept` | A person approves being tagged; its subject is them | The post's author |
 | `actor_follow` | A profile is followed | The person, or a group's or an event's administrators |
 | `actor_follow_request`, `actor_follow_request_accept` | Somebody asks to follow, and is let | The person or the administrators; then the one who asked |
+| `actor_moved`, `actor_moved_asked` | Somebody followed from here, on another server, moved their account, and the follower follows the new one now, or has asked to; its subject is the old profile, its target the new ([Federation](federation.md#somebody-who-moved)) | Each follower |
 | `actor_invite`, `actor_invite_accept` | Somebody is invited to follow, and accepts | The one invited; then the one who invited |
 | `admin_add` | Somebody becomes an administrator of a profile | Its other administrators |
 | `event_rsvp` | Somebody answers an event | Its administrators |
@@ -137,7 +138,7 @@ none. A purge takes them with the person.
 | `reposts` | `repost_add`, `quote_add` |
 | `replies` | `reply_add` |
 | `mentions` | `actor_mention`, `actor_mention_reply`, `actor_tag_request`, `actor_tag`, `actor_tag_accept` |
-| `follows` | `actor_follow`, `actor_follow_request`, `actor_follow_request_accept` |
+| `follows` | `actor_follow`, `actor_follow_request`, `actor_follow_request_accept`, `actor_moved`, `actor_moved_asked` |
 | `posts` | `note_add`, `article_add`, `photo_add`, `topic_add`, `video_add` |
 | `events` | `event_rsvp`, `event_changed`, `event_cancelled`, `event_reminder` |
 | `invitations` | `actor_invite`, `actor_invite_accept`, `admin_add` |

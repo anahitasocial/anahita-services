@@ -59,6 +59,10 @@ type MissedInterface interface {
 	PeopleEdited(olderThan time.Time, limit int) ([]int64, error)
 	// Everybody who is on the fediverse.
 	People(limit int) ([]int64, error)
+	// Profiles from elsewhere that moved before `olderThan` and are still
+	// followed, or asked to be, from here: what moving them left behind
+	// (roadmap row 124, part 2).
+	MovedAndFollowed(olderThan time.Time, limit int) ([]int64, error)
 }
 
 type Missed struct {
@@ -134,6 +138,23 @@ LIMIT ?`
 
 func (repo *Missed) FollowsBlocked(limit int) ([]Pair, error) {
 	return repo.pairs(followsBlocked, constants.EdgeBlockEntityType, limit)
+}
+
+const movedAndFollowed = `
+SELECT DISTINCT moved.node_a_id
+FROM edges AS moved
+JOIN edges AS follow
+  ON follow.node_b_id = moved.node_a_id
+ AND follow.type IN (?, ?)
+WHERE moved.type = ?
+  AND moved.created_at < ?
+ORDER BY moved.node_a_id
+LIMIT ?`
+
+func (repo *Missed) MovedAndFollowed(olderThan time.Time, limit int) ([]int64, error) {
+	return repo.ids(movedAndFollowed,
+		constants.EdgeFollowEntityType, constants.EdgeFollowRequestEntityType,
+		constants.EdgeMovedEntityType, olderThan.UTC(), limit)
 }
 
 const notesNotSent = `

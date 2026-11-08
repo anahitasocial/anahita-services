@@ -272,6 +272,9 @@ type AnahitaNode struct {
 	IsMutedByViewer        bool
 	MuteEndsAt             time.Time
 	MuteHidesNotifications bool
+	// The profile somebody from another server moved to, read with their
+	// old one (roadmap row 124, part 2); nil when they have not moved.
+	MovedTo *AnahitaNode
 
 	// Images
 	Avatar   map[string]AnahitaNodeImage

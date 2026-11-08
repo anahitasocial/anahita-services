@@ -41,6 +41,12 @@ func (h *eventHandler) HandleEvents(payload *event.EventPayload) error {
 		return h.Repos.Notifications.Delete(gone)
 	}
 
+	// Somebody followed from here moved their account, and the follower
+	// follows the new one now, or has asked to (event_moved.go).
+	if strings.HasPrefix(payload.Name, "federation.moved.") {
+		return h.remoteMoved(payload)
+	}
+
 	// A note kept from another server, or one that was and is gone. A
 	// change to it is news to nobody.
 	if strings.HasPrefix(payload.Name, "federation.medium.") {

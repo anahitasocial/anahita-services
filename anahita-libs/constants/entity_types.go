@@ -70,6 +70,10 @@ const (
 	// edge's ends_at is when it ends, NULL until unmuted; its meta is
 	// MuteMetaNotifications when their notifications are still wanted.
 	EdgeMuteEntityType = "edge.actor.mute.v1"
+	// A profile from another server whose person moved to another account
+	// (roadmap row 124, part 2): from the old profile to the new one,
+	// made when their Move is believed, taken away when they move back.
+	EdgeMovedEntityType = "edge.actor.moved.v1"
 	// A mute's meta when the muted person's notifications are still wanted.
 	MuteMetaNotifications          = "notifications"
 	EdgeBaseSubscriptionEntityType = "edge.base.subscription.v1"

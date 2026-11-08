@@ -53,6 +53,14 @@ Releases before v1.0.17 are described on GitHub, under
    takes 21 MB on `/imports`. Two tables, `data_imports` and
    `data_import_lines` ([Bring your lists in](docs/imports.md)).
 
+6. **Following somebody who moved** (roadmap row 124, part 2): a `Move`
+   from somebody on another server, to an account that names them in its
+   `alsoKnownAs`, has whoever follows them here follow the new account (or
+   ask to), and stop following the old; blocks and mutes carry over too.
+   Each follower is told (`actor_moved`, `actor_moved_asked`); the old
+   profile points to the new (`edge.actor.moved.v1`, `moved_to` on the
+   profile). The sweep moves any follow left behind.
+
 ### Changed
 
 1. **The overlays pull Anahita's images from GitHub's registry,**

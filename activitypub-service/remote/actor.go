@@ -48,6 +48,10 @@ type Actor struct {
 	Header string
 	// Locked says a follow of theirs waits to be approved.
 	Locked bool
+	// AlsoKnownAs is the other accounts they say they hold
+	// (`alsoKnownAs`): what a Move to them from one of those is checked
+	// against.
+	AlsoKnownAs []string
 }
 
 var (
@@ -89,6 +93,7 @@ type wire struct {
 	Icon                      json.RawMessage `json:"icon"`
 	Image                     json.RawMessage `json:"image"`
 	ManuallyApprovesFollowers bool            `json:"manuallyApprovesFollowers"`
+	AlsoKnownAs               json.RawMessage `json:"alsoKnownAs"`
 }
 
 // Fetch reads who is at an address, and believes only what that server may
@@ -179,6 +184,7 @@ func read(w *wire, from string, isOurs func(string) bool) (*Actor, error) {
 	if header, err := httpsURL(firstURL(w.Image)); err == nil {
 		actor.Header = header.String()
 	}
+	actor.AlsoKnownAs = addresses(w.AlsoKnownAs)
 
 	return actor, nil
 }
@@ -343,6 +349,37 @@ func firstURL(raw json.RawMessage) string {
 }
 
 // cut is a text no longer than so many characters.
+// addresses reads a field that is one address or several, each an address
+// or something with an id, as alsoKnownAs is sent. Only https addresses
+// are kept, at most twenty.
+func addresses(raw json.RawMessage) []string {
+	var many []json.RawMessage
+	if len(raw) > 0 && raw[0] == '[' {
+		if json.Unmarshal(raw, &many) != nil {
+			return nil
+		}
+	} else if len(raw) > 0 {
+		many = []json.RawMessage{raw}
+	}
+	var found []string
+	for _, one := range many {
+		var address string
+		if json.Unmarshal(one, &address) != nil {
+			var object struct {
+				ID string `json:"id"`
+			}
+			if json.Unmarshal(one, &object) != nil {
+				continue
+			}
+			address = object.ID
+		}
+		if u, err := httpsURL(address); err == nil && len(found) < 20 {
+			found = append(found, u.String())
+		}
+	}
+	return found
+}
+
 func cut(text string, max int) string {
 	runes := []rune(text)
 	if len(runes) <= max {

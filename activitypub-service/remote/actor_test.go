@@ -181,3 +181,19 @@ func TestAHandleIsTheirsWhenItLeadsToThem(t *testing.T) {
 		t.Error("nobody was found")
 	}
 }
+
+// alsoKnownAs is sent as one address, as several, or as objects with ids;
+// only https addresses count.
+func TestAlsoKnownAsIsReadInEveryShape(t *testing.T) {
+	for raw, want := range map[string]int{
+		`"https://old.example/users/naomi"`:                                    1,
+		`["https://old.example/users/naomi","http://plain.example/users/x"]`: 1,
+		`[{"id":"https://old.example/users/naomi"},"https://b.example/u/n"]`:  2,
+		`null`: 0,
+		``:     0,
+	} {
+		if got := addresses(json.RawMessage(raw)); len(got) != want {
+			t.Errorf("%s: %v", raw, got)
+		}
+	}
+}

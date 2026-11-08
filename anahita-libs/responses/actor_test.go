@@ -68,6 +68,7 @@ func fullyPopulatedNode() *entities.AnahitaNode {
 	n.IsBlockedByViewer = true
 	n.IsMutedByViewer = true
 	n.MuteEndsAt = time.Date(2026, 11, 15, 12, 0, 0, 0, time.UTC)
+	n.MovedTo = &entities.AnahitaNode{ID: 9, Alias: "naomi@tycho.example", Name: "Naomi Nagata"}
 	n.MuteHidesNotifications = true
 	n.IsInvitedViewer = true
 	return n

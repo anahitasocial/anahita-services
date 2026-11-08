@@ -229,6 +229,10 @@
             "format": "int64",
             "type": "integer"
           },
+          "moved_to": {
+            "$ref": "#/components/schemas/MovedTo",
+            "description": "The profile its person moved to, for somebody from another server who moved their account (roadmap row 124, part 2); absent otherwise."
+          },
           "mute_ends_at": {
             "description": "When the viewer's mute of it ends; absent for until unmuted.",
             "format": "date-time",
@@ -630,6 +634,27 @@
         "required": [
           "count",
           "alts"
+        ],
+        "type": "object"
+      },
+      "MovedTo": {
+        "description": "MovedTo is the profile somebody moved to: enough to name it and go there.",
+        "properties": {
+          "alias": {
+            "type": "string"
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "alias",
+          "name"
         ],
         "type": "object"
       },
@@ -1676,6 +1701,10 @@
             "format": "int64",
             "type": "integer"
           },
+          "moved_to": {
+            "$ref": "#/components/schemas/MovedTo",
+            "description": "The profile its person moved to, for somebody from another server who moved their account (roadmap row 124, part 2); absent otherwise."
+          },
           "mute_ends_at": {
             "description": "When the viewer's mute of it ends; absent for until unmuted.",
             "format": "date-time",
@@ -1897,6 +1926,10 @@
             "description": "How many it follows.",
             "format": "int64",
             "type": "integer"
+          },
+          "moved_to": {
+            "$ref": "#/components/schemas/MovedTo",
+            "description": "The profile its person moved to, for somebody from another server who moved their account (roadmap row 124, part 2); absent otherwise."
           },
           "mute_ends_at": {
             "description": "When the viewer's mute of it ends; absent for until unmuted.",
@@ -2147,6 +2180,10 @@
             "description": "How many it follows.",
             "format": "int64",
             "type": "integer"
+          },
+          "moved_to": {
+            "$ref": "#/components/schemas/MovedTo",
+            "description": "The profile its person moved to, for somebody from another server who moved their account (roadmap row 124, part 2); absent otherwise."
           },
           "mute_ends_at": {
             "description": "When the viewer's mute of it ends; absent for until unmuted.",
@@ -2421,6 +2458,10 @@
             "description": "How many it follows.",
             "format": "int64",
             "type": "integer"
+          },
+          "moved_to": {
+            "$ref": "#/components/schemas/MovedTo",
+            "description": "The profile its person moved to, for somebody from another server who moved their account (roadmap row 124, part 2); absent otherwise."
           },
           "mute_ends_at": {
             "description": "When the viewer's mute of it ends; absent for until unmuted.",

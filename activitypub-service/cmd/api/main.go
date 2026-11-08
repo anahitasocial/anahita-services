@@ -101,6 +101,9 @@ func main() {
 		Likes:       services.NewLikesGRPC(config),
 		Reposts:     services.NewRepostGRPC(config),
 		Relations:   services.NewSocialgraphGRPC(config),
+		Edges:       services.NewGraphEdgeGRPC(config),
+		BlockEdges:  services.NewSocialgraphBlockGRPC(config),
+		MuteEdges:   services.NewSocialgraphMuteGRPC(config),
 		Crypt:       secrets,
 		Limiter:     sessions.NewSession(config),
 	}

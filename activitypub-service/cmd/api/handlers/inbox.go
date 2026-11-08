@@ -151,6 +151,9 @@ func (h *Handlers) Inbox(c echo.Context) error {
 		err = h.received(ctx, from, &activity)
 	case "Delete":
 		err = h.withdrawn(from, &activity)
+	case "Move":
+		// Their account, moved to another (moving.go).
+		err = h.moved(ctx, from, &activity)
 	}
 	if err != nil {
 		// Ours to have done and not done. The sender tries again.

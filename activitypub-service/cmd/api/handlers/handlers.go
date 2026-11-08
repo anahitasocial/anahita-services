@@ -80,6 +80,12 @@ type Env struct {
 	// The graph's own record of who follows whom, and who has blocked whom.
 	FollowEdges services.SocialgraphFollowGRPCInterface
 	Relations   services.SocialgraphGRPCInterface
+	// What carries over when somebody moves (moving.go): the graph's
+	// edges, among them the one from an old profile to its new one, and
+	// blocks and mutes made as by hand.
+	Edges      services.GraphEdgeGRPCInterface
+	BlockEdges services.SocialgraphBlockGRPCInterface
+	MuteEdges  services.SocialgraphMuteGRPCInterface
 	// What is waiting to be sent to other servers, and what sends it.
 	Queue  Enqueuer
 	Poster Poster

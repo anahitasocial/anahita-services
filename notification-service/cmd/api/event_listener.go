@@ -40,6 +40,8 @@ func startEventListerner(h *handlers.Handlers, config *config.Config) error {
 		event.RemoteMediaTopic,
 		// A repost from another server taken back there.
 		event.RemoteRepostTopic,
+		// Somebody followed from here moved their account elsewhere.
+		event.RemoteMovedTopic,
 	}
 	if err = cosumer.Listen(topics, h.Event.HandleEvents); err != nil {
 		return err
