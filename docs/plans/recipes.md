@@ -58,6 +58,23 @@ microservices architecture.")
    gives is written down as a gap, to plan on its own.
 6. **Not all at once.** The first three first; the others when the web app
    can show a site's purpose (row 139) and their gaps are weighed.
+7. **Built on what is there** (found 2026-11-07, before starting):
+   anahita-services' `k8s/overlays/k3s` (everything on one server, Garage
+   among it, with commented `config.env` and `secrets.env.example`) and
+   banu.io's Makefile, web build and web-shell patch. `docs/deploying-k3s.md`,
+   which the k3s overlay names, was never written (row 93's manual): the
+   README of `site/` is that path, and the services' docs point to it.
+8. **Reaching the server: `make tunnel` over SSH** (the user, 2026-11-07),
+   `ssh -L 16443:127.0.0.1:6443`, so that Kubernetes' port is never open to
+   the internet, at any provider. banu.io's tunnel, through AWS's SSM, is
+   AWS's alone.
+9. **Files in Garage on the same server** (the user, 2026-11-07): no cloud
+   account needed; the README says how to use a provider's S3 store instead.
+10. **The web app built by the operator for now** (the user, 2026-11-07):
+    `make web`, with Node and yarn, as for banu.io. The first follow-up:
+    anahita-web reads its server's address when it starts, not when it is
+    built, so that one ready-made build each release serves every site and a
+    recipe needs no Node (about a session, in anahita-web).
 
 ## The recipes
 
