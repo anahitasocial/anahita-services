@@ -12,6 +12,8 @@ Releases before v1.0.17 are described on GitHub, under
 
 ## Embryo
 
+## v1.0.18 Birth, 2026-11-07
+
 ### Added
 
 1. **Whose feeds, in `GET /feeds/discover`** (anahita-web row 125):
