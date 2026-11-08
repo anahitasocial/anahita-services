@@ -32,7 +32,7 @@ is gathered at the end, [for planning](#not-built).
 | Move to another server with followers | planned | [Moving](plans/moving.md) |
 | Accept followers moving in | planned | [Moving](plans/moving.md) |
 | Export your data | yes | [Download your data](data-export.md) |
-| Import follows, blocks and mutes | partly, planned | Follows from one's own Bluesky account ([Federation](federation.md)); Mastodon's files in [Moving](plans/moving.md) |
+| Import follows, blocks and mutes | yes | And saved posts: from another Anahita's download, or Mastodon's or Misskey's files ([Bring your lists in](imports.md)); follows from one's own Bluesky account too ([Federation](federation.md)) |
 | Delete your own account | yes | Thirty days to undo ([Account lifecycle](account-lifecycle.md)) |
 | Two-factor authentication | yes | Codes from an authenticator app ([Signing in](signing-in.md)) |
 | Passkeys and security keys | yes | [Signing in](signing-in.md) |
