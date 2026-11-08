@@ -61,6 +61,8 @@ const (
 	errLookupKind   = "lookup_not_a_person"
 	errLookupFailed = "lookup_failed"
 	errLookupLimit  = "too_many_lookups"
+	// Nobody from another server is kept under that id.
+	errProfileNotKept = "profile_not_kept"
 	// The server asked about is one this installation refuses.
 	errLookupBlocked = "lookup_refused"
 )

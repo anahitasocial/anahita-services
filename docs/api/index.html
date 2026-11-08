@@ -86,7 +86,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 </ul>
 <p class="group">Fediverse and Bluesky</p>
 <ul>
-<li><a href="#activitypub-service">The fediverse</a> <span class="count">24</span></li>
+<li><a href="#activitypub-service">The fediverse</a> <span class="count">25</span></li>
 <li><a href="#atproto-service">Bluesky</a> <span class="count">7</span></li>
 <li><a href="#syndication-service">Websites</a> <span class="count">5</span></li>
 </ul>
@@ -96,7 +96,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 </ul>
 <p class="group">Reference</p>
 <ul>
-<li><a href="#schemas">Shapes</a> <span class="count">164</span></li>
+<li><a href="#schemas">Shapes</a> <span class="count">165</span></li>
 </ul>
 </nav>
 <main>
@@ -9555,6 +9555,30 @@ who may call it: somebody signed in.">
 </table>
 <p class="handler">Answered by <code>activitypub/cmd/api/handlers.(*Handlers).Lookup</code></p>
 </details>
+<details class="route" id="postActivitypubPeopleByIdRefresh" data-search="post /activitypub/people/{id}/refresh read somebody on another server again when what was kept of them is more than a day old: whether they approve their followers, their name, their words, their pictures. asked by the web app when their profile is opened; `refreshed` says whether to read the profile again. a failure there leaves what was kept, and says nothing.
+
+who may call it: somebody signed in.">
+<summary><span class="method post">POST</span> <code class="path">/activitypub/people/{id}/refresh</code> <span class="summary">Read somebody on another server again</span></summary>
+<div class="description"><p>When what was kept of them is more than a day old: whether they approve their followers, their name, their words, their pictures. Asked by the web app when their profile is opened; <code>refreshed</code> says whether to read the profile again. A failure there leaves what was kept, and says nothing.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The person&#39;s id here: somebody kept from another server.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-activitypub.Refreshed">activitypub.Refreshed</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">404</td><td><code>profile_not_kept</code>: nobody from another server is kept under that id<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">409</td><td>the installation is not on the fediverse: <code>site_private</code> or <code>site_unreachable</code><div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>activitypub/cmd/api/handlers.(*Handlers).RefreshPerson</code></p>
+</details>
 <details class="route" id="postActivitypubPostsByIdPictures" data-search="post /activitypub/posts/{id}/pictures copy a post&#39;s pictures here again the pictures of a post from another server that has been left alone a while are removed from storage, and the post says so (`media_removed`). asked here, they are read again from where they came from. for anybody signed in who may see the post.
 
 who may call it: somebody signed in.">
@@ -11523,6 +11547,16 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>id</code> <span class="required">always</span></td><td>string</td><td></td></tr>
 <tr><td><code>owner</code> <span class="required">always</span></td><td>string</td><td></td></tr>
 <tr><td><code>publicKeyPem</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-activitypub.Refreshed" data-search="activitypub.refreshed refreshed">
+<h3>activitypub.Refreshed</h3>
+<p>Whether somebody&#39;s profile was read again from their server.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>refreshed</code> <span class="required">always</span></td><td>boolean</td><td>True when it was, so that what was shown is to be read again here.</td></tr>
 </tbody>
 </table>
 </div>

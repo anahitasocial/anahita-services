@@ -520,6 +520,12 @@ refuse following them outright.
 Their server may say yes at once, to somebody it counts as a follower
 already.
 
+What their server says of them is read again when they change it and tell
+their followers' servers (`Update`), and, for everybody else, when their
+profile is opened here and what was kept is more than a day old
+(`POST /activitypub/people/:id/refresh`, which the web app asks): nobody has
+to know to look them up again.
+
 - **Only somebody who is on the fediverse can follow across it.** The other
   server has to be able to find out who is asking. A follow of somebody
   elsewhere by a person who is not, is taken away again as soon as it is

@@ -20,6 +20,9 @@ Releases before v1.0.17 are described on GitHub, under
    a `Follow`, made a follow by their `Accept` through the graph's own
    accept, and taken away by their `Reject`; taking it back sends an
    `Undo`; the sweep asks again about a request whose news the bus lost.
+   `POST /activitypub/people/:id/refresh` reads somebody elsewhere again
+   when what was kept of them is more than a day old, asked by the web app
+   when their profile is opened.
    Profiles say `is_follow_requested_by_viewer`
    ([Federation](docs/federation.md#following-somebody-on-another-server)).
 

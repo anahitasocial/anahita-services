@@ -38,6 +38,11 @@ type LookupRequest struct {
 }
 
 // PostPicturesRequest names a post from another server.
+type RefreshPersonRequest struct {
+	// The person's id here: somebody kept from another server.
+	ID int64 `param:"id"`
+}
+
 type PostPicturesRequest struct {
 	// The post's id here.
 	ID int64 `param:"id"`

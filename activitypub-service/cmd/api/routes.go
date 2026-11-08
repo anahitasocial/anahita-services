@@ -204,6 +204,17 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Sends(http.StatusConflict, responses.Refusal{}, "the installation is not on the fediverse: `site_private` or `site_unreachable`").
 		Sends(http.StatusTooManyRequests, responses.Refusal{}, "`too_many_lookups`").
 		Sends(http.StatusBadGateway, responses.Refusal{}, "`lookup_failed`")
+	// Somebody on another server, read again when their profile is opened
+	// and what was kept of them is old (roadmap row 130).
+	activitypub.POST("/people/:id/refresh", r.handler.RefreshPerson).
+		Summary("Read somebody on another server again").
+		Describe("When what was kept of them is more than a day old: whether they approve their followers, their name, their words, their pictures. Asked by the web app when their profile is opened; `refreshed` says whether to read the profile again. A failure there leaves what was kept, and says nothing.").
+		Viewer(apidoc.SignedIn).
+		Takes(&handlers.RefreshPersonRequest{}).
+		Unbound().
+		Sends(http.StatusOK, handlers.Refreshed{}).
+		Sends(http.StatusNotFound, responses.Refusal{}, "`profile_not_kept`: nobody from another server is kept under that id").
+		Sends(http.StatusConflict, responses.Refusal{}, "the installation is not on the fediverse: `site_private` or `site_unreachable`")
 	// The pictures of a post from another server, copied here again after
 	// they were removed for its age.
 	activitypub.POST("/posts/:id/pictures", r.handler.RestorePictures).

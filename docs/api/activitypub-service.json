@@ -476,6 +476,19 @@
         ],
         "type": "object"
       },
+      "activitypub.Refreshed": {
+        "description": "Refreshed is whether somebody's profile was read again from their server.",
+        "properties": {
+          "refreshed": {
+            "description": "True when it was, so that what was shown is to be read again here.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "refreshed"
+        ],
+        "type": "object"
+      },
       "activitypub.RemotePerson": {
         "description": "RemotePerson is somebody on another server, as the web app is told.",
         "properties": {
@@ -1108,6 +1121,70 @@
           "activitypub-service"
         ],
         "x-handler": "activitypub/cmd/api/handlers.(*Handlers).Lookup",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/activitypub/people/{id}/refresh": {
+      "post": {
+        "description": "When what was kept of them is more than a day old: whether they approve their followers, their name, their words, their pictures. Asked by the web app when their profile is opened; `refreshed` says whether to read the profile again. A failure there leaves what was kept, and says nothing.\n\nWho may call it: somebody signed in.",
+        "operationId": "postActivitypubPeopleByIdRefresh",
+        "parameters": [
+          {
+            "description": "The person's id here: somebody kept from another server.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/activitypub.Refreshed"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`profile_not_kept`: nobody from another server is kept under that id"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "the installation is not on the fediverse: `site_private` or `site_unreachable`"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read somebody on another server again",
+        "tags": [
+          "activitypub-service"
+        ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).RefreshPerson",
         "x-viewer": "signed_in"
       }
     },
