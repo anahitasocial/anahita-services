@@ -186,7 +186,9 @@ keeps its DID, which is what is kept.
 
 Decided with the user on 2026-11-08: the old account is limited, as
 Mastodon's is; a visitor to the old profile sees the notice of part 2, and
-is not sent on; a person may move to another account on this same site.
+is not sent on. Moving to another account on this same site is not offered:
+changing one's username does what it is for, and nothing else in the
+fediverse offers it.
 
 **Who may move:** a person whose profile is on the fediverse, which they
 turn on themselves ([Federation](../federation.md#who-is-on-the-fediverse));
@@ -227,8 +229,8 @@ side as theirs, and moves from there to here. Its `Move` is believed as any
 other; the signpost is taken down, the account is whole again, and the
 followers come back the same way.
 
-Moving to another account on this site is the same, with nobody elsewhere
-to tell for the followers here.
+A handle on this site is refused, with a line pointing to changing one's
+username; a `Move` from one account here to another here is ignored.
 
 ### What is kept
 
