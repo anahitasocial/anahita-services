@@ -98,6 +98,15 @@ The server's certificate must name the host that was dialled, so the names in
 `FILE_SERVICE_ADDR`, `GRAPH_SERVICE_ADDR` and `MAIL_SERVICE_ADDR` have to be
 on the certificates.
 
+**Calls over HTTP between the services,** where there is no gRPC
+(`anahita-libs/servicecalls`), use the same certificates the same way:
+`activitypub-service` and `atproto-service` answer `import-export-worker` on
+port 8443, which the gateway never routes, to find somebody or a post on
+another server and keep it, for an import (roadmap row 124). With `GRPC_TLS`
+off they answer plain HTTP there. Their certificates name them, and the
+development certificate is made again by `scripts/grpc-certs-init.sh` when
+it does not name every service.
+
 A service written in another language joins in by loading the same three
 files in its gRPC library: present `tls.crt` and `tls.key`, trust `ca.crt`,
 and, for a server, require a client certificate.

@@ -262,6 +262,13 @@ func (s *store) read() (*tls.Certificate, *x509.CertPool, error) {
 // server's own certificate and the authority it checks callers against follow
 // the files.
 func (s *store) serverConfig() *tls.Config {
+	// gRPC adds h2 to the outer configuration only, and refuses a
+	// connection that did not negotiate it.
+	return s.serverConfigFor([]string{"h2"})
+}
+
+// serverConfigFor is serverConfig for a server speaking these protocols.
+func (s *store) serverConfigFor(protocols []string) *tls.Config {
 	return &tls.Config{
 		MinVersion: tls.VersionTLS13,
 		GetConfigForClient: func(*tls.ClientHelloInfo) (*tls.Config, error) {
@@ -275,9 +282,7 @@ func (s *store) serverConfig() *tls.Config {
 				Certificates: []tls.Certificate{*cert},
 				ClientAuth:   tls.RequireAndVerifyClientCert,
 				ClientCAs:    pool,
-				// gRPC adds this to the outer configuration only, and
-				// refuses a connection that did not negotiate it.
-				NextProtos: []string{"h2"},
+				NextProtos:   protocols,
 			}, nil
 		},
 	}
@@ -319,4 +324,27 @@ func (s *store) clientConfig() *tls.Config {
 			return err
 		},
 	}
+}
+
+// InternalServerConfig is for a server of internal HTTP calls, not gRPC
+// (anahita-libs/servicecalls): the same certificates, and callers checked
+// the same way, holding a certificate from the installation's authority.
+// Nil with TLS off, for plain HTTP in development.
+func InternalServerConfig() (*tls.Config, error) {
+	s, enabled, err := load()
+	if err != nil || !enabled {
+		return nil, err
+	}
+	return s.serverConfigFor([]string{"http/1.1"}), nil
+}
+
+// InternalClientConfig is for calling such a server: the service's own
+// certificate presented, and the server's checked as a gRPC client checks
+// it. Nil with TLS off.
+func InternalClientConfig() (*tls.Config, error) {
+	s, enabled, err := load()
+	if err != nil || !enabled {
+		return nil, err
+	}
+	return s.clientConfig(), nil
 }

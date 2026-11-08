@@ -29,7 +29,10 @@ against it, `file-grpc-service` owns file storage, `mail-grpc-service`
 owns outbound email. These calls use mutual TLS: each side presents a
 certificate from the installation's own authority, so a gRPC service answers
 only the other services (`anahita-libs/grpctls`; see
-[Internal calls](configuration.md#internal-calls)).
+[Internal calls](configuration.md#internal-calls)). The same certificates
+guard what activitypub-service and atproto-service answer the other
+services on port 8443, never routed by the gateway: finding somebody or a
+post on another server for an import (`anahita-libs/servicecalls`).
 
 **RabbitMQ** carries asynchronous fan-out. Services publish domain events
 to the `anahita_events` exchange; consumers (notifications, feed, search)

@@ -117,6 +117,55 @@ spec:
     name: anahita-grpc
     kind: Issuer
 ---
+# activitypub-service and atproto-service answer the internal calls of
+# anahita-libs/servicecalls (roadmap row 124), on port 8443, as well as
+# calling gRPC: their certificates serve both ways.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: anahita-grpc-activitypub
+spec:
+  secretName: anahita-grpc-activitypub
+  commonName: activitypub-service
+  dnsNames:
+    - activitypub-service
+    - activitypub-service.anahita.svc
+    - activitypub-service.anahita.svc.cluster.local
+  usages:
+    - server auth
+    - client auth
+  duration: 2160h
+  renewBefore: 720h
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: anahita-grpc
+    kind: Issuer
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: anahita-grpc-atproto
+spec:
+  secretName: anahita-grpc-atproto
+  commonName: atproto-service
+  dnsNames:
+    - atproto-service
+    - atproto-service.anahita.svc
+    - atproto-service.anahita.svc.cluster.local
+  usages:
+    - server auth
+    - client auth
+  duration: 2160h
+  renewBefore: 720h
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: anahita-grpc
+    kind: Issuer
+---
 # What every caller presents.
 apiVersion: cert-manager.io/v1
 kind: Certificate

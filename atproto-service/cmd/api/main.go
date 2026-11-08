@@ -2,6 +2,7 @@ package main
 
 import (
 	"anahita-libs/data"
+	"anahita-libs/servicecalls"
 	"context"
 	"database/sql"
 	"encoding/json"
@@ -247,6 +248,14 @@ func main() {
 	})
 
 	NewRoutes(h, authorize).Init(e)
+
+	// What the installation's own services ask, on a port the gateway never
+	// routes (roadmap row 124).
+	go func() {
+		if err := servicecalls.Serve(h.InternalRoutes()); err != nil {
+			log.Println("servicecalls:", err)
+		}
+	}()
 
 	if err := e.Start(fmt.Sprintf(":%v", webPort)); err != nil {
 		e.Logger.Fatal(err)

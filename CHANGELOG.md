@@ -40,6 +40,10 @@ Releases before v1.0.17 are described on GitHub, under
    which Mastodon, Misskey, GoToSocial and others import.
    `import-export-worker` reads `DOMAIN_NAME`, `PUBLIC_DOMAIN` and
    `PUBLIC_API_URL`, as activitypub-service does.
+4. **activitypub-service and atproto-service answer the other services**
+   on port 8443, which the gateway never routes, guarded by the gRPC
+   certificates: find somebody, or a post, on another server and keep it,
+   for imports to come (roadmap row 124; `anahita-libs/servicecalls`).
 
 ### Changed
 
@@ -74,6 +78,11 @@ Releases before v1.0.17 are described on GitHub, under
    moves `ref=` to this release. The old Deployments and Service,
    `export-service` and `export-worker`, are left behind by
    `kubectl apply`; delete them once the new ones run.
+2. **Two certificates are new,** `anahita-grpc-activitypub` and
+   `anahita-grpc-atproto`, in `k8s/base/grpc-tls.yml`; cert-manager makes
+   them when the release is applied, and the two services wait for them.
+   In docker-compose, `make up` makes the development certificate again,
+   as it now names both.
 
 ## v1.0.19 Birth, 2026-11-07
 

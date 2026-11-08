@@ -4,7 +4,7 @@
 # by it that every service presents, as server and as caller.
 #
 # Safe to run every time: it does nothing while the certificate has more than
-# 30 days left. `make up` and `make up_build` run it before the containers
+# 30 days left and names every service below. `make up` and `make up_build` run it before the containers
 # start, because they mount ./grpc-certs. It can also be run by hand.
 #
 # For local development only. On Kubernetes cert-manager issues a certificate
@@ -13,10 +13,25 @@
 set -eu
 
 DIR="${GRPC_CERTS_DIR:-./grpc-certs}"
-SERVICES="graph-grpc-service file-grpc-service mail-grpc-service"
+# The services answering: gRPC, and the internal HTTP calls of
+# anahita-libs/servicecalls (roadmap row 124).
+SERVICES="graph-grpc-service file-grpc-service mail-grpc-service activitypub-service atproto-service"
+
+# Whether the certificate there names every service: one made before a
+# service was added is made again.
+names_all() {
+    names=$(openssl x509 -in "$DIR/tls.crt" -noout -ext subjectAltName 2>/dev/null) || return 1
+    for service in $SERVICES; do
+        case "$names" in
+            *"DNS:$service"*) ;;
+            *) return 1 ;;
+        esac
+    done
+}
 
 if [ -f "$DIR/tls.crt" ] && [ -f "$DIR/tls.key" ] && [ -f "$DIR/ca.crt" ] \
-    && openssl x509 -in "$DIR/tls.crt" -noout -checkend 2592000 >/dev/null 2>&1; then
+    && openssl x509 -in "$DIR/tls.crt" -noout -checkend 2592000 >/dev/null 2>&1 \
+    && names_all; then
     exit 0
 fi
 

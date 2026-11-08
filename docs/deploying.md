@@ -182,7 +182,10 @@ mutual TLS, described under
 sets it up, and there is nothing to configure:
 
 - cert-manager creates an authority for this installation alone, a
-  certificate for each gRPC service, and one that every caller presents.
+  certificate for each gRPC service, one for activitypub-service and
+  atproto-service, which also answer the other services' calls on port
+  8443 ([Internal calls](configuration.md#internal-calls)), and one that
+  every other caller presents.
 - Each is valid for 90 days and renewed 30 days before it ends. The services
   pick up a renewed certificate within a minute or two, without a restart.
 - A pod waits to start until its certificate exists, which takes a few

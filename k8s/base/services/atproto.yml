@@ -19,6 +19,10 @@ spec:
           ports:
             - name: http
               containerPort: 80
+            # The installation's own services' calls (servicecalls), never
+            # routed by the gateway.
+            - name: internal
+              containerPort: 8443
           env:
             # Only a site that is open to read writes anything to Bluesky,
             # as only one that is federates. The same for every service.
@@ -229,10 +233,11 @@ spec:
               readOnly: true
       volumes:
         # The certificate this service presents when it calls a gRPC
-        # service, from k8s/base/grpc-tls.yml.
+        # service, and serves its internal calls with, from
+        # k8s/base/grpc-tls.yml.
         - name: grpc-tls
           secret:
-            secretName: anahita-grpc-client
+            secretName: anahita-grpc-atproto
 ---
 apiVersion: v1
 kind: Service
@@ -245,3 +250,6 @@ spec:
     - name: http
       port: 80
       targetPort: http
+    - name: internal
+      port: 8443
+      targetPort: internal
