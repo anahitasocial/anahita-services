@@ -4,14 +4,16 @@ Asked for by the user on 2026-11-03: export and import of who one follows;
 moving from one Anahita installation to another, "by initiating a request,
 moving their leaders over, and perhaps leaving a redirect mechanism to their
 new profile on the old server"; and moving between Anahita and Mastodon or
-servers like it. Not built.
+servers like it. Brought forward on 2026-11-08, at the user's word ("focus
+on helping people moving in and out"), before the WordPress import, with
+the lists that Mastodon, Misskey and Pixelfed move between them. Not built.
 
 ## Contents
 
 1. [Why](#why)
 2. [What there is now](#what-there-is-now)
-3. [How Mastodon does it](#how-mastodon-does-it)
-4. [Part 1: who you follow, out and in](#part-1-who-you-follow-out-and-in)
+3. [How others do it](#how-others-do-it)
+4. [Part 1: your lists, out and in](#part-1-your-lists-out-and-in)
 5. [Part 2: following somebody who moved](#part-2-following-somebody-who-moved)
 6. [Part 3: moving yourself](#part-3-moving-yourself)
 7. [Part 4: bringing your posts](#part-4-bringing-your-posts)
@@ -30,45 +32,94 @@ them on every server that does it Mastodon's way.
 ## What there is now
 
 1. **The download of somebody's data** has who they follow, who follows
-   them and whom they blocked, as JSON (`data/following.json`,
-   `followers.json`, `blocked.json`), and their posts and pictures
+   them, whom they blocked and muted, and what they saved, as JSON
+   (`data/following.json`, `followers.json`, `blocked.json`, `muted.json`,
+   `saved.json`), and their posts and pictures
    ([Download your data](../data-export.md)). Nothing reads it back in.
+   (`blocked.json` was empty until 2026-11-08, from the same fault as a
+   person's own Blocked list.)
 2. **Nothing of moving:** no `alsoKnownAs` on a profile, no `Move` sent or
    heeded, no `movedTo`. When somebody followed from here moves on Mastodon,
    the people here who follow them go on following the old account.
 
-## How Mastodon does it
+## How others do it
 
-1. **Export and import,** as CSV: who one follows (one line each,
-   `Account address,Show boosts,Notify on new posts,Languages`), lists,
-   blocks, mutes, blocked servers and bookmarks. An import is merged with
-   what one has, or put in its place.
-2. **Moving:** the new account names the old as an alias (`alsoKnownAs`),
+What Mastodon, Misskey and Pixelfed, the largest on the fediverse, let a
+person take out and bring in, looked up on 2026-11-08 (Mastodon from its
+code, `app/models/export.rb` and `app/models/form/import.rb`):
+
+| Kind | Mastodon | Misskey | Pixelfed | Anahita |
+| --- | --- | --- | --- | --- |
+| Who one follows | CSV out and in: `Account address,Show boosts,Notify on new posts,Languages` | CSV out and in, one address a line | JSON out | Part 1 |
+| Blocks | CSV out and in, one address a line, no header | out and in | JSON out | Part 1 |
+| Mutes | CSV out and in: `Account address,Hide notifications` | out and in | JSON out | Part 1 |
+| Saved posts (bookmarks) | CSV out and in, one post's address a line, no header | favorites and clips, out | none | Part 1 |
+| Lists | CSV out and in: `List name,Account address` | out and in | none | no lists yet |
+| Blocked servers, one's own | CSV out and in, `#domain` | none | none | no such setting yet |
+| Filters | JSON out | none | none | no filters yet |
+| Antennas | none | out and in | none | none |
+| Followers | none | none | JSON out | they move by `Move` |
+| Moving with followers | `Move` out and in | `Move` out and in | `Move` out | Part 3 |
+
+1. **Mastodon reads a file with no header row** as a list of addresses (or
+   of domains, or of posts), which is how Misskey's files, and anybody's
+   list typed by hand, are read too. A known first header says which kind a
+   file is.
+2. **An import is merged with what one has, or put in its place;** at most
+   20,000 rows and 20 MB a file.
+3. **Moving:** the new account names the old as an alias (`alsoKnownAs`),
    which shows one person holds both. From the old one, the move is started:
    a `Move` is sent to every follower, and their servers have them follow
    the new account instead. The old profile says it has moved, with a link,
    and does nothing more. Followers move; who one follows does not, and is
-   brought by importing the CSV. Not again for thirty days.
-3. **Posts do not move.** The archive can be downloaded, as ActivityPub's
+   brought by the files. Not again for thirty days.
+4. **Posts do not move.** Mastodon's archive is ActivityPub's
    `outbox.json`; nothing imports it.
 
-## Part 1: who you follow, out and in
+## Part 1: your lists, out and in
 
-Imports and the files out are both export-service's, which takes imports
-in row 142 ([imports.md](imports.md)).
+Who one follows, blocks and mutes, and what one saved: the four kinds
+Anahita has of the lists the others move. Lists, one's own blocked servers
+and filters wait for those features (Out of scope).
 
-1. **Out, in Mastodon's shape:** `following_accounts.csv`, one line a
-   profile by its address (`ana@banu.io`, `alice@mastodon.social`), which
-   Mastodon, Pixelfed, GoToSocial and Akkoma read. Groups, hashtags and
-   locations followed, which only Anahita has, in a second file,
-   `following_anahita.csv`, which they leave be. Blocks the same way,
-   `blocked_accounts.csv`.
-2. **In, from either:** each address looked up and followed, here or by
-   federation; a group with rules asks for them to be agreed first; one that
-   cannot be found or followed is listed, not lost. Merged with who one
-   follows already, never in place of it.
-3. **From the download,** in the settings beside it, and the files are in
-   the download too.
+**Out,** in the one download there is now, with the JSON it has
+([Download your data](../data-export.md)), in a folder beside it,
+`mastodon/`, in Mastodon's own files, which Mastodon, Misskey, GoToSocial,
+Akkoma and the rest read:
+
+| File | Holds |
+| --- | --- |
+| `following_accounts.csv` | People followed: `Account address,Show boosts,Notify on new posts,Languages`, the address `ana@banu.io` or `alice@mastodon.social`; true, false, and nothing for the languages |
+| `blocked_accounts.csv` | People blocked, one address a line |
+| `muted_accounts.csv` | People muted: `Account address,Hide notifications`; a mute that ends is moved as one that does not |
+| `bookmarks.csv` | Saved posts, one post's address a line (its `uri` from elsewhere, its own address here) |
+| `following_anahita.csv` | What only Anahita follows: groups, events, hashtags and locations, one address a line; others leave it be |
+
+**In,** under Settings, beside the download: one file, either a whole
+download (from this Anahita or another) or a single CSV from anywhere.
+
+1. **What it is** is read from it: in a download, the files above by name;
+   a single CSV by its first header, and one with none (one address or
+   address of a post a line) by what its lines are, or by the person's
+   choice when that cannot be told.
+2. **Looked at first:** "272 people you follow, 3 you muted, 41 saved
+   posts", with a tick for each kind, all ticked, and nothing done until
+   Import is pressed.
+3. **Merged, never put in place of** what one has: nothing is unfollowed,
+   unblocked or unsaved by an import.
+4. **Each line, the way a person's own would:** an address looked up, here
+   or by federation (WebFinger), and followed, blocked, muted, or its post
+   fetched and saved, by the same rules as by hand: a group with rules asks
+   for them to be agreed first; a profile that approves its followers is
+   asked; one blocked either way is not followed.
+5. **In the background,** as a job in export-service (row 142, phase 1,
+   which this is the first use of): its progress shown while it runs,
+   resumed after a restart, and at the end what could not be found or done,
+   each with why, to download. Importing the same file again brings nothing
+   twice.
+6. **Limits,** as Mastodon's: 20,000 lines and 20 MB a file, one import a
+   person at a time, and the rate at which it looks people up kept low, so
+   that a large list never slows the site or troubles other servers.
 
 ## Part 2: following somebody who moved
 
@@ -127,11 +178,17 @@ installation, and nothing there changes.
 
 1. Moving a group, an event or a website.
 2. Moving posts to Mastodon, which imports none.
-3. Lists, mutes and bookmarks, until there is a call for them.
+3. Lists, one's own blocked servers, filters and Misskey's antennas: each a
+   feature Anahita does not have yet, and a row of its own if asked for;
+   their files are then added to Part 1.
+4. Replacing one's lists with a file's (Mastodon's "overwrite"): an import
+   adds; what one no longer wants is removed by hand.
 
 ## Phases
 
-1. **Who you follow, out and in,** in Mastodon's CSV: one session.
+1. **Your lists, out and in:** export-service's imports (row 142, phase 1,
+   without what only posts need), the files in the download, the import
+   with its preview: about two sessions.
 2. **Following somebody who moved:** one session.
 3. **Moving, out and in,** with the signpost: three to four sessions.
 4. **Bringing your posts,** from Anahita, then perhaps from Mastodon: three

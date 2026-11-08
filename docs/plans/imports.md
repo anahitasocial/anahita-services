@@ -10,6 +10,12 @@ don't go through conventional APIs", and then: "I'm open to your
 suggestions regarding import/export services, just make it lean and clean."
 Planned the same day. Not built.
 
+**Reordered on 2026-11-08, at the user's word:** the WordPress import
+waits; moving in and out comes first ([moving.md](moving.md)). Phase 1
+is built now, for a person's lists (who they follow, block and mute, and
+what they saved), without what only posts need: a past date and nothing
+sent. Phases 2 and 3, the plugin and the redirect script, come later.
+
 ## Contents
 
 1. [Why](#why)
@@ -120,8 +126,9 @@ nothing left to update.
 
 ## What else is imported this way
 
-1. **Row 124, part 1:** who one follows, blocks and mutes, from Mastodon's
-   CSV; the same files out are made by export-service.
+1. **Row 124, part 1:** who one follows, blocks and mutes, and what one
+   saved, from a download or a single CSV, Mastodon's or Misskey's; the
+   same files out are made by export-service. The first import built.
 2. **Row 124, part 4:** one's posts from another Anahita's download.
 3. **Later:** Mastodon's archive (`outbox.json`), decided apart.
 
@@ -135,12 +142,14 @@ nothing left to update.
 
 ## Phases
 
-1. **Imports in export-service** and its worker, the job, the sources kept, the
-   internal call in text-service and photo-service: about two sessions.
-2. **The plugin:** pairing, the list, sending, the map: about two to three
-   sessions.
-3. **The redirect script,** tried on a copy of a WordPress blog, then a
-   real blog moved: about half a session.
+1. **Imports in export-service** and its worker, the job, the sources kept:
+   built now with row 124's part 1, for lists. The internal call in
+   text-service and photo-service, for posts, comes with phase 2 or with
+   row 124's part 4, whichever is first.
+2. **Later.** The plugin: pairing, the list, sending, the map: about two
+   to three sessions.
+3. **Later.** The redirect script, tried on a copy of a WordPress blog,
+   then a real blog moved: about half a session.
 
 About five sessions.
 
