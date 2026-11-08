@@ -142,7 +142,8 @@ people, with their whole handle (`alice.bsky.social`,
 Whatever the reason, a profile is left out when it is:
 
 1. the viewer, or somebody they follow already, or have asked to follow;
-2. on either side of a block with the viewer;
+2. on either side of a block with the viewer, or muted by the viewer while
+   the mute lasts;
 3. one the viewer said they were not interested in;
 4. somebody who asked not to be suggested;
 5. disabled, archived or deleted;

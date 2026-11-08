@@ -95,7 +95,10 @@ by id through the graph's `FilterVisible`. A test keeps the two in step:
 3. **A profile on another server,** of a like, a repost, a reply, a quote, a
    mention or a follow: its own server is told, by federation.
 4. **Of a draft.** Nothing is said of a post until it is published.
-5. **Of the notes after the first of a thread written in one go**
+5. **Somebody who muted whoever did it,** with "Hide their notifications"
+   ticked, while the mute lasts ([Permissions](permissions.md#mutes)).
+   Nothing is kept to be told when the mute ends.
+6. **Of the notes after the first of a thread written in one go**
    (`POST /notes/…/thread`): whoever is told of the thread is told of its
    first note, once (`part` in the event; roadmap row 101). A name mentioned
    in any of its notes is still told, as a mention.

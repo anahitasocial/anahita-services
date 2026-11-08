@@ -34,17 +34,18 @@ What each route answers when the viewer may not is in the [API reference](api/in
 14. [People in pictures and videos](#people-in-pictures-and-videos)
 15. [Quotes](#quotes)
 16. [Saved posts](#saved-posts)
-17. [Pinned posts](#pinned-posts)
-18. [Downloading photos and videos](#downloading-photos-and-videos)
-19. [Custom feeds](#custom-feeds)
-20. [Suggestions](#suggestions)
-21. [Reporting](#reporting)
-22. [Account types](#account-types)
-23. [Removing accounts](#removing-accounts)
-24. [The defaults](#the-defaults)
-25. [What profile owners can change](#what-profile-owners-can-change)
-26. [Accepted values](#accepted-values)
-27. [Where the code is](#where-the-code-is)
+17. [Mutes](#mutes)
+18. [Pinned posts](#pinned-posts)
+19. [Downloading photos and videos](#downloading-photos-and-videos)
+20. [Custom feeds](#custom-feeds)
+21. [Suggestions](#suggestions)
+22. [Reporting](#reporting)
+23. [Account types](#account-types)
+24. [Removing accounts](#removing-accounts)
+25. [The defaults](#the-defaults)
+26. [What profile owners can change](#what-profile-owners-can-change)
+27. [Accepted values](#accepted-values)
+28. [Where the code is](#where-the-code-is)
 
 ## Two separate settings
 
@@ -676,6 +677,52 @@ nobody else can see the list, and nobody, the author of a post included, can
 find out who saved it or whether anybody did. A saved post stays in the list
 only while its saver can still see it.
 
+## Mutes
+
+Somebody signed in can mute a person, here, on the fediverse or on Bluesky,
+when they would rather not see them without blocking them (roadmap row 133).
+A mute is theirs alone: the person muted is not told, nothing is sent to
+their server, and nobody else can see whom somebody muted.
+
+While a mute lasts, the person who muted does not see, in their lists:
+
+1. what the muted person wrote, wherever it is, and what is on their profile;
+2. their reposts, and others' reposts of their posts;
+3. their replies, and the replies under those, in any thread;
+4. them, among suggestions;
+5. what they do, in notifications, when "Hide their notifications" was
+   ticked (it is, to begin with).
+
+The lists are the Following feed, custom feeds, a profile's feed, a
+hashtag's and a location's posts, and search. Left as they are:
+
+1. **the muted person's own profile,** opened: its feed whole, and the
+   replies under their own posts;
+2. **a post opened by its address,** from a notification, a link, a quote or
+   a saved post;
+3. **people:** a muted person is still found by name, and listed among
+   followers;
+4. **everybody else's lists,** the muted person's own among them: a mute is
+   one way;
+5. **counts,** of replies, likes and followers, which count everybody.
+
+Nothing ends with a mute: follows stay, both ways, and the muted person may
+go on following, liking and replying. A mute is not part of the access
+gate; it decides what is in somebody's lists, not what they may see. A mute
+lasts until it is lifted, or for a day, a week or a month; once over it
+counts for nothing, and the sweeper deletes it within the hour. Only a
+person is muted, never oneself, and not while either blocks the other: a
+block hides more.
+
+| Request | Allowed to |
+| --- | --- |
+| `GET /socialgraph/<person>/mutes/` | The person |
+| `POST /socialgraph/<muted>/mutes/<person>` `{ "hide_notifications": true, "for": "day" }` | The person; `for` is `day`, `week`, `month`, or empty for until unmuted. Mutes, or changes a mute |
+| `DELETE /socialgraph/<muted>/mutes/<person>` | The person |
+
+A profile read by somebody signed in says `is_muted_by_viewer`, with
+`mute_ends_at` (absent for until unmuted) and `mute_hides_notifications`.
+
 ## Pinned posts
 
 A post can be pinned to the profile it is on. It then comes first in that
@@ -752,8 +799,8 @@ person, and to nobody else. See [recommendations.md](recommendations.md).
   to the graph (`FilterVisible`) before any of it is sent, and so is what a
   reason names.
 - **Nobody is suggested who asked not to be** (`discoverable`), nor anybody
-  on either side of a block with the viewer, nor an account that is
-  disabled, archived, deleted or unconfirmed.
+  on either side of a block with the viewer, nor anybody the viewer muted,
+  nor an account that is disabled, archived, deleted or unconfirmed.
 - **What somebody chose, and whom they turned down, is theirs alone.** Whoever
   was turned down is not told.
 
@@ -908,6 +955,7 @@ checks enforce.
 | Choosing who can see a post | `anahita-libs/permissions/audience.go` (`MediumAudiences`), tested in `audience_test.go` |
 | Posting and likes | `anahita-libs/permissions/capabilities.go` (`CanPostTo`, `CanLike`) |
 | A group's or an event's block | `anahita-libs/permissions/block_from_owner.go` (`CanBlockFromOwner`) |
+| Mutes | Who may: `socialgraph-service/cmd/api/permissions/mutes.go`. What they hide: `graph-grpc-service/data/repositories/mutes.go` (`SetMutedQuery`, `WithoutMuted`), notifications in `notification-service/cmd/api/handlers/helpers.go` (`add`), suggestions in `recommendation-service/data/repositories/signals.go` |
 | Replies | `anahita-libs/permissions/reply.go` (`CanReply`, `CanEditReply`, `CanDeleteReply`, `CanHideReply`, `CanLikeReply`); the thread, `anahita-libs/handlers/threads.go` |
 | Who the author lets reply | `anahita-libs/constants/reply_access.go`; table `nodes`, column `reply_access` |
 | Following, and what a stranger is shown | `anahita-libs/permissions/follow.go`, `limited_profile.go` (`CanSeeLimitedProfile`); `graph-grpc-service/cmd/server/handlers/actor_restricted.go` (`restrictUnseen`) |

@@ -130,7 +130,7 @@ is gathered at the end, [for planning](#not-built).
 | Followers-only posts | yes | [Privacy](privacy.md) |
 | Unlisted posts | no | |
 | Block accounts | yes | |
-| Mute accounts | no | |
+| Mute accounts | yes | For a day, a week, a month or until lifted, with their notifications or without ([Permissions](permissions.md#mutes)) |
 | Block whole servers (personal) | no | |
 | Word filters | no | |
 | Hide follower and following lists | no | |
@@ -246,8 +246,7 @@ Every **no** and **planned** above, gathered for planning.
    streaming; chapters; playlists; podcast feeds; peer-to-peer delivery.
 5. **Interactions:** emoji reactions; downvotes; lists; joining groups on
    other servers; interacting from another server.
-6. **Privacy and safety:** unlisted posts; muting; blocking a server for
-   oneself; word filters; hiding one's follower lists; hiding from search
+6. **Privacy and safety:** unlisted posts; blocking a server for oneself; word filters; hiding one's follower lists; hiding from search
    engines; requiring signed fetches.
 7. **Moderation:** forwarding reports to other servers; limiting servers;
    federating only with a list; appeals.

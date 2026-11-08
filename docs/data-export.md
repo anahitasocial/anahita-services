@@ -59,7 +59,7 @@ Where the request came from, its address and browser, is kept on the row.
 | `README.txt` | What each file is, and how many posts and files there are |
 | `data/profile.json` | The profile |
 | `data/posts.ndjson` | Everything written, one post on each line: notes, articles, topics, photos, videos, replies, reposts and custom feeds, wherever each was posted, **including what only its author may see** |
-| `data/following.json`, `followers.json`, `blocked.json` | Who they follow, who follows them, who they blocked |
+| `data/following.json`, `followers.json`, `blocked.json`, `muted.json` | Who they follow, who follows them, who they blocked, who they muted while the mute lasts |
 | `data/liked.json`, `saved.json` | What they liked and saved, by name and address |
 | `actor.json`, `outbox.json` | The profile and the posts as ActivityStreams, the form other fediverse software reads. What was not public is addressed to nobody |
 | `media/<post id>/` | Each post's pictures at the largest size kept, a video at its largest size, an article's cover |

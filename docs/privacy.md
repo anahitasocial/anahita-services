@@ -49,7 +49,10 @@ whoever wrote it: `followers` are that profile's followers.
 The owner of a profile and its administrators always see everything on it, and
 an author always sees their own post where they can still see the profile.
 Nobody sees anything belonging to somebody they have blocked or been blocked
-by. The full rules are in [Permissions](permissions.md).
+by. Somebody who would rather not see a person, without blocking them, mutes
+them: their posts and replies leave the muter's lists, and nobody is told
+([Permissions](permissions.md#mutes)). The full rules are in
+[Permissions](permissions.md).
 
 ## Who can see a post
 

@@ -126,7 +126,7 @@ These are two questions, and they have different answers.
 
 1. A public feed built on a group only its followers can read shows that group's posts to its followers and to nobody else.
 2. "Whoever I follow" in a feed is whoever its owner follows, and a reader is shown, of those people's posts, the ones they could have seen on those people's profiles.
-3. A post by somebody who has blocked the reader, or whom the reader has blocked, is not in it.
+3. A post by somebody who has blocked the reader, or whom the reader has blocked, is not in it, nor what the reader muted ([Permissions](permissions.md#mutes)).
 4. What is deleted, disabled or archived is not in it.
 
 A feed never widens what anybody may see. This is the rule the tests in `feed_custom_integration_test.go` are there to keep.

@@ -3,7 +3,7 @@
 Planned on 2026-11-07 from FediDB's comparison with Mastodon ("Mute
 accounts", answered "no" in [features.md](../features.md)); written on
 2026-11-08, when the row was reached, with the user's choices of that day.
-Not built.
+**Phase 1 (services) done 2026-11-08;** phase 2 (web) next.
 
 ## Contents
 
@@ -99,7 +99,7 @@ purge takes its mutes, both ways, with its other edges.
 **Not in the access gate.** `relNotBlockedEitherWay` and the gates built on it
 answer "may this person see this?", for single posts, notifications and
 `FilterVisible` too. A mute is not about that, so it is a step of its own,
-`notMutedBy(viewerID, actorRefs...)` beside it in `access.go`: one way only
+`SetMutedQuery` in `mutes.go`: one way only
 (the viewer muted the author or the profile), and added to lists alone.
 
 | List | Where |
@@ -115,11 +115,13 @@ answer "may this person see this?", for single posts, notifications and
 For a repost the step takes the reposter and the reposted post's author and
 profile; for a post, `node.created_by` and `node.owner_id`.
 
-**Notifications** are decided when they are made. notification-service asks
-the graph about all recipients at once, with the relationship it reads
-already (`SocialgraphRel.GetMany`), which gains `IsMuting` and
-`MuteHidesNotifications`; a recipient who muted the one who acted, with the
-tick, is left out. Push (row 138) and email follow from that.
+**Notifications** are decided when they are made. Every notification
+notification-service makes goes through one check (`add`, in
+`cmd/api/handlers/helpers.go`), which reads the relationship of its
+recipient to whoever acted (`SocialgraphGRPC.Read`, which gains `IsMuting`
+and `MuteHidesNotifications`); a recipient who muted them, with the tick, is
+not told. When the graph cannot answer, the notification is made. Push (row
+138) follows from that.
 
 **The relationship** a viewer reads on a person (`actor-service`,
 `person.go`, as `is_blocked_by_viewer` is) gains `is_muted_by_viewer` and
@@ -187,10 +189,10 @@ sends; it becomes `isBlockedByViewer`.
 ## Phases
 
 1. **Services:** the Blocked list's fix; the edge, the gRPC service, the
-   routes; `notMutedBy` in every list above; the relationship; notifications;
+   routes; `SetMutedQuery` in every list above; the relationship; notifications;
    the sweeper; the download; tests against a database for each list, and
    the visibility agreement test left as it is; tried on the dev stack:
-   about a session.
+   about a session. **Done 2026-11-08.**
 2. **Web:** the menu items, the dialog, Settings › Privacy › Muted, the
    `canFollow` fix, strings in every base; tried at both sizes: half a
    session.

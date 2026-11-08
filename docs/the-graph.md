@@ -198,6 +198,7 @@ There is one edge of a type between the same two nodes, never two
 | `edge.actor.follow.v1` | A profile | A profile | Follows it |
 | `edge.actor.follow-request.v1` | A profile | A profile | Has asked to follow it, and is waiting for an answer |
 | `edge.actor.block.v1` | A profile | A profile | Blocks it: neither sees the other |
+| `edge.actor.mute.v1` | A person | A person | Mutes it: would rather not see it in their lists. `ends_at` is when the mute ends, `NULL` until lifted; `meta` is `notifications` when its notifications are still wanted ([Permissions](permissions.md#mutes)) |
 | `edge.actor.admin.v1` | A person | A group or an event | Is one of its administrators |
 | `edge.actor.host.v1` | A group | An event | Hosts it; what puts it on the group's list of events |
 | `edge.actor.invite.v1` | A person | A profile | Was invited to follow it, by `created_by` |
