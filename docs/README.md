@@ -447,7 +447,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [One clean schema](plans/done/migration-baseline.md) | 27 | done 2026-10-17: the migrations folded into `init.sql` and `legacy/upgrade.sql`, the PHP upgrade fixed, `make schema_test`, NULL only where it means something ([The database](architecture.md#the-database)) |
 | [The API reference, made from the code](plans/done/api-reference.md) | 38 | done 2026-10-15: every route described, `docs/api/index.html`, answers checked in the handler tests |
 | [Documentation agents can use, and an MCP server](plans/done/docs-for-agents.md) | 39 | done 2026-10-27: the MCP server is anahita-mcp |
-| [Anahita Recipes: a site ready to run, for each purpose](plans/recipes.md) | 40 | planned again 2026-11-07 by purpose: `site/` with `classic` and `from-php` first, in `anahita-recipes`; anahita-web's roadmap row 30 |
+| [Anahita Recipes: a site ready to run, for each purpose](plans/recipes.md) | 40 | planned again 2026-11-07 by purpose: `commons` and `php-migration` first, each a directory that stands alone in `anahita-recipes`; anahita-web's roadmap row 30 |
 | [Running Anahita on k3s and on EKS](plans/k3s-and-eks.md) | 76 | planned 2026-10-22: a manual for both, with sizes and costs, tried on k3d, a rented server and EKS |
 | [Sweeping away unused hashtags and locations](plans/done/tag-sweep.md) | 88 | done 2026-10-27: the sweeper removes a hashtag or location no post carries, a day old, but a location a feed names; `sweeper -tags-only` |
 | [Sweeping away stored files nothing names](plans/done/file-sweep.md) | 89 | done 2026-11-07: a nightly sweep through file-grpc-service's `Browse` removes what no row names under `assets/v1/`, a day old, kept unless sure; dry until FILE_SWEEP=on |

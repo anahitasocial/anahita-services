@@ -199,7 +199,7 @@ the load balancer, IRSA, RDS and ElastiCache or in the cluster, costs.
    unsigned was refused; a backup sent to the bucket and restored into an
    empty database, all 47 tables back. `~/.kube/config` was the same, byte
    for byte, after `make k3d-start`.
-3. The k3s manual; tried on a real server. It starts from `site/` in `anahita-recipes` ([recipes.md](recipes.md)), made then from banu.io's overlay, so the manual and the starting point are tried together on banu.io's server.
+3. The k3s manual; tried on a real server. It starts from the `commons` recipe in `anahita-recipes` ([recipes.md](recipes.md)), made then from banu.io's overlay, so the manual and the starting point are tried together on banu.io's server.
 4. The EKS manual; the `aws` overlay tried on EKS and corrected.
 
 ## Docs to change

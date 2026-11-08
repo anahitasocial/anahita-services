@@ -54,7 +54,7 @@ is a reader added to it, not a service of its own.
 4. **An import is the person's own,** made by them, on their own profile,
    and nothing they could not post by hand is posted for them.
 5. **Not through it:** moving a PHP site works on the database itself and
-   stays in the `from-php` recipe (rows 30 and 92); a list of servers an
+   stays in the `php-migration` recipe (rows 30 and 92); a list of servers an
    administrator refuses is activitypub-service's own setting (row 108).
 
 ## Imports in export-service
