@@ -62,3 +62,16 @@ type SocialgraphDeleteRequest struct {
 	// run.
 	SourceID int64 `param:"source_id" validate:"required,numeric"`
 }
+
+// MuteAddRequest mutes somebody, or changes a mute (roadmap row 133).
+type MuteAddRequest struct {
+	// The id of the person muted.
+	TargetID int64 `param:"target_id" validate:"required,numeric"`
+	// The id of whoever mutes: the viewer.
+	SourceID int64 `param:"source_id" validate:"required,numeric"`
+	// Whether their notifications are hidden too; true when not sent.
+	HideNotifications *bool `json:"hide_notifications"`
+	// How long the mute lasts: `day`, `week` or `month`; empty for until
+	// unmuted.
+	For string `json:"for" validate:"omitempty,oneof=day week month"`
+}

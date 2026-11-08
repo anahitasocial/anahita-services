@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package graph;
+
+option go_package = "/graphpb";
+
+import "proto/graphpb/context.proto";
+
+// Mute (roadmap row 133): the source would rather not see the target's
+// posts, replies and notifications. Nobody else is told.
+message SocialgraphMuteAddRequest {
+    Target target = 1;
+    Source source = 2;
+    Viewer viewer = 3;
+    // Whether the source is no longer told of what the target does.
+    bool hide_notifications = 4;
+    // When the mute ends, in Unix seconds; 0 for until unmuted.
+    int64 ends_at = 5;
+}
+
+message SocialgraphMuteAddResponse {
+    bool success = 1;
+}
+
+message SocialgraphMuteDeleteRequest {
+    Target target = 1;
+    Source source = 2;
+    Viewer viewer = 3;
+}
+
+message SocialgraphMuteDeleteResponse {
+    bool success = 1;
+}
+
+service SocialgraphMuteService {
+    // Mutes, or changes a mute already made.
+    rpc Add(SocialgraphMuteAddRequest) returns (SocialgraphMuteAddResponse);
+    rpc Delete(SocialgraphMuteDeleteRequest) returns (SocialgraphMuteDeleteResponse);
+}

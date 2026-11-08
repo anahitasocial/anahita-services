@@ -94,6 +94,12 @@ type ActorNodeItem struct {
 	IsFollowingViewer bool `json:"is_following_viewer,omitempty"`
 	// Whether the viewer has blocked it.
 	IsBlockedByViewer bool `json:"is_blocked_by_viewer,omitempty"`
+	// Whether the viewer has muted it.
+	IsMutedByViewer bool `json:"is_muted_by_viewer,omitempty"`
+	// When the viewer's mute of it ends; absent for until unmuted.
+	MuteEndsAt *time.Time `json:"mute_ends_at,omitempty"`
+	// Whether the viewer, muting it, is not told of what it does.
+	MuteHidesNotifications bool `json:"mute_hides_notifications,omitempty"`
 	// Whether the viewer has been invited to follow this actor and is yet
 	// to answer.
 	IsInvited bool `json:"is_invited,omitempty"`
@@ -211,6 +217,9 @@ func (r *ActorResponse) MapNodeItem(node *entities.AnahitaNode) *ActorNodeItem {
 		IsAdminedByViewer:         node.IsAdminedByViewer,
 		IsFollowingViewer:         node.IsFollowingViewer,
 		IsBlockedByViewer:         node.IsBlockedByViewer,
+		IsMutedByViewer:           node.IsMutedByViewer,
+		MuteEndsAt:                muteEndsAt(node),
+		MuteHidesNotifications:    node.IsMutedByViewer && node.MuteHidesNotifications,
 		IsInvited:                 node.IsInvitedViewer,
 		Event:                     NewEvent(node),
 		Avatar: func() map[string]Image {
@@ -226,6 +235,16 @@ func (r *ActorResponse) MapNodeItem(node *entities.AnahitaNode) *ActorNodeItem {
 			return nil
 		}(),
 	}
+}
+
+// muteEndsAt is when the viewer's mute of the node ends, nil when it lasts
+// until unmuted or there is none.
+func muteEndsAt(node *entities.AnahitaNode) *time.Time {
+	if !node.IsMutedByViewer || node.MuteEndsAt.IsZero() {
+		return nil
+	}
+	t := node.MuteEndsAt.UTC()
+	return &t
 }
 
 // MapNodeItems answers with an empty list, never nil, so that a list with

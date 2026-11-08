@@ -86,6 +86,7 @@ func (r *graphRepo) BrowseNeighbours(req *graphpb.BrowseNeighboursRequest, viewe
 	// GetBaseSelectQuery joins it — so only the count needed the join added.
 	query = setNeighbourAccessQuery(query, viewer, req.EdgeTypes)
 	query = setLiveNeighboursQuery(query, req.EdgeTypes, viewer)
+	query = setLastingMutesQuery(query, req.EdgeTypes)
 	// A hashtag's or a place's posts are a listing (listed.go).
 	query = listedQuery(query)
 	query = setBlockedLikersQuery(query, req.EdgeTypes, req.Direction)
@@ -188,6 +189,7 @@ func (r *graphRepo) CountNeighbours(req *graphpb.BrowseNeighboursRequest, viewer
 	query = query.LeftJoin("nodes AS owner ON owner.id = node.owner_id")
 	query = setNeighbourAccessQuery(query, viewer, req.EdgeTypes)
 	query = setLiveNeighboursQuery(query, req.EdgeTypes, viewer)
+	query = setLastingMutesQuery(query, req.EdgeTypes)
 	// A hashtag's or a place's posts are a listing (listed.go).
 	query = listedQuery(query)
 	query = setBlockedLikersQuery(query, req.EdgeTypes, req.Direction)

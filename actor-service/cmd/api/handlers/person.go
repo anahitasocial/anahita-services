@@ -682,10 +682,17 @@ func (h *personHandler) onAfterFetched(c echo.Context, node *entities.Person) er
 	// to the viewer, where blocking means that they block the viewer; it
 	// was read as this, and a block never showed on the profile of the
 	// person blocked. So the viewer's own to them is asked.
+	//
+	// And whether the viewer muted them, until when, and with their
+	// notifications hidden or not (roadmap row 133): the viewer's alone.
 	node.IsBlockedByViewer = false
+	node.IsMutedByViewer = false
 	if viewer != nil && viewer.ID > 0 && viewer.ID != node.ID {
 		if mine, err := h.Srv.SocialgraphGRPC.Read(viewer.ID, node.ID); err == nil && mine != nil {
 			node.IsBlockedByViewer = mine.IsBlocking
+			node.IsMutedByViewer = mine.IsMuting
+			node.MuteHidesNotifications = mine.MuteHidesNotifications
+			node.MuteEndsAt = mine.MuteEndsAt
 		} else if err != nil {
 			log.Println("whether the viewer blocks them:", err)
 		}

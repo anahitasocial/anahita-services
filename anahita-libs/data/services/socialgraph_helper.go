@@ -3,6 +3,7 @@ package services
 import (
 	"anahita-libs/data/entities"
 	"anahita-libs/proto/graphpb"
+	"time"
 )
 
 func actorNodeToSocialgraphTarget(a *entities.AnahitaNode) *graphpb.Target {
@@ -33,6 +34,10 @@ func GrpcToRelationEntity(relation *graphpb.Socialgraph) *entities.ActorRelation
 		HasRequested: relation.HasRequested,
 		HasInvite:    relation.HasInvite,
 		ViaHost:      relation.ViaHost,
+
+		IsMuting:               relation.IsMuting,
+		MuteHidesNotifications: relation.MuteHidesNotifications,
+		MuteEndsAt:             unixToTime(relation.MuteEndsAt),
 	}
 }
 
@@ -46,5 +51,25 @@ func RelationEntityToGrpc(relation *entities.ActorRelation) *graphpb.Socialgraph
 		HasRequested: relation.HasRequested,
 		HasInvite:    relation.HasInvite,
 		ViaHost:      relation.ViaHost,
+
+		IsMuting:               relation.IsMuting,
+		MuteHidesNotifications: relation.MuteHidesNotifications,
+		MuteEndsAt:             timeToUnix(relation.MuteEndsAt),
 	}
+}
+
+// unixToTime is a time sent as Unix seconds, 0 for none.
+func unixToTime(seconds int64) time.Time {
+	if seconds == 0 {
+		return time.Time{}
+	}
+	return time.Unix(seconds, 0).UTC()
+}
+
+// timeToUnix is a time as Unix seconds, 0 for none.
+func timeToUnix(t time.Time) int64 {
+	if t.IsZero() {
+		return 0
+	}
+	return t.Unix()
 }

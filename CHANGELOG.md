@@ -18,6 +18,14 @@ Releases before v1.0.17 are described on GitHub, under
    `docs/configuration.md`: `MYSQL_*`, `RABBITMQ_*`, `GARAGE_RPC_SECRET` and
    `GARAGE_ADMIN_TOKEN`, who reads each and how to make it.
 
+2. **Mutes, their API** (anahita-web row 133):
+   `GET /socialgraph/:actor_id/mutes/`, and `POST` and
+   `DELETE /socialgraph/:target_id/mutes/:source_id`, with
+   `hide_notifications` and `for` (`day`, `week`, `month`, or until
+   unmuted). A person's own alone; nobody is told. Profiles say
+   `is_muted_by_viewer`, `mute_ends_at` and `mute_hides_notifications`.
+   What a mute hides follows in the same row.
+
 ### Changed
 
 1. **The overlays pull Anahita's images from GitHub's registry,**

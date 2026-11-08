@@ -18,6 +18,9 @@ const (
 	ErrBlocksBrowseNotAllowed        = "you are not allowed to browse blocked people"
 	ErrBlocksAddNotAllowed           = "you are not allowed to block"
 	ErrBlocksDeleteNotAllowed        = "you are not allowed to unblock"
+	ErrMutesBrowseNotAllowed         = "you are not allowed to browse muted people"
+	ErrMutesAddNotAllowed            = "you are not allowed to mute"
+	ErrMutesDeleteNotAllowed         = "you are not allowed to unmute"
 	ErrLeadersBrowseNotAllowed       = "you are not allowed to browse leaders"
 	ErrMutualsBrowseNotAllowed       = "you are not allowed to browse mutuals"
 )
@@ -39,6 +42,7 @@ func NewPermissions(env *Env) *Permissions {
 		Followers:      newFollowersPermissions(env),
 		Leaders:        newLeadersPermissions(env),
 		Blocks:         newBlocksPermissions(env),
+		Mutes:          newMutesPermissions(env),
 		Mutuals:        newMutualsPermissions(env),
 		FollowRequests: newFollowRequestsPermissions(env),
 	}
@@ -48,6 +52,7 @@ type Permissions struct {
 	Followers      PermissionsInterface
 	Leaders        PermissionsInterface
 	Blocks         PermissionsInterface
+	Mutes          PermissionsInterface
 	Mutuals        PermissionsInterface
 	FollowRequests PermissionsInterface
 }

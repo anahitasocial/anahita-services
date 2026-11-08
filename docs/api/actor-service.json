@@ -220,10 +220,23 @@
             "description": "Whether the viewer follows it.",
             "type": "boolean"
           },
+          "is_muted_by_viewer": {
+            "description": "Whether the viewer has muted it.",
+            "type": "boolean"
+          },
           "leader_count": {
             "description": "How many it follows.",
             "format": "int64",
             "type": "integer"
+          },
+          "mute_ends_at": {
+            "description": "When the viewer's mute of it ends; absent for until unmuted.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "mute_hides_notifications": {
+            "description": "Whether the viewer, muting it, is not told of what it does.",
+            "type": "boolean"
           },
           "name": {
             "description": "Its name.",
@@ -1654,10 +1667,23 @@
             "description": "Whether the viewer follows it.",
             "type": "boolean"
           },
+          "is_muted_by_viewer": {
+            "description": "Whether the viewer has muted it.",
+            "type": "boolean"
+          },
           "leader_count": {
             "description": "How many it follows.",
             "format": "int64",
             "type": "integer"
+          },
+          "mute_ends_at": {
+            "description": "When the viewer's mute of it ends; absent for until unmuted.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "mute_hides_notifications": {
+            "description": "Whether the viewer, muting it, is not told of what it does.",
+            "type": "boolean"
           },
           "name": {
             "description": "Its name.",
@@ -1863,10 +1889,23 @@
             "description": "Whether the viewer follows it.",
             "type": "boolean"
           },
+          "is_muted_by_viewer": {
+            "description": "Whether the viewer has muted it.",
+            "type": "boolean"
+          },
           "leader_count": {
             "description": "How many it follows.",
             "format": "int64",
             "type": "integer"
+          },
+          "mute_ends_at": {
+            "description": "When the viewer's mute of it ends; absent for until unmuted.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "mute_hides_notifications": {
+            "description": "Whether the viewer, muting it, is not told of what it does.",
+            "type": "boolean"
           },
           "name": {
             "description": "Its name.",
@@ -2096,6 +2135,10 @@
             "description": "Whether the viewer follows it.",
             "type": "boolean"
           },
+          "is_muted_by_viewer": {
+            "description": "Whether the viewer has muted it.",
+            "type": "boolean"
+          },
           "language": {
             "description": "The language this person usually posts in. Left out when not set.",
             "type": "string"
@@ -2104,6 +2147,15 @@
             "description": "How many it follows.",
             "format": "int64",
             "type": "integer"
+          },
+          "mute_ends_at": {
+            "description": "When the viewer's mute of it ends; absent for until unmuted.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "mute_hides_notifications": {
+            "description": "Whether the viewer, muting it, is not told of what it does.",
+            "type": "boolean"
           },
           "name": {
             "description": "Its name.",
@@ -2361,10 +2413,23 @@
             "description": "Whether the viewer follows it.",
             "type": "boolean"
           },
+          "is_muted_by_viewer": {
+            "description": "Whether the viewer has muted it.",
+            "type": "boolean"
+          },
           "leader_count": {
             "description": "How many it follows.",
             "format": "int64",
             "type": "integer"
+          },
+          "mute_ends_at": {
+            "description": "When the viewer's mute of it ends; absent for until unmuted.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "mute_hides_notifications": {
+            "description": "Whether the viewer, muting it, is not told of what it does.",
+            "type": "boolean"
           },
           "name": {
             "description": "Its name.",

@@ -19,6 +19,12 @@ message Socialgraph {
     // Actor A is an event that lets its host's followers in, and actor B
     // follows the group hosting it.
     bool via_host = 10;
+    // Actor A mutes actor B, and the mute has not ended (roadmap row 133).
+    bool is_muting = 11;
+    // Actor A, muting actor B, is not told of what actor B does.
+    bool mute_hides_notifications = 12;
+    // When the mute ends, in Unix seconds; 0 for until unmuted.
+    int64 mute_ends_at = 13;
 }
 
 message SocialgraphReadRequest {

@@ -142,10 +142,23 @@
             "description": "Whether the viewer follows it.",
             "type": "boolean"
           },
+          "is_muted_by_viewer": {
+            "description": "Whether the viewer has muted it.",
+            "type": "boolean"
+          },
           "leader_count": {
             "description": "How many it follows.",
             "format": "int64",
             "type": "integer"
+          },
+          "mute_ends_at": {
+            "description": "When the viewer's mute of it ends; absent for until unmuted.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "mute_hides_notifications": {
+            "description": "Whether the viewer, muting it, is not told of what it does.",
+            "type": "boolean"
           },
           "name": {
             "description": "Its name.",
@@ -594,12 +607,12 @@
     }
   },
   "info": {
-    "description": "Who follows whom, asking to follow a profile that is not open to all, invitations to follow a group or an event, and blocks (permissions.md).",
+    "description": "Who follows whom, asking to follow a profile that is not open to all, invitations to follow a group or an event, blocks, and mutes (permissions.md).",
     "license": {
       "identifier": "AGPL-3.0-only",
       "name": "GNU Affero General Public License v3.0 only"
     },
-    "title": "Following and blocking",
+    "title": "Following, blocking and muting",
     "version": "dev"
   },
   "openapi": "3.1.0",
@@ -1611,6 +1624,138 @@
         "x-viewer": "anyone"
       }
     },
+    "/socialgraph/{actor_id}/mutes/": {
+      "get": {
+        "description": "Theirs alone, most lately muted first, each with `mute_ends_at` (absent for until unmuted) and `mute_hides_notifications`. A mute that has ended is not in it.\n\nWho may call it: somebody signed in.",
+        "operationId": "getSocialgraphByActorIdMutes",
+        "parameters": [
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "What they are ordered by.",
+            "in": "query",
+            "name": "ordering",
+            "schema": {
+              "default": "updated_at",
+              "enum": [
+                "created_at",
+                "updated_at"
+              ],
+              "maxLength": 15,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Which way the order runs.",
+            "in": "query",
+            "name": "dir",
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "maxLength": 4,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only those whose name has these words.",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "maxLength": 100,
+              "type": "string",
+              "x-validate": "name_search_query"
+            }
+          },
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "actor_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/ActorNodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer is not this person"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Whom a person has muted",
+        "tags": [
+          "socialgraph-service"
+        ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*muteHandler).Browse",
+        "x-viewer": "signed_in"
+      }
+    },
     "/socialgraph/{actor_id}/mutuals/": {
       "get": {
         "description": "The people the viewer follows who also follow the profile.\n\nWho may call it: somebody signed in.",
@@ -2195,6 +2340,155 @@
         "x-handler": "socialgraph/cmd/api/handlers.(*followerHandler).Add",
         "x-viewer": "signed_in"
       }
+    },
+    "/socialgraph/{target_id}/mutes/{source_id}": {
+      "delete": {
+        "description": "Answers with whoever was muted.\n\nWho may call it: somebody signed in.",
+        "operationId": "deleteSocialgraphByTargetIdMutesBySourceId",
+        "parameters": [
+          {
+            "description": "The id of the profile followed, asked or blocked.",
+            "in": "path",
+            "name": "target_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The id of whoever follows, asks or blocks: the viewer, or a group they run.",
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActorNodeItem"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer is not the source"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Unmute somebody",
+        "tags": [
+          "socialgraph-service"
+        ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*muteHandler).Delete",
+        "x-viewer": "signed_in"
+      },
+      "post": {
+        "description": "The viewer, `source_id`, stops seeing the posts, reposts and replies of `target_id`, a person, in their lists, and their notifications when `hide_notifications` is true or not sent; for a `day`, a `week`, a `month`, or until unmuted when `for` is empty (permissions.md, what a mute hides). Nobody is told. Answers with whoever is muted.\n\nWho may call it: somebody signed in.",
+        "operationId": "postSocialgraphByTargetIdMutesBySourceId",
+        "parameters": [
+          {
+            "description": "The id of the person muted.",
+            "in": "path",
+            "name": "target_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The id of whoever mutes: the viewer.",
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "for": {
+                    "description": "How long the mute lasts: `day`, `week` or `month`; empty for until unmuted.",
+                    "enum": [
+                      "day",
+                      "week",
+                      "month"
+                    ],
+                    "type": "string"
+                  },
+                  "hide_notifications": {
+                    "description": "Whether their notifications are hidden too; true when not sent.",
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActorNodeItem"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer is not the source, the target is not a person, or one blocks the other"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mute somebody, or change a mute",
+        "tags": [
+          "socialgraph-service"
+        ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*muteHandler).Add",
+        "x-viewer": "signed_in"
+      }
     }
   },
   "servers": [
@@ -2211,7 +2505,7 @@
   ],
   "tags": [
     {
-      "description": "Following and blocking",
+      "description": "Following, blocking and muting",
       "name": "socialgraph-service"
     }
   ]

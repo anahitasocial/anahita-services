@@ -14,6 +14,7 @@ type Env struct {
 
 type Handlers struct {
 	Block         *blockHandler
+	Mute          *muteHandler
 	Follower      *followerHandler
 	Leader        *leaderHandler
 	Mutual        *mutualHandler
@@ -24,6 +25,7 @@ type Handlers struct {
 func NewHandlers(env *Env) *Handlers {
 	return &Handlers{
 		Block:         NewBlockHandler(env),
+		Mute:          NewMuteHandler(env),
 		Follower:      NewFollowerHandler(env),
 		Leader:        NewLeaderHandler(env),
 		Mutual:        NewMutualHandler(env),

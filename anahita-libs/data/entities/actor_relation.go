@@ -1,5 +1,7 @@
 package entities
 
+import "time"
+
 type ActorRelation struct {
 	ActorAId    int64
 	ActorBId    int64
@@ -7,7 +9,13 @@ type ActorRelation struct {
 	IsFollowing bool // actorA -> actorB (actorA follows actorB)
 	IsMutual    bool // IsLeading && IsFollowing
 	IsBlocking  bool // actorA blocks actorB
-	HasAdmin    bool // actorA has actorB as admin
+	// actorA mutes actorB, and the mute has not ended
+	IsMuting bool
+	// actorA, muting actorB, is not told of what actorB does
+	MuteHidesNotifications bool
+	// When actorA's mute of actorB ends; zero for until unmuted
+	MuteEndsAt time.Time
+	HasAdmin   bool // actorA has actorB as admin
 	// actorB has asked to follow actorA, and has not been answered
 	HasRequested bool
 	// actorB has been invited to follow actorA, and has not answered

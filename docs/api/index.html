@@ -66,7 +66,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <p class="group">Accounts and the graph</p>
 <ul>
 <li><a href="#auth-service">Accounts and signing in</a> <span class="count">97</span></li>
-<li><a href="#socialgraph-service">Following and blocking</a> <span class="count">18</span></li>
+<li><a href="#socialgraph-service">Following, blocking and muting</a> <span class="count">21</span></li>
 <li><a href="#identity-image-service">Profile and cover photos</a> <span class="count">6</span></li>
 <li><a href="#notification-service">Notifications</a> <span class="count">9</span></li>
 <li><a href="#recommendation-service">Recommendations</a> <span class="count">7</span></li>
@@ -4659,8 +4659,8 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </section>
 <section id="socialgraph-service" class="service">
 <p class="group">Accounts and the graph</p>
-<h2>Following and blocking <code>socialgraph-service</code></h2>
-<p>Who follows whom, asking to follow a profile that is not open to all, invitations to follow a group or an event, and blocks (<a href="../permissions.md">permissions.md</a>).</p>
+<h2>Following, blocking and muting <code>socialgraph-service</code></h2>
+<p>Who follows whom, asking to follow a profile that is not open to all, invitations to follow a group or an event, blocks, and mutes (<a href="../permissions.md">permissions.md</a>).</p>
 <details class="route" id="getSocialgraphInvites" data-search="get /socialgraph/invites/ the viewer&#39;s invitations to follow a group or an event.
 
 who may call it: somebody signed in.">
@@ -4938,6 +4938,36 @@ who may call it: anyone, signed in or not.">
 </table>
 <p class="handler">Answered by <code>socialgraph/cmd/api/handlers.(*leaderHandler).Browse</code></p>
 </details>
+<details class="route" id="getSocialgraphByActorIdMutes" data-search="get /socialgraph/{actor_id}/mutes/ whom a person has muted theirs alone, most lately muted first, each with `mute_ends_at` (absent for until unmuted) and `mute_hides_notifications`. a mute that has ended is not in it.
+
+who may call it: somebody signed in.">
+<summary><span class="method get">GET</span> <code class="path">/socialgraph/{actor_id}/mutes/</code> <span class="summary">Whom a person has muted</span></summary>
+<div class="description"><p>Theirs alone, most lately muted first, each with <code>mute_ends_at</code> (absent for until unmuted) and <code>mute_hides_notifications</code>. A mute that has ended is not in it.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>start</code></td><td>query</td><td>integer</td><td>How many to pass over. At least 0.</td></tr>
+<tr><td><code>limit</code></td><td>query</td><td>integer</td><td>The most to send. At least 0. <code>20</code> unless given.</td></tr>
+<tr><td><code>ordering</code></td><td>query</td><td>string</td><td>What they are ordered by. At most 15 characters. One of <code>created_at</code>, <code>updated_at</code>. <code>updated_at</code> unless given.</td></tr>
+<tr><td><code>dir</code></td><td>query</td><td>string</td><td>Which way the order runs. At most 4 characters. One of <code>asc</code>, <code>desc</code>. <code>desc</code> unless given.</td></tr>
+<tr><td><code>q</code></td><td>query</td><td>string</td><td>Only those whose name has these words. At most 100 characters.</td></tr>
+<tr><td><code>actor_id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body">object { <code>data</code>: list of <a href="#schema-ActorNodeItem">ActorNodeItem</a> or null, <code>pagination</code>: <a href="#schema-Pagination">Pagination</a> } <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer is not this person</td></tr>
+<tr><td class="status s4">404</td><td>there is no such profile</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>socialgraph/cmd/api/handlers.(*muteHandler).Browse</code></p>
+</details>
 <details class="route" id="getSocialgraphByActorIdMutuals" data-search="get /socialgraph/{actor_id}/mutuals/ followers in common the people the viewer follows who also follow the profile.
 
 who may call it: somebody signed in.">
@@ -5151,6 +5181,66 @@ who may call it: somebody signed in.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>socialgraph/cmd/api/handlers.(*followerHandler).Delete</code></p>
+</details>
+<details class="route" id="postSocialgraphByTargetIdMutesBySourceId" data-search="post /socialgraph/{target_id}/mutes/{source_id} mute somebody, or change a mute the viewer, `source_id`, stops seeing the posts, reposts and replies of `target_id`, a person, in their lists, and their notifications when `hide_notifications` is true or not sent; for a `day`, a `week`, a `month`, or until unmuted when `for` is empty (permissions.md, what a mute hides). nobody is told. answers with whoever is muted.
+
+who may call it: somebody signed in.">
+<summary><span class="method post">POST</span> <code class="path">/socialgraph/{target_id}/mutes/{source_id}</code> <span class="summary">Mute somebody, or change a mute</span></summary>
+<div class="description"><p>The viewer, <code>source_id</code>, stops seeing the posts, reposts and replies of <code>target_id</code>, a person, in their lists, and their notifications when <code>hide_notifications</code> is true or not sent; for a <code>day</code>, a <code>week</code>, a <code>month</code>, or until unmuted when <code>for</code> is empty (<a href="../permissions.md">permissions.md</a>, what a mute hides). Nobody is told. Answers with whoever is muted.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>target_id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The id of the person muted.</td></tr>
+<tr><td><code>source_id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The id of whoever mutes: the viewer.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>for</code></td><td>string</td><td>How long the mute lasts: <code>day</code>, <code>week</code> or <code>month</code>; empty for until unmuted. One of <code>day</code>, <code>week</code>, <code>month</code>.</td></tr>
+<tr><td><code>hide_notifications</code></td><td>boolean</td><td>Whether their notifications are hidden too; true when not sent.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">201</td><td>Created<div class="body"><a href="#schema-ActorNodeItem">ActorNodeItem</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer is not the source, the target is not a person, or one blocks the other</td></tr>
+<tr><td class="status s4">404</td><td>there is no such profile</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>socialgraph/cmd/api/handlers.(*muteHandler).Add</code></p>
+</details>
+<details class="route" id="deleteSocialgraphByTargetIdMutesBySourceId" data-search="delete /socialgraph/{target_id}/mutes/{source_id} unmute somebody answers with whoever was muted.
+
+who may call it: somebody signed in.">
+<summary><span class="method delete">DELETE</span> <code class="path">/socialgraph/{target_id}/mutes/{source_id}</code> <span class="summary">Unmute somebody</span></summary>
+<div class="description"><p>Answers with whoever was muted.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>target_id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The id of the profile followed, asked or blocked.</td></tr>
+<tr><td><code>source_id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The id of whoever follows, asks or blocks: the viewer, or a group they run.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-ActorNodeItem">ActorNodeItem</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer is not the source</td></tr>
+<tr><td class="status s4">404</td><td>there is no such profile</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>socialgraph/cmd/api/handlers.(*muteHandler).Delete</code></p>
 </details>
 </section>
 <section id="identity-image-service" class="service">
@@ -10588,7 +10678,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-ActorNodeItem" data-search="actornodeitem access alias allow_download allow_follow_request archived_at author avatar_urls body cover_urls created_at deleted_at enabled event featured_at follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer leader_count name origin_domain quote_policy show_reposts_on_profile type uri verified website_url">
+<div class="route schema" id="schema-ActorNodeItem" data-search="actornodeitem access alias allow_download allow_follow_request archived_at author avatar_urls body cover_urls created_at deleted_at enabled event featured_at follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer leader_count mute_ends_at mute_hides_notifications name origin_domain quote_policy show_reposts_on_profile type uri verified website_url">
 <h3>ActorNodeItem</h3>
 <p>A profile: a person, a group or an event.</p>
 <table>
@@ -10616,7 +10706,10 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>is_following_viewer</code></td><td>boolean</td><td>Whether it follows the viewer.</td></tr>
 <tr><td><code>is_invited</code></td><td>boolean</td><td>Whether the viewer has been invited to follow this actor and is yet to answer.</td></tr>
 <tr><td><code>is_leading_viewer</code></td><td>boolean</td><td>Whether the viewer follows it.</td></tr>
+<tr><td><code>is_muted_by_viewer</code></td><td>boolean</td><td>Whether the viewer has muted it.</td></tr>
 <tr><td><code>leader_count</code></td><td>integer</td><td>How many it follows.</td></tr>
+<tr><td><code>mute_ends_at</code></td><td>time</td><td>When the viewer&#39;s mute of it ends; absent for until unmuted.</td></tr>
+<tr><td><code>mute_hides_notifications</code></td><td>boolean</td><td>Whether the viewer, muting it, is not told of what it does.</td></tr>
 <tr><td><code>name</code></td><td>string</td><td>Its name.</td></tr>
 <tr><td><code>origin_domain</code></td><td>string</td><td>The server it came from, when it came from another.</td></tr>
 <tr><td><code>quote_policy</code></td><td>string</td><td>On a person: who may quote their posts, when a post does not say. &#34;anyone&#34;, &#34;followers&#34; or &#34;nobody&#34;; left out when they have not said, which is anyone.</td></tr>
@@ -11636,7 +11729,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-actor.EventNode" data-search="actor.eventnode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled event featured_at features follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer leader_count name origin_domain permissions show_reposts_on_profile type updated_at uri verified website_url">
+<div class="route schema" id="schema-actor.EventNode" data-search="actor.eventnode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled event featured_at features follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer leader_count mute_ends_at mute_hides_notifications name origin_domain permissions show_reposts_on_profile type updated_at uri verified website_url">
 <h3>actor.EventNode</h3>
 <p>An event, as it is sent: a group with a time and a place, and <code>event</code> saying when it is, how many may go and are going, and what the viewer answered.</p>
 <table>
@@ -11668,7 +11761,10 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>is_following_viewer</code></td><td>boolean</td><td>Whether it follows the viewer.</td></tr>
 <tr><td><code>is_invited</code></td><td>boolean</td><td>Whether the viewer has been invited to follow this actor and is yet to answer.</td></tr>
 <tr><td><code>is_leading_viewer</code></td><td>boolean</td><td>Whether the viewer follows it.</td></tr>
+<tr><td><code>is_muted_by_viewer</code></td><td>boolean</td><td>Whether the viewer has muted it.</td></tr>
 <tr><td><code>leader_count</code></td><td>integer</td><td>How many it follows.</td></tr>
+<tr><td><code>mute_ends_at</code></td><td>time</td><td>When the viewer&#39;s mute of it ends; absent for until unmuted.</td></tr>
+<tr><td><code>mute_hides_notifications</code></td><td>boolean</td><td>Whether the viewer, muting it, is not told of what it does.</td></tr>
 <tr><td><code>name</code></td><td>string</td><td>Its name.</td></tr>
 <tr><td><code>origin_domain</code></td><td>string</td><td>The server it came from, when it came from another.</td></tr>
 <tr><td><code>permissions</code></td><td>map of string</td><td></td></tr>
@@ -11695,7 +11791,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-actor.GroupNode" data-search="actor.groupnode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer leader_count name origin_domain permissions show_reposts_on_profile type updated_at uri verified website_url">
+<div class="route schema" id="schema-actor.GroupNode" data-search="actor.groupnode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer leader_count mute_ends_at mute_hides_notifications name origin_domain permissions show_reposts_on_profile type updated_at uri verified website_url">
 <h3>actor.GroupNode</h3>
 <p>A group, as it is sent: followed by people, looked after by its admins, and able to host events.</p>
 <table>
@@ -11726,7 +11822,10 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>is_following_viewer</code></td><td>boolean</td><td>Whether it follows the viewer.</td></tr>
 <tr><td><code>is_invited</code></td><td>boolean</td><td>Whether the viewer has been invited to follow this actor and is yet to answer.</td></tr>
 <tr><td><code>is_leading_viewer</code></td><td>boolean</td><td>Whether the viewer follows it.</td></tr>
+<tr><td><code>is_muted_by_viewer</code></td><td>boolean</td><td>Whether the viewer has muted it.</td></tr>
 <tr><td><code>leader_count</code></td><td>integer</td><td>How many it follows.</td></tr>
+<tr><td><code>mute_ends_at</code></td><td>time</td><td>When the viewer&#39;s mute of it ends; absent for until unmuted.</td></tr>
+<tr><td><code>mute_hides_notifications</code></td><td>boolean</td><td>Whether the viewer, muting it, is not told of what it does.</td></tr>
 <tr><td><code>name</code></td><td>string</td><td>Its name.</td></tr>
 <tr><td><code>origin_domain</code></td><td>string</td><td>The server it came from, when it came from another.</td></tr>
 <tr><td><code>permissions</code></td><td>map of string</td><td></td></tr>
@@ -11766,7 +11865,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-actor.PersonNode" data-search="actor.personnode access alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer language leader_count name origin_domain permissions person_pronouns person_type quote_policy show_reposts_on_profile type updated_at uri verified website_url">
+<div class="route schema" id="schema-actor.PersonNode" data-search="actor.personnode access alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer language leader_count mute_ends_at mute_hides_notifications name origin_domain permissions person_pronouns person_type quote_policy show_reposts_on_profile type updated_at uri verified website_url">
 <h3>actor.PersonNode</h3>
 <p>A person, as they are sent: what every profile has, and their account type, pronouns and language.</p>
 <table>
@@ -11796,8 +11895,11 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>is_following_viewer</code></td><td>boolean</td><td>Whether it follows the viewer.</td></tr>
 <tr><td><code>is_invited</code></td><td>boolean</td><td>Whether the viewer has been invited to follow this actor and is yet to answer.</td></tr>
 <tr><td><code>is_leading_viewer</code></td><td>boolean</td><td>Whether the viewer follows it.</td></tr>
+<tr><td><code>is_muted_by_viewer</code></td><td>boolean</td><td>Whether the viewer has muted it.</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>The language this person usually posts in. Left out when not set.</td></tr>
 <tr><td><code>leader_count</code></td><td>integer</td><td>How many it follows.</td></tr>
+<tr><td><code>mute_ends_at</code></td><td>time</td><td>When the viewer&#39;s mute of it ends; absent for until unmuted.</td></tr>
+<tr><td><code>mute_hides_notifications</code></td><td>boolean</td><td>Whether the viewer, muting it, is not told of what it does.</td></tr>
 <tr><td><code>name</code></td><td>string</td><td>Its name.</td></tr>
 <tr><td><code>origin_domain</code></td><td>string</td><td>The server it came from, when it came from another.</td></tr>
 <tr><td><code>permissions</code></td><td>map of string</td><td></td></tr>
@@ -11848,7 +11950,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-actor.WebsiteNode" data-search="actor.websitenode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer leader_count name origin_domain permissions show_reposts_on_profile type updated_at uri verified website_url">
+<div class="route schema" id="schema-actor.WebsiteNode" data-search="actor.websitenode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer leader_count mute_ends_at mute_hides_notifications name origin_domain permissions show_reposts_on_profile type updated_at uri verified website_url">
 <h3>actor.WebsiteNode</h3>
 <p>A website, as it is sent: a site&#39;s feed, followed as a profile, whose domain was proved when it was connected.</p>
 <table>
@@ -11879,7 +11981,10 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>is_following_viewer</code></td><td>boolean</td><td>Whether it follows the viewer.</td></tr>
 <tr><td><code>is_invited</code></td><td>boolean</td><td>Whether the viewer has been invited to follow this actor and is yet to answer.</td></tr>
 <tr><td><code>is_leading_viewer</code></td><td>boolean</td><td>Whether the viewer follows it.</td></tr>
+<tr><td><code>is_muted_by_viewer</code></td><td>boolean</td><td>Whether the viewer has muted it.</td></tr>
 <tr><td><code>leader_count</code></td><td>integer</td><td>How many it follows.</td></tr>
+<tr><td><code>mute_ends_at</code></td><td>time</td><td>When the viewer&#39;s mute of it ends; absent for until unmuted.</td></tr>
+<tr><td><code>mute_hides_notifications</code></td><td>boolean</td><td>Whether the viewer, muting it, is not told of what it does.</td></tr>
 <tr><td><code>name</code></td><td>string</td><td>Its name.</td></tr>
 <tr><td><code>origin_domain</code></td><td>string</td><td>The server it came from, when it came from another.</td></tr>
 <tr><td><code>permissions</code></td><td>map of string</td><td></td></tr>

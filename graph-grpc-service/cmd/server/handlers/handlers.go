@@ -45,6 +45,7 @@ type Handlers struct {
 	SocialgraphFollow *socialgraphFollowGrpcHandler
 	Event             *eventGrpcHandler
 	SocialgraphBlock  *socialgraphBlockGrpcHandler
+	SocialgraphMute   *socialgraphMuteGrpcHandler
 	Subscription      *subscriptionGrpcHandler
 }
 
@@ -68,6 +69,7 @@ func NewHandlers(env *Env) *Handlers {
 		SocialgraphFollow: NewSocialgraphFollowGrpcHandler(env),
 		Event:             NewEventGrpcHandler(env),
 		SocialgraphBlock:  NewSocialgraphBlockGrpcHandler(env),
+		SocialgraphMute:   NewSocialgraphMuteGrpcHandler(env),
 		Subscription:      NewSubscriptionGrpcHandler(env),
 	}
 }

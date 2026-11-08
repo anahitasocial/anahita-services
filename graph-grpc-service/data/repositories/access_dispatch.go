@@ -93,7 +93,7 @@ func setNeighbourAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer, edgeT
 		viewer = entities.NewViewer()
 	}
 
-	// A list of whom a profile blocked is not gated at all. The gate hides
+	// A list of whom a profile blocked, or muted, is not gated at all. The gate hides
 	// everybody blocked either way, so it emptied the very list it was asked
 	// for: a person's own Blocked list answered with nobody (2026-11-08,
 	// roadmap row 133). A follower-only profile, its follow ended by the
@@ -112,13 +112,13 @@ func setNeighbourAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer, edgeT
 }
 
 // isOwnListEdges reports whether these edges make a list that is only ever
-// read by the profile it belongs to: whom it blocked.
+// read by the profile it belongs to: whom it blocked, or muted.
 func isOwnListEdges(edgeTypes []string) bool {
 	if len(edgeTypes) == 0 {
 		return false
 	}
 	for _, t := range edgeTypes {
-		if t != constants.EdgeBlockEntityType {
+		if t != constants.EdgeBlockEntityType && t != constants.EdgeMuteEntityType {
 			return false
 		}
 	}

@@ -7,6 +7,7 @@ gen-proto:
 		proto/graphpb/edge.proto \
 		proto/graphpb/graph.proto \
 		proto/graphpb/socialgraph_block.proto \
+		proto/graphpb/socialgraph_mute.proto \
 		proto/graphpb/socialgraph_follow.proto \
 		proto/graphpb/socialgraph.proto \
 		proto/graphpb/subscription_rel.proto \

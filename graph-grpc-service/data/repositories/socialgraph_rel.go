@@ -160,6 +160,48 @@ func (r *socialgraphRelRepo) getRelations(actorAIDs []int64, actorBID int64) (ma
 		}
 	}
 
+	// 3b) actorA mutes actorB (IsMuting), while the mute lasts
+	{
+		q := sq.
+			Select("e.node_a_id AS actor_id", "e.meta", "e.ends_at").
+			From("edges e").
+			Where(sq.Eq{
+				"e.type":      constants.EdgeMuteEntityType,
+				"e.node_b_id": actorBID,
+				"e.node_a_id": actorAIDs,
+			}).
+			Where(muteLasts("e"))
+		sqlStr, args, err := q.ToSql()
+		if err != nil {
+			return nil, err
+		}
+
+		rows, err := r.db.QueryContext(ctx, sqlStr, args...)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var (
+				actorID int64
+				meta    string
+				endsAt  sql.NullTime
+			)
+			if err := rows.Scan(&actorID, &meta, &endsAt); err != nil {
+				return nil, err
+			}
+			rels[actorID].IsMuting = true
+			rels[actorID].MuteHidesNotifications = meta != constants.MuteMetaNotifications
+			if endsAt.Valid {
+				rels[actorID].MuteEndsAt = endsAt.Time
+			}
+		}
+		if err := rows.Err(); err != nil {
+			return nil, err
+		}
+	}
+
 	// 4) actorB administers actorA (HasAdmin)
 	//
 	// READ THE DIRECTION CAREFULLY — it is the opposite of the three relations

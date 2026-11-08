@@ -36,7 +36,13 @@ type Socialgraph struct {
 	HasInvite bool `protobuf:"varint,9,opt,name=has_invite,json=hasInvite,proto3" json:"has_invite,omitempty"`
 	// Actor A is an event that lets its host's followers in, and actor B
 	// follows the group hosting it.
-	ViaHost       bool `protobuf:"varint,10,opt,name=via_host,json=viaHost,proto3" json:"via_host,omitempty"`
+	ViaHost bool `protobuf:"varint,10,opt,name=via_host,json=viaHost,proto3" json:"via_host,omitempty"`
+	// Actor A mutes actor B, and the mute has not ended (roadmap row 133).
+	IsMuting bool `protobuf:"varint,11,opt,name=is_muting,json=isMuting,proto3" json:"is_muting,omitempty"`
+	// Actor A, muting actor B, is not told of what actor B does.
+	MuteHidesNotifications bool `protobuf:"varint,12,opt,name=mute_hides_notifications,json=muteHidesNotifications,proto3" json:"mute_hides_notifications,omitempty"`
+	// When the mute ends, in Unix seconds; 0 for until unmuted.
+	MuteEndsAt    int64 `protobuf:"varint,13,opt,name=mute_ends_at,json=muteEndsAt,proto3" json:"mute_ends_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -139,6 +145,27 @@ func (x *Socialgraph) GetViaHost() bool {
 		return x.ViaHost
 	}
 	return false
+}
+
+func (x *Socialgraph) GetIsMuting() bool {
+	if x != nil {
+		return x.IsMuting
+	}
+	return false
+}
+
+func (x *Socialgraph) GetMuteHidesNotifications() bool {
+	if x != nil {
+		return x.MuteHidesNotifications
+	}
+	return false
+}
+
+func (x *Socialgraph) GetMuteEndsAt() int64 {
+	if x != nil {
+		return x.MuteEndsAt
+	}
+	return 0
 }
 
 type SocialgraphReadRequest struct {
@@ -337,7 +364,7 @@ var File_proto_graphpb_socialgraph_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_socialgraph_proto_rawDesc = "" +
 	"\n" +
-	"\x1fproto/graphpb/socialgraph.proto\x12\x05graph\"\xc5\x02\n" +
+	"\x1fproto/graphpb/socialgraph.proto\x12\x05graph\"\xbe\x03\n" +
 	"\vSocialgraph\x12\x1c\n" +
 	"\n" +
 	"actor_a_id\x18\x01 \x01(\x03R\bactorAId\x12\x1c\n" +
@@ -354,7 +381,11 @@ const file_proto_graphpb_socialgraph_proto_rawDesc = "" +
 	"\n" +
 	"has_invite\x18\t \x01(\bR\thasInvite\x12\x19\n" +
 	"\bvia_host\x18\n" +
-	" \x01(\bR\aviaHost\"T\n" +
+	" \x01(\bR\aviaHost\x12\x1b\n" +
+	"\tis_muting\x18\v \x01(\bR\bisMuting\x128\n" +
+	"\x18mute_hides_notifications\x18\f \x01(\bR\x16muteHidesNotifications\x12 \n" +
+	"\fmute_ends_at\x18\r \x01(\x03R\n" +
+	"muteEndsAt\"T\n" +
 	"\x16SocialgraphReadRequest\x12\x1c\n" +
 	"\n" +
 	"actor_a_id\x18\x01 \x01(\x03R\bactorAId\x12\x1c\n" +

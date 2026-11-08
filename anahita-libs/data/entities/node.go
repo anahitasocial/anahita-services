@@ -267,6 +267,11 @@ type AnahitaNode struct {
 	IsAdminedByViewer bool
 	IsFollowingViewer bool
 	IsBlockedByViewer bool
+	// Whether the viewer has muted it (roadmap row 133), until when (zero
+	// for until unmuted), and whether its notifications are hidden.
+	IsMutedByViewer        bool
+	MuteEndsAt             time.Time
+	MuteHidesNotifications bool
 
 	// Images
 	Avatar   map[string]AnahitaNodeImage

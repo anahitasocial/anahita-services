@@ -63,8 +63,15 @@ const (
 	EdgeFollowRequestEntityType = "edge.actor.follow-request.v1"
 	// A person invited to follow an actor: from the person to the actor,
 	// created by whoever invited them. See constants/invites.go.
-	EdgeActorInviteEntityType      = "edge.actor.invite.v1"
-	EdgeBlockEntityType            = "edge.actor.block.v1"
+	EdgeActorInviteEntityType = "edge.actor.invite.v1"
+	EdgeBlockEntityType       = "edge.actor.block.v1"
+	// A person who would rather not see another's posts, replies and
+	// notifications: from who muted to who is muted (roadmap row 133). The
+	// edge's ends_at is when it ends, NULL until unmuted; its meta is
+	// MuteMetaNotifications when their notifications are still wanted.
+	EdgeMuteEntityType = "edge.actor.mute.v1"
+	// A mute's meta when the muted person's notifications are still wanted.
+	MuteMetaNotifications          = "notifications"
 	EdgeBaseSubscriptionEntityType = "edge.base.subscription.v1"
 	EdgeBaseLikeEntityType         = "edge.base.voteup.v1"
 	EdgeTagHashtagType             = "edge.tag.hashtag.v1"

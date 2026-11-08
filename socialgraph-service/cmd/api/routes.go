@@ -34,8 +34,8 @@ func NewRoutes(
 // Init registers the routes, each with its description, and answers with
 // the descriptions: docs/api/socialgraph-service.json is made of them.
 func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
-	doc := apidoc.NewService("socialgraph-service", "Following and blocking",
-		"Who follows whom, asking to follow a profile that is not open to all, invitations to follow a group or an event, and blocks (permissions.md).")
+	doc := apidoc.NewService("socialgraph-service", "Following, blocking and muting",
+		"Who follows whom, asking to follow a profile that is not open to all, invitations to follow a group or an event, blocks, and mutes (permissions.md).")
 	api := doc.On(e)
 	sg := requests.NewSocialgraphRequest()
 	actors := responses.List[*responses.ActorNodeItem]{}
@@ -196,6 +196,31 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Takes(sg.Delete).
 		Sends(http.StatusOK, responses.ActorNodeItem{}).
 		Refuses(http.StatusForbidden, "the viewer may not lift this block").
+		Refuses(http.StatusNotFound, "there is no such profile")
+
+	socialgraph.GET("/:actor_id/mutes/", r.handler.Mute.Browse, r.authorize).
+		Summary("Whom a person has muted").
+		Describe("Theirs alone, most lately muted first, each with `mute_ends_at` (absent for until unmuted) and `mute_hides_notifications`. A mute that has ended is not in it.").
+		Viewer(apidoc.SignedIn).
+		Takes(sg.Browse).
+		Sends(http.StatusOK, actors).
+		Refuses(http.StatusForbidden, "the viewer is not this person").
+		Refuses(http.StatusNotFound, "there is no such profile")
+	socialgraph.POST("/:target_id/mutes/:source_id", r.handler.Mute.Add, r.authorize).
+		Summary("Mute somebody, or change a mute").
+		Describe("The viewer, `source_id`, stops seeing the posts, reposts and replies of `target_id`, a person, in their lists, and their notifications when `hide_notifications` is true or not sent; for a `day`, a `week`, a `month`, or until unmuted when `for` is empty (permissions.md, what a mute hides). Nobody is told. Answers with whoever is muted.").
+		Viewer(apidoc.SignedIn).
+		Takes(&requests.MuteAddRequest{}).
+		Sends(http.StatusCreated, responses.ActorNodeItem{}).
+		Refuses(http.StatusForbidden, "the viewer is not the source, the target is not a person, or one blocks the other").
+		Refuses(http.StatusNotFound, "there is no such profile")
+	socialgraph.DELETE("/:target_id/mutes/:source_id", r.handler.Mute.Delete, r.authorize).
+		Summary("Unmute somebody").
+		Describe("Answers with whoever was muted.").
+		Viewer(apidoc.SignedIn).
+		Takes(sg.Delete).
+		Sends(http.StatusOK, responses.ActorNodeItem{}).
+		Refuses(http.StatusForbidden, "the viewer is not the source").
 		Refuses(http.StatusNotFound, "there is no such profile")
 
 	return doc
