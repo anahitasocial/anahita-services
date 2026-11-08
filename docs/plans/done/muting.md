@@ -1,9 +1,9 @@
 # Muting profiles (roadmap row 133)
 
 Planned on 2026-11-07 from FediDB's comparison with Mastodon ("Mute
-accounts", answered "no" in [features.md](../features.md)); written on
+accounts", answered "no" in [features.md](../../features.md)); written on
 2026-11-08, when the row was reached, with the user's choices of that day.
-**Phase 1 (services) done 2026-11-08;** phase 2 (web) next.
+**Done 2026-11-08,** services and web.
 
 ## Contents
 
@@ -179,12 +179,12 @@ sends; it becomes `isBlockedByViewer`.
 1. Muting a thread (Mastodon's "Mute conversation"): Unfollow post, in a
    post's menu, does the notification half.
 2. Muting a whole server for oneself, and word filters: rows of their own,
-   if asked for ([features.md](../features.md)).
+   if asked for ([features.md](../../features.md)).
 3. Muting groups and events.
 4. Muting on Bluesky's side (`app.bsky.graph.muteActor`): Bluesky's app
    keeps its own.
 5. Mastodon's CSV of mutes, in and out: row 124, through
-   [imports.md](imports.md).
+   [imports.md](../imports.md).
 
 ## Phases
 
@@ -195,18 +195,20 @@ sends; it becomes `isBlockedByViewer`.
    about a session. **Done 2026-11-08.**
 2. **Web:** the menu items, the dialog, Settings › Privacy › Muted, the
    `canFollow` fix, strings in every base; tried at both sizes: half a
-   session.
+   session. **Done 2026-11-08:** Mute is a hook, `controls/useMute.jsx`, as
+   Report is, so that its dialog is drawn apart from the menu; the Muted row
+   is the Blocked row with `kind="mutes"`.
 
 About a session and a half, services and web.
 
 ## Documentation
 
-1. anahita-services: [features.md](../features.md) ("Mute accounts" to yes),
-   [permissions.md](../permissions.md) (a section on mutes, after blocks),
-   [privacy.md](../privacy.md), [feeds.md](../feeds.md),
-   [notifications.md](../notifications.md), [the-graph.md](../the-graph.md)
-   (the edge), [recommendations.md](../recommendations.md),
-   [data-export.md](../data-export.md), the API reference, the plans table
-   in [README.md](../README.md), `CHANGELOG.md`.
+1. anahita-services: [features.md](../../features.md) ("Mute accounts" to yes),
+   [permissions.md](../../permissions.md) (a section on mutes, after blocks),
+   [privacy.md](../../privacy.md), [feeds.md](../../feeds.md),
+   [notifications.md](../../notifications.md), [the-graph.md](../../the-graph.md)
+   (the edge), [recommendations.md](../../recommendations.md),
+   [data-export.md](../../data-export.md), the API reference, the plans table
+   in [README.md](../../README.md), `CHANGELOG.md`.
 2. anahita-web: `docs/architecture.md` (the menu, the dialog, Settings ›
    Privacy › Muted), the roadmap, `CHANGELOG.md`.
