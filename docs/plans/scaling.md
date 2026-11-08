@@ -2,7 +2,10 @@
 
 Asked for by the user on 2026-11-07, after asking what Mastodon's and
 Pixelfed's monoliths do at scale that Anahita does not: "write a plan for
-testing and scaling up anahita". Planned the same day. Not started.
+testing and scaling up anahita". Planned the same day. Not started, and
+**kept for later on 2026-11-08, at the user's word:** Anahita as it is can
+take tens of thousands, and no site is likely to pass several thousand
+people for a while; it is last in the roadmap's order.
 
 ## Contents
 
