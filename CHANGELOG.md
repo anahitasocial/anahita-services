@@ -12,6 +12,8 @@ Releases before v1.0.17 are described on GitHub, under
 
 ## Embryo
 
+## v1.0.19 Birth, 2026-11-07
+
 ### Added
 
 1. **Asking to follow somebody elsewhere who approves their followers**
