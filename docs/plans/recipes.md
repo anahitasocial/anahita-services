@@ -90,6 +90,11 @@ microservices architecture.")
     Europe that should work are listed as untried candidates, ThinkOn among
     them for an organisation that needs a Canadian company
     ([providers.md](https://github.com/anahitasocial/anahita-recipes/blob/main/docs/providers.md)).
+12. **Purpose first, organisations after** (the user, 2026-11-08): what a
+    site does is a purpose recipe; who it is for, a recipe for an
+    organisation built on one, in 2027 (phase 6). Organisations need
+    configurations, privacy and a web app of their own that anahita-web
+    cannot give yet.
 
 ## The recipes
 
@@ -173,6 +178,14 @@ docs/providers.md       where a recipe runs, tried and untried
 3. **`coffeehouse`,** after row 139: half a session.
 4. **A Recipes page on anahita.io:** half a session.
 5. **`journal`, `theatre`, `gathering`:** each with its gaps weighed first.
+6. **Recipes for organisations, through 2027** (the user, 2026-11-08):
+   schools, newsrooms, libraries, research groups and non-profits, each
+   built on a purpose recipe, with its own configuration, privacy defaults
+   and a web app made to look like it: a school's home page, a newsroom's
+   front page. They wait for row 139's home pages, themes and layouts, for
+   site-wide privacy defaults (gap 3), and for what each needs of its own,
+   licences on posts for research (anahita-web's row 70). Their names are
+   settled when the phase begins.
 
 ## Documentation
 
