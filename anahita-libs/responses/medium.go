@@ -75,8 +75,8 @@ type MediumNodeItem struct {
 	IsSavedByViewer bool `json:"is_saved_by_viewer,omitempty"`
 	// Whether the viewer has reposted it.
 	IsRepostedByViewer bool `json:"is_reposted_by_viewer"`
-	// Whether the viewer asked to be told of its replies (Get
-	// notifications, docs/notifications.md).
+	// Whether the viewer asked to be told of its replies (Follow post,
+	// docs/notifications.md).
 	IsSubscribedByViewer bool `json:"is_subscribed_by_viewer,omitempty"`
 	// What the viewer may do with it, as on the post's own page: reply,
 	// like, quote and the rest. Left out where a list does not say.
@@ -196,8 +196,8 @@ type MediumNode struct {
 	IsSavedByViewer bool `json:"is_saved_by_viewer,omitempty"`
 	// Whether the viewer has reposted it.
 	IsRepostedByViewer bool `json:"is_reposted_by_viewer"`
-	// Whether the viewer asked to be told of its replies (Get
-	// notifications, docs/notifications.md).
+	// Whether the viewer asked to be told of its replies (Follow post,
+	// docs/notifications.md).
 	IsSubscribedByViewer bool `json:"is_subscribed_by_viewer,omitempty"`
 
 	// Authorization Information

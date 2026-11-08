@@ -174,8 +174,8 @@ sends; it becomes `isBlockedByViewer`.
 
 ## Out of scope
 
-1. Muting a thread (Mastodon's "Mute conversation"): Get notifications, in
-   a post's menu, turned off, does the notification half.
+1. Muting a thread (Mastodon's "Mute conversation"): Unfollow post, in a
+   post's menu, does the notification half.
 2. Muting a whole server for oneself, and word filters: rows of their own,
    if asked for ([features.md](../features.md)).
 3. Muting groups and events.

@@ -262,7 +262,7 @@
             "type": "boolean"
           },
           "is_subscribed_by_viewer": {
-            "description": "Whether the viewer asked to be told of its replies (Get notifications, docs/notifications.md).",
+            "description": "Whether the viewer asked to be told of its replies (Follow post, docs/notifications.md).",
             "type": "boolean"
           },
           "language": {
@@ -474,7 +474,7 @@
             "type": "boolean"
           },
           "is_subscribed_by_viewer": {
-            "description": "Whether the viewer asked to be told of its replies (Get notifications, docs/notifications.md).",
+            "description": "Whether the viewer asked to be told of its replies (Follow post, docs/notifications.md).",
             "type": "boolean"
           },
           "language": {

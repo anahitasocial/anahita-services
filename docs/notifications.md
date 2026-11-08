@@ -60,8 +60,9 @@ the top of their list, unread: an event moved twice says so once.
 
 **Subscribers.** Following a profile, or becoming one of its
 administrators, subscribes to it; each is a reason to stay subscribed, and
-the subscription ends with the last of them. Get notifications, in a post's
-menu, subscribes to that post: its replies are told.
+the subscription ends with the last of them. Follow post, in a post's
+menu, subscribes to that post: its replies are told. What people read says
+follow; the code says subscription.
 
 ## Only what its reader may see
 

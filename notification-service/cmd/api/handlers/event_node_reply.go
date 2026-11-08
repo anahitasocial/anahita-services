@@ -67,8 +67,8 @@ func (h *eventHandler) replyAdded(payload *event.EventPayload, subject *an_entit
 		}
 	}
 
-	// And whoever asked to be told about this post (Get notifications, in
-	// its menu).
+	// And whoever asked to be told about this post (Follow post, in its
+	// menu).
 	subscribers, err := h.Srv.SubscriptionsGRPC.BrowseSources(root)
 	if err != nil {
 		return err
