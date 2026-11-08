@@ -13,6 +13,19 @@ Anahita's releases have two names, as they have had since its first years:
 A site runs a Birth release. It names the version in its overlay, so that
 it changes only when its operator changes it: [Images](deploying.md#images).
 
+## With Anahita Web
+
+A Birth release is of both repositories: anahita-web is tagged with the
+same version as anahita-services, on the same day. The latest tagged
+anahita-web works with the latest tagged anahita-services, and a site runs
+the two with the same number. Their `main` branches go together the same
+way: the web app's `main` may call routes that only the services' `main`
+has.
+
+A fix to the web app alone is released by tagging both. The services' images
+that did not change are tagged again, not built
+([What is rebuilt](#what-is-rebuilt)).
+
 ## Version numbers
 
 `v<major>.<minor>.<patch>`, as [semantic versioning](https://semver.org) has
@@ -36,11 +49,13 @@ section.
 The PHP Anahita's Birth releases ran from 3.0.0 to 4.8.0, its `master`
 branch the Embryo. These services, written in Go from 2023, began again at
 **v1.0.0**, the first Birth release of Anahita Services, on 2026-10-27.
-Anahita Web, Mobile and CLI use the same names.
+Anahita Web, Mobile and CLI use the same names; Anahita Web is tagged
+with the services' versions from the first Birth release after 2026-11-08,
+[With Anahita Web](#with-anahita-web).
 
 ## Making one
 
-For whoever maintains anahita-services:
+For whoever maintains anahita-services and anahita-web:
 
 1. On an up-to-date `main` with nothing uncommitted, make it:
 
@@ -68,6 +83,12 @@ For whoever maintains anahita-services:
    upgrading. That is the Embryo section of [CHANGELOG.md](../CHANGELOG.md),
    whose heading then becomes the version and the date, in the same commit
    as `softwareVersion`.
+5. In anahita-web, the same day, on an up-to-date `main` whose `yarn test`
+   passes: set `version` in `package.json` to the same number, without the
+   `v`, and turn the Embryo heading of its `CHANGELOG.md` into the version
+   and the date; commit that, tag the commit with the same `v1.0.0`, and
+   push `main` and the tag. Its release on GitHub is named the same,
+   "v1.0.0 Birth".
 
 Upgrading a site to it: [Upgrading](deploying.md#upgrading).
 
