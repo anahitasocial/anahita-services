@@ -8,8 +8,8 @@ import (
 )
 
 // THE RULE THIS GUARDS: what the handlers answer in these tests is what
-// docs/api/export-service.json says they answer (docs/api.md, Describing a
+// docs/api/import-export-service.json says they answer (docs/api.md, Describing a
 // route). The helpers that call a handler keep each answer here.
-var answers = apidoc.NewAnswers("../../../../docs/api/export-service.json")
+var answers = apidoc.NewAnswers("../../../../docs/api/import-export-service.json")
 
 func TestMain(m *testing.M) { os.Exit(answers.Run(m)) }

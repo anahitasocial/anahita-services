@@ -30,8 +30,8 @@ ATPROTO_SRV=atproto-service
 EXPORT_BINARY=app-binary
 EXPORT_WORKER_BINARY=worker-binary
 EXPORT_VERSION=latest
-EXPORT_SRV=export-service
-EXPORT_WORKER=export-worker
+EXPORT_SRV=import-export-service
+EXPORT_WORKER=import-export-worker
 WEB_SHELL_BINARY=app-binary
 WEB_SHELL_VERSION=latest
 WEB_SHELL_SRV=web-shell
@@ -503,8 +503,8 @@ atproto: build_atproto
 	docker-compose up --build -d ${ATPROTO_SRV}
 	@echo "${ATPROTO_SRV} built and started!"
 
-## export: stops export-service and its worker, removes their images, builds and starts them
-export: build_export
+## import-export: stops import-export-service and its worker, removes their images, builds and starts them
+import-export: build_export
 	@echo "Building ${EXPORT_SRV} and ${EXPORT_WORKER} docker images..."
 	- docker-compose stop ${EXPORT_SRV} ${EXPORT_WORKER}
 	- docker-compose rm -f ${EXPORT_SRV} ${EXPORT_WORKER}

@@ -20,7 +20,7 @@ sent. Phases 2 and 3, the plugin and the redirect script, come later.
 
 1. [Why](#why)
 2. [What is settled](#what-is-settled)
-3. [Imports in export-service](#imports-in-export-service)
+3. [Imports in import-export-service](#imports-in-import-export-service)
 4. [The WordPress plugin](#the-wordpress-plugin)
 5. [The redirect script](#the-redirect-script)
 6. [What else is imported this way](#what-else-is-imported-this-way)
@@ -38,20 +38,26 @@ An import is not an ordinary post. It needs what no ordinary API should
 give: a date in the past, nothing sent to other networks, nobody told. It
 runs for minutes, must resume after a failure, must not bring the same post
 twice, and must say what did not come. Kept in one service, beside
-export-service, those powers are in one place, and each new kind of import
+import-export-service, those powers are in one place, and each new kind of import
 is a reader added to it, not a service of its own.
 
 ## What is settled
 
-1. **Imports in export-service, not a service of their own** (lean, at the
-   user's word): it and `export-worker` already have a job, its progress,
+1. **Imports in import-export-service, not a service of their own** (lean, at the
+   user's word): it and `import-export-worker` already have a job, its progress,
    resuming, files in storage and limits, and an import is the same work
    the other way. No new deployment. `/exports` and `/imports` side by side,
    for every import that is not an ordinary request: a WordPress blog,
    Mastodon's CSV, Anahita's own download, and later Mastodon's archive.
 2. **Renamed for both directions when imports are built:**
-   `import-export-service` and `import-export-worker` (the user, 2026-11-07),
-   both names served for one release, as the BREAD names were.
+   `import-export-service` and `import-export-worker` (the user, 2026-11-07).
+   **Done 2026-11-08,** with row 124: the module, its images, its
+   Kubernetes names and the gateway's. Its addresses, `/exports`, and the
+   tables did not change, and archives are still stored under
+   `assets/v1/export-service/`, where those already made are. A site takes
+   the new images when it moves to the next Birth release, changing its
+   image lines in the same step; no second name was needed, as every site
+   pins its manifests and its images to one release together.
 3. **It never writes another service's tables.** It asks the service that
    owns the thing (text-service for an article, photo-service for a photo,
    the social graph for a follow), so the rules, checks and files stay
@@ -63,7 +69,7 @@ is a reader added to it, not a service of its own.
    stays in the `php-migration` recipe (rows 30 and 92); a list of servers an
    administrator refuses is activitypub-service's own setting (row 108).
 
-## Imports in export-service
+## Imports in import-export-service
 
 1. **A job:** what is imported, from where, by whom; how many done, how
    many left, what failed and why; resumed where it stopped after a
@@ -72,7 +78,7 @@ is a reader added to it, not a service of its own.
    ID beside what it became here (`import_sources`). Importing again skips
    what came already, and the map from old addresses to new is what the
    redirect script is made from.
-3. **The powers, as an internal call** (gRPC, export-service's certificate
+3. **The powers, as an internal call** (gRPC, import-export-service's certificate
    only): `published_at` in the past; `send: false`, so that nothing goes to
    the fediverse or Bluesky and no follower is notified; the post then
    stays out of the home feed as new, since the feed is in order of date.
@@ -128,7 +134,7 @@ nothing left to update.
 
 1. **Row 124, part 1:** who one follows, blocks and mutes, and what one
    saved, from a download or a single CSV, Mastodon's or Misskey's; the
-   same files out are made by export-service. The first import built.
+   same files out are made by import-export-service. The first import built.
 2. **Row 124, part 4:** one's posts from another Anahita's download.
 3. **Later:** Mastodon's archive (`outbox.json`), decided apart.
 
@@ -142,7 +148,7 @@ nothing left to update.
 
 ## Phases
 
-1. **Imports in export-service** and its worker, the job, the sources kept:
+1. **Imports in import-export-service** and its worker, the job, the sources kept:
    built now with row 124's part 1, for lists. The internal call in
    text-service and photo-service, for posts, comes with phase 2 or with
    row 124's part 4, whichever is first.

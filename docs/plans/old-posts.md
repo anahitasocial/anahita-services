@@ -86,7 +86,7 @@ and atproto services already follow.
 1. An operator's setting deleting people's own posts.
 2. Deleting old likes, reposts or saves.
 3. Keeping a copy of what is deleted: the download of one's data
-   (export-service) is there to make one first, and the card says so.
+   (import-export-service) is there to make one first, and the card says so.
 
 ## Phases
 

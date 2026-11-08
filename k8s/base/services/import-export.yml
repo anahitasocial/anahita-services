@@ -1,21 +1,21 @@
-# export-service: A person's copy of their own data: asking for one, seeing how it is getting on, fetching it. Optional: left out with export-worker, nobody can download their data.
+# import-export-service: A person's copy of their own data: asking for one, seeing how it is getting on, fetching it. Optional: left out with import-export-worker, nobody can download their data.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: export-service
+  name: import-export-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: export-service
+      app: import-export-service
   template:
     metadata:
       labels:
-        app: export-service
+        app: import-export-service
     spec:
       containers:
-        - name: export-service
-          image: anahita/export-service
+        - name: import-export-service
+          image: anahita/import-export-service
           ports:
             - name: http
               containerPort: 80
@@ -136,10 +136,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: export-service
+  name: import-export-service
 spec:
   selector:
-    app: export-service
+    app: import-export-service
   ports:
     - name: http
       port: 80

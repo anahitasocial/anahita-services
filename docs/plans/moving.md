@@ -130,7 +130,7 @@ download (from this Anahita or another) or a single CSV from anywhere.
    is followed here by its name. A group or an event on the old Anahita
    cannot be followed from the new one, as groups are not on the fediverse:
    it is listed, with its address, among what was not done.
-5. **In the background,** as a job in export-service (row 142, phase 1,
+5. **In the background,** as a job in import-export-service (row 142, phase 1,
    which this is the first use of): its progress shown while it runs,
    resumed after a restart, and at the end what could not be found or done,
    each with why, to download. Importing the same file again brings nothing
@@ -176,7 +176,7 @@ installation's and their admins', and do not move.
 
 ## Part 4: bringing your posts
 
-Through export-service's imports ([imports.md](imports.md)), with the powers it
+Through import-export-service's imports ([imports.md](imports.md)), with the powers it
 keeps: a post's own date, and nothing sent for it.
 
 Between two Anahitas, which read each other's download: the new one imports
@@ -204,7 +204,7 @@ installation, and nothing there changes.
 
 ## Phases
 
-1. **Your lists, out and in:** export-service's imports (row 142, phase 1,
+1. **Your lists, out and in:** import-export-service's imports (row 142, phase 1,
    without what only posts need), the files in the download, the import
    with its preview: about two sessions.
 2. **Following somebody who moved:** one session.

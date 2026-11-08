@@ -230,7 +230,7 @@ docker rm -fv anahita-test
 | `ABUSE_TEST_DSN` | `abuse-report-service`: cases |
 | `RECOMMENDATION_TEST_DSN` | `recommendation-service`: the signals |
 | `VIDEO_TEST_DSN` | `video-service`: uploads |
-| `EXPORT_TEST_DSN` | `export-service`: exports |
+| `EXPORT_TEST_DSN` | `import-export-service`: exports |
 | `ACTIVITYPUB_TEST_DSN` | `activitypub-service`: what the sweep finds that the bus lost |
 | `FEDERATION_TEST_DSN` | `anahita-libs/federation`: the queue of what is sent to other servers. It makes and drops a table of its own |
 | `STORAGE_TEST_ENDPOINT`, `STORAGE_TEST_PUBLIC_ENDPOINT`, `STORAGE_TEST_REGION`, `STORAGE_TEST_BUCKET`, `STORAGE_TEST_ACCESS_KEY`, `STORAGE_TEST_SECRET_KEY` | `file-grpc-service` and `scripts/s3-migration` against a real bucket: see [Tested stores](configuration.md#tested-stores) |

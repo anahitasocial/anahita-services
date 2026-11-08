@@ -14,8 +14,8 @@ import (
 	libs_responses "anahita-libs/responses"
 	"anahita-libs/sessions"
 
-	"export/config"
-	"export/data/repositories"
+	"importexport/config"
+	"importexport/data/repositories"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"

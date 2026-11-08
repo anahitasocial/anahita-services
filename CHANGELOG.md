@@ -40,6 +40,11 @@ Releases before v1.0.17 are described on GitHub, under
    `aws` and `generic`; before, they named `anahita/<image>`, which no
    public registry serves. A site that already sets `newName` changes
    nothing.
+2. **export-service is import-export-service,** and export-worker
+   import-export-worker, for imports to come (roadmap row 124): the module,
+   the images, the Kubernetes names and the gateway's upstream. `/exports`,
+   the tables and `EXPORT_*` settings are as they were, and archives are
+   still stored under `assets/v1/export-service/`.
 
 ### Fixed
 
@@ -49,6 +54,18 @@ Releases before v1.0.17 are described on GitHub, under
    The list is now gated only by who may read it (anahita-web row 133).
 2. **An empty list of profiles is `[]`, not `null`,** in every answer that
    lists them.
+
+### Upgrading
+
+1. **Two images have new names.** In your overlay's `images:`, the lines
+   for `anahita/export-service` and `anahita/export-worker` become
+   `anahita/import-export-service`, `newName:
+   ghcr.io/anahitasocial/import-export-service`, and
+   `anahita/import-export-worker`, `newName:
+   ghcr.io/anahitasocial/import-export-worker`, in the same change that
+   moves `ref=` to this release. The old Deployments and Service,
+   `export-service` and `export-worker`, are left behind by
+   `kubectl apply`; delete them once the new ones run.
 
 ## v1.0.19 Birth, 2026-11-07
 

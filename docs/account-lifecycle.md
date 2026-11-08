@@ -259,7 +259,7 @@ lock, and removes what no row names any more.
 
 1. **Only when sure.** A file goes only when its key is in one of these
    shapes and its row is certainly not there. A key in no shape it knows,
-   and a page whose query failed, are kept. `export-service/` is left alone,
+   and a page whose query failed, are kept. `import-export-service/` is left alone,
    as its copies run out by their own rule; so is `link-preview-service/`,
    whose pictures a preview kept in Redis for a week may name.
 2. **A day old at least,** by the store's own date, so that nothing being

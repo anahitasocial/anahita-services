@@ -250,7 +250,7 @@ looks after it.
 | `assets/v1/photo-service/` | The images of photo posts | `photo-service` |
 | `assets/v1/video-service/videos/` | Each video's sizes and poster | `video-worker` |
 | `assets/v1/video-service/uploads/` | Videos as they were uploaded, until the worker has made them. Never read by a viewer | Browsers, through signed addresses |
-| `assets/v1/export-service/` | People's copies of their own data, kept a week | `export-worker` |
+| `assets/v1/export-service/` | People's copies of their own data, kept a week | `import-export-worker` |
 | `assets/v1/link-preview-service/` | The pictures of link cards | `link-preview-service` |
 
 A file that no row names any more, a replaced avatar's old sizes or a
@@ -463,7 +463,7 @@ requests can be given more:
 export, feed, identity-image, like, link-preview, location, photo, website,
 search, socialgraph, text, video, web-shell, and the gateway.
 
-The three workers, export-worker, video-worker and syndication-worker, take their
+The three workers, import-export-worker, video-worker and syndication-worker, take their
 jobs from a table one at a time, so any number of copies share the work
 without doing it twice.
 

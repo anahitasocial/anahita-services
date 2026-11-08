@@ -12,8 +12,8 @@ import (
 	"anahita-libs/data/services"
 	"anahita-libs/sessions"
 
-	"export/config"
-	"export/data/repositories"
+	"importexport/config"
+	"importexport/data/repositories"
 
 	"github.com/labstack/echo/v4"
 )

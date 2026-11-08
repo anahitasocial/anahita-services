@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	"export/cmd/api/handlers"
+	"importexport/cmd/api/handlers"
 
 	"anahita-libs/apidoc"
 
@@ -11,11 +11,11 @@ import (
 )
 
 // THE RULE THIS GUARDS: every route is described, and
-// docs/api/export-service.json is what the routes describe now. Run
+// docs/api/import-export-service.json is what the routes describe now. Run
 // `make api_docs` to write it again after a change.
 func TestTheAPIReference(t *testing.T) {
 	e := echo.New()
 	pass := func(next echo.HandlerFunc) echo.HandlerFunc { return next }
 	doc := NewRoutes(handlers.NewExportsHandler(&handlers.Env{}), pass).Init(e)
-	apidoc.Check(t, e, doc, "../../../docs/api/export-service.json")
+	apidoc.Check(t, e, doc, "../../../docs/api/import-export-service.json")
 }

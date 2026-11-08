@@ -6,7 +6,7 @@ RUN mkdir /app /work \
     && adduser -D -H -u 10001 worker \
     && chown worker /work
 
-COPY export-service/worker-binary /app
+COPY import-export-service/worker-binary /app
 
 USER worker
 ENV EXPORT_WORK_DIR=/work

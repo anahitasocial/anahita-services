@@ -5551,108 +5551,6 @@
         ],
         "type": "object"
       },
-      "export.ExportItem": {
-        "description": "ExportItem is an export as its owner is told of it.",
-        "properties": {
-          "created_at": {
-            "description": "When it was asked for.",
-            "format": "date-time",
-            "type": "string"
-          },
-          "download_url": {
-            "description": "Where the archive is fetched from, while it is ready: an address good for a few minutes, made afresh each time this is read.",
-            "type": "string"
-          },
-          "error": {
-            "description": "Why it failed, when it did.",
-            "type": "string"
-          },
-          "expires_at": {
-            "description": "When the archive will be deleted.",
-            "format": "date-time",
-            "type": "string"
-          },
-          "id": {
-            "description": "Its id: a UUID.",
-            "type": "string"
-          },
-          "ready_at": {
-            "description": "When it was ready.",
-            "format": "date-time",
-            "type": "string"
-          },
-          "size_bytes": {
-            "description": "How big the archive is, once it is ready.",
-            "format": "int64",
-            "type": "integer"
-          },
-          "status": {
-            "description": "`pending`, `building`, `ready`, `failed`, `cancelled` or `expired`.",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "status",
-          "created_at"
-        ],
-        "type": "object"
-      },
-      "export.ExportList": {
-        "description": "ExportList is the viewer's exports, and when they may ask again.",
-        "properties": {
-          "data": {
-            "description": "The latest first.",
-            "items": {
-              "$ref": "#/components/schemas/export.ExportItem"
-            },
-            "type": [
-              "array",
-              "null"
-            ]
-          },
-          "every_days": {
-            "description": "How many days must pass between two exports. 0 for no wait.",
-            "format": "int64",
-            "type": "integer"
-          },
-          "keep_days": {
-            "description": "How many days an archive is kept once it is ready.",
-            "format": "int64",
-            "type": "integer"
-          },
-          "next_at": {
-            "description": "When they may next ask, while they must wait.",
-            "format": "date-time",
-            "type": "string"
-          }
-        },
-        "required": [
-          "data",
-          "every_days",
-          "keep_days"
-        ],
-        "type": "object"
-      },
-      "export.TooSoon": {
-        "description": "TooSoon refuses an export asked for before it is time, and says when.",
-        "properties": {
-          "error": {
-            "description": "Always `too_soon`.",
-            "type": "string"
-          },
-          "next_at": {
-            "description": "When they may ask.",
-            "format": "date-time",
-            "type": "string"
-          }
-        },
-        "required": [
-          "error",
-          "next_at"
-        ],
-        "type": "object"
-      },
       "feed.CustomFeedAuthorized": {
         "properties": {
           "copy": {
@@ -5954,6 +5852,108 @@
           "name",
           "uses",
           "followed"
+        ],
+        "type": "object"
+      },
+      "importexport.ExportItem": {
+        "description": "ExportItem is an export as its owner is told of it.",
+        "properties": {
+          "created_at": {
+            "description": "When it was asked for.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "download_url": {
+            "description": "Where the archive is fetched from, while it is ready: an address good for a few minutes, made afresh each time this is read.",
+            "type": "string"
+          },
+          "error": {
+            "description": "Why it failed, when it did.",
+            "type": "string"
+          },
+          "expires_at": {
+            "description": "When the archive will be deleted.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "description": "Its id: a UUID.",
+            "type": "string"
+          },
+          "ready_at": {
+            "description": "When it was ready.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "size_bytes": {
+            "description": "How big the archive is, once it is ready.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "status": {
+            "description": "`pending`, `building`, `ready`, `failed`, `cancelled` or `expired`.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "created_at"
+        ],
+        "type": "object"
+      },
+      "importexport.ExportList": {
+        "description": "ExportList is the viewer's exports, and when they may ask again.",
+        "properties": {
+          "data": {
+            "description": "The latest first.",
+            "items": {
+              "$ref": "#/components/schemas/importexport.ExportItem"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "every_days": {
+            "description": "How many days must pass between two exports. 0 for no wait.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "keep_days": {
+            "description": "How many days an archive is kept once it is ready.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "next_at": {
+            "description": "When they may next ask, while they must wait.",
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data",
+          "every_days",
+          "keep_days"
+        ],
+        "type": "object"
+      },
+      "importexport.TooSoon": {
+        "description": "TooSoon refuses an export asked for before it is time, and says when.",
+        "properties": {
+          "error": {
+            "description": "Always `too_soon`.",
+            "type": "string"
+          },
+          "next_at": {
+            "description": "When they may ask.",
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "error",
+          "next_at"
         ],
         "type": "object"
       },
@@ -16035,7 +16035,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/export.ExportList"
+                  "$ref": "#/components/schemas/importexport.ExportList"
                 }
               }
             },
@@ -16052,9 +16052,9 @@
         ],
         "summary": "The viewer's exports",
         "tags": [
-          "export-service"
+          "import-export-service"
         ],
-        "x-handler": "export/cmd/api/handlers.(*ExportsHandler).Browse",
+        "x-handler": "importexport/cmd/api/handlers.(*ExportsHandler).Browse",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -16065,7 +16065,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/export.ExportItem"
+                  "$ref": "#/components/schemas/importexport.ExportItem"
                 }
               }
             },
@@ -16098,7 +16098,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/export.TooSoon"
+                  "$ref": "#/components/schemas/importexport.TooSoon"
                 }
               }
             },
@@ -16112,9 +16112,9 @@
         ],
         "summary": "Ask for a copy of the viewer's data",
         "tags": [
-          "export-service"
+          "import-export-service"
         ],
-        "x-handler": "export/cmd/api/handlers.(*ExportsHandler).Add",
+        "x-handler": "importexport/cmd/api/handlers.(*ExportsHandler).Add",
         "x-step-up": true,
         "x-viewer": "signed_in"
       }
@@ -16152,9 +16152,9 @@
         ],
         "summary": "Give an export up",
         "tags": [
-          "export-service"
+          "import-export-service"
         ],
-        "x-handler": "export/cmd/api/handlers.(*ExportsHandler).Delete",
+        "x-handler": "importexport/cmd/api/handlers.(*ExportsHandler).Delete",
         "x-viewer": "signed_in"
       },
       "get": {
@@ -16176,7 +16176,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/export.ExportItem"
+                  "$ref": "#/components/schemas/importexport.ExportItem"
                 }
               }
             },
@@ -16196,9 +16196,9 @@
         ],
         "summary": "How an export is getting on",
         "tags": [
-          "export-service"
+          "import-export-service"
         ],
-        "x-handler": "export/cmd/api/handlers.(*ExportsHandler).Read",
+        "x-handler": "importexport/cmd/api/handlers.(*ExportsHandler).Read",
         "x-viewer": "signed_in"
       }
     },
@@ -39110,8 +39110,8 @@
       "name": "recommendation-service"
     },
     {
-      "description": "Data exports",
-      "name": "export-service"
+      "description": "Data exports and imports",
+      "name": "import-export-service"
     },
     {
       "description": "Notes, articles and topics",
@@ -39185,7 +39185,7 @@
         "identity-image-service",
         "notification-service",
         "recommendation-service",
-        "export-service"
+        "import-export-service"
       ]
     },
     {

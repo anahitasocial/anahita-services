@@ -6,9 +6,9 @@ import (
 	"log"
 	"net/http"
 
-	"export/cmd/api/handlers"
-	"export/config"
-	"export/data/repositories"
+	"importexport/cmd/api/handlers"
+	"importexport/config"
+	"importexport/data/repositories"
 
 	"anahita-libs/constants"
 	"anahita-libs/data/services"

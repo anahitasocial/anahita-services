@@ -1,21 +1,21 @@
-# export-worker: Makes each archive that is asked for, and deletes the ones that have been kept their time. Answers no requests.
+# import-export-worker: Makes each archive that is asked for, and deletes the ones that have been kept their time. Answers no requests.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: export-worker
+  name: import-export-worker
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: export-worker
+      app: import-export-worker
   template:
     metadata:
       labels:
-        app: export-worker
+        app: import-export-worker
     spec:
       containers:
-        - name: export-worker
-          image: anahita/export-worker
+        - name: import-export-worker
+          image: anahita/import-export-worker
           env:
             - name: ENV
               valueFrom:

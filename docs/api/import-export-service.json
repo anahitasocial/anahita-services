@@ -22,7 +22,7 @@
         ],
         "type": "object"
       },
-      "export.ExportItem": {
+      "importexport.ExportItem": {
         "description": "ExportItem is an export as its owner is told of it.",
         "properties": {
           "created_at": {
@@ -69,13 +69,13 @@
         ],
         "type": "object"
       },
-      "export.ExportList": {
+      "importexport.ExportList": {
         "description": "ExportList is the viewer's exports, and when they may ask again.",
         "properties": {
           "data": {
             "description": "The latest first.",
             "items": {
-              "$ref": "#/components/schemas/export.ExportItem"
+              "$ref": "#/components/schemas/importexport.ExportItem"
             },
             "type": [
               "array",
@@ -105,7 +105,7 @@
         ],
         "type": "object"
       },
-      "export.TooSoon": {
+      "importexport.TooSoon": {
         "description": "TooSoon refuses an export asked for before it is time, and says when.",
         "properties": {
           "error": {
@@ -140,7 +140,7 @@
       "identifier": "AGPL-3.0-only",
       "name": "GNU Affero General Public License v3.0 only"
     },
-    "title": "Data exports",
+    "title": "Data exports and imports",
     "version": "dev"
   },
   "openapi": "3.1.0",
@@ -154,7 +154,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/export.ExportList"
+                  "$ref": "#/components/schemas/importexport.ExportList"
                 }
               }
             },
@@ -171,9 +171,9 @@
         ],
         "summary": "The viewer's exports",
         "tags": [
-          "export-service"
+          "import-export-service"
         ],
-        "x-handler": "export/cmd/api/handlers.(*ExportsHandler).Browse",
+        "x-handler": "importexport/cmd/api/handlers.(*ExportsHandler).Browse",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -184,7 +184,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/export.ExportItem"
+                  "$ref": "#/components/schemas/importexport.ExportItem"
                 }
               }
             },
@@ -217,7 +217,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/export.TooSoon"
+                  "$ref": "#/components/schemas/importexport.TooSoon"
                 }
               }
             },
@@ -231,9 +231,9 @@
         ],
         "summary": "Ask for a copy of the viewer's data",
         "tags": [
-          "export-service"
+          "import-export-service"
         ],
-        "x-handler": "export/cmd/api/handlers.(*ExportsHandler).Add",
+        "x-handler": "importexport/cmd/api/handlers.(*ExportsHandler).Add",
         "x-step-up": true,
         "x-viewer": "signed_in"
       }
@@ -271,9 +271,9 @@
         ],
         "summary": "Give an export up",
         "tags": [
-          "export-service"
+          "import-export-service"
         ],
-        "x-handler": "export/cmd/api/handlers.(*ExportsHandler).Delete",
+        "x-handler": "importexport/cmd/api/handlers.(*ExportsHandler).Delete",
         "x-viewer": "signed_in"
       },
       "get": {
@@ -295,7 +295,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/export.ExportItem"
+                  "$ref": "#/components/schemas/importexport.ExportItem"
                 }
               }
             },
@@ -315,9 +315,9 @@
         ],
         "summary": "How an export is getting on",
         "tags": [
-          "export-service"
+          "import-export-service"
         ],
-        "x-handler": "export/cmd/api/handlers.(*ExportsHandler).Read",
+        "x-handler": "importexport/cmd/api/handlers.(*ExportsHandler).Read",
         "x-viewer": "signed_in"
       }
     }
@@ -336,8 +336,8 @@
   ],
   "tags": [
     {
-      "description": "Data exports",
-      "name": "export-service"
+      "description": "Data exports and imports",
+      "name": "import-export-service"
     }
   ]
 }

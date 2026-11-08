@@ -55,7 +55,7 @@ const (
 	folderVideos       = "videos"
 )
 
-// The folders listed, in the order they are swept. export-service's and
+// The folders listed, in the order they are swept. import-export-service's and
 // link-preview-service's are not among them: exports run out by their own
 // rule, and a link card's picture may be named by a preview kept in Redis
 // for a week, which the sweep cannot see.

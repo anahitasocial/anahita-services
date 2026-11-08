@@ -40,7 +40,9 @@ const (
 	// WorkerPrefix is where a worker's files are put.
 	WorkerPrefix = "assets/v1/video-service/videos/"
 	// ExportsPrefix is where a person's copy of their own data is put: one
-	// archive each, made by the export worker.
+	// archive each, made by import-export-worker. Still under the service's
+	// old name, which archives already made are kept under (renamed
+	// 2026-11-08, roadmap row 124).
 	ExportsPrefix = "assets/v1/export-service/"
 
 	// How long a part's address can be written to. A part of a large file

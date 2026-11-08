@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"anahita-libs/data/services"
-	xconfig "export/config"
-	"export/data/repositories"
-	"export/worker"
+	xconfig "importexport/config"
+	"importexport/data/repositories"
+	"importexport/worker"
 
 	_ "github.com/go-sql-driver/mysql"
 )

@@ -109,11 +109,11 @@ images:
   - name: anahita/video-worker
     newName: ghcr.io/anahitasocial/video-worker
     newTag: latest
-  - name: anahita/export-service
-    newName: ghcr.io/anahitasocial/export-service
+  - name: anahita/import-export-service
+    newName: ghcr.io/anahitasocial/import-export-service
     newTag: latest
-  - name: anahita/export-worker
-    newName: ghcr.io/anahitasocial/export-worker
+  - name: anahita/import-export-worker
+    newName: ghcr.io/anahitasocial/import-export-worker
     newTag: latest
   - name: anahita/recommendation-service
     newName: ghcr.io/anahitasocial/recommendation-service

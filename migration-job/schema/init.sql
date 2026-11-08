@@ -1093,7 +1093,7 @@ CREATE TABLE IF NOT EXISTS video_uploads (
 -- who they follow, made when they ask and kept a week for them to fetch.
 -- The row is the request, the work to be done on it, and the record of it.
 --
--- Owned by export-service and its worker. No foreign keys, like the rest of
+-- Owned by import-export-service and its worker. No foreign keys, like the rest of
 -- this schema.
 CREATE TABLE IF NOT EXISTS data_exports (
     -- Public, and unguessable: it is in the addresses its owner asks.

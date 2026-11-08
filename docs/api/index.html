@@ -70,7 +70,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <li><a href="#identity-image-service">Profile and cover photos</a> <span class="count">6</span></li>
 <li><a href="#notification-service">Notifications</a> <span class="count">9</span></li>
 <li><a href="#recommendation-service">Recommendations</a> <span class="count">7</span></li>
-<li><a href="#export-service">Data exports</a> <span class="count">4</span></li>
+<li><a href="#import-export-service">Data exports and imports</a> <span class="count">4</span></li>
 </ul>
 <p class="group">Posts</p>
 <ul>
@@ -5755,9 +5755,9 @@ who may call it: somebody signed in.">
 <p class="handler">Answered by <code>recommendation/cmd/api/handlers.(*preferencesHandler).Edit</code></p>
 </details>
 </section>
-<section id="export-service" class="service">
+<section id="import-export-service" class="service">
 <p class="group">Accounts and the graph</p>
-<h2>Data exports <code>export-service</code></h2>
+<h2>Data exports and imports <code>import-export-service</code></h2>
 <p>A person&#39;s copy of their own data: asking for one, seeing how it is getting on, fetching it and giving it up (<a href="../data-export.md">data-export.md</a>). Optional: an installation may not run it.</p>
 <details class="route" id="getExports" data-search="get /exports the viewer&#39;s exports and how often they may ask, how long an archive is kept, and when they may next ask.
 
@@ -5768,11 +5768,11 @@ who may call it: somebody signed in.">
 <h4>Answers</h4>
 <table class="answers">
 <tbody>
-<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-export.ExportList">export.ExportList</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-importexport.ExportList">importexport.ExportList</a> <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 </tbody>
 </table>
-<p class="handler">Answered by <code>export/cmd/api/handlers.(*ExportsHandler).Browse</code></p>
+<p class="handler">Answered by <code>importexport/cmd/api/handlers.(*ExportsHandler).Browse</code></p>
 </details>
 <details class="route" id="postExports" data-search="post /exports ask for a copy of the viewer&#39;s data everything they wrote, as a zip archive made in the background: `get /exports/:id` says when it is ready, with where to fetch it. one at a time, and one a week unless the installation says otherwise (`export_every_days`).
 
@@ -5783,14 +5783,14 @@ who may call it: somebody signed in, who has just proved who they are again.">
 <h4>Answers</h4>
 <table class="answers">
 <tbody>
-<tr><td class="status s2">201</td><td>Created<div class="body"><a href="#schema-export.ExportItem">export.ExportItem</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s2">201</td><td>Created<div class="body"><a href="#schema-importexport.ExportItem">importexport.ExportItem</a> <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td><code>step_up_required</code>: the viewer must prove who they are again first (<code>/reauth</code>)<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">409</td><td><code>active</code>: one is being made<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
-<tr><td class="status s4">429</td><td><code>too_soon</code>: it is not yet time to ask again, and it says when<div class="body"><a href="#schema-export.TooSoon">export.TooSoon</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">429</td><td><code>too_soon</code>: it is not yet time to ask again, and it says when<div class="body"><a href="#schema-importexport.TooSoon">importexport.TooSoon</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
-<p class="handler">Answered by <code>export/cmd/api/handlers.(*ExportsHandler).Add</code></p>
+<p class="handler">Answered by <code>importexport/cmd/api/handlers.(*ExportsHandler).Add</code></p>
 </details>
 <details class="route" id="getExportsById" data-search="get /exports/{id} how an export is getting on once it is ready, with an address to fetch it from, good for a few minutes and made afresh each time this is read.
 
@@ -5808,12 +5808,12 @@ who may call it: somebody signed in.">
 <h4>Answers</h4>
 <table class="answers">
 <tbody>
-<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-export.ExportItem">export.ExportItem</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-importexport.ExportItem">importexport.ExportItem</a> <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">404</td><td>the viewer has no such export</td></tr>
 </tbody>
 </table>
-<p class="handler">Answered by <code>export/cmd/api/handlers.(*ExportsHandler).Read</code></p>
+<p class="handler">Answered by <code>importexport/cmd/api/handlers.(*ExportsHandler).Read</code></p>
 </details>
 <details class="route" id="deleteExportsById" data-search="delete /exports/{id} give an export up stops it being made, or deletes its archive once it is.
 
@@ -5836,7 +5836,7 @@ who may call it: somebody signed in.">
 <tr><td class="status s4">404</td><td>the viewer has no such export</td></tr>
 </tbody>
 </table>
-<p class="handler">Answered by <code>export/cmd/api/handlers.(*ExportsHandler).Delete</code></p>
+<p class="handler">Answered by <code>importexport/cmd/api/handlers.(*ExportsHandler).Delete</code></p>
 </details>
 </section>
 <section id="text-service" class="service">
@@ -12591,47 +12591,6 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-export.ExportItem" data-search="export.exportitem created_at download_url error expires_at id ready_at size_bytes status">
-<h3>export.ExportItem</h3>
-<p>An export as its owner is told of it.</p>
-<table>
-<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
-<tbody>
-<tr><td><code>created_at</code> <span class="required">always</span></td><td>time</td><td>When it was asked for.</td></tr>
-<tr><td><code>download_url</code></td><td>string</td><td>Where the archive is fetched from, while it is ready: an address good for a few minutes, made afresh each time this is read.</td></tr>
-<tr><td><code>error</code></td><td>string</td><td>Why it failed, when it did.</td></tr>
-<tr><td><code>expires_at</code></td><td>time</td><td>When the archive will be deleted.</td></tr>
-<tr><td><code>id</code> <span class="required">always</span></td><td>string</td><td>Its id: a UUID.</td></tr>
-<tr><td><code>ready_at</code></td><td>time</td><td>When it was ready.</td></tr>
-<tr><td><code>size_bytes</code></td><td>integer</td><td>How big the archive is, once it is ready.</td></tr>
-<tr><td><code>status</code> <span class="required">always</span></td><td>string</td><td><code>pending</code>, <code>building</code>, <code>ready</code>, <code>failed</code>, <code>cancelled</code> or <code>expired</code>.</td></tr>
-</tbody>
-</table>
-</div>
-<div class="route schema" id="schema-export.ExportList" data-search="export.exportlist data every_days keep_days next_at">
-<h3>export.ExportList</h3>
-<p>The viewer&#39;s exports, and when they may ask again.</p>
-<table>
-<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
-<tbody>
-<tr><td><code>data</code> <span class="required">always</span></td><td>list of <a href="#schema-export.ExportItem">export.ExportItem</a> or null</td><td>The latest first.</td></tr>
-<tr><td><code>every_days</code> <span class="required">always</span></td><td>integer</td><td>How many days must pass between two exports. 0 for no wait.</td></tr>
-<tr><td><code>keep_days</code> <span class="required">always</span></td><td>integer</td><td>How many days an archive is kept once it is ready.</td></tr>
-<tr><td><code>next_at</code></td><td>time</td><td>When they may next ask, while they must wait.</td></tr>
-</tbody>
-</table>
-</div>
-<div class="route schema" id="schema-export.TooSoon" data-search="export.toosoon error next_at">
-<h3>export.TooSoon</h3>
-<p>TooSoon refuses an export asked for before it is time, and says when.</p>
-<table>
-<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
-<tbody>
-<tr><td><code>error</code> <span class="required">always</span></td><td>string</td><td>Always <code>too_soon</code>.</td></tr>
-<tr><td><code>next_at</code> <span class="required">always</span></td><td>time</td><td>When they may ask.</td></tr>
-</tbody>
-</table>
-</div>
 <div class="route schema" id="schema-feed.CustomFeedAuthorized" data-search="feed.customfeedauthorized copy delete edit pin">
 <h3>feed.CustomFeedAuthorized</h3>
 <table>
@@ -12750,6 +12709,47 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td></td></tr>
 <tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>As it is shown.</td></tr>
 <tr><td><code>uses</code> <span class="required">always</span></td><td>integer</td><td>How many posts it is on that anybody may see, and the viewer&#39;s own.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-importexport.ExportItem" data-search="importexport.exportitem created_at download_url error expires_at id ready_at size_bytes status">
+<h3>importexport.ExportItem</h3>
+<p>An export as its owner is told of it.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>created_at</code> <span class="required">always</span></td><td>time</td><td>When it was asked for.</td></tr>
+<tr><td><code>download_url</code></td><td>string</td><td>Where the archive is fetched from, while it is ready: an address good for a few minutes, made afresh each time this is read.</td></tr>
+<tr><td><code>error</code></td><td>string</td><td>Why it failed, when it did.</td></tr>
+<tr><td><code>expires_at</code></td><td>time</td><td>When the archive will be deleted.</td></tr>
+<tr><td><code>id</code> <span class="required">always</span></td><td>string</td><td>Its id: a UUID.</td></tr>
+<tr><td><code>ready_at</code></td><td>time</td><td>When it was ready.</td></tr>
+<tr><td><code>size_bytes</code></td><td>integer</td><td>How big the archive is, once it is ready.</td></tr>
+<tr><td><code>status</code> <span class="required">always</span></td><td>string</td><td><code>pending</code>, <code>building</code>, <code>ready</code>, <code>failed</code>, <code>cancelled</code> or <code>expired</code>.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-importexport.ExportList" data-search="importexport.exportlist data every_days keep_days next_at">
+<h3>importexport.ExportList</h3>
+<p>The viewer&#39;s exports, and when they may ask again.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>data</code> <span class="required">always</span></td><td>list of <a href="#schema-importexport.ExportItem">importexport.ExportItem</a> or null</td><td>The latest first.</td></tr>
+<tr><td><code>every_days</code> <span class="required">always</span></td><td>integer</td><td>How many days must pass between two exports. 0 for no wait.</td></tr>
+<tr><td><code>keep_days</code> <span class="required">always</span></td><td>integer</td><td>How many days an archive is kept once it is ready.</td></tr>
+<tr><td><code>next_at</code></td><td>time</td><td>When they may next ask, while they must wait.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-importexport.TooSoon" data-search="importexport.toosoon error next_at">
+<h3>importexport.TooSoon</h3>
+<p>TooSoon refuses an export asked for before it is time, and says when.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>error</code> <span class="required">always</span></td><td>string</td><td>Always <code>too_soon</code>.</td></tr>
+<tr><td><code>next_at</code> <span class="required">always</span></td><td>time</td><td>When they may ask.</td></tr>
 </tbody>
 </table>
 </div>

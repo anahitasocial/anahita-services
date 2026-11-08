@@ -5,7 +5,7 @@ the pictures and videos they posted, who they follow and who follows them.
 They ask for it in their settings; a worker gathers it into one zip file;
 they fetch it within a week.
 
-Its routes are in the API reference: [export-service](api/index.html#export-service).
+Its routes are in the API reference: [import-export-service](api/index.html#import-export-service).
 
 ## Contents
 
@@ -25,13 +25,13 @@ Its routes are in the API reference: [export-service](api/index.html#export-serv
 
 | Part | What it does |
 | --- | --- |
-| `export-service` (port 8104, `/exports`) | Takes a request, says how it is getting on, and gives the address the archive is fetched from |
-| `export-worker` | Makes each archive, stores it, and deletes the ones that have been kept their time. Answers no requests |
+| `import-export-service` (port 8104, `/exports`) | Takes a request, says how it is getting on, and gives the address the archive is fetched from |
+| `import-export-worker` | Makes each archive, stores it, and deletes the ones that have been kept their time. Answers no requests |
 | `data_exports` | One row for each request: the request, the work on it, and the record of it |
 | `graph-grpc-service` | `BrowseAuthored`, the list of everything one person wrote |
-| `file-grpc-service` | Keeps archives under `assets/v1/export-service/`, and only ever sends one as a file to save |
+| `file-grpc-service` | Keeps archives under `assets/v1/export-service/` (the service's name until 2026-11-08), and only ever sends one as a file to save |
 
-One module, `export-service`, with two programs and two images, as the
+One module, `import-export-service`, with two programs and two images, as the
 video service is.
 
 ## Asking for one
@@ -152,15 +152,15 @@ not available here.
 
 | What | Where |
 | --- | --- |
-| Asking for one, and the endpoints | `export-service/cmd/api/handlers/exports.go` (`Add`), over `anahita-libs/sessions/step_up.go` (`RequireStepUp`) |
-| The requests | `export-service/data/repositories/exports.go` (`Claim`, `MaxAttempts`), table `data_exports` in `migration-job/schema/init.sql` |
-| The worker: making, storing, deleting | `export-service/worker/worker.go` (`Tidy`), `export-service/cmd/worker/main.go` |
-| Reading as the person | `export-service/worker/source.go` |
-| What is in an archive | `export-service/archive/archive.go` (`Write`), `export-service/archive/page.go` (`writePage` for `index.html`, `readme`, `actorOf` and `outboxOf`) |
+| Asking for one, and the endpoints | `import-export-service/cmd/api/handlers/exports.go` (`Add`), over `anahita-libs/sessions/step_up.go` (`RequireStepUp`) |
+| The requests | `import-export-service/data/repositories/exports.go` (`Claim`, `MaxAttempts`), table `data_exports` in `migration-job/schema/init.sql` |
+| The worker: making, storing, deleting | `import-export-service/worker/worker.go` (`Tidy`), `import-export-service/cmd/worker/main.go` |
+| Reading as the person | `import-export-service/worker/source.go` |
+| What is in an archive | `import-export-service/archive/archive.go` (`Write`), `import-export-service/archive/page.go` (`writePage` for `index.html`, `readme`, `actorOf` and `outboxOf`) |
 | Everything one person wrote | `BrowseAuthored`: `graph-grpc-service/cmd/server/handlers/saved.go`, `anahita-libs/data/services/media_authored.go` |
 | Sent only as a file to save | `file-grpc-service/data/services/uploads.go` (`ExportsPrefix`) |
-| Settings | `export-service/config/config.go`: `EXPORT_EVERY_DAYS`, `EXPORT_KEEP_DAYS`, `PUBLIC_WEB_URL`, `SITE_NAME`; `EXPORT_WORK_DIR` in `export-service/cmd/worker/main.go` |
-| Tests of the rules | `export-service/cmd/api/handlers/exports_test.go`, `export-service/archive/archive_test.go`, `export-service/worker/worker_test.go`, `export-service/data/repositories/exports_integration_test.go` |
+| Settings | `import-export-service/config/config.go`: `EXPORT_EVERY_DAYS`, `EXPORT_KEEP_DAYS`, `PUBLIC_WEB_URL`, `SITE_NAME`; `EXPORT_WORK_DIR` in `import-export-service/cmd/worker/main.go` |
+| Tests of the rules | `import-export-service/cmd/api/handlers/exports_test.go`, `import-export-service/archive/archive_test.go`, `import-export-service/worker/worker_test.go`, `import-export-service/data/repositories/exports_integration_test.go` |
 | The web app | `src/containers/actors/Settings/DataExport.jsx`, `src/api/exports.js` (anahita-web) |
 
 ## What is not built

@@ -501,7 +501,7 @@ see [Videos](videos.md#storage).
 
 ## Download your data
 
-Only where `export-service` and its worker run. See
+Only where `import-export-service` and its worker run. See
 [Download your data](data-export.md#settings).
 
 | Variable | Value |

@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"export/cmd/api/handlers"
+	"importexport/cmd/api/handlers"
 
 	"anahita-libs/apidoc"
 	libs_responses "anahita-libs/responses"
@@ -21,10 +21,10 @@ func NewRoutes(handler *handlers.ExportsHandler, authorize echo.MiddlewareFunc) 
 }
 
 // Init registers the routes, each with its description, and answers with
-// the descriptions: docs/api/export-service.json is made of them.
+// the descriptions: docs/api/import-export-service.json is made of them.
 func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	h := r.handler
-	doc := apidoc.NewService("export-service", "Data exports",
+	doc := apidoc.NewService("import-export-service", "Data exports and imports",
 		"A person's copy of their own data: asking for one, seeing how it is getting on, fetching it and giving it up (data-export.md). Optional: an installation may not run it.")
 	api := doc.On(e)
 

@@ -1,4 +1,4 @@
-module export
+module importexport
 
 go 1.27.3
 

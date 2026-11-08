@@ -60,8 +60,8 @@ react. Event names are versioned constants in `anahita-libs/event`, shaped
 | `syndication-worker` | — | — | Reads every website's feed and posts what is new; looks at every proof again daily. Answers no requests |
 | `video-service` | 8103 | — | Videos: uploads sent straight to storage, and the posts made of them. Optional. See [Videos](videos.md) |
 | `video-worker` | — | — | Makes the sizes of each uploaded video with ffmpeg, then the post. Answers no requests |
-| `export-service` | 8104 | — | A person's copy of their own data: asking for one and fetching it. Optional. See [Download your data](data-export.md) |
-| `export-worker` | — | — | Makes each archive asked for, and deletes the ones kept their time. Answers no requests |
+| `import-export-service` | 8104 | — | A person's copy of their own data: asking for one and fetching it. Optional. See [Download your data](data-export.md) |
+| `import-export-worker` | — | — | Makes each archive asked for, and deletes the ones kept their time. Answers no requests |
 | `web-shell` | 8102 | — | Sends the web app, with each page's own title, description and picture written into `index.html`, so a shared link shows as itself. On the web app's host, not the API's. Optional. See [The web shell](web-shell.md) |
 | `atproto-service` | 8106 | — | Bluesky: accounts there are looked up and followed from here, and their posts kept as they are written; for whoever connects their own Bluesky account, their public posts, replies, likes, reposts and follows are written there as them. The one service that holds a connection open to the outside. Optional. See [Bluesky](federation.md#bluesky) |
 | `activitypub-service` | 8105 | — | Makes the installation a server of the fediverse: people who choose to be found, and their posts, replies, likes, reposts and follows both ways; also the list of servers the site refuses. The one service that reads what other servers send. Optional. See [Federation](federation.md) |
@@ -95,7 +95,7 @@ Kubernetes, where the Ingress sends everything to it
 | `/videos/` | `video-service` |
 | `/.well-known/webfinger`, `/.well-known/host-meta`, `/inbox`, `/ap/`, `/activitypub/` | `activitypub-service` |
 | `/atproto/` | `atproto-service` |
-| `/exports` | `export-service` |
+| `/exports` | `import-export-service` |
 | `/avatars/`, `/covers/` | `identity-image-service` |
 | `/likes/` | `like-service` |
 | `/hashtags/` | `hashtag-service` |

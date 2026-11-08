@@ -211,7 +211,7 @@ func permForbidden(c echo.Context, err error) error {
 // stepUpRequired answers a missing step-up proof.
 //
 // BODIED, `step_up_required`, wherever a step-up is asked for, every
-// other service's included (actor-service, export-service). Some
+// other service's included (actor-service, import-export-service). Some
 // endpoints have other reasons to refuse with 403: a viewer who is not a
 // super admin, or whose token lacks oauth:write, is refused with the same
 // status by permForbidden above. A client that treated every 403 here

@@ -7,7 +7,7 @@ use (
 	./anahita-libs
 	./atproto-service
 	./auth-service
-	./export-service
+	./import-export-service
 	./feed-service
 	./file-grpc-service
 	./graph-grpc-service

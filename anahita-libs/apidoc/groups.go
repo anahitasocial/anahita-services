@@ -27,7 +27,7 @@ var Groups = []Group{
 		"identity-image-service",
 		"notification-service",
 		"recommendation-service",
-		"export-service",
+		"import-export-service",
 	}},
 	{"Posts", []string{
 		"text-service",
