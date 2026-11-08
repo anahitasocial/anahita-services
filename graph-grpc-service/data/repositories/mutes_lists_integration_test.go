@@ -13,16 +13,16 @@ import (
 // (roadmap row 133). Run as the other access tests are (ACCESS_TEST_DSN; see
 // access_integration_test.go).
 //
-//	1 Ana, who follows 2 Bob, 3 Cleo and the group 5, and mutes Bob.
-//	10 Bob's note.            11 Cleo's note.
-//	12 Bob's note in the group.
-//	13 Cleo's repost of 10.   14 Bob's repost of 11.
-//	15 Cleo's note on Bob's profile.
+//	1 Naomi, who follows 2 Moss, 3 Rose and the group 5, and mutes Moss.
+//	10 Moss's note.            11 Rose's note.
+//	12 Moss's note in the group.
+//	13 Rose's repost of 10.   14 Moss's repost of 11.
+//	15 Rose's note on Moss's profile.
 //	100 a hashtag on 10 and 11.
 const (
-	muterAna   = 1
-	mutedBob   = 2
-	otherCleo  = 3
+	muterNaomi = 1
+	mutedMoss  = 2
+	otherRose  = 3
 	groupOfAll = 5
 )
 
@@ -38,16 +38,16 @@ func seedMuteLists(t *testing.T, db *sql.DB) {
 		`DELETE FROM edges`,
 		`DELETE FROM nodes`,
 		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,created_at,updated_at) VALUES
-		 (1,` + person + `,'person-service','Ana','ana','public',1,NOW(),NOW()),
-		 (2,` + person + `,'person-service','Bob','bob','public',1,NOW(),NOW()),
-		 (3,` + person + `,'person-service','Cleo','cleo','public',1,NOW(),NOW()),
+		 (1,` + person + `,'person-service','Naomi','naomi','public',1,NOW(),NOW()),
+		 (2,` + person + `,'person-service','Moss','moss','public',1,NOW(),NOW()),
+		 (3,` + person + `,'person-service','Rose','rose','public',1,NOW(),NOW()),
 		 (5,` + group + `,'actor-service','Gardeners','gardeners','public',1,NOW(),NOW()),
 		 (100,'node.tag.hashtag-service.hashtag.v1','hashtag-service','beans','beans','public',1,NOW(),NOW())`,
 		`INSERT INTO nodes (id,type,service,body,access,enabled,owner_id,created_by,created_at,updated_at) VALUES
-		 (10,` + note + `,'text-service','Bob on beans','public',1,2,2,NOW() - INTERVAL 6 MINUTE,NOW()),
-		 (11,` + note + `,'text-service','Cleo on beans','public',1,3,3,NOW() - INTERVAL 5 MINUTE,NOW()),
-		 (12,` + note + `,'text-service','Bob in the group','public',1,5,2,NOW() - INTERVAL 4 MINUTE,NOW()),
-		 (15,` + note + `,'text-service','Cleo on Bob''s wall','public',1,2,3,NOW() - INTERVAL 1 MINUTE,NOW())`,
+		 (10,` + note + `,'text-service','Moss on beans','public',1,2,2,NOW() - INTERVAL 6 MINUTE,NOW()),
+		 (11,` + note + `,'text-service','Rose on beans','public',1,3,3,NOW() - INTERVAL 5 MINUTE,NOW()),
+		 (12,` + note + `,'text-service','Moss in the group','public',1,5,2,NOW() - INTERVAL 4 MINUTE,NOW()),
+		 (15,` + note + `,'text-service','Rose on Moss''s wall','public',1,2,3,NOW() - INTERVAL 1 MINUTE,NOW())`,
 		`INSERT INTO nodes (id,type,service,access,enabled,owner_id,parent_id,created_by,created_at,updated_at) VALUES
 		 (13,` + repost + `,'feed-service','public',1,3,10,3,NOW() - INTERVAL 3 MINUTE,NOW()),
 		 (14,` + repost + `,'feed-service','public',1,2,11,2,NOW() - INTERVAL 2 MINUTE,NOW())`,
@@ -143,16 +143,16 @@ func TestAMuteTakesThemOutOfTheMutersLists(t *testing.T) {
 		got  map[int64]bool
 		want []int64
 	}{
-		{"Ana's Following", following(muterAna), []int64{11}},
-		{"Bob's own profile, opened by Ana", profile(mutedBob, muterAna), []int64{10, 14, 15}},
-		{"Cleo's profile, for Ana", profile(otherCleo, muterAna), []int64{11}},
-		{"the group's, for Ana", profile(groupOfAll, muterAna), nil},
-		{"the hashtag's, for Ana", hashtag(muterAna), []int64{11}},
-		{"posts found by Ana", searched(constants.SearchScopePosts, muterAna), []int64{11}},
-		{"people found by Ana, Bob among them", searched(constants.SearchScopeActor, muterAna), []int64{1, 2, 3, 5}},
-		// One way: Cleo has muted nobody, and follows Bob.
-		{"Cleo's Following, her own repost in it", following(otherCleo), []int64{10, 11, 13, 14, 15}},
-		{"the hashtag's, for Cleo", hashtag(otherCleo), []int64{10, 11}},
+		{"Naomi's Following", following(muterNaomi), []int64{11}},
+		{"Moss's own profile, opened by Naomi", profile(mutedMoss, muterNaomi), []int64{10, 14, 15}},
+		{"Rose's profile, for Naomi", profile(otherRose, muterNaomi), []int64{11}},
+		{"the group's, for Naomi", profile(groupOfAll, muterNaomi), nil},
+		{"the hashtag's, for Naomi", hashtag(muterNaomi), []int64{11}},
+		{"posts found by Naomi", searched(constants.SearchScopePosts, muterNaomi), []int64{11}},
+		{"people found by Naomi, Moss among them", searched(constants.SearchScopeActor, muterNaomi), []int64{1, 2, 3, 5}},
+		// One way: Rose has muted nobody, and follows Moss.
+		{"Rose's Following, her own repost in it", following(otherRose), []int64{10, 11, 13, 14, 15}},
+		{"the hashtag's, for Rose", hashtag(otherRose), []int64{10, 11}},
 	}
 	for _, c := range cases {
 		if !sameSet(c.got, c.want...) {
@@ -164,8 +164,8 @@ func TestAMuteTakesThemOutOfTheMutersLists(t *testing.T) {
 	if _, err := db.Exec(`UPDATE edges SET ends_at = UTC_TIMESTAMP() - INTERVAL 1 HOUR WHERE type = 'edge.actor.mute.v1'`); err != nil {
 		t.Fatal(err)
 	}
-	if got := following(muterAna); !sameSet(got, 10, 11, 12, 13, 14, 15) {
-		t.Errorf("Ana's Following once the mute ended: %v", sortedIDs(got))
+	if got := following(muterNaomi); !sameSet(got, 10, 11, 12, 13, 14, 15) {
+		t.Errorf("Naomi's Following once the mute ended: %v", sortedIDs(got))
 	}
 }
 
@@ -175,14 +175,14 @@ func TestWithoutMutedTakesTheirBranches(t *testing.T) {
 	reply := func(id, parent, by int64) *entities.AnahitaNode {
 		return &entities.AnahitaNode{ID: id, ParentID: parent, CreatedBy: by}
 	}
-	// Under the post 11: Bob's 20, Cleo's 21 under it and 23 under that;
-	// Ana's 22, and Cleo's 24 under Ana's.
+	// Under the post 11: Moss's 20, Rose's 21 under it and 23 under that;
+	// Naomi's 22, and Rose's 24 under Naomi's.
 	thread := []*entities.AnahitaNode{
-		reply(20, 11, mutedBob), reply(21, 20, otherCleo), reply(22, 11, muterAna),
-		reply(23, 21, otherCleo), reply(24, 22, otherCleo),
+		reply(20, 11, mutedMoss), reply(21, 20, otherRose), reply(22, 11, muterNaomi),
+		reply(23, 21, otherRose), reply(24, 22, otherRose),
 	}
 
-	kept := WithoutMuted(thread, map[int64]bool{mutedBob: true})
+	kept := WithoutMuted(thread, map[int64]bool{mutedMoss: true})
 	got := map[int64]bool{}
 	for _, r := range kept {
 		got[r.ID] = true
