@@ -6,7 +6,8 @@ moving their leaders over, and perhaps leaving a redirect mechanism to their
 new profile on the old server"; and moving between Anahita and Mastodon or
 servers like it. Brought forward on 2026-11-08, at the user's word ("focus
 on helping people moving in and out"), before the WordPress import, with
-the lists that Mastodon, Misskey and Pixelfed move between them. Not built.
+the lists that Mastodon, Misskey and Pixelfed move between them. Part 1 is
+built; parts 2 to 4 are not.
 
 ## Contents
 
@@ -144,10 +145,40 @@ download (from this Anahita or another) or a single CSV from anywhere.
 
 ## Part 2: following somebody who moved
 
-A `Move` from somebody followed from here, to an account that names them as
-`alsoKnownAs`, has everybody here who follows them follow the new account,
-and stop following the old, as Mastodon does. Each is told. Needed whatever
+Somebody on another server, followed, blocked or muted from here, moves
+their account, as Mastodon, Misskey and the rest let them. Needed whatever
 is decided about moving oneself, since it happens on other servers now.
+Decided with the user on 2026-11-08: follows, blocks and mutes carry over;
+each follower is told by a notification; the old profile says it moved.
+
+**Believed** when, as Mastodon checks it:
+
+1. The `Move` is signed by the old account and names it as its `object`,
+   as every activity in the inbox is checked already.
+2. Its `target`, the new account, read afresh from its own server, names
+   the old one in its `alsoKnownAs`: the person holds both.
+3. Neither is on a server, or an account, this site refuses, and the two
+   are not the same.
+
+**Then,** in activitypub-service, in the background, after the inbox has
+answered:
+
+| What | Done |
+| --- | --- |
+| The new account | Kept, as anybody found is |
+| The old profile | An edge from it to the new one, `edge.actor.moved.v1`. Its profile here says "Moved to", with the way to the new one in place of + Follow; its posts stay. A move back, from the new account to the old, takes the edge away |
+| Each follower here, and each request to follow | Follows the new account, or asks to when it approves its followers, and stops following the old: the graph's own follow and unfollow, so the `Follow` and the `Undo` are sent as by hand. Not across a block either way; one who follows the new account already only stops following the old |
+| Each follower, told | A notification, `actor_moved`: "Naomi Nagata moved to @naomi@new.example. You follow them there now", or "You asked to follow them there" |
+| Each block here | The new account is blocked too, and told so as any block is |
+| Each mute here | The new account is muted too, with the same end and the same choice about notifications; told to nobody |
+
+What is moved is moved once: a `Move` heard twice, or from two of the
+person's followers' servers, finds nothing left to move. A follow of the old
+account left behind, by a restart in the middle of moving, is moved by the
+next sweep for what was lost (activitypub-service's, every five minutes).
+
+Bluesky has nothing to do here: an account moved between Bluesky's servers
+keeps its DID, which is what is kept.
 
 ## Part 3: moving yourself
 
@@ -211,7 +242,7 @@ installation, and nothing there changes.
    without what only posts need), the files in the download, the import
    with its preview: about two sessions. **Done 2026-11-08**
    ([Bring your lists in](../imports.md)), in Settings › Your data.
-2. **Following somebody who moved:** one session.
+2. **Following somebody who moved:** one session. Decided 2026-11-08.
 3. **Moving, out and in,** with the signpost: three to four sessions.
 4. **Bringing your posts,** from Anahita, then perhaps from Mastodon: three
    to four sessions, decided apart.
