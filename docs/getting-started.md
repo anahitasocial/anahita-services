@@ -107,16 +107,16 @@ be tried on nothing. `make dev_seed` fills a running stack with a made-up site:
 
 | What | How many |
 | --- | --- |
-| People, named after Star Trek characters, three of them administrators | 60 |
-| Groups, and the people who follow them | 10 |
+| People, twelve from each of five TV shows, by the names [Faker](https://github.com/faker-ruby/faker) gives them: Star Trek, Stargate, Doctor Who, The Expanse and The IT Crowd; three of them administrators | 60 |
+| Groups, and the people who follow them | 8 |
 | Locations | 10 |
 | Events, some of them over, with who is going | 8 |
 | Posts, over three years, with replies, likes and reposts | about 1,600 |
 
 Their password is one you choose, of 16 characters or more, as
 `DEV_SEED_PASSWORD` in `.env`, and their address is `<handle>@example.org`:
-`jeanluc`, `benjamin` and `kathryn` are the administrators. Nobody has a
-picture. It needs `htpasswd`, which macOS has; on Linux, `apache2-utils`.
+`jeanluc`, `samcarter` and `chrisjen` are the administrators. Their pronouns
+are she/her, he/him or they/them, and some have none. Nobody has a picture. It needs `htpasswd`, which macOS has; on Linux, `apache2-utils`.
 
 The people are written to the database, so no mail is sent, and everything else
 goes through the API, each person signed in as themselves. The graph is meant to

@@ -39,8 +39,12 @@ Tests that need a database run only when given one, through a
 on ([getting-started.md › Tests](docs/getting-started.md#tests)). Remove a
 throwaway container with `docker rm -fv`, which takes its volume too.
 
-People and places made up for a test are named after Star Trek characters
-and places.
+People, groups and places made up for a test, an example or the dev seed
+are named after characters and places from five shows, as Faker names them
+(`faker-ruby/faker`, `tv_shows`): Star Trek, Stargate, Doctor Who, The Expanse
+and The IT Crowd, and no others (the user, 2026-11-08). She, he and they among
+them, and some with no pronouns. Their names and places only: no logos,
+insignia or lines quoted from the shows.
 
 ## Rules that have each been broken once
 

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-"""A development stack's made-up site: about sixty people from Star Trek, their
-groups, events and locations, and who follows, posts, replies, likes and reposts.
+"""A development stack's made-up site: about sixty people, twelve from each of
+five shows as Faker names them (Star Trek, Stargate, Doctor Who, The Expanse and
+The IT Crowd), their groups, events and locations, and who follows, posts,
+replies, likes and reposts.
 
     make dev_seed
 
@@ -38,59 +40,53 @@ SCOPES = ('openid profile email offline_access actors:read actors:write '
 PERSON = 'node.actor.person-service.person.v1'
 NOTE = 'node.medium.text-service.note.v1'
 FOLLOW = 'edge.actor.follow.v1'
-ADMINISTRATORS = ('jeanluc', 'benjamin', 'kathryn')
+ADMINISTRATORS = ('jeanluc', 'samcarter', 'chrisjen')
 now = datetime.utcnow().replace(microsecond=0)
 rng = random.Random(1701)
 
-# Who there is, by the group they are mostly in.
+# Who there is, by the group they are mostly in: twelve from each of five
+# shows, by the names Faker gives them (faker-ruby/faker, tv_shows). Their
+# names and places only: nothing here quotes the shows.
 CREWS = {
-    'USS Enterprise': 'jean-luc picard, william riker, data soong, geordi laforge, beverly crusher, deanna troi, tasha yar, wesley crusher, miles obrien, guinan forty, reginald barclay, ro laren',
-    'Deep Space Nine': 'benjamin sisko, kira nerys, odo ide, julian bashir, jadzia dax, quark ferengi, jake sisko, nog ferengi, kasidy yates, elim garak',
-    'USS Voyager': 'kathryn janeway, chakotay dorvan, tuvok vulcan, tom paris, belanna torres, harry kim, seven annika, neelix talaxian, kes ocampa',
-    'Starfleet Academy': 'boothby grounds, nyota uhura, hikaru sulu, pavel chekov, montgomery scott, leonard mccoy, christine chapel, james kirk',
-    'Vulcan Science Academy': 'spock sarekson, sarek shikahr, amanda grayson, tpring vulcan, tpol shikahr, soval vulcan',
-    'Ferengi Commerce Authority': 'rom ferengi, brunt fca, ishka ferengi, zek nagus, leeta bajor',
-    'Klingon Opera Society': 'martok house, gowron council, kurn mogh, kehleyr emissary, alexander rozhenko, koloth dahar, kor dahar',
-    'Bajoran Archives': 'shakaar edon, bareil antos, opaka sulan, winn adami',
+    'USS Enterprise': 'jean-luc picard, william riker, data soong, geordi laforge, beverly crusher, deanna troi, benjamin sisko, kira nerys, jadzia dax, kathryn janeway, seven annika, odo ide',
+    'Stargate Command': 'jack oneill, tealc chulak, daniel jackson, sam carter, janet frasier, george hammond, jonas quinn, cameron mitchell, vala maldoran, jacob carter, cassandra frasier, bratac chulak',
+    'The TARDIS': 'rose tyler, adam mitchell, mickey smith, donna noble, martha jones, astrid peth, sarah-jane smith, jackson lake, christina desouza, adelaide brooke, wilfred mott, amy pond',
+    'The Rocinante': 'jim holden, alex kamal, naomi nagata, amos burton, chrisjen avasarala, joe miller, roberta draper, julie mao, camina drummer, klaes ashford, anderson dawes, praxidike meng',
+    'Reynholm Industries IT': 'roy trenneman, maurice moss, jen barber, douglas reynholm, denholm reynholm, richmond avenal, barbara reynholm, victoria reynholm, derek pippen, helen buley, april shephard, harold tong',
 }
 GROUPS = {
-    'USS Enterprise': 'The flagship, its crew and those who served on it.',
-    'Deep Space Nine': 'News, trade and gossip from the Promenade.',
-    'USS Voyager': 'Seventy thousand light years from home, and writing it down.',
-    'Starfleet Academy': 'Cadets, instructors and everybody who remembers the grounds.',
-    'Vulcan Science Academy': 'Papers, logic and peer review.',
-    'Ferengi Commerce Authority': 'The Rules of Acquisition, in practice.',
-    'Klingon Opera Society': 'Song, honour and the occasional duel.',
-    'Bajoran Archives': 'Keeping what the Occupation tried to lose.',
-    'Ten Forward': 'Somewhere to sit, whoever you are.',
+    'USS Enterprise': 'Its crew, and everybody who served on it.',
+    'Stargate Command': 'Mission reports, gate addresses and the infirmary rota.',
+    'The TARDIS': 'Travellers, past and future, comparing notes.',
+    'The Rocinante': 'A small ship, its crew and the Belt around them.',
+    'Reynholm Industries IT': 'The help desk in the basement, and its tickets.',
     'Stellar Cartography': 'Maps, surveys and things that are not on the maps yet.',
+    'Board Game Night': 'Every other Friday, whoever you are.',
+    'The Reading Room': 'What we are reading, and what we thought of it.',
 }
 PLACES = [
-    ('Ten Forward', 'Earth', 37.8086, -122.4098), ('Quarks', 'Bajor', 44.0, 11.0),
-    ('The Promenade', 'Bajor', 44.1, 11.2), ('Starfleet Academy', 'United States', 37.8199, -122.4783),
-    ('Shikahr', 'Vulcan', 21.3, 39.8), ('Kronos Great Hall', 'Kronos', 49.2, 16.6),
-    ('Risa', 'Risa', -17.5, -149.8), ('Bozeman', 'United States', 45.6770, -111.0429),
-    ('Paris', 'France', 48.8566, 2.3522), ('Bajor Temple', 'Bajor', 44.3, 11.4),
+    ('Stargate Command', 'United States', 38.7445, -104.8461), ('Abydos', 'Abydos', 26.18, 31.92),
+    ('Chulak', 'Chulak', 30.1, 31.3), ('Ceres Station', 'Ceres', -12.0, 130.0),
+    ('Tycho Station', 'Tycho', -43.3, -11.2), ('Reynholm Industries', 'United Kingdom', 51.5155, -0.0922),
+    ('Bajor', 'Bajor', 44.0, 11.0), ('Vulcan', 'Vulcan', 21.3, 39.8),
+    ('Bozeman', 'United States', 45.6770, -111.0429), ('Paris', 'France', 48.8566, 2.3522),
 ]
 EVENTS = [
-    ('Ten Forward open mic', 'Ten Forward', 'Bring a poem, a song or a bad joke.'),
-    ('Dabo night', 'Quarks', 'The house always wins. Come anyway.'),
-    ('Warp theory seminar', 'Starfleet Academy', 'Field coils, for beginners.'),
-    ('Peer review clinic', 'Shikahr', 'Bring your draft. Logic will be applied.'),
-    ('Opera at the Great Hall', 'Kronos Great Hall', 'Aktuh and Maylota, in full.'),
-    ('First Contact Day', 'Bozeman', 'A picnic where it began.'),
-    ('Survey of the Badlands', 'The Promenade', 'What the charts have wrong.'),
-    ('Risa retreat', 'Risa', 'No work, no logs, no red alerts.'),
+    ('Gate room open day', 'Stargate Command', 'A look at the gate, and the long walk up the ramp.'),
+    ('Archaeology evening', 'Abydos', 'Cartouches, glyphs and what they might mean.'),
+    ('Ceres trade fair', 'Ceres Station', 'Water, air and everything else that is shipped.'),
+    ('Drive maintenance workshop', 'Tycho Station', 'Bring your questions about engines.'),
+    ('Help desk drop-in', 'Reynholm Industries', 'Bring a broken laptop, leave with a working one.'),
+    ('Warp theory seminar', 'Bozeman', 'Field coils, for beginners.'),
+    ('Peer review clinic', 'Vulcan', 'Bring your draft. It will be read closely.'),
+    ('Star party', 'Paris', 'Telescopes on the roof, weather permitting.'),
 ]
 TOPICS = {
-    'USS Enterprise': ['the warp core alignment', 'a saucer separation drill', 'the holodeck queue', 'a diplomatic dinner', 'the morning shift report', 'the new phaser calibration'],
-    'Deep Space Nine': ['the docking pylons', 'a shipment of self-sealing stem bolts', 'the wormhole traffic', 'the Promenade rents', 'tonight at the replimat', 'the station gravity'],
-    'USS Voyager': ['the replicator rations', 'a shortcut through a nebula', 'the neutral zone of the week', 'the hydroponics bay', 'a letter home', 'the astrometrics lab'],
-    'Starfleet Academy': ['the Kobayashi Maru', 'the rose bushes', 'the entrance exams', 'a navigation final', 'the parrises squares team', 'the old textbooks'],
-    'Vulcan Science Academy': ['a proof that took four years', 'the kal-toh tournament', 'a paper on subspace harmonics', 'the sand-fire results', 'the journal backlog', 'an elegant error'],
-    'Ferengi Commerce Authority': ['Rule 34', 'the latinum exchange rate', 'a hostile acquisition', 'the Tower of Commerce', 'the price of root beer', 'a very good deal'],
-    'Klingon Opera Society': ['the second act of Aktuh', 'the bloodwine vintage', 'a challenge at dawn', 'the bat\'leth forms', 'the choir\'s tuning', 'today being a good day'],
-    'Bajoran Archives': ['the Prophecies', 'a manuscript from the Occupation', 'the springball season', 'the temple gardens', 'a restored recording', 'the harvest'],
+    'USS Enterprise': ['the warp core alignment', 'a diplomatic dinner', 'the morning shift report', 'the holodeck queue', 'a new sensor calibration', 'the arboretum'],
+    'Stargate Command': ['a new set of gate addresses', 'the translation of a cartouche', 'the off-world checklist', 'the infirmary rota', 'a mission report', 'the naquadah samples'],
+    'The TARDIS': ['the console room', 'a trip to the past', 'the wardrobe', 'a very old library', 'the manual nobody reads', 'a picnic on a moon'],
+    'The Rocinante': ['the coffee machine', 'a burn schedule', 'the water ration', 'the airlock checks', 'the Belt traffic', 'the galley'],
+    'Reynholm Industries IT': ['the server room', 'a printer that will not print', 'the ticket queue', 'a password reset', 'the backup tapes', 'the new office chairs'],
 }
 SHAPES = [
     'Spent the morning on {t}. Better than expected. #{h}',
@@ -100,15 +96,24 @@ SHAPES = [
     'Notes on {t}, for whoever comes after me. #{h} #notes',
     'Three things I got wrong about {t}, and one I got right. #{h}',
     '{T} went well today. Thanks to everybody who helped.',
-    'Old log entry about {t} turned up. It holds up better than I do. #{h}',
+    'Old notes about {t} turned up. They hold up better than I do. #{h}',
     'A short question about {t}. What would you change? #{h}',
     'Quiet day. Read about {t} and made tea.',
 ]
 REPLIES = ['Agreed, and well put.', 'I saw that too. Worth a longer look.', 'Not how I remember it.', 'Thanks for writing this down.',
            'Could you say more about the second part?', 'This is why I read this every morning.', 'I would do it the other way round.',
-           'Logical.', 'Sharing this with the others.', 'Remind me to buy you a drink.', 'Fascinating.', 'That is a good day, then.']
-HASHTAGS = {'USS Enterprise': 'engineering', 'Deep Space Nine': 'frontier', 'USS Voyager': 'longwayhome', 'Starfleet Academy': 'cadets',
-            'Vulcan Science Academy': 'science', 'Ferengi Commerce Authority': 'latinum', 'Klingon Opera Society': 'opera', 'Bajoran Archives': 'history'}
+           'Well spotted.', 'Sharing this with the others.', 'Remind me to buy you a coffee.', 'Interesting.', 'Good to hear.']
+# Pronouns, by handle, as a community has them: she, he and they, and some
+# who have said none. Whoever is not named here is he/him.
+PRONOUNS = {
+    'she/her': 'beverly deanna kira kathryn janet samcarter vala cassandra rose donna martha astrid sarahjane christina '
+               'adelaide amypond naomi chrisjen roberta julie jenbarber barbara victoria helen april',
+    'they/them': 'data odoide jadzia seven tealc jackson alex camina maurice',
+    '': 'george wilfred klaes harold',
+}
+PRONOUN_OF = {alias: said for said, aliases in PRONOUNS.items() for alias in aliases.split()}
+HASHTAGS = {'USS Enterprise': 'engineering', 'Stargate Command': 'exploration', 'The TARDIS': 'timetravel',
+            'The Rocinante': 'thebelt', 'Reynholm Industries IT': 'helpdesk'}
 
 
 def setting(name):
@@ -278,8 +283,9 @@ def people():
     sql = []
     for crew, alias, name in made:
         sql.append(
-            f"INSERT INTO nodes (uuid, type, service, name, alias, body, owner_type, access, enabled, person_type, created_at, updated_at) "
+            f"INSERT INTO nodes (uuid, type, service, name, alias, body, owner_type, access, enabled, person_type, person_pronouns, created_at, updated_at) "
             f"VALUES ({q(uuid.uuid4())}, {q(PERSON)}, 'person-service', {q(name)}, {q(alias)}, {q('Of ' + crew + '.')}, '', 'public', 1, 'registered', "
+            f"{q(PRONOUN_OF.get(alias, 'he/him')) if PRONOUN_OF.get(alias, 'he/him') else 'NULL'}, "
             f"{q(now - timedelta(days=rng.randint(60, 1400)))}, {q(now)});\n"
             f"INSERT INTO auth_accounts (node_id, email, password, email_verified_at, onboarded_at, tos_accepted, tos_accepted_version, "
             f"pp_accepted, pp_accepted_version, rules_accepted, rules_accepted_version) "
@@ -407,7 +413,7 @@ def main():
             body = rng.choice(SHAPES).format(t=t, T=t[0].upper() + t[1:], g=p.crew, h=HASHTAGS[p.crew])
             owner = p.id
             if rng.random() < 0.2:
-                gid, _f = groups.get(p.crew, groups['Ten Forward'])
+                gid, _f = groups.get(p.crew, groups['Board Game Night'])
                 owner = gid
             place = places[rng.choice(list(places))] if rng.random() < 0.08 else None
             jobs.append((post, p, owner, body, place))
