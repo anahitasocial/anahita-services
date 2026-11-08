@@ -96,11 +96,11 @@ microservices architecture.")
 | Recipe | Like | What it runs and puts first | Gaps it shows | When |
 | --- | --- | --- | --- | --- |
 | **php-migration** | | Moving a site from Anahita PHP: row 92, made simple from what was done for banu.io. Archive the old site and prove the archive; copy the files to a new bucket; `upgrade.sql`; check; the old site retired. One `make` target a step, each one that changes anything shown first with nothing changed (`tidy`, then `tidy-apply`, as banu.io does) | Each step tried on a copy | First |
-| **commons** | Mastodon and Pixelfed | Everything: notes, photos, video, articles, groups, events, federation on both networks. What `generic` is now | | First |
-| **coffeehouse** | Mastodon, Threads | Notes and photos; articles, topics, events and websites off; short limits on video | Needs row 139's switches | First, once 139 is built |
-| **journal** | Medium | Articles first: a home of article cards with their covers, notes beside them | RSS feeds; newsletters by email | Later |
+| **commons** | Mastodon and Pixelfed, but more | Everything: notes, photos, video, articles, groups, events, federation on both networks. What `generic` is now | | First |
+| **coffeehouse** | Mastodon, Bluesky | Notes and photos; articles, topics, events and websites off; short limits on video | Needs row 139's switches | First, once 139 is built |
+| **journal** | WordPress, Medium | Articles first: a home of article cards with their covers, notes beside them | RSS feeds; newsletters by email | Later |
 | **theatre** | YouTube, PeerTube | Video first: a grid of thumbnails, larger uploads, the video worker given more | Adaptive streaming (HLS); captions; playlists | Later |
-| **gathering** | Eventbrite | What is on, first; groups as the organisers | A calendar to subscribe to (iCal). No tickets: nothing is sold | Later |
+| **gathering** | Meetup, Luma | What is on, first; groups as the organisers | A calendar to subscribe to (iCal). No tickets: nothing is sold | Later |
 
 ## What a site is made of
 
