@@ -75,6 +75,14 @@ microservices architecture.")
     anahita-web reads its server's address when it starts, not when it is
     built, so that one ready-made build each release serves every site and a
     recipe needs no Node (about a session, in anahita-web).
+11. **Three providers written first** (the user, 2026-11-08): AWS in
+    `ca-central-1`, which banu.io has proven; OVHcloud in Beauharnois,
+    Quebec, which Gander Social runs on; and Hetzner in Europe. OVHcloud and
+    Hetzner are widely used by Mastodon servers but untried with Anahita,
+    and the docs say so and ask for reports. Other providers in Canada and
+    Europe that should work are listed as untried candidates, ThinkOn among
+    them for an organisation that needs a Canadian company
+    ([providers.md](https://github.com/anahitasocial/anahita-recipes/blob/main/docs/providers.md)).
 
 ## The recipes
 
