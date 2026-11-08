@@ -238,7 +238,8 @@ Every **no** and **planned** above, gathered for planning.
 1. **Accounts:** signing in with another provider; profile fields; bot
    accounts.
 2. **Posting:** polls; scheduled posts; a post length the operator sets;
-   custom emoji; deleting old posts automatically.
+   custom emoji; deleting old posts automatically, each person's own choice
+   (planned: [old-posts.md](plans/old-posts.md), row 132).
 3. **Media:** WebP, HEIC and AVIF images; audio; a focal point; photo
    filters.
 4. **Video:** adaptive streaming (HLS); captions, and automatic ones; live
