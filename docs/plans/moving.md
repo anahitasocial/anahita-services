@@ -184,31 +184,68 @@ keeps its DID, which is what is kept.
 
 ## Part 3: moving yourself
 
-**Out, to another Anahita or to Mastodon:**
-
-1. **On the new account,** the old one is named as an alias. Anahita offers
-   it in a person's settings, and so does Mastodon.
-2. **On the old one,** the move is started, after proving who one is again
-   (step-up), with the new address and a sentence of what will happen:
-   followers move, posts stay, and the profile here becomes a signpost.
-3. **Followers move:** a `Move` to every follower elsewhere; those on this
-   installation are moved by it at once.
-4. **Who one followed** is brought by Part 1: the new Anahita can fetch the
-   old one's export for the person, with their leave; Mastodon imports the
-   CSV.
-5. **The signpost:** the old profile says "Now at @ana@new.example", its
-   handle is still found, `movedTo` is in what other servers read, the web
-   app sends a visitor on, and it posts nothing more. Not again for thirty
-   days; undone by moving back.
-
-**In, from another Anahita or from Mastodon:** a person here names their
-old account as an alias, and starts the move there; their followers arrive
-by the `Move`, and who they followed by importing the CSV.
+Decided with the user on 2026-11-08: the old account is limited, as
+Mastodon's is; a visitor to the old profile sees the notice of part 2, and
+is not sent on; a person may move to another account on this same site.
 
 **Who may move:** a person whose profile is on the fediverse, which they
 turn on themselves ([Federation](../federation.md#who-is-on-the-fediverse));
 the screen says so first. Groups, events and websites are the
 installation's and their admins', and do not move.
+
+### Moving in: the new account here
+
+In Settings › Fediverse, a card, **Moving here**: the old accounts this
+one also is, by handle (`ana@old.example`), each looked up and kept as its
+address. They are this profile's `alsoKnownAs`, which the old server reads
+before it lets the move start. Then, on the old server, the person starts
+the move: its `Move` arrives (part 2), and the followers here of the old
+account follow this one. Who the person followed comes by part 1.
+
+A `Move` to a profile here is believed, as one to elsewhere, when that
+profile names the old one among its own.
+
+### Moving away: the old account here
+
+In Settings › Fediverse, a card, **Moving away**: the new handle, a line
+of what will happen (followers move, posts stay, this profile becomes a
+signpost and can no longer post, follow or like), and Move, after proving
+who one is again (step-up). It is refused unless the new account names
+this one in its `alsoKnownAs`, read afresh; and within thirty days of the
+last move.
+
+| What | Done |
+| --- | --- |
+| This profile's description | Gains `movedTo`, the new account; its followers' servers are sent it (`Update`) |
+| Followers elsewhere | Sent a `Move`, on each server's shared inbox once: their servers have them follow the new account |
+| Followers here | Moved at once, as in part 2: they follow the new account, or ask to, and are told; blocks and mutes of this profile carry over |
+| The profile | Points to the new one (`edge.actor.moved.v1`): "Moved to" and View new profile, as for anybody who moved; its handle is still found, and its posts stay |
+| The account | Limited: its tokens carry no `media:write`, `likes:write`, `socialgraph:write` or `taxonomy:write`, so nothing is posted, liked, reposted, followed, blocked, muted or tagged from it. Signing in, settings, the download, and turning the fediverse off are left, and leaving the fediverse is refused while moved, which would undo the signpost |
+
+**Moving back** undoes it: the person names this account on the new one's
+side as theirs, and moves from there to here. Its `Move` is believed as any
+other; the signpost is taken down, the account is whole again, and the
+followers come back the same way.
+
+Moving to another account on this site is the same, with nobody elsewhere
+to tell for the followers here.
+
+### What is kept
+
+| Where | What |
+| --- | --- |
+| `activitypub_accounts.also_known_as` | The old accounts this one also is, as addresses, JSON |
+| `activitypub_accounts.moved_to`, `moved_at` | The account moved to, and when |
+| `edge.actor.moved.v1` | The signpost, as for anybody who moved |
+
+### The API
+
+| Request | Does |
+| --- | --- |
+| `GET /activitypub/aliases` | The old accounts this one also is |
+| `PUT /activitypub/aliases` `{ "also_known_as": ["ana@old.example"] }` | Names them; at most five |
+| `GET /activitypub/move` | Whether this account moved, to whom and when, and when it may move again |
+| `POST /activitypub/move` `{ "to": "ana@new.example" }` | Moves, after step-up |
 
 ## Part 4: bringing your posts
 
@@ -248,6 +285,7 @@ installation, and nothing there changes.
    ([Somebody who moved](../federation.md#somebody-who-moved)), tried in the
    lab with GoToSocial's own move.
 3. **Moving, out and in,** with the signpost: three to four sessions.
+   Decided 2026-11-08.
 4. **Bringing your posts,** from Anahita, then perhaps from Mastodon: three
    to four sessions, decided apart.
 
