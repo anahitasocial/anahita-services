@@ -1126,7 +1126,7 @@
     },
     "/activitypub/people/{id}/refresh": {
       "post": {
-        "description": "When what was kept of them is more than a day old: whether they approve their followers, their name, their words, their pictures. Asked by the web app when their profile is opened; `refreshed` says whether to read the profile again. A failure there leaves what was kept, and says nothing.\n\nWho may call it: somebody signed in.",
+        "description": "When what was kept of them is more than an hour old: whether they approve their followers, their name, their words, their pictures. Asked by the web app when their profile is opened; `refreshed` says whether to read the profile again. A failure there leaves what was kept, and says nothing.\n\nWho may call it: somebody signed in.",
         "operationId": "postActivitypubPeopleByIdRefresh",
         "parameters": [
           {

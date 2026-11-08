@@ -208,7 +208,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	// and what was kept of them is old (roadmap row 130).
 	activitypub.POST("/people/:id/refresh", r.handler.RefreshPerson).
 		Summary("Read somebody on another server again").
-		Describe("When what was kept of them is more than a day old: whether they approve their followers, their name, their words, their pictures. Asked by the web app when their profile is opened; `refreshed` says whether to read the profile again. A failure there leaves what was kept, and says nothing.").
+		Describe("When what was kept of them is more than an hour old: whether they approve their followers, their name, their words, their pictures. Asked by the web app when their profile is opened; `refreshed` says whether to read the profile again. A failure there leaves what was kept, and says nothing.").
 		Viewer(apidoc.SignedIn).
 		Takes(&handlers.RefreshPersonRequest{}).
 		Unbound().

@@ -17,8 +17,12 @@ import (
 )
 
 // How long what another server said of somebody is believed before it is
-// asked again, when their profile is opened here.
-const refreshAfter = 24 * time.Hour
+// asked again, when their profile is opened here: an hour (the user,
+// 2026-11-07), so that a change there shows almost as soon as anybody
+// looks. At most one fetch an hour for a profile, and only when it is
+// opened, which costs their server nothing beside what its followers'
+// servers ask.
+const refreshAfter = time.Hour
 
 // Refreshed is whether somebody's profile was read again from their server.
 type Refreshed struct {
@@ -27,7 +31,7 @@ type Refreshed struct {
 }
 
 // RefreshPerson reads somebody on another server again, when what was kept
-// of them is more than a day old: opening their profile asks for it, so
+// of them is more than an hour old: opening their profile asks for it, so
 // that whether they approve their followers, their name and their words
 // are as their server says now (roadmap row 130). Nobody has to know to
 // look them up again. Nothing is said of a failure: what was kept stands.

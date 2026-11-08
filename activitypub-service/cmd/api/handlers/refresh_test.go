@@ -11,7 +11,7 @@ import (
 )
 
 // THE RULE THIS GUARDS (roadmap row 130): opening the profile of somebody
-// elsewhere reads them again when what was kept is more than a day old, so
+// elsewhere reads them again when what was kept is more than an hour old, so
 // that a change there (approving followers, or no longer) is seen here
 // without anybody knowing to look them up; and not more often than that.
 func TestAnOldProfileFromElsewhereIsReadAgain(t *testing.T) {
@@ -36,8 +36,8 @@ func TestAnOldProfileFromElsewhereIsReadAgain(t *testing.T) {
 		t.Error("a profile kept a moment ago was read again")
 	}
 
-	// Kept two days ago: read again, and her server says she approves them.
-	w.actors.kept[alice.NodeID].FetchedAt = time.Now().Add(-48 * time.Hour)
+	// Kept two hours ago: read again, and her server says she approves them.
+	w.actors.kept[alice.NodeID].FetchedAt = time.Now().Add(-2 * time.Hour)
 	rec = w.call(w.h.RefreshPerson, http.MethodPost, "/activitypub/people/"+id+"/refresh", "", anaID, "id", id)
 	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), `"refreshed":true`) {
 		t.Fatalf("old: %d %s", rec.Code, rec.Body)

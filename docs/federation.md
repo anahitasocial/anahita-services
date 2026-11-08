@@ -522,7 +522,7 @@ already.
 
 What their server says of them is read again when they change it and tell
 their followers' servers (`Update`), and, for everybody else, when their
-profile is opened here and what was kept is more than a day old
+profile is opened here and what was kept is more than an hour old
 (`POST /activitypub/people/:id/refresh`, which the web app asks): nobody has
 to know to look them up again.
 
