@@ -26,6 +26,15 @@ Releases before v1.0.17 are described on GitHub, under
    public registry serves. A site that already sets `newName` changes
    nothing.
 
+### Fixed
+
+1. **A person's own list of whom they blocked showed nobody:**
+   `GET /socialgraph/:actor_id/blocks/` answered with nobody, as the gate
+   that hides people blocked either way was applied to the list of them.
+   The list is now gated only by who may read it (anahita-web row 133).
+2. **An empty list of profiles is `[]`, not `null`,** in every answer that
+   lists them.
+
 ## v1.0.19 Birth, 2026-11-07
 
 ### Added

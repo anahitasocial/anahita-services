@@ -152,3 +152,39 @@ func ids(nodes []*entities.AnahitaNode) []int64 {
 	}
 	return out
 }
+
+// THE RULE THIS GUARDS: whom somebody blocked is in their own list of
+// blocks. The gate that hides everybody blocked either way once emptied it
+// (2026-11-08). Bob's profile is for his followers, as a block leaves it:
+// he is listed all the same.
+func TestOnesOwnBlocksAreListed(t *testing.T) {
+	db := accessTestDB(t)
+	seedBlockReach(t, db)
+	if _, err := db.Exec(`UPDATE nodes SET access = 'followers' WHERE id = 2`); err != nil {
+		t.Fatal(err)
+	}
+	graph := NewGraphRepo(db)
+
+	ana := entities.NewViewer()
+	ana.ID = 1
+	ana.PersonType = "registered"
+
+	req := &graphpb.BrowseNeighboursRequest{
+		NodeId: 1, EdgeTypes: []string{constants.EdgeBlockEntityType},
+		Direction: constants.GraphQueryDirectionOutbound, Limit: 20,
+	}
+	blocked, err := graph.BrowseNeighbours(req, ana)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(blocked) != 1 || blocked[0].ID != 2 {
+		t.Errorf("Ana's blocks %v", ids(blocked))
+	}
+	total, err := graph.CountNeighbours(req, ana)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if total != 1 {
+		t.Errorf("Ana's blocks counted %d", total)
+	}
+}

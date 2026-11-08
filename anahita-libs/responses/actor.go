@@ -228,8 +228,10 @@ func (r *ActorResponse) MapNodeItem(node *entities.AnahitaNode) *ActorNodeItem {
 	}
 }
 
+// MapNodeItems answers with an empty list, never nil, so that a list with
+// nobody in it is [] in JSON, not null.
 func (r *ActorResponse) MapNodeItems(actors []*entities.AnahitaNode) []*ActorNodeItem {
-	var items []*ActorNodeItem
+	items := make([]*ActorNodeItem, 0, len(actors))
 	for _, actor := range actors {
 		items = append(items, r.MapNodeItem(actor))
 	}

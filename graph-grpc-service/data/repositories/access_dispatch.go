@@ -93,11 +93,36 @@ func setNeighbourAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer, edgeT
 		viewer = entities.NewViewer()
 	}
 
+	// A list of whom a profile blocked is not gated at all. The gate hides
+	// everybody blocked either way, so it emptied the very list it was asked
+	// for: a person's own Blocked list answered with nobody (2026-11-08,
+	// roadmap row 133). A follower-only profile, its follow ended by the
+	// block, would have gone too. Who may read the list is socialgraph-
+	// service's to say (`permissions/blocks.go`, CanBrowse): the profile
+	// itself, its administrators, and site administrators.
+	if isOwnListEdges(edgeTypes) {
+		return sb
+	}
+
 	if isActorEdges(edgeTypes) {
 		return SetActorAccessQuery(sb, viewer)
 	}
 
 	return SetMediumAccessQuery(sb, viewer)
+}
+
+// isOwnListEdges reports whether these edges make a list that is only ever
+// read by the profile it belongs to: whom it blocked.
+func isOwnListEdges(edgeTypes []string) bool {
+	if len(edgeTypes) == 0 {
+		return false
+	}
+	for _, t := range edgeTypes {
+		if t != constants.EdgeBlockEntityType {
+			return false
+		}
+	}
+	return true
 }
 
 // isActorEdges reports whether these are edges between profiles only, so the
