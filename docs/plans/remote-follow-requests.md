@@ -21,10 +21,10 @@ Anahita?" Planned the same day.
    followed.** Following it makes a request to follow here, the edge local
    profiles already use (`edge.actor.follow-request.v1`), not a follow.
    It becomes a follow when their server accepts it.
-2. **The button stays "+ Follow".** A lock beside their handle, and a line
-   saying they approve their followers, say what it will do. Once asked, it
-   reads "Requested", as it does for a local profile, and pressing it again
-   takes the request back.
+2. **The button says "Request to follow",** as it does for a profile here
+   that is seen only by its followers, and as Mastodon says it. Once asked,
+   it reads "Requested", and pressing it again takes the request back. The
+   same labels, already in every language, for both (the user, 2026-11-07).
 3. **Only the fediverse.** Bluesky has no requests to follow.
 
 ## What there is now
@@ -75,10 +75,10 @@ Anahita?" Planned the same day.
    that stops approving its followers is followed outright next time; a
    request waiting for one that has stopped is accepted by their server in
    any case.
-7. **The web app:** a lock beside the handle of a profile that approves its
-   followers, with its title saying so; under the button, "Approves
-   followers" in `body2`; "Requested" after, using what local requests use.
-   Every string in every base language.
+7. **The web app:** "Request to follow", then "Requested", from what local
+   requests use (`controls/FollowRequest.jsx`, `actor:limited.request` and
+   `actor:limited.requested`), shown for a profile elsewhere that approves its
+   followers; nothing new to translate.
 
 ## Bluesky
 
@@ -100,8 +100,8 @@ approve. Nothing changes there.
    the activitypub service sending for requests and settling them, the
    migration; tested, and tried in the lab against GoToSocial with a profile
    that approves its followers: one session.
-2. **Web:** the lock, the line, "Requested"; tried at both sizes against the
-   lab: half a session.
+2. **Web:** "Request to follow" and "Requested" for those profiles; tried at
+   both sizes against the lab: half a session.
 3. **banu.io:** the migration rehearsed on a copy, then deployed; a pending
    follow there checked before and after.
 
