@@ -30,6 +30,16 @@ func asksToBeFollowed(n *entities.AnahitaNode) *entities.AnahitaNode {
 	return n
 }
 
+// Somebody on another server, public as everybody from elsewhere is;
+// approving their followers or not (roadmap row 130).
+func elsewhere(approves bool) *entities.AnahitaNode {
+	n := personNode(followTargetID, "public")
+	n.Type = constants.NodeActorActivityPubPersonEntityType
+	n.URI = "https://mastodon.example/users/data"
+	n.AllowFollowRequest = approves
+	return n
+}
+
 func TestCanFollow(t *testing.T) {
 	viewer := viewerAs(followViewerID)
 	me := personNode(followViewerID, "public")
@@ -57,6 +67,9 @@ func TestCanFollow(t *testing.T) {
 		{"somebody else, a group you only follow", &FollowContext{viewer, other, groupNode("public", "admins"), &entities.ActorRelation{IsLeading: true}, none}, false},
 		{"somebody else who is blocked by the group", &FollowContext{viewer, other, groupNode("public", "admins"), admin, blocked}, false},
 		{"a profile following itself", &FollowContext{viewer, me, me, none, none}, false},
+		// Row 130: somebody elsewhere who approves their followers is asked.
+		{"yourself, somebody elsewhere", &FollowContext{viewer, me, elsewhere(false), none, none}, true},
+		{"yourself, somebody elsewhere who approves their followers", &FollowContext{viewer, me, elsewhere(true), none, none}, false},
 		{"a guest", &FollowContext{entities.NewViewer(), me, personNode(followTargetID, "public"), none, none}, false},
 		{"nothing", nil, false},
 	}
@@ -123,6 +136,11 @@ func TestCanRequestToFollow(t *testing.T) {
 		{"on somebody else's behalf", &FollowContext{viewer, other, asked(), none, none}, false},
 		{"on somebody else's behalf, as a site administrator", &FollowContext{viewerWith(constants.PersonTypeAdmin), other, asked(), none, none}, false},
 		{"a guest", &FollowContext{entities.NewViewer(), me, asked(), none, none}, false},
+		// Row 130: public, and asked all the same, since their server waits
+		// for them to answer.
+		{"somebody elsewhere who approves their followers", &FollowContext{viewer, me, elsewhere(true), none, none}, true},
+		{"somebody elsewhere who does not", &FollowContext{viewer, me, elsewhere(false), none, none}, false},
+		{"somebody elsewhere you already follow", &FollowContext{viewer, me, elsewhere(true), none, &entities.ActorRelation{IsLeading: true}}, false},
 		// Public, and followed outright, whatever its column says.
 		{"a Website", &FollowContext{viewer, me, func() *entities.AnahitaNode {
 			website := asked()

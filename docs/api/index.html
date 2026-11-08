@@ -5099,11 +5099,11 @@ who may call it: somebody signed in.">
 </table>
 <p class="handler">Answered by <code>socialgraph/cmd/api/handlers.(*followRequestHandler).Delete</code></p>
 </details>
-<details class="route" id="postSocialgraphByTargetIdFollowersBySourceId" data-search="post /socialgraph/{target_id}/followers/{source_id} follow a profile `source_id` follows `target_id`: the viewer, or a follower a profile&#39;s administrator adds. answers with the profile followed. to a profile that is not open to the viewer, ask instead (`post .../follow-requests/...`).
+<details class="route" id="postSocialgraphByTargetIdFollowersBySourceId" data-search="post /socialgraph/{target_id}/followers/{source_id} follow a profile `source_id` follows `target_id`: the viewer, or a follower a profile&#39;s administrator adds. answers with the profile followed. to a profile that is not open to the viewer, or to somebody elsewhere who approves their followers, ask instead (`post .../follow-requests/...`).
 
 who may call it: somebody signed in.">
 <summary><span class="method post">POST</span> <code class="path">/socialgraph/{target_id}/followers/{source_id}</code> <span class="summary">Follow a profile</span></summary>
-<div class="description"><p><code>source_id</code> follows <code>target_id</code>: the viewer, or a follower a profile&#39;s administrator adds. Answers with the profile followed. To a profile that is not open to the viewer, ask instead (<code>POST .../follow-requests/...</code>).</p></div>
+<div class="description"><p><code>source_id</code> follows <code>target_id</code>: the viewer, or a follower a profile&#39;s administrator adds. Answers with the profile followed. To a profile that is not open to the viewer, or to somebody elsewhere who approves their followers, ask instead (<code>POST .../follow-requests/...</code>).</p></div>
 <p class="who"><strong>Who:</strong> somebody signed in</p>
 <h4>Takes</h4>
 <table>
@@ -10564,7 +10564,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-ActorNodeItem" data-search="actornodeitem access alias allow_download allow_follow_request archived_at author avatar_urls body cover_urls created_at deleted_at enabled event featured_at follower_count id is_admined_by_viewer is_blocked_by_viewer is_following_viewer is_invited is_leading_viewer leader_count name origin_domain quote_policy show_reposts_on_profile type uri verified website_url">
+<div class="route schema" id="schema-ActorNodeItem" data-search="actornodeitem access alias allow_download allow_follow_request archived_at author avatar_urls body cover_urls created_at deleted_at enabled event featured_at follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer leader_count name origin_domain quote_policy show_reposts_on_profile type uri verified website_url">
 <h3>ActorNodeItem</h3>
 <p>A profile: a person, a group or an event.</p>
 <table>
@@ -10588,6 +10588,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td>Its id.</td></tr>
 <tr><td><code>is_admined_by_viewer</code></td><td>boolean</td><td>Whether the viewer is one of its administrators.</td></tr>
 <tr><td><code>is_blocked_by_viewer</code></td><td>boolean</td><td>Whether the viewer has blocked it.</td></tr>
+<tr><td><code>is_follow_requested_by_viewer</code></td><td>boolean</td><td>Whether the viewer has asked to follow it and is waiting for an answer: a profile that approves its followers, here or elsewhere.</td></tr>
 <tr><td><code>is_following_viewer</code></td><td>boolean</td><td>Whether it follows the viewer.</td></tr>
 <tr><td><code>is_invited</code></td><td>boolean</td><td>Whether the viewer has been invited to follow this actor and is yet to answer.</td></tr>
 <tr><td><code>is_leading_viewer</code></td><td>boolean</td><td>Whether the viewer follows it.</td></tr>
@@ -11601,7 +11602,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-actor.EventNode" data-search="actor.eventnode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled event featured_at features follower_count id is_admined_by_viewer is_blocked_by_viewer is_following_viewer is_invited is_leading_viewer leader_count name origin_domain permissions show_reposts_on_profile type updated_at uri verified website_url">
+<div class="route schema" id="schema-actor.EventNode" data-search="actor.eventnode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled event featured_at features follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer leader_count name origin_domain permissions show_reposts_on_profile type updated_at uri verified website_url">
 <h3>actor.EventNode</h3>
 <p>An event, as it is sent: a group with a time and a place, and <code>event</code> saying when it is, how many may go and are going, and what the viewer answered.</p>
 <table>
@@ -11629,6 +11630,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td>Its id.</td></tr>
 <tr><td><code>is_admined_by_viewer</code></td><td>boolean</td><td>Whether the viewer is one of its administrators.</td></tr>
 <tr><td><code>is_blocked_by_viewer</code></td><td>boolean</td><td>Whether the viewer has blocked it.</td></tr>
+<tr><td><code>is_follow_requested_by_viewer</code></td><td>boolean</td><td>Whether the viewer has asked to follow it and is waiting for an answer: a profile that approves its followers, here or elsewhere.</td></tr>
 <tr><td><code>is_following_viewer</code></td><td>boolean</td><td>Whether it follows the viewer.</td></tr>
 <tr><td><code>is_invited</code></td><td>boolean</td><td>Whether the viewer has been invited to follow this actor and is yet to answer.</td></tr>
 <tr><td><code>is_leading_viewer</code></td><td>boolean</td><td>Whether the viewer follows it.</td></tr>
@@ -11659,7 +11661,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-actor.GroupNode" data-search="actor.groupnode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count id is_admined_by_viewer is_blocked_by_viewer is_following_viewer is_invited is_leading_viewer leader_count name origin_domain permissions show_reposts_on_profile type updated_at uri verified website_url">
+<div class="route schema" id="schema-actor.GroupNode" data-search="actor.groupnode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer leader_count name origin_domain permissions show_reposts_on_profile type updated_at uri verified website_url">
 <h3>actor.GroupNode</h3>
 <p>A group, as it is sent: followed by people, looked after by its admins, and able to host events.</p>
 <table>
@@ -11686,6 +11688,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td>Its id.</td></tr>
 <tr><td><code>is_admined_by_viewer</code></td><td>boolean</td><td>Whether the viewer is one of its administrators.</td></tr>
 <tr><td><code>is_blocked_by_viewer</code></td><td>boolean</td><td>Whether the viewer has blocked it.</td></tr>
+<tr><td><code>is_follow_requested_by_viewer</code></td><td>boolean</td><td>Whether the viewer has asked to follow it and is waiting for an answer: a profile that approves its followers, here or elsewhere.</td></tr>
 <tr><td><code>is_following_viewer</code></td><td>boolean</td><td>Whether it follows the viewer.</td></tr>
 <tr><td><code>is_invited</code></td><td>boolean</td><td>Whether the viewer has been invited to follow this actor and is yet to answer.</td></tr>
 <tr><td><code>is_leading_viewer</code></td><td>boolean</td><td>Whether the viewer follows it.</td></tr>
@@ -11729,7 +11732,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-actor.PersonNode" data-search="actor.personnode access alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count id is_admined_by_viewer is_blocked_by_viewer is_following_viewer is_invited is_leading_viewer language leader_count name origin_domain permissions person_pronouns person_type quote_policy show_reposts_on_profile type updated_at uri verified website_url">
+<div class="route schema" id="schema-actor.PersonNode" data-search="actor.personnode access alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer language leader_count name origin_domain permissions person_pronouns person_type quote_policy show_reposts_on_profile type updated_at uri verified website_url">
 <h3>actor.PersonNode</h3>
 <p>A person, as they are sent: what every profile has, and their account type, pronouns and language.</p>
 <table>
@@ -11755,6 +11758,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td>Its id.</td></tr>
 <tr><td><code>is_admined_by_viewer</code></td><td>boolean</td><td>Whether the viewer is one of its administrators.</td></tr>
 <tr><td><code>is_blocked_by_viewer</code></td><td>boolean</td><td>Whether the viewer has blocked it.</td></tr>
+<tr><td><code>is_follow_requested_by_viewer</code></td><td>boolean</td><td>Whether the viewer has asked to follow it and is waiting for an answer: a profile that approves its followers, here or elsewhere.</td></tr>
 <tr><td><code>is_following_viewer</code></td><td>boolean</td><td>Whether it follows the viewer.</td></tr>
 <tr><td><code>is_invited</code></td><td>boolean</td><td>Whether the viewer has been invited to follow this actor and is yet to answer.</td></tr>
 <tr><td><code>is_leading_viewer</code></td><td>boolean</td><td>Whether the viewer follows it.</td></tr>
@@ -11810,7 +11814,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-actor.WebsiteNode" data-search="actor.websitenode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count id is_admined_by_viewer is_blocked_by_viewer is_following_viewer is_invited is_leading_viewer leader_count name origin_domain permissions show_reposts_on_profile type updated_at uri verified website_url">
+<div class="route schema" id="schema-actor.WebsiteNode" data-search="actor.websitenode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer leader_count name origin_domain permissions show_reposts_on_profile type updated_at uri verified website_url">
 <h3>actor.WebsiteNode</h3>
 <p>A website, as it is sent: a site&#39;s feed, followed as a profile, whose domain was proved when it was connected.</p>
 <table>
@@ -11837,6 +11841,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td>Its id.</td></tr>
 <tr><td><code>is_admined_by_viewer</code></td><td>boolean</td><td>Whether the viewer is one of its administrators.</td></tr>
 <tr><td><code>is_blocked_by_viewer</code></td><td>boolean</td><td>Whether the viewer has blocked it.</td></tr>
+<tr><td><code>is_follow_requested_by_viewer</code></td><td>boolean</td><td>Whether the viewer has asked to follow it and is waiting for an answer: a profile that approves its followers, here or elsewhere.</td></tr>
 <tr><td><code>is_following_viewer</code></td><td>boolean</td><td>Whether it follows the viewer.</td></tr>
 <tr><td><code>is_invited</code></td><td>boolean</td><td>Whether the viewer has been invited to follow this actor and is yet to answer.</td></tr>
 <tr><td><code>is_leading_viewer</code></td><td>boolean</td><td>Whether the viewer follows it.</td></tr>

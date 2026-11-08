@@ -33,8 +33,11 @@ type MissedInterface interface {
 	// Follows of somebody elsewhere that are in the graph and that the
 	// other server was never asked about.
 	FollowsNotAsked(olderThan time.Time, limit int) ([]Pair, error)
+	// Requests to follow somebody elsewhere who approves their followers,
+	// in the graph, that their server was never sent (roadmap row 130).
+	RequestsNotAsked(olderThan time.Time, limit int) ([]Pair, error)
 	// Follows the other server was asked about that are no longer in the
-	// graph.
+	// graph, as a follow or as a request still waiting.
 	FollowsGone(limit int) ([]Pair, error)
 	// Follows kept between two people one of whom blocks the other: a
 	// block ends them, and these were left from before that was so, or
@@ -89,11 +92,23 @@ func (repo *Missed) FollowsNotAsked(olderThan time.Time, limit int) ([]Pair, err
 		olderThan, limit)
 }
 
+// RequestsNotAsked is FollowsNotAsked for a request: the same pairs, of
+// the request's edge.
+func (repo *Missed) RequestsNotAsked(olderThan time.Time, limit int) ([]Pair, error) {
+	return repo.pairs(followsNotAsked,
+		constants.EdgeFollowRequestEntityType,
+		constants.NodeActorActivityPubPersonEntityType,
+		constants.NodeActorActivityPubPersonEntityType,
+		olderThan, limit)
+}
+
+// A request still waiting is not gone: it has a record and no follow, until
+// the other server's Accept makes one (roadmap row 130).
 const followsGone = `
 SELECT asked.local_id, asked.remote_id
 FROM activitypub_follows AS asked
 LEFT JOIN edges AS follow
-       ON follow.type = ?
+       ON follow.type IN (?, ?)
       AND follow.node_a_id = asked.local_id
       AND follow.node_b_id = asked.remote_id
 WHERE asked.direction = 'out'
@@ -102,7 +117,7 @@ ORDER BY asked.id
 LIMIT ?`
 
 func (repo *Missed) FollowsGone(limit int) ([]Pair, error) {
-	return repo.pairs(followsGone, constants.EdgeFollowEntityType, limit)
+	return repo.pairs(followsGone, constants.EdgeFollowEntityType, constants.EdgeFollowRequestEntityType, limit)
 }
 
 const followsBlocked = `

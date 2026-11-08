@@ -85,6 +85,9 @@ type ActorNodeItem struct {
 	LeaderCount int64 `json:"leader_count,omitempty"`
 	// Whether the viewer follows it.
 	IsLeadingViewer bool `json:"is_leading_viewer,omitempty"`
+	// Whether the viewer has asked to follow it and is waiting for an
+	// answer: a profile that approves its followers, here or elsewhere.
+	IsFollowRequestedByViewer bool `json:"is_follow_requested_by_viewer,omitempty"`
 	// Whether the viewer is one of its administrators.
 	IsAdminedByViewer bool `json:"is_admined_by_viewer,omitempty"`
 	// Whether it follows the viewer.
@@ -201,14 +204,15 @@ func (r *ActorResponse) MapNodeItem(node *entities.AnahitaNode) *ActorNodeItem {
 			}
 			return nil
 		}(),
-		FollowerCount:     node.FollowerCount,
-		LeaderCount:       node.LeaderCount,
-		IsLeadingViewer:   node.IsLeadingViewer,
-		IsAdminedByViewer: node.IsAdminedByViewer,
-		IsFollowingViewer: node.IsFollowingViewer,
-		IsBlockedByViewer: node.IsBlockedByViewer,
-		IsInvited:         node.IsInvitedViewer,
-		Event:             NewEvent(node),
+		FollowerCount:             node.FollowerCount,
+		LeaderCount:               node.LeaderCount,
+		IsLeadingViewer:           node.IsLeadingViewer,
+		IsFollowRequestedByViewer: node.IsFollowRequestedByViewer,
+		IsAdminedByViewer:         node.IsAdminedByViewer,
+		IsFollowingViewer:         node.IsFollowingViewer,
+		IsBlockedByViewer:         node.IsBlockedByViewer,
+		IsInvited:                 node.IsInvitedViewer,
+		Event:                     NewEvent(node),
 		Avatar: func() map[string]Image {
 			if node.Avatar != nil {
 				return NewAvatar(node.Avatar)

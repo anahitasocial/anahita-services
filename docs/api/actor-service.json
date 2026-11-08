@@ -204,6 +204,10 @@
             "description": "Whether the viewer has blocked it.",
             "type": "boolean"
           },
+          "is_follow_requested_by_viewer": {
+            "description": "Whether the viewer has asked to follow it and is waiting for an answer: a profile that approves its followers, here or elsewhere.",
+            "type": "boolean"
+          },
           "is_following_viewer": {
             "description": "Whether it follows the viewer.",
             "type": "boolean"
@@ -1634,6 +1638,10 @@
             "description": "Whether the viewer has blocked it.",
             "type": "boolean"
           },
+          "is_follow_requested_by_viewer": {
+            "description": "Whether the viewer has asked to follow it and is waiting for an answer: a profile that approves its followers, here or elsewhere.",
+            "type": "boolean"
+          },
           "is_following_viewer": {
             "description": "Whether it follows the viewer.",
             "type": "boolean"
@@ -1837,6 +1845,10 @@
           },
           "is_blocked_by_viewer": {
             "description": "Whether the viewer has blocked it.",
+            "type": "boolean"
+          },
+          "is_follow_requested_by_viewer": {
+            "description": "Whether the viewer has asked to follow it and is waiting for an answer: a profile that approves its followers, here or elsewhere.",
             "type": "boolean"
           },
           "is_following_viewer": {
@@ -2066,6 +2078,10 @@
           },
           "is_blocked_by_viewer": {
             "description": "Whether the viewer has blocked it.",
+            "type": "boolean"
+          },
+          "is_follow_requested_by_viewer": {
+            "description": "Whether the viewer has asked to follow it and is waiting for an answer: a profile that approves its followers, here or elsewhere.",
             "type": "boolean"
           },
           "is_following_viewer": {
@@ -2327,6 +2343,10 @@
           },
           "is_blocked_by_viewer": {
             "description": "Whether the viewer has blocked it.",
+            "type": "boolean"
+          },
+          "is_follow_requested_by_viewer": {
+            "description": "Whether the viewer has asked to follow it and is waiting for an answer: a profile that approves its followers, here or elsewhere.",
             "type": "boolean"
           },
           "is_following_viewer": {

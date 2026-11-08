@@ -303,12 +303,6 @@ func (h *Handlers) answered(from *remote.Actor, activity *ap.Activity, yes bool)
 		return nil
 	}
 
-	if yes {
-		follow.State = repositories.FollowAccepted
-		return h.Follows.Save(follow)
-	}
-
-	// Told no, or dropped later: the follow here is taken away.
 	follower, err := h.Nodes.Read(follow.LocalID)
 	if err != nil || follower == nil {
 		return err
@@ -317,6 +311,38 @@ func (h *Handlers) answered(from *remote.Actor, activity *ap.Activity, yes bool)
 	if err != nil || followed == nil {
 		return err
 	}
+	// Whether it was asked, not followed: somebody who approves their
+	// followers (roadmap row 130). Their answer settles the request here.
+	asked := false
+	if relation, err := h.Relations.Read(followed.ID, follower.ID); err == nil && relation != nil {
+		asked = relation.HasRequested
+	}
+
+	if yes {
+		follow.State = repositories.FollowAccepted
+		if err := h.Follows.Save(follow); err != nil || !asked {
+			return err
+		}
+		// Accepted first, so that the request's going is not taken for its
+		// being taken back and answered with an Undo (localUnasked). The
+		// graph's accept makes the follow, counts it, and tells whoever
+		// asked.
+		viewer := entities.NewViewer()
+		viewer.ID = followed.ID
+		accept := services.NewSocialgraphFollowRequest().Edit
+		accept.Source, accept.Target, accept.Viewer = follower, followed, viewer
+		accept.AcceptFollowRequest = true
+		if err := h.FollowEdges.Edit(accept); err != nil {
+			return err
+		}
+		// What they posted lately, now that it may be seen. Not waited for.
+		if kept, err := h.Actors.ReadByNode(followed.ID); err == nil && kept != nil {
+			h.later(func() { h.backfill(kept) })
+		}
+		return nil
+	}
+
+	// Told no, or dropped later: the follow, or the request, is taken away.
 	// Forgotten first, so that the follow's going is not taken for the
 	// person here unfollowing, and answered with an Undo.
 	if err := h.Follows.Delete(follow.LocalID, follow.RemoteID, repositories.FollowOut); err != nil {
@@ -326,6 +352,7 @@ func (h *Handlers) answered(from *remote.Actor, activity *ap.Activity, yes bool)
 	viewer.ID = follower.ID
 	remove := services.NewSocialgraphFollowRequest().Delete
 	remove.Source, remove.Target, remove.Viewer = follower, followed, viewer
+	remove.IsFollowRequest = asked
 	return h.FollowEdges.Delete(remove)
 }
 

@@ -67,7 +67,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 
 	socialgraph.POST("/:target_id/followers/:source_id", r.handler.Follower.Add, r.authorize).
 		Summary("Follow a profile").
-		Describe("`source_id` follows `target_id`: the viewer, or a follower a profile's administrator adds. Answers with the profile followed. To a profile that is not open to the viewer, ask instead (`POST .../follow-requests/...`).").
+		Describe("`source_id` follows `target_id`: the viewer, or a follower a profile's administrator adds. Answers with the profile followed. To a profile that is not open to the viewer, or to somebody elsewhere who approves their followers, ask instead (`POST .../follow-requests/...`).").
 		Viewer(apidoc.SignedIn).
 		Takes(sg.Add).
 		Sends(http.StatusCreated, responses.ActorNodeItem{}).

@@ -15,6 +15,7 @@ import (
 // sweep that puts something right must not put it right again.
 type fakeMissed struct {
 	notAsked, gone       []repositories.Pair
+	requestsNotAsked     []repositories.Pair
 	blocked              []repositories.Pair
 	notesNotSent, people []int64
 	notesGone            []int64
@@ -23,6 +24,9 @@ type fakeMissed struct {
 
 func (f *fakeMissed) FollowsNotAsked(time.Time, int) ([]repositories.Pair, error) {
 	return f.notAsked, nil
+}
+func (f *fakeMissed) RequestsNotAsked(time.Time, int) ([]repositories.Pair, error) {
+	return f.requestsNotAsked, nil
 }
 func (f *fakeMissed) FollowsGone(int) ([]repositories.Pair, error)    { return f.gone, nil }
 func (f *fakeMissed) FollowsBlocked(int) ([]repositories.Pair, error) { return f.blocked, nil }

@@ -54,6 +54,8 @@ func SetViewerRelations(relations RelationReader, nodes []*entities.AnahitaNode,
 			// actor follows the viewer.
 			node.IsLeadingViewer = rel.IsLeading
 			node.IsFollowingViewer = rel.IsFollowing
+			// HasRequested: the viewer asked to follow the actor.
+			node.IsFollowRequestedByViewer = rel.HasRequested
 		}
 	}
 }

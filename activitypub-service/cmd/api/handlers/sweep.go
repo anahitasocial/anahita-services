@@ -94,6 +94,13 @@ func (h *Handlers) Sweep(ctx context.Context, now time.Time) Swept {
 		return h.localFollowed(ctx, pair.LocalID, pair.RemoteID)
 	})
 
+	// The same for a request to follow somebody who approves their
+	// followers (roadmap row 130).
+	found, err = h.Missed.RequestsNotAsked(now.Add(-sweepGrace), sweepBatch)
+	swept.Follows += each("requests not asked", found, err, func(pair repositories.Pair) error {
+		return h.localAsked(ctx, pair.LocalID, pair.RemoteID)
+	})
+
 	// Somebody here stopped following somebody elsewhere, and that server
 	// still thinks they follow.
 	found, err = h.Missed.FollowsGone(sweepBatch)

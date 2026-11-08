@@ -392,10 +392,10 @@ socialgraph-service asks them.
 
 | Action | Who |
 | --- | --- |
-| Follow a profile | Yourself, a profile you can see, and that has not blocked you |
+| Follow a profile | Yourself, a profile you can see, and that has not blocked you; not somebody elsewhere who approves their followers, who is asked |
 | Unfollow | Always yours to do, whether or not you can still see the profile |
 | Remove a follower | Whoever looks after the profile: the person, a group's administrators, a site administrator |
-| Ask to follow | Yourself, of a profile that lets people ask and has not blocked you, when you do not follow it already |
+| Ask to follow | Yourself, of a profile that lets people ask, or somebody elsewhere who approves their followers, that has not blocked you, when you do not follow it already |
 | Accept a request | Whoever looks after the profile that was asked |
 | Ignore a request, or take it back | Whoever looks after the profile, or whoever asked |
 
@@ -418,7 +418,10 @@ asks before it is sent.
 Asking does not need you to be able to see the profile. A profile you can see,
 you can follow outright; the ones worth asking are the ones you cannot.
 "Others can request to follow" (`allow_follow_request`) is the profile saying
-it may be asked, and it can be turned off again.
+it may be asked, and it can be turned off again. On somebody from another
+server, the same column says that their server approves their followers
+(`manuallyApprovesFollowers`): they are public, and asked all the same,
+since their server holds a follow until they answer ([Federation](federation.md#following-somebody-on-another-server)).
 
 A request is an edge of its own, `edge.actor.follow-request.v1`, and is not
 counted among followers. Accepting removes it and makes the follow. Following

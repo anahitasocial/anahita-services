@@ -475,6 +475,11 @@ func (r *nodesRepo) addRemote(ctx context.Context, node *entities.AnahitaNode) (
 	if node.CoverFilename != "" {
 		columns["cover_filename"] = node.CoverFilename
 	}
+	// A profile elsewhere that approves its followers is asked, not
+	// followed (roadmap row 130).
+	if IsRemoteActorType(node.Type) {
+		columns["allow_follow_request"] = node.AllowFollowRequest
+	}
 	if !IsRemoteActorType(node.Type) {
 		columns["owner_id"] = nullableID(node.OwnerID)
 		columns["owner_type"] = node.OwnerType
@@ -526,6 +531,11 @@ func (r *nodesRepo) editRemote(ctx context.Context, id int64, node *entities.Ana
 	}
 	if node.CoverFilename != "" {
 		columns["cover_filename"] = node.CoverFilename
+	}
+	// Whether they approve their followers, as their server says now: it
+	// can be changed there at any time (roadmap row 130).
+	if IsRemoteActorType(node.Type) {
+		columns["allow_follow_request"] = node.AllowFollowRequest
 	}
 
 	query, args, err := sq.Update("nodes").SetMap(columns).

@@ -62,6 +62,14 @@ func CanFollow(ctx *FollowContext) bool {
 		return false
 	}
 
+	// Somebody elsewhere who approves their followers is asked, never
+	// followed outright: their server would hold the follow until they
+	// answered, and it would read here as one already made (roadmap row
+	// 130).
+	if ctx.Target.IsRemote() && ctx.Target.AllowFollowRequest {
+		return false
+	}
+
 	if ok, _ := NewActorPermissions().CanRead(&ActorAccessContext{
 		Viewer:         ctx.Viewer,
 		Actor:          ctx.Target,

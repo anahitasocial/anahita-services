@@ -3,7 +3,11 @@
 Asked for by the user on 2026-11-07: "some profiles on Mastodon require
 request to follow, but on Anahita, their profile shows only Follow. Is there
 a way to detect a Request to follow on Mastodon and display it correctly on
-Anahita?" Planned the same day.
+Anahita?" Planned the same day. **Done the same day:** built as below, with
+one change to the plan: the column the rules already read,
+`allow_follow_request`, carries it, not a new one; tried against a real
+Mastodon account on mastodon.world from the development stack, asked,
+waiting, and accepted.
 
 ## Contents
 
@@ -35,7 +39,7 @@ Anahita?" Planned the same day.
    `data/repositories/actors.go`), and returned by the lookup. The graph does
    not know it, and a profile's page does not show it.
 2. **The follow is made at once, and settled later**
-   ([federation.md](federation.md), "Following from here"). Pressing Follow
+   ([federation.md](../federation.md), "Following from here"). Pressing Follow
    makes the follow edge; `events.go` hears `edge.follow.*.added` and sends
    `Follow`, recorded as `pending`; `Accept` marks it `accepted`, and
    `Reject` takes the follow away (`inbox.go`, `answered`).
@@ -54,9 +58,12 @@ Anahita?" Planned the same day.
 
 1. **The graph knows a profile is locked.** Kept on the remote profile's
    node when the activitypub service saves them (`keep`), and refreshed with
-   them. A column of its own (`approves_followers`), not
-   `allow_follow_request`, which means a local profile that is private but
-   may be asked.
+   them, in `allow_follow_request`: built so, where a column of its own
+   (`approves_followers`) was planned. For a profile here it says that it
+   may be asked; for one from elsewhere, which is public, that it must be;
+   either way asking is how it is followed, and the rules that read it
+   needed no change but one: following such a profile elsewhere outright is
+   refused (`permissions.CanFollow`).
 2. **Following a locked profile makes a request.** socialgraph-service's
    follow, for a remote target that approves its followers, adds the request
    edge instead of the follow; `is_follow_requested_by_viewer` is then true.
@@ -68,17 +75,23 @@ Anahita?" Planned the same day.
    are as for a local one, and nobody here is notified of a follow they
    made. `Reject` removes the request.
 5. **Follows already pending** on a site, when this is deployed, are turned
-   into requests by a migration: an outgoing follow still `pending`, to a
-   profile that approves its followers, becomes the request edge, and the
-   counts are made again. Rehearsed on a copy of banu.io's data first.
-6. **A profile that changes its mind** is read again as it is today: one
+   into requests by a migration (`20261122000012`): an outgoing follow still
+   `pending`, to a profile that approves its followers, becomes the request
+   edge, and the counts are made again. Rehearsed in a transaction on the
+   development database, rolled back, then run.
+6. **The sweep** (`missed.go`) asks again about a request whose news the bus
+   lost, and does not take a request still waiting for a follow that is
+   gone.
+7. **A profile that changes its mind** is read again as it is today: one
    that stops approving its followers is followed outright next time; a
    request waiting for one that has stopped is accepted by their server in
    any case.
-7. **The web app:** "Request to follow", then "Requested", from what local
-   requests use (`controls/FollowRequest.jsx`, `actor:limited.request` and
-   `actor:limited.requested`), shown for a profile elsewhere that approves its
-   followers; nothing new to translate.
+8. **The web app:** "Request to follow", then "Requested", in the Follow
+   control itself (`controls/Follow.jsx`), so that it keeps its sizes and its
+   place in menus, with the words local requests use (`actor:limited.request`
+   and `actor:limited.requested`), for a profile elsewhere that approves its
+   followers; nothing new to translate. Profiles and lists say
+   `is_follow_requested_by_viewer`.
 
 ## Bluesky
 
@@ -89,7 +102,7 @@ approve. Nothing changes there.
 
 1. **Approving followers from elsewhere** for a profile here. A public
    profile is followed by anybody, here or elsewhere
-   ([federation.md](federation.md), "Nobody on the fediverse approves their
+   ([federation.md](../federation.md), "Nobody on the fediverse approves their
    followers").
 2. **Requests that wait for ever.** A request is kept until it is answered
    or taken back, as Mastodon keeps it.
@@ -107,8 +120,8 @@ approve. Nothing changes there.
 
 ## Documentation
 
-1. anahita-services: [federation.md](federation.md) "Following from here",
-   [`docs/permissions.md`](../permissions.md#following), the API reference
+1. anahita-services: [federation.md](../federation.md) "Following from here",
+   [`docs/permissions.md`](../../permissions.md#following), the API reference
    for the profile's new field, `CHANGELOG.md`.
 2. anahita-web: `docs/` where a profile's follow button is described,
    `CHANGELOG.md`.

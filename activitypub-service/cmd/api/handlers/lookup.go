@@ -217,6 +217,10 @@ func (h *Handlers) keep(actor *remote.Actor) (*entities.AnahitaNode, error) {
 	node.Body = actor.Bio
 	// Their page on their own server: where they are looked at in full.
 	node.WebsiteURL = actor.Page
+	// They approve their followers (`manuallyApprovesFollowers`): following
+	// them is asking, and the request waits for their server's answer
+	// (roadmap row 130).
+	node.AllowFollowRequest = actor.Locked
 
 	// What was known of them before, to tell whether their picture changed.
 	before, _ := h.Actors.ReadByURI(actor.ID)

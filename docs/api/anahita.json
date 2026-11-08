@@ -204,6 +204,10 @@
             "description": "Whether the viewer has blocked it.",
             "type": "boolean"
           },
+          "is_follow_requested_by_viewer": {
+            "description": "Whether the viewer has asked to follow it and is waiting for an answer: a profile that approves its followers, here or elsewhere.",
+            "type": "boolean"
+          },
           "is_following_viewer": {
             "description": "Whether it follows the viewer.",
             "type": "boolean"
@@ -3164,6 +3168,10 @@
             "description": "Whether the viewer has blocked it.",
             "type": "boolean"
           },
+          "is_follow_requested_by_viewer": {
+            "description": "Whether the viewer has asked to follow it and is waiting for an answer: a profile that approves its followers, here or elsewhere.",
+            "type": "boolean"
+          },
           "is_following_viewer": {
             "description": "Whether it follows the viewer.",
             "type": "boolean"
@@ -3367,6 +3375,10 @@
           },
           "is_blocked_by_viewer": {
             "description": "Whether the viewer has blocked it.",
+            "type": "boolean"
+          },
+          "is_follow_requested_by_viewer": {
+            "description": "Whether the viewer has asked to follow it and is waiting for an answer: a profile that approves its followers, here or elsewhere.",
             "type": "boolean"
           },
           "is_following_viewer": {
@@ -3596,6 +3608,10 @@
           },
           "is_blocked_by_viewer": {
             "description": "Whether the viewer has blocked it.",
+            "type": "boolean"
+          },
+          "is_follow_requested_by_viewer": {
+            "description": "Whether the viewer has asked to follow it and is waiting for an answer: a profile that approves its followers, here or elsewhere.",
             "type": "boolean"
           },
           "is_following_viewer": {
@@ -3857,6 +3873,10 @@
           },
           "is_blocked_by_viewer": {
             "description": "Whether the viewer has blocked it.",
+            "type": "boolean"
+          },
+          "is_follow_requested_by_viewer": {
+            "description": "Whether the viewer has asked to follow it and is waiting for an answer: a profile that approves its followers, here or elsewhere.",
             "type": "boolean"
           },
           "is_following_viewer": {
@@ -33034,7 +33054,7 @@
         "x-viewer": "signed_in"
       },
       "post": {
-        "description": "`source_id` follows `target_id`: the viewer, or a follower a profile's administrator adds. Answers with the profile followed. To a profile that is not open to the viewer, ask instead (`POST .../follow-requests/...`).\n\nWho may call it: somebody signed in.",
+        "description": "`source_id` follows `target_id`: the viewer, or a follower a profile's administrator adds. Answers with the profile followed. To a profile that is not open to the viewer, or to somebody elsewhere who approves their followers, ask instead (`POST .../follow-requests/...`).\n\nWho may call it: somebody signed in.",
         "operationId": "postSocialgraphByTargetIdFollowersBySourceId",
         "parameters": [
           {

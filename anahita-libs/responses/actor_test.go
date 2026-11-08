@@ -62,6 +62,7 @@ func fullyPopulatedNode() *entities.AnahitaNode {
 	n.FollowerCount = 3
 	n.LeaderCount = 4
 	n.IsLeadingViewer = true
+	n.IsFollowRequestedByViewer = true
 	n.IsAdminedByViewer = true
 	n.IsFollowingViewer = true
 	n.IsBlockedByViewer = true

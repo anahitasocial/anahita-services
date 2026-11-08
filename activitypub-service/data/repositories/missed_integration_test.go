@@ -102,6 +102,24 @@ VALUES (?, ?, ?, ?, 'accepted', ?, ?)`, local, far, direction, fmt.Sprintf("a-%d
 		t.Errorf("follows gone: %v (%v)", gone, err)
 	}
 
+	// Requests to somebody who approves their followers (roadmap row 130).
+	// Ana > 14 was never sent; Ana > 15 was, and waits for an answer: it
+	// is not gone, though there is no follow.
+	request := func(a, b int64) {
+		exec(`INSERT INTO edges (type, node_a_id, node_a_type, node_b_id, node_b_type, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
+			constants.EdgeFollowRequestEntityType, a, person, b, remote, hour(1))
+	}
+	request(ana, 14)
+	request(ana, 15)
+	asked(ana, 15, "out")
+	requests, err := repo.RequestsNotAsked(now.Add(-2*time.Minute), 50)
+	if err != nil || fmt.Sprint(requests) != "[{1 14}]" {
+		t.Errorf("requests not asked: %v (%v)", requests, err)
+	}
+	if gone, err = repo.FollowsGone(50); err != nil || fmt.Sprint(gone) != "[{1 12}]" {
+		t.Errorf("a request waiting was taken for a follow gone: %v (%v)", gone, err)
+	}
+
 	// Notes. 100 is the one that was lost.
 	note := constants.NodeMediumNoteEntityType
 	node(100, note, ana, ana, "public", 1, hour(3), nil)

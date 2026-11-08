@@ -501,8 +501,24 @@ happened and asks the other server, with a signed `Follow`.
 | --- | --- |
 | The other server says yes (`Accept`) | The follow stands. It is recorded as accepted |
 | It says no (`Reject`), then or later | The follow here is taken away |
-| It says nothing yet (the person there approves their followers) | The follow is there and recorded as pending. What that person posts will not arrive until they say yes |
 | The person here unfollows | The other server is sent an `Undo`, quoting the follow |
+
+**Somebody who approves their followers is asked, not followed** (anahita-web
+roadmap row 130). Their server says so in `manuallyApprovesFollowers`, which
+is kept on their profile here as `allow_follow_request`, from the last time
+it was fetched. The button says "Request to follow", then "Requested", as it
+does for a profile here seen only by its followers, and the follow rules
+refuse following them outright.
+
+| Then | What happens here |
+| --- | --- |
+| The request is made | A request, not a follow: not counted among their followers. Their server is sent the same `Follow` as for anybody, recorded as pending |
+| They say yes (`Accept`) | The follow is recorded as accepted, then the graph's own accept turns the request into a follow: counted, and whoever asked is told by a notification. Their recent posts are fetched |
+| They say no (`Reject`) | The request is taken away |
+| The person here takes the request back | Their server is sent an `Undo`, quoting the `Follow` |
+
+Their server may say yes at once, to somebody it counts as a follower
+already.
 
 - **Only somebody who is on the fediverse can follow across it.** The other
   server has to be able to find out who is asking. A follow of somebody
@@ -515,6 +531,8 @@ happened and asks the other server, with a signed `Follow`.
 - **The bus can lose a message.** A follow the other server was never asked
   about stays as it is here and carries nothing, until
   [the sweep](#what-the-bus-lost) finds it, within a few minutes, and asks.
+  The same for a request; and a request still waiting is not taken for a
+  follow that is gone.
 
 ## Posts going out
 

@@ -12,6 +12,26 @@ Releases before v1.0.17 are described on GitHub, under
 
 ## Embryo
 
+### Added
+
+1. **Asking to follow somebody elsewhere who approves their followers**
+   (anahita-web row 130): their `manuallyApprovesFollowers` is kept on their
+   profile as `allow_follow_request`; following them is a request, sent as
+   a `Follow`, made a follow by their `Accept` through the graph's own
+   accept, and taken away by their `Reject`; taking it back sends an
+   `Undo`; the sweep asks again about a request whose news the bus lost.
+   Profiles say `is_follow_requested_by_viewer`
+   ([Federation](docs/federation.md#following-somebody-on-another-server)).
+
+### Changed
+
+1. **Following somebody elsewhere who approves their followers is refused;**
+   they are asked instead.
+2. **Migration `20261122000012`:** each profile from the fediverse takes
+   `allow_follow_request` from what its server last said, and a follow sent
+   to one that approves its followers, still waiting for an answer, becomes
+   a request; their counts are made again.
+
 ## v1.0.18 Birth, 2026-11-07
 
 ### Added

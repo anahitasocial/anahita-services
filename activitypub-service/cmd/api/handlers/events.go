@@ -35,6 +35,9 @@ import (
 // EventTopics is what this service listens for.
 var EventTopics = []string{
 	"edge.follow.*.*.v1",
+	// Asking to follow somebody elsewhere who approves their followers
+	// (roadmap row 130).
+	"edge.follow-request.*.*.v1",
 	"edge.block.*.*.v1",
 	"edge.voteup.*.*.v1",
 	"node.repost.*.*.*.v1",
@@ -61,6 +64,12 @@ func (h *Handlers) HandleEvent(payload *event.EventPayload) error {
 		err = h.localFollowed(ctx, payload.ObjectID, payload.TargetID)
 	case strings.HasPrefix(payload.Name, "edge.follow.") && strings.HasSuffix(payload.Name, ".deleted.v1"):
 		err = h.localUnfollowed(ctx, payload.ObjectID, payload.TargetID)
+
+	// Somebody here asked to follow somebody elsewhere, or took it back.
+	case strings.HasPrefix(payload.Name, "edge.follow-request.") && strings.HasSuffix(payload.Name, ".added.v1"):
+		err = h.localAsked(ctx, payload.ObjectID, payload.TargetID)
+	case strings.HasPrefix(payload.Name, "edge.follow-request.") && strings.HasSuffix(payload.Name, ".deleted.v1"):
+		err = h.localUnasked(ctx, payload.ObjectID, payload.TargetID)
 
 	// Somebody here blocked somebody elsewhere, or unblocked them.
 	case strings.HasPrefix(payload.Name, "edge.block.") && strings.HasSuffix(payload.Name, ".added.v1"):
@@ -192,6 +201,72 @@ func (h *Handlers) localFollowed(ctx context.Context, sourceID, targetID int64) 
 	// until they next post. Not waited for.
 	h.later(func() { h.backfill(kept) })
 	return nil
+}
+
+// localAsked is somebody here having asked to follow somebody elsewhere who
+// approves their followers (roadmap row 130). Their server is sent the same
+// Follow as for anybody, and holds it until they answer; here it waits as a
+// request, not a follow, until their Accept turns it into one (answered).
+func (h *Handlers) localAsked(ctx context.Context, sourceID, targetID int64) error {
+	source, target, kept, err := h.across(sourceID, targetID)
+	if err != nil || source == nil {
+		return err
+	}
+
+	// As for a follow: not from the lab to a real server, and not from
+	// somebody the other server could not find out about. The request is
+	// taken away again, so that it does not wait for ever.
+	withdraw := func() error {
+		viewer := entities.NewViewer()
+		viewer.ID = source.ID
+		remove := services.NewSocialgraphFollowRequest().Delete
+		remove.Source, remove.Target, remove.Viewer = source, target, viewer
+		remove.IsFollowRequest = true
+		return h.FollowEdges.Delete(remove)
+	}
+	if h.Lab && !strings.HasSuffix(hostOf(kept.URI), ".test") {
+		log.Printf("%s asks to follow %s from the lab: real servers are not written to, and the request is removed", source.Alias, target.Alias)
+		return withdraw()
+	}
+	if h.federating(source) == nil {
+		log.Printf("%s asks to follow %s and is not on the fediverse: the request is removed", source.Alias, target.Alias)
+		return withdraw()
+	}
+
+	follow := &repositories.Follow{
+		LocalID: source.ID, RemoteID: target.ID, Direction: repositories.FollowOut,
+		ActivityID: h.addresses.Activity(newUUID()), State: repositories.FollowPending,
+	}
+	begun, err := h.Follows.Begin(follow)
+	if err != nil || !begun {
+		return err
+	}
+
+	actor := h.addresses.Actor(source.UUID)
+	return h.send(ctx, source.ID, kept.Inbox, ap.NewFollow(follow.ActivityID, actor, kept.URI), "follow:"+follow.ActivityID)
+}
+
+// localUnasked is a request to follow somebody elsewhere gone: taken back
+// by whoever asked, or turned into a follow by their Accept. Only the first
+// is told to their server; the second was marked accepted before the
+// request went (answered).
+func (h *Handlers) localUnasked(ctx context.Context, sourceID, targetID int64) error {
+	source, target, kept, err := h.across(sourceID, targetID)
+	if err != nil || source == nil {
+		return err
+	}
+
+	follow, err := h.Follows.Read(source.ID, target.ID, repositories.FollowOut)
+	if err != nil || follow == nil || follow.State == repositories.FollowAccepted {
+		return err
+	}
+	if err := h.Follows.Delete(source.ID, target.ID, repositories.FollowOut); err != nil {
+		return err
+	}
+
+	actor := h.addresses.Actor(source.UUID)
+	return h.send(ctx, source.ID, kept.Inbox,
+		ap.NewUndoFollow(h.addresses.Activity(newUUID()), actor, kept.URI, follow.ActivityID), "undo:"+follow.ActivityID)
 }
 
 // localUnfollowed is somebody here having stopped following somebody

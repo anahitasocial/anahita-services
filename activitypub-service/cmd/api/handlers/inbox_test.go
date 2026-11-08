@@ -39,6 +39,13 @@ func (f *fakeEdges) Add(req *services.SocialgraphFollowAddRequest) error {
 	return nil
 }
 
+func (f *fakeEdges) Edit(req *services.SocialgraphFollowEditRequest) error {
+	if req.AcceptFollowRequest {
+		f.log = append(f.log, "accept request "+req.Source.Alias+">"+req.Target.Alias)
+	}
+	return nil
+}
+
 func (f *fakeEdges) Delete(req *services.SocialgraphFollowDeleteRequest) error {
 	kind := "follow"
 	if req.IsFollowRequest {
@@ -666,6 +673,106 @@ func TestToldNoTheFollowHereIsTakenAway(t *testing.T) {
 	_ = w.h.HandleEvent(&event.EventPayload{Name: "edge.follow.socialgraph.deleted.v1", ObjectID: anaID, TargetID: alice.NodeID})
 	if len(w.queue.sent) != before {
 		t.Error("an Undo was sent for a follow that was refused")
+	}
+}
+
+// THE RULE THIS GUARDS (roadmap row 130): somebody elsewhere who approves
+// their followers is asked. Their server is sent a Follow, as for anybody;
+// here it waits as a request; their Accept turns it into a follow, through
+// the graph's own accept, and their Reject, or taking it back, removes it.
+// The request's going, when it became a follow, is not taken for its being
+// taken back.
+func TestSomebodyHereAsksSomebodyElsewhere(t *testing.T) {
+	w := newInboxWorld()
+	w.call(w.h.Lookup, http.MethodGet, "/activitypub/lookup?q=@alice@mastodon.example", "", anaID)
+	var alice *repositories.RemoteActor
+	for _, kept := range w.actors.kept {
+		alice = kept
+	}
+	if alice == nil || !alice.Locked {
+		t.Fatalf("alice, who approves her followers, was kept as %+v", alice)
+	}
+
+	asks := &event.EventPayload{Name: "edge.follow-request.socialgraph.added.v1", ObjectID: anaID, TargetID: alice.NodeID}
+	takesBack := &event.EventPayload{Name: "edge.follow-request.socialgraph.deleted.v1", ObjectID: anaID, TargetID: alice.NodeID}
+
+	// Heard twice, as every copy of the service hears it: asked once.
+	for i := 0; i < 2; i++ {
+		if err := w.h.HandleEvent(asks); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if len(w.queue.sent) != 1 || w.queue.sent[0].payload["type"] != "Follow" || w.queue.sent[0].target != aliceID+"/inbox" {
+		t.Fatalf("sent %+v", w.queue.sent)
+	}
+	first, _ := w.queue.sent[0].payload["id"].(string)
+	if waiting, _ := w.follows.Read(anaID, alice.NodeID, repositories.FollowOut); waiting == nil || waiting.State != repositories.FollowPending {
+		t.Fatalf("recorded %+v", waiting)
+	}
+
+	// Taken back before she answered: she is told, quoting what was asked.
+	if err := w.h.HandleEvent(takesBack); err != nil {
+		t.Fatal(err)
+	}
+	last := w.queue.sent[len(w.queue.sent)-1]
+	quoted, _ := last.payload["object"].(map[string]any)
+	if last.payload["type"] != "Undo" || quoted["id"] != first {
+		t.Errorf("sent %+v", last)
+	}
+	if kept, _ := w.follows.Read(anaID, alice.NodeID, repositories.FollowOut); kept != nil {
+		t.Error("the request was still kept")
+	}
+
+	// Asked again, and this time she says yes.
+	_ = w.h.HandleEvent(asks)
+	asked, _ := w.queue.sent[len(w.queue.sent)-1].payload["id"].(string)
+	w.relations.relation = &entities.ActorRelation{HasRequested: true}
+	if rec := w.fromAlice(`{"id":"https://mastodon.example/a/3","type":"Accept","actor":"` + aliceID + `","object":"` + asked + `"}`); rec.Code != http.StatusAccepted {
+		t.Fatalf("%d", rec.Code)
+	}
+	if waiting, _ := w.follows.Read(anaID, alice.NodeID, repositories.FollowOut); waiting == nil || waiting.State != repositories.FollowAccepted {
+		t.Errorf("after her yes: %+v", waiting)
+	}
+	if len(w.edges.log) != 1 || w.edges.log[0] != "accept request ana>alice@mastodon.example" {
+		t.Errorf("edges %v", w.edges.log)
+	}
+
+	// The graph's accept takes the request away, which is heard on the bus,
+	// and makes the follow, which is heard too: neither is answered.
+	before := len(w.queue.sent)
+	_ = w.h.HandleEvent(takesBack)
+	_ = w.h.HandleEvent(&event.EventPayload{Name: "edge.follow.socialgraph.added.v1", ObjectID: anaID, TargetID: alice.NodeID})
+	if len(w.queue.sent) != before {
+		t.Errorf("sent %+v after the request became a follow", w.queue.sent[before:])
+	}
+}
+
+func TestToldNoTheRequestHereIsTakenAway(t *testing.T) {
+	w := newInboxWorld()
+	w.call(w.h.Lookup, http.MethodGet, "/activitypub/lookup?q=@alice@mastodon.example", "", anaID)
+	var alice *repositories.RemoteActor
+	for _, kept := range w.actors.kept {
+		alice = kept
+	}
+	_ = w.h.HandleEvent(&event.EventPayload{Name: "edge.follow-request.socialgraph.added.v1", ObjectID: anaID, TargetID: alice.NodeID})
+	asked, _ := w.queue.sent[0].payload["id"].(string)
+	w.relations.relation = &entities.ActorRelation{HasRequested: true}
+
+	w.fromAlice(`{"id":"https://mastodon.example/a/4","type":"Reject","actor":"` + aliceID + `","object":"` + asked + `"}`)
+
+	if len(w.edges.log) != 1 || w.edges.log[0] != "delete request ana>alice@mastodon.example" {
+		t.Errorf("edges %v", w.edges.log)
+	}
+	if kept, _ := w.follows.Read(anaID, alice.NodeID, repositories.FollowOut); kept != nil {
+		t.Error("the request was still kept")
+	}
+
+	// Its going is then heard on the bus, and is not taken for its being
+	// taken back.
+	before := len(w.queue.sent)
+	_ = w.h.HandleEvent(&event.EventPayload{Name: "edge.follow-request.socialgraph.deleted.v1", ObjectID: anaID, TargetID: alice.NodeID})
+	if len(w.queue.sent) != before {
+		t.Error("an Undo was sent for a request that was refused")
 	}
 }
 
