@@ -82,26 +82,41 @@ Who one follows, blocks and mutes, and what one saved: the four kinds
 Anahita has of the lists the others move. Lists, one's own blocked servers
 and filters wait for those features (Out of scope).
 
-**Out,** in the one download there is now, with the JSON it has
-([Download your data](../data-export.md)), in a folder beside it,
-`mastodon/`, in Mastodon's own files, which Mastodon, Misskey, GoToSocial,
+**Between two Anahitas, the download's JSON** (the user, 2026-11-08): a
+download from one Anahita, as a zip, is read whole by another. Its
+`data/following.json`, `blocked.json`, `muted.json` and `saved.json` carry
+more than Mastodon's files can: groups, events, hashtags and locations
+followed, a mute's length and whether it hides notifications. Each entry
+gains what another server needs to find it again:
+
+| Field | Holds |
+| --- | --- |
+| `address` | Its fediverse handle, `ana@banu.io` or `alice@mastodon.social`; a hashtag's or a location's name |
+| `uri` | Its ActivityPub id, for a profile or a saved post on the fediverse |
+| `hide_notifications`, `ends_at` | In `muted.json`: whether its notifications were hidden, and when the mute ends, if it does |
+
+and the download says which version of these files it is (`data/profile.json`,
+`format`), so that a later Anahita reads an earlier one's.
+
+**To and from everybody else, Mastodon's files,** in the same download, in
+a folder beside the JSON, `mastodon/`, which Mastodon, Misskey, GoToSocial,
 Akkoma and the rest read:
 
 | File | Holds |
 | --- | --- |
-| `following_accounts.csv` | People followed: `Account address,Show boosts,Notify on new posts,Languages`, the address `ana@banu.io` or `alice@mastodon.social`; true, false, and nothing for the languages |
+| `following_accounts.csv` | People followed: `Account address,Show boosts,Notify on new posts,Languages`; true, false, and nothing for the languages |
 | `blocked_accounts.csv` | People blocked, one address a line |
-| `muted_accounts.csv` | People muted: `Account address,Hide notifications`; a mute that ends is moved as one that does not |
+| `muted_accounts.csv` | People muted: `Account address,Hide notifications`; a mute that ends is written as one that does not |
 | `bookmarks.csv` | Saved posts, one post's address a line (its `uri` from elsewhere, its own address here) |
-| `following_anahita.csv` | What only Anahita follows: groups, events, hashtags and locations, one address a line; others leave it be |
 
 **In,** under Settings, beside the download: one file, either a whole
 download (from this Anahita or another) or a single CSV from anywhere.
 
-1. **What it is** is read from it: in a download, the files above by name;
-   a single CSV by its first header, and one with none (one address or
-   address of a post a line) by what its lines are, or by the person's
-   choice when that cannot be told.
+1. **What it is** is read from it: a download from Anahita by its
+   `data/` files, which are used, and not its `mastodon/` ones; a single CSV
+   by its first header, and one with none (one address or address of a post
+   a line) by what its lines are, or by the person's choice when that
+   cannot be told.
 2. **Looked at first:** "272 people you follow, 3 you muted, 41 saved
    posts", with a tick for each kind, all ticked, and nothing done until
    Import is pressed.
@@ -111,7 +126,10 @@ download (from this Anahita or another) or a single CSV from anywhere.
    or by federation (WebFinger), and followed, blocked, muted, or its post
    fetched and saved, by the same rules as by hand: a group with rules asks
    for them to be agreed first; a profile that approves its followers is
-   asked; one blocked either way is not followed.
+   asked; one blocked either way is not followed. A hashtag or a location
+   is followed here by its name. A group or an event on the old Anahita
+   cannot be followed from the new one, as groups are not on the fediverse:
+   it is listed, with its address, among what was not done.
 5. **In the background,** as a job in export-service (row 142, phase 1,
    which this is the first use of): its progress shown while it runs,
    resumed after a restart, and at the end what could not be found or done,
