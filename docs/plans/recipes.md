@@ -95,7 +95,7 @@ microservices architecture.")
 
 | Recipe | Like | What it runs and puts first | Gaps it shows | When |
 | --- | --- | --- | --- | --- |
-| **php-migration** | | Moving a site from Anahita PHP: row 92, made simple from what was done for banu.io. Archive the old site and prove the archive; copy the files to a new bucket; `upgrade.sql`; check; the old site retired. One `make` target a step, each one that changes anything shown first with nothing changed (`tidy`, then `tidy-apply`, as banu.io does) | Each step tried on a copy | First |
+| **php-migration** | | Moving a site from Anahita PHP: row 92, made simple from what was done for banu.io. Archive the old site and prove the archive; copy the files to a new bucket; `upgrade.sql`; check; the old site retired. One `make` target a step, each one that changes anything shown first with nothing changed (`tidy`, then `tidy-apply`, as banu.io does). Examples of thinning a site, from banu.io's `migration/` (the user, 2026-11-08): inactive accounts purged but a list kept; old posts by kind and date; posts whose author is gone; photos moved to another profile with their files; groups purged; then the file sweep. Each counts first and keeps a copy of what it removes | Each step tried on a copy | First |
 | **commons** | Mastodon and Pixelfed, but more | Everything: notes, photos, video, articles, groups, events, federation on both networks. What `generic` is now | | First |
 | **coffeehouse** | Mastodon, Bluesky | Notes and photos; articles, topics, events and websites off; short limits on video | Needs row 139's switches | First, once 139 is built |
 | **journal** | WordPress, Medium | Articles first: a home of article cards with their covers, notes beside them | RSS feeds; newsletters by email | Later |
@@ -167,8 +167,9 @@ docs/providers.md       where a recipe runs, tried and untried
 1. **`commons`:** banu.io's overlay and Makefile made general,
    `make init`, the README from an empty server; tried on a new server:
    about two sessions.
-2. **`php-migration`:** row 92's steps as `make` targets, tried on a copy of a
-   PHP site's data: about two sessions.
+2. **`php-migration`:** row 92's steps as `make` targets, and the examples
+   of thinning a site made general from banu.io's scripts, tried on a copy
+   of a PHP site's data: about two sessions.
 3. **`coffeehouse`,** after row 139: half a session.
 4. **A Recipes page on anahita.io:** half a session.
 5. **`journal`, `theatre`, `gathering`:** each with its gaps weighed first.
