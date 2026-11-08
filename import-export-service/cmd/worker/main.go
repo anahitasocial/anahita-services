@@ -4,6 +4,7 @@ package main
 
 import (
 	"anahita-libs/data"
+	"anahita-libs/servicecalls"
 	"anahita-libs/site"
 	"context"
 	"log"
@@ -54,6 +55,40 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
+	// Imports, beside the exports (roadmap row 124): a line a second.
+	calls, err := servicecalls.NewClient(time.Minute)
+	if err != nil {
+		log.Fatalf("the certificates for calling the other services: %v", err)
+	}
+	importer := &worker.Importer{
+		Imports: repositories.NewImports(db),
+		Acts: &worker.GraphActs{
+			Site:        site.FromEnv(),
+			Calls:       calls,
+			Nodes:       services.NewGraphNodeGRPC(config),
+			Actors:      services.NewActorsGRPC(config),
+			Relations:   services.NewSocialgraphGRPC(config),
+			Follows:     services.NewSocialgraphFollowGRPC(config),
+			Blocks:      services.NewSocialgraphBlockGRPC(config),
+			Mutes:       services.NewSocialgraphMuteGRPC(config),
+			Media:       services.NewMediaGRPC(config),
+			ActivityPub: hostOr("ACTIVITYPUB_INTERNAL_HOST", "activitypub-service"),
+			ATProto:     hostOr("ATPROTO_INTERNAL_HOST", "atproto-service"),
+		},
+		Pace: time.Second,
+		Idle: 5 * time.Second,
+	}
+	go importer.Run(ctx)
+
 	log.Printf("export worker: archives are kept %d days", config.KeepDays)
 	w.Run(ctx)
+}
+
+// hostOr is a service's host from the environment, or its name in the
+// cluster and in docker-compose.
+func hostOr(name, otherwise string) string {
+	if host := os.Getenv(name); host != "" {
+		return host
+	}
+	return otherwise
 }

@@ -243,6 +243,15 @@ five, under Profiles.
    9. [Running it, and not running it](data-export.md#running-it-and-not-running-it)
    10. [Where the code is](data-export.md#where-the-code-is)
    11. [What is not built](data-export.md#what-is-not-built)
+6. [Bring your lists in](imports.md) — who somebody follows, blocks and mutes, and what they saved, from another Anahita's download or a CSV of Mastodon's or Misskey's
+   1. [What a file may be](imports.md#what-a-file-may-be)
+   2. [How each line is done](imports.md#how-each-line-is-done)
+   3. [What could not be done](imports.md#what-could-not-be-done)
+   4. [Limits](imports.md#limits)
+   5. [Endpoints](imports.md#endpoints)
+   6. [The parts](imports.md#the-parts)
+   7. [Where the code is](imports.md#where-the-code-is)
+   8. [What is not built](imports.md#what-is-not-built)
 
 ### Posts
 

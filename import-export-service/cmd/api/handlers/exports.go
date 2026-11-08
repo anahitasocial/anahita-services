@@ -24,6 +24,7 @@ import (
 type Env struct {
 	Config    *config.Config
 	Exports   repositories.ExportsInterface
+	Imports   repositories.ImportsInterface
 	Transfers services.FileTransfersInterface
 	Files     services.FilesGRPCInterface
 	// Where auth-service records that somebody has just proved who they

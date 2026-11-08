@@ -44,6 +44,14 @@ Releases before v1.0.17 are described on GitHub, under
    on port 8443, which the gateway never routes, guarded by the gRPC
    certificates: find somebody, or a post, on another server and keep it,
    for imports to come (roadmap row 124; `anahita-libs/servicecalls`).
+5. **Imports** (roadmap row 124): `POST /imports` reads another Anahita's
+   download or a CSV of Mastodon's or Misskey's, and keeps who to follow,
+   block and mute and what to save; `POST /imports/:id/start` sets it going
+   with the kinds chosen, and `import-export-worker` does each line as the
+   person would, a line a second; `GET /imports/:id/failed` lists what
+   could not be done, and why. At most 20,000 lines and 20 MB; the gateway
+   takes 21 MB on `/imports`. Two tables, `data_imports` and
+   `data_import_lines` ([Bring your lists in](docs/imports.md)).
 
 ### Changed
 

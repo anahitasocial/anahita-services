@@ -29,7 +29,14 @@ func main() {
 	e.IPExtractor = an_mw.ClientIPExtractor()
 	e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
-	e.Use(middleware.BodyLimit(constants.RequestBodyMaxSizeLimit))
+	// Every request kept small but an import's file, which has its own
+	// limit on its route (UploadLimit).
+	e.Use(middleware.BodyLimitWithConfig(middleware.BodyLimitConfig{
+		Limit: constants.RequestBodyMaxSizeLimit,
+		Skipper: func(c echo.Context) bool {
+			return c.Request().Method == http.MethodPost && c.Path() == "/imports"
+		},
+	}))
 
 	e.Validator = validators.NewRequestValidator(validator.New())
 
@@ -49,19 +56,20 @@ func main() {
 		log.Fatalf("could not connect to the database: %v", err)
 	}
 
-	h := handlers.NewExportsHandler(&handlers.Env{
+	env := &handlers.Env{
 		Config:    config,
 		Exports:   repositories.NewExports(db),
+		Imports:   repositories.NewImports(db),
 		Transfers: services.NewFileTransfersGRPC(config),
 		Files:     services.NewFilesGRPC(config),
 		Session:   stepUpStore(config),
-	})
+	}
 
 	e.GET("/ping", func(c echo.Context) error {
 		return c.String(http.StatusOK, "pong")
 	})
 
-	NewRoutes(h, authorize).Init(e)
+	NewRoutes(env, authorize).Init(e)
 
 	if err := e.Start(fmt.Sprintf(":%v", webPort)); err != nil {
 		e.Logger.Fatal(err)

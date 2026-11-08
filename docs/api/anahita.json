@@ -5938,6 +5938,119 @@
         ],
         "type": "object"
       },
+      "importexport.ImportItem": {
+        "description": "ImportItem is one import, as its owner sees it.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "file_name": {
+            "type": "string"
+          },
+          "finished_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "kinds": {
+            "items": {
+              "$ref": "#/components/schemas/importexport.KindCount"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "source": {
+            "description": "\"anahita\" for another Anahita's download, \"mastodon\" for a CSV.",
+            "type": "string"
+          },
+          "started_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "status": {
+            "description": "\"ready\" (read, waiting to be started), \"running\", \"done\" or \"cancelled\".",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "source",
+          "file_name",
+          "created_at",
+          "kinds"
+        ],
+        "type": "object"
+      },
+      "importexport.ImportList": {
+        "description": "ImportList is the viewer's latest imports, newest first.",
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/importexport.ImportItem"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "importexport.KindCount": {
+        "description": "KindCount is how one kind of line in an import is getting on.",
+        "properties": {
+          "already": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "done": {
+            "description": "Done, with nothing to do (followed or blocked already), not done and listed with why, and not chosen.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "failed": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "kind": {
+            "description": "\"follow\", \"block\", \"mute\" or \"save\".",
+            "type": "string"
+          },
+          "left": {
+            "description": "Waiting for the worker.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "skipped": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "total": {
+            "description": "How many lines of the kind the file had.",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "total",
+          "done",
+          "already",
+          "failed",
+          "skipped",
+          "left"
+        ],
+        "type": "object"
+      },
       "importexport.TooSoon": {
         "description": "TooSoon refuses an export asked for before it is time, and says when.",
         "properties": {
@@ -20035,6 +20148,331 @@
         ],
         "x-handler": "hashtag/cmd/api/handlers.(*inboundHandler).Browse",
         "x-viewer": "anyone"
+      }
+    },
+    "/imports": {
+      "get": {
+        "description": "The latest five, newest first, each with how far it has got.\n\nWho may call it: somebody signed in.",
+        "operationId": "getImports",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/importexport.ImportList"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The viewer's imports",
+        "tags": [
+          "import-export-service"
+        ],
+        "x-handler": "importexport/cmd/api/handlers.(*ImportsHandler).Browse",
+        "x-viewer": "signed_in"
+      },
+      "post": {
+        "description": "Another Anahita's download, as a zip, or a single CSV, Mastodon's or Misskey's: who the viewer follows, blocks and mutes, and what they saved. Read at once and kept, `ready`, with how many of each kind; nothing is done until it is started. One at a time; at most 20,000 lines and 20 MB.\n\nWho may call it: somebody signed in, with a token that carries `socialgraph:write`.",
+        "operationId": "postImports",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "file": {
+                    "description": "The file: another Anahita's download (zip), or a CSV.",
+                    "format": "binary",
+                    "type": "string"
+                  },
+                  "kind": {
+                    "description": "What a CSV with no header is: \"follow\", \"block\", \"mute\" or \"save\". Asked of the person when the file says nothing (`kind_unknown`).",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "file"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/importexport.ImportItem"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "the file could not be read: `empty`, `unreadable`, `too_large`, `too_many_lines`, `not_supported` (lists, blocked servers), or `kind_unknown`: a CSV with no header, whose kind the viewer is to say"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`insufficient_scope`"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`active`: one is waiting or running"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "socialgraph:write"
+            ]
+          }
+        ],
+        "summary": "Read a file to import",
+        "tags": [
+          "import-export-service"
+        ],
+        "x-handler": "importexport/cmd/api/handlers.(*ImportsHandler).Add",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/imports/{id}": {
+      "delete": {
+        "description": "What it has not done is not done; what it did stays.\n\nWho may call it: somebody signed in.",
+        "operationId": "deleteImportsById",
+        "parameters": [
+          {
+            "description": "The import's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "given up, or it was over already"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "404": {
+            "description": "the viewer has no such import"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Give an import up",
+        "tags": [
+          "import-export-service"
+        ],
+        "x-handler": "importexport/cmd/api/handlers.(*ImportsHandler).Delete",
+        "x-viewer": "signed_in"
+      },
+      "get": {
+        "description": "Who may call it: somebody signed in.",
+        "operationId": "getImportsById",
+        "parameters": [
+          {
+            "description": "The import's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/importexport.ImportItem"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "404": {
+            "description": "the viewer has no such import"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "How an import is getting on",
+        "tags": [
+          "import-export-service"
+        ],
+        "x-handler": "importexport/cmd/api/handlers.(*ImportsHandler).Read",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/imports/{id}/failed": {
+      "get": {
+        "description": "A CSV: the kind, who or what, the name, and why in a word.\n\nWho may call it: somebody signed in.",
+        "operationId": "getImportsByIdFailed",
+        "parameters": [
+          {
+            "description": "The import's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "the file"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "404": {
+            "description": "the viewer has no such import"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "What an import could not do",
+        "tags": [
+          "import-export-service"
+        ],
+        "x-handler": "importexport/cmd/api/handlers.(*ImportsHandler).Failed",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/imports/{id}/start": {
+      "post": {
+        "description": "With the kinds the viewer chose; the lines of the others are skipped. Each line is then done as the viewer would by hand, a line a second, in the background.\n\nWho may call it: somebody signed in.",
+        "operationId": "postImportsByIdStart",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "kinds": {
+                    "description": "The kinds to bring in, of those the file has: \"follow\", \"block\", \"mute\", \"save\".",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/importexport.ImportItem"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "404": {
+            "description": "the viewer has no such import"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`not_ready`: started or given up already"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Start an import",
+        "tags": [
+          "import-export-service"
+        ],
+        "x-handler": "importexport/cmd/api/handlers.(*ImportsHandler).Start",
+        "x-viewer": "signed_in"
       }
     },
     "/inbox": {

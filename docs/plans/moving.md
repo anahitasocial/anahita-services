@@ -209,7 +209,8 @@ installation, and nothing there changes.
 
 1. **Your lists, out and in:** import-export-service's imports (row 142, phase 1,
    without what only posts need), the files in the download, the import
-   with its preview: about two sessions.
+   with its preview: about two sessions. **The services' part built
+   2026-11-08** ([Bring your lists in](../imports.md)); the web app's next.
 2. **Following somebody who moved:** one session.
 3. **Moving, out and in,** with the signpost: three to four sessions.
 4. **Bringing your posts,** from Anahita, then perhaps from Mastodon: three

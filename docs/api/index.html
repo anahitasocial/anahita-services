@@ -70,7 +70,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <li><a href="#identity-image-service">Profile and cover photos</a> <span class="count">6</span></li>
 <li><a href="#notification-service">Notifications</a> <span class="count">9</span></li>
 <li><a href="#recommendation-service">Recommendations</a> <span class="count">7</span></li>
-<li><a href="#import-export-service">Data exports and imports</a> <span class="count">4</span></li>
+<li><a href="#import-export-service">Data exports and imports</a> <span class="count">10</span></li>
 </ul>
 <p class="group">Posts</p>
 <ul>
@@ -96,7 +96,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 </ul>
 <p class="group">Reference</p>
 <ul>
-<li><a href="#schemas">Shapes</a> <span class="count">165</span></li>
+<li><a href="#schemas">Shapes</a> <span class="count">168</span></li>
 </ul>
 </nav>
 <main>
@@ -5758,7 +5758,7 @@ who may call it: somebody signed in.">
 <section id="import-export-service" class="service">
 <p class="group">Accounts and the graph</p>
 <h2>Data exports and imports <code>import-export-service</code></h2>
-<p>A person&#39;s copy of their own data: asking for one, seeing how it is getting on, fetching it and giving it up (<a href="../data-export.md">data-export.md</a>). Optional: an installation may not run it.</p>
+<p>A person&#39;s copy of their own data: asking for one, seeing how it is getting on, fetching it and giving it up (<a href="../data-export.md">data-export.md</a>); and bringing their lists in from a file (<a href="../moving.md">moving.md</a>). Optional: an installation may not run it.</p>
 <details class="route" id="getExports" data-search="get /exports the viewer&#39;s exports and how often they may ask, how long an archive is kept, and when they may next ask.
 
 who may call it: somebody signed in.">
@@ -5837,6 +5837,145 @@ who may call it: somebody signed in.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>importexport/cmd/api/handlers.(*ExportsHandler).Delete</code></p>
+</details>
+<details class="route" id="getImports" data-search="get /imports the viewer&#39;s imports the latest five, newest first, each with how far it has got.
+
+who may call it: somebody signed in.">
+<summary><span class="method get">GET</span> <code class="path">/imports</code> <span class="summary">The viewer&#39;s imports</span></summary>
+<div class="description"><p>The latest five, newest first, each with how far it has got.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-importexport.ImportList">importexport.ImportList</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>importexport/cmd/api/handlers.(*ImportsHandler).Browse</code></p>
+</details>
+<details class="route" id="postImports" data-search="post /imports read a file to import another anahita&#39;s download, as a zip, or a single csv, mastodon&#39;s or misskey&#39;s: who the viewer follows, blocks and mutes, and what they saved. read at once and kept, `ready`, with how many of each kind; nothing is done until it is started. one at a time; at most 20,000 lines and 20 mb.
+
+who may call it: somebody signed in, with a token that carries `socialgraph:write`.">
+<summary><span class="method post">POST</span> <code class="path">/imports</code> <span class="summary">Read a file to import</span></summary>
+<div class="description"><p>Another Anahita&#39;s download, as a zip, or a single CSV, Mastodon&#39;s or Misskey&#39;s: who the viewer follows, blocks and mutes, and what they saved. Read at once and kept, <code>ready</code>, with how many of each kind; nothing is done until it is started. One at a time; at most 20,000 lines and 20 MB.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in, with <code>socialgraph:write</code></p>
+<h4>Takes, as <code>multipart/form-data</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>file</code> <span class="required">always</span></td><td>file</td><td>The file: another Anahita&#39;s download (zip), or a CSV.</td></tr>
+<tr><td><code>kind</code></td><td>string</td><td>What a CSV with no header is: &#34;follow&#34;, &#34;block&#34;, &#34;mute&#34; or &#34;save&#34;. Asked of the person when the file says nothing (<code>kind_unknown</code>).</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">201</td><td>Created<div class="body"><a href="#schema-importexport.ImportItem">importexport.ImportItem</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the file could not be read: <code>empty</code>, <code>unreadable</code>, <code>too_large</code>, <code>too_many_lines</code>, <code>not_supported</code> (lists, blocked servers), or <code>kind_unknown</code>: a CSV with no header, whose kind the viewer is to say<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td><code>insufficient_scope</code><div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">409</td><td><code>active</code>: one is waiting or running<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>importexport/cmd/api/handlers.(*ImportsHandler).Add</code></p>
+</details>
+<details class="route" id="getImportsById" data-search="get /imports/{id} how an import is getting on who may call it: somebody signed in.">
+<summary><span class="method get">GET</span> <code class="path">/imports/{id}</code> <span class="summary">How an import is getting on</span></summary>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>string</td><td>The import&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-importexport.ImportItem">importexport.ImportItem</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">404</td><td>the viewer has no such import</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>importexport/cmd/api/handlers.(*ImportsHandler).Read</code></p>
+</details>
+<details class="route" id="deleteImportsById" data-search="delete /imports/{id} give an import up what it has not done is not done; what it did stays.
+
+who may call it: somebody signed in.">
+<summary><span class="method delete">DELETE</span> <code class="path">/imports/{id}</code> <span class="summary">Give an import up</span></summary>
+<div class="description"><p>What it has not done is not done; what it did stays.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>string</td><td>The import&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">204</td><td>given up, or it was over already</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">404</td><td>the viewer has no such import</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>importexport/cmd/api/handlers.(*ImportsHandler).Delete</code></p>
+</details>
+<details class="route" id="getImportsByIdFailed" data-search="get /imports/{id}/failed what an import could not do a csv: the kind, who or what, the name, and why in a word.
+
+who may call it: somebody signed in.">
+<summary><span class="method get">GET</span> <code class="path">/imports/{id}/failed</code> <span class="summary">What an import could not do</span></summary>
+<div class="description"><p>A CSV: the kind, who or what, the name, and why in a word.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>string</td><td>The import&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>the file<div class="body">file <span class="media">text/csv</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">404</td><td>the viewer has no such import</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>importexport/cmd/api/handlers.(*ImportsHandler).Failed</code></p>
+</details>
+<details class="route" id="postImportsByIdStart" data-search="post /imports/{id}/start start an import with the kinds the viewer chose; the lines of the others are skipped. each line is then done as the viewer would by hand, a line a second, in the background.
+
+who may call it: somebody signed in.">
+<summary><span class="method post">POST</span> <code class="path">/imports/{id}/start</code> <span class="summary">Start an import</span></summary>
+<div class="description"><p>With the kinds the viewer chose; the lines of the others are skipped. Each line is then done as the viewer would by hand, a line a second, in the background.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>string</td><td></td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>kinds</code></td><td>list of string</td><td>The kinds to bring in, of those the file has: &#34;follow&#34;, &#34;block&#34;, &#34;mute&#34;, &#34;save&#34;.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-importexport.ImportItem">importexport.ImportItem</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">404</td><td>the viewer has no such import</td></tr>
+<tr><td class="status s4">409</td><td><code>not_ready</code>: started or given up already<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>importexport/cmd/api/handlers.(*ImportsHandler).Start</code></p>
 </details>
 </section>
 <section id="text-service" class="service">
@@ -12739,6 +12878,49 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>every_days</code> <span class="required">always</span></td><td>integer</td><td>How many days must pass between two exports. 0 for no wait.</td></tr>
 <tr><td><code>keep_days</code> <span class="required">always</span></td><td>integer</td><td>How many days an archive is kept once it is ready.</td></tr>
 <tr><td><code>next_at</code></td><td>time</td><td>When they may next ask, while they must wait.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-importexport.ImportItem" data-search="importexport.importitem created_at file_name finished_at id kinds source started_at status">
+<h3>importexport.ImportItem</h3>
+<p>One import, as its owner sees it.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>created_at</code> <span class="required">always</span></td><td>time</td><td></td></tr>
+<tr><td><code>file_name</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+<tr><td><code>finished_at</code></td><td>time</td><td></td></tr>
+<tr><td><code>id</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+<tr><td><code>kinds</code> <span class="required">always</span></td><td>list of <a href="#schema-importexport.KindCount">importexport.KindCount</a> or null</td><td></td></tr>
+<tr><td><code>source</code> <span class="required">always</span></td><td>string</td><td>&#34;anahita&#34; for another Anahita&#39;s download, &#34;mastodon&#34; for a CSV.</td></tr>
+<tr><td><code>started_at</code></td><td>time</td><td></td></tr>
+<tr><td><code>status</code> <span class="required">always</span></td><td>string</td><td>&#34;ready&#34; (read, waiting to be started), &#34;running&#34;, &#34;done&#34; or &#34;cancelled&#34;.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-importexport.ImportList" data-search="importexport.importlist data">
+<h3>importexport.ImportList</h3>
+<p>The viewer&#39;s latest imports, newest first.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>data</code> <span class="required">always</span></td><td>list of <a href="#schema-importexport.ImportItem">importexport.ImportItem</a> or null</td><td></td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-importexport.KindCount" data-search="importexport.kindcount already done failed kind left skipped total">
+<h3>importexport.KindCount</h3>
+<p>How one kind of line in an import is getting on.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>already</code> <span class="required">always</span></td><td>integer</td><td></td></tr>
+<tr><td><code>done</code> <span class="required">always</span></td><td>integer</td><td>Done, with nothing to do (followed or blocked already), not done and listed with why, and not chosen.</td></tr>
+<tr><td><code>failed</code> <span class="required">always</span></td><td>integer</td><td></td></tr>
+<tr><td><code>kind</code> <span class="required">always</span></td><td>string</td><td>&#34;follow&#34;, &#34;block&#34;, &#34;mute&#34; or &#34;save&#34;.</td></tr>
+<tr><td><code>left</code> <span class="required">always</span></td><td>integer</td><td>Waiting for the worker.</td></tr>
+<tr><td><code>skipped</code> <span class="required">always</span></td><td>integer</td><td></td></tr>
+<tr><td><code>total</code> <span class="required">always</span></td><td>integer</td><td>How many lines of the kind the file had.</td></tr>
 </tbody>
 </table>
 </div>

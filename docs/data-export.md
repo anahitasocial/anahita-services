@@ -6,6 +6,7 @@ They ask for it in their settings; a worker gathers it into one zip file;
 they fetch it within a week.
 
 Its routes are in the API reference: [import-export-service](api/index.html#import-export-service).
+The same download is read back in by another Anahita: [Bring your lists in](imports.md).
 
 ## Contents
 
