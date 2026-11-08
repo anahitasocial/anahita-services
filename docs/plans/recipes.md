@@ -1,133 +1,155 @@
-# Anahita Recipes: a starting configuration for each kind of site
+# Anahita Recipes: a site ready to run, for each purpose
 
-*Roadmap item 40, planned 2026-10-11 at the user's asking. **Moved out of M10 on 2026-10-13, to be done for the public release:** recipes are for when the code is made public, to show people how to set Anahita up for their kind of organisation, and that is not yet. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
+*Roadmap row 30 (item 40). Planned 2026-10-11 by kind of organisation;
+**planned again 2026-11-07 by purpose, at the user's word,** after banu.io had
+run on one low-cost server for a fortnight. See the
+[roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md)
+for order.*
 
-## Context
+## Contents
 
-Somebody setting up Anahita for a school and somebody setting it up for a newsroom want different sites, and today both are handed the same `config.env` with some sixty settings and one page that explains each. The settings that matter most are a handful, and they have to agree with one another: a school that closes reading to members but leaves registration open has not done what it meant to.
+1. [Why](#why)
+2. [Decisions](#decisions)
+3. [The recipes](#the-recipes)
+4. [What a site is made of](#what-a-site-is-made-of)
+5. [What recipes will show is missing](#what-recipes-will-show-is-missing)
+6. [Kept true](#kept-true)
+7. [Phases](#phases)
+8. [Documentation](#documentation)
+9. [Status](#status)
 
-A **recipe** is those choices made together, for one kind of site, with the reasons written beside them: a newsroom, a city council, a public library, a school, a university, a research group, a neighbourhood, a family or a group of friends.
+## Why
 
-**What exists:**
-- `k8s/base` is every service; `k8s/overlays/{generic,aws,local}` say **where** a site runs (which cluster, which storage, which hostnames); `k8s/components/{mysql,redis,rabbitmq}` are parts an overlay may add.
-- What kind of site it is, is decided by settings already there: `REGISTRATION_MODE`, `INVITES_FROM`, `SITE_READ_ACCESS`, `MIN_CONTENT_ACCESS`, `VIDEO_UPLOADS` and its limits, the export's waiting time, and by **which optional services are run at all**: recommendations, link previews, video, the data export, the web shell and, when they are built, the two federation services.
-- The defaults for what people may do on a profile are files (`graph-grpc-defaults/actor_features/*.json`), as are the reasons for a report and the kinds of post in a feed.
+The hardest part of running Anahita is not Anahita: it is Kubernetes and
+the knowledge of running servers around it. Somebody who wants a site for
+their newsroom or their street should not have to learn either. banu.io
+shows what it takes when that knowledge is written down once: one low-cost
+server with k3s, an overlay of a dozen files, and a Makefile in which every
+task is one word (`make apply`, `make web`, `make status`, `make logs`).
+
+A recipe is that, ready to copy, for one purpose: the configuration chosen
+and explained, the Makefile, and the steps from an empty server to a site
+people use. The microservices are then an advantage, not a burden: what a
+site does not need is not run, and what it needs more of is given more.
+
+(The user, 2026-11-07: "The biggest challenge for setting up Anahita is the
+knowledge of devops and k8s. If we make it really simple for them with
+prewritten config and make files, then they can really benefit from the
+microservices architecture.")
 
 ## Decisions
 
-1. **A recipe says what kind of site; an overlay says where it runs.** The two are chosen separately and any recipe goes with any overlay.
-2. **A recipe is a Kustomize component,** `recipes/<name>/` in `anahita-recipes`, added to an overlay in one line. Nothing new to install or learn.
-3. **A recipe is a start, not a lock.** The overlay's own `config.env` is read after it, so whatever the operator sets wins.
-4. **A recipe invents no setting.** It only chooses among the ones there are. Where a kind of site needs something no setting gives, that is written down as a gap, and becomes a feature to plan or not, on its own.
-5. **How big a site is, is a third choice,** apart from what kind: `k8s/sizes/{small,medium,large}` set how many copies of each service run and what each may use. A recipe names the size it expects; the operator may take another.
+1. **Recipes by purpose,** not by kind of organisation (the user,
+   2026-11-07). Whether a site is open or for its members only, as a school or
+   a company needs, is one choice inside any recipe.
+2. **Their own repository, `anahita-recipes`,** on anahitasocial, public
+   (settled 2026-10-26): `site/`, the starting point to copy, made from
+   banu.io's, and `recipes/`, each a Kustomize component added to it in one
+   line.
+3. **One server first.** The path a recipe documents is banu.io's: one
+   server, k3s, its own MySQL, Redis and RabbitMQ, a bucket for files. A
+   larger site's path (EKS, managed databases) is in anahita-services'
+   `deploying.md`, as now.
+4. **A recipe is a start, not a lock.** The site's own `config.env` is read
+   after it; whatever the operator sets wins.
+5. **A recipe invents no setting.** It chooses among the ones there are, and
+   leaves out the services it does not need, with the line to put one back
+   in its README (the user, 2026-10-26). What a purpose needs that no setting
+   gives is written down as a gap, to plan on its own.
+6. **Not all at once.** The first three first; the others when the web app
+   can show a site's purpose (row 139) and their gaps are weighed.
 
-## Design
+## The recipes
 
-### What a recipe is made of
-
-```
-recipes/school/
-  kustomization.yml      kind: Component
-  config.env             the settings it chooses, each with a line saying why
-  README.md              who it is for, what it decides, what to change first
-  patches/               services it leaves out, if any
-  defaults/              its own actor_features or report reasons, if any
-```
-
-And in an overlay:
-
-```yaml
-components:
-  - ../../components/mysql
-  - ../../recipes/school
-  - ../../sizes/small
-```
-
-### The first recipes
-
-Only settings that exist are named. "Federation" means the services of item 8, and is in a recipe from the day they exist.
-
-| Recipe | Who reads | Who joins | Optional services | Why |
+| Recipe | Like | What it runs and puts first | Gaps it shows | When |
 | --- | --- | --- | --- | --- |
-| **newsroom** | Anybody (`SITE_READ_ACCESS=public`) | Open, or by approval | Web shell, link previews, video, federation. Recommendations on | The point is to be read and passed on: a shared link has to show its own headline and picture, and posts should reach readers on Mastodon and Bluesky |
-| **council** (a city, a public body) | Anybody | By approval | Web shell, link previews, federation, the data export. Events to the fore | Public by duty. Residents should be able to take what they wrote away with them, and meetings are events |
-| **library** (a public library) | Anybody | By approval, or open | Web shell, link previews, federation, the data export. Events to the fore. Recommendations off | Public by duty, like a council, with programmes, readings and clubs as events and groups. A library does not say what its readers read: nothing here records who looked at what, and nothing is suggested from what somebody did unless the library turns that on |
-| **school** | Members only (`registered`), and nothing new may be public (`MIN_CONTENT_ACCESS=registered`) | By invitation, from administrators only | Link previews (pages are fetched by the server, so no outside site sees a pupil's browser). No federation: a members-only site does not federate. Downloads off by default. Recommendations off | Minors. Nothing is seen from outside, nobody arrives uninvited, and nothing leaves |
-| **university** | A preview to visitors (`preview`), the rest to members | By approval, or by invitation from any member | Video, events, the data export, recommendations. Federation is the operator's choice | Groups for courses and societies, public enough to be found, people who come and go each year |
-| **research** (a laboratory, a research or scientific group, a learned society) | Anybody, or a preview to visitors | By invitation from any member, or by approval | Federation, link previews, video (talks), events (seminars, meetings), the data export. Small or medium | The work is meant to be read and passed on, and the people it is for are already on Mastodon and Bluesky. Groups for projects, which may be closed while the site is open. People move between institutions and should take what they wrote with them |
-| **neighbourhood** | A preview to visitors | By approval; members may invite | Events, link previews. Small | Neighbours should find it and see that it is alive, and say who they are before reading what the street says |
-| **household** (family, friends, one person) | Members only | By invitation from any member | As little as will run: no recommendations, video on with small limits, the data export. The smallest size | A few people who know each other. The cost of running it is what matters |
-| **community** (the default; what `generic` is now) | Anybody | Closed until the operator chooses | Everything optional left to the operator | For whoever fits none of the others |
+| **from-php** | | Moving a site from Anahita PHP: row 92, made simple from what was done for banu.io. Archive the old site and prove the archive; copy the files to a new bucket; `upgrade.sql`; check; the old site retired. One `make` target a step, each one that changes anything shown first with nothing changed (`tidy`, then `tidy-apply`, as banu.io does) | Each step tried on a copy | First |
+| **classic** | Mastodon and Pixelfed | Everything: notes, photos, video, articles, groups, events, federation on both networks. What `generic` is now | | First |
+| **microblog** | Mastodon, Threads | Notes and photos; articles, topics, events and websites off; short limits on video | Needs row 139's switches | First, once 139 is built |
+| **long-form** | Medium | Articles first: a home of article cards with their covers, notes beside them | RSS feeds; newsletters by email | Later |
+| **video** | YouTube, PeerTube | Video first: a grid of thumbnails, larger uploads, the video worker given more | Adaptive streaming (HLS); captions; playlists | Later |
+| **events** | Eventbrite | What is on, first; groups as the organisers | A calendar to subscribe to (iCal). No tickets: nothing is sold | Later |
 
-Each recipe's `README.md` ends with **the three things to decide before the first person joins**: usually the registration mode, the terms and privacy policy, and whether to federate, since the last cannot be cleanly undone.
+## What a site is made of
 
-### What recipes will show is missing
+```
+site/
+  Makefile            every task one word; `make` lists them
+  README.md           from an empty server to the first person signed in
+  k8s/
+    kustomization.yml anahita-services' manifests at a version, one recipe,
+                      the site's names
+    config.env        the site's settings, each with a line saying why
+    secrets.env.example
+  deploy/             the server and its DNS, for the clouds written so far
+  web/                the theme, build.sh and publish.sh, as banu.io's
+recipes/<name>/
+  kustomization.yml   kind: Component
+  config.env          the settings it chooses, each with why
+  README.md           who it is for, what it decides, the three things to
+                      decide before the first person joins
+  patches/            the services it leaves out
+```
 
-Writing them will turn up settings that do not exist. Expected, to be confirmed while writing and listed in the plan as they are found, not built here:
+1. **`make init`** asks for the few things only the operator knows: the
+   domain, the email the site sends from, where files are kept, the recipe.
+   It writes `config.env` and `secrets.env`, with keys it makes itself.
+2. **The Makefile** is banu.io's, without what was banu.io's alone (the
+   PHP site's clean-up, the archive): `tunnel`, `status`, `apply`, `web`,
+   `restart`, `logs`, `tidy`, `mail-off`, `backup`, `upgrade VERSION=`.
+3. **Upgrading** is changing one version and `make apply`; the README says
+   what each release needs, from the services' `CHANGELOG.md`.
 
-1. ~~who may create a group or an event at all~~: there is one, `GROUPS_FROM` and `EVENTS_FROM`, found while writing this. A school's recipe sets both to administrators;
-2. a site-wide default for a new profile's own privacy;
-3. turning the report reasons to a kind of site (a school's list is not a newsroom's): possible today by replacing the file, which a recipe can do;
-4. **hashtags and places to begin with (user, 2026-10-12 and 2026-10-14).** A new site has no hashtags and no places, so the Interests step of signing up (built 2026-10-14, [item 45](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/done/onboarding-recommendations.md)) has nothing to offer, and the place picker nothing to pick, until people have written. The user's design:
-   1. **`hashtag-defaults/hashtag_seed.json`,** given to hashtag-service when it is first deployed, lists hashtags to make at the start. Each recipe carries its own list: a school's subjects and years, a newsroom's beats, a library's subjects and programmes, a research group's fields and methods, a neighbourhood's streets and notices. The operator edits it before the first start.
-   2. **Seeded hashtags are marked featured** (`nodes.featured_at`, as featured people and groups are), belong to the installation and to no person, and **the Interests list fills up with featured hashtags** when public posts give it too few (`GET /recommendations/interests` counts by posts, so a hashtag nobody has used yet would otherwise never be offered).
-   3. **`location-defaults/location_seed.json`** does the same for places, and is harder: there are a great many. A small tool writes it, for the operator to read through before it is loaded, never loaded unread, since what geocoders hold is uneven: for instance `seed-places --around "Vancouver, BC" --kinds neighbourhood,library,school,park`, asking the open geocoders location-service already uses (Photon and Nominatim, from OpenStreetMap, within their usage limits), or reading GeoNames, an open dataset, for a whole region without many requests. A recipe names what kinds of place matter to it; the operator names where.
-   4. Seeding runs once, on a site with none; running it again adds only what is missing and changes nothing anybody made.
-5. **a licence on what is posted (user's list, 2026-10-13: research groups).** A research group, and a library, would want to say that what is posted may be reused, and how. Creative Commons licences are planned and kept for later (item 19); the `research` recipe is the reason to look at it again;
-6. terms and a privacy policy fitted to each kind. A recipe can carry a **starting text marked as such**; it is not legal advice and must say so.
+## What recipes will show is missing
 
-### The web app
+1. **Turning kinds of post and of profile off,** and choosing how lists are
+   shown: row 139, which `microblog` and the later three need.
+2. **Hashtags and places to begin with** (the user, 2026-10-12 and
+   2026-10-14): a new site has none, so signing up's Interests step and the
+   place picker offer nothing. A seed file each recipe carries, featured
+   hashtags filling the Interests list, and a tool that writes the places
+   for the operator to read before loading. A row of its own when a recipe
+   needs it.
+3. **A site-wide default for a new profile's privacy,** and for a reader's
+   content warnings (row 122), for a site with minors.
+4. **RSS feeds** (long-form), **HLS and captions** (video), **iCal**
+   (events): each a feature to plan when its recipe is reached.
+5. **Terms and a privacy policy** to begin from, marked as a start and not
+   legal advice.
 
-A recipe is mostly the server's. For the web app it may suggest a name and description and which legal texts to begin from (`docs/customising.md`). Themes are not part of a recipe.
+## Kept true
 
-### Kept true
+1. **Every recipe builds:** a check runs `kubectl kustomize` on `site/` with
+   each recipe and the example secrets, which needs no cluster.
+2. **Every setting a recipe names exists,** checked against anahita-services'
+   `docs/configuration.md` at the version `site/` names.
+3. **A recipe is tried for real** before it is published: a server made from
+   `site/` with it, the first person signed in, a post made, and the server
+   taken down after.
 
-- **Every recipe builds.** `make test` runs `kubectl kustomize` on each recipe with the generic overlay and its example secrets, which needs no cluster.
-- **Every setting a recipe names exists.** A check reads each recipe's `config.env` and fails on a name that `docs/configuration.md` does not have, and on a value that setting does not take.
-- **The table in the docs is made from the recipes,** not written beside them.
+## Phases
 
-## Estimate
-
-| Part | Time |
-| --- | --- |
-| The form: components, sizes, how an overlay takes one; `community` and `school` as the first two, since they are furthest apart | 4–5 h |
-| The other seven, each with its README | 6–7 h |
-| The checks, and the table made from the files | 2 h |
-| `docs/recipes.md`; `deploying.md` begins with "choose a recipe" | 2 h |
-| **Total** | **about 14–16 h, about 4 sessions** |
-
-## Verification
-
-1. `kubectl kustomize` of `generic` with `recipes/school` gives a ConfigMap with reading closed to members, invitations from administrators, and no recommendation service among the Deployments.
-2. The same overlay with `SITE_READ_ACCESS=preview` in its own `config.env` gives `preview`: the operator's word is last.
-3. A recipe naming a setting that does not exist fails `make test`.
-4. On a local cluster, `school` and `newsroom` each come up, and a visitor who is not signed in sees nothing on the one and the front page on the other.
-
-## Open questions
-
-1. **Are these the right ones,** and the right names? The user's own list (2026-10-11) also has **a company, a non-profit and a niche community**, which are to be added: a company's own staff is close to `school` without the care for minors (members only, by invitation, no federation unless chosen); a non-profit is close to `council` (public, with supporters joining by approval); a niche community is `community` with federation on, since reaching the fediverse is why such a site is made. A conference was considered and left for the asking.
-2. **Should a recipe leave services out, or only turn them off?** Leaving them out costs less to run; turning them off is one setting to change later. **Out (the user, 2026-10-26),** with the line to put one back in the README.
-3. **Where do recipes live? Settled 2026-10-26 (the user): a repository of their own, `anahita-recipes`,** on anahitasocial, public, made when anahita-services is public and tagged (row 93, phase 3). It holds `recipes/`, `sizes/`, and `site/`: the starting point to copy, made from banu.io's overlay, which fetches anahita-services' manifests by version and names one recipe and one size. A check builds every recipe against the version it names, so that a setting renamed here is caught there. What was weighed:
-   - **A repository of its own, `anahita-devops`,** for recipes and whatever else is about running a site and not about the code. For it: people who run a site and never build it clone only that; others can add a recipe without touching the services; it has its own pace of release. Against it: `k8s/base` is in anahita-services, so a recipe would point at a release of another repository, and a setting renamed there breaks a recipe here with nothing to say so until somebody builds it.
-   - **In anahita-services, beside `k8s/`,** as this plan is written. For it: the checks above run with every change to a setting. Against it: the services repository grows a part its developers seldom touch.
-   - Whichever is chosen, the form of a recipe is the same, so the choice can wait until the first two exist.
-
-## Dependencies
-
-- **None hard:** every setting the first recipes use exists (items 9 and 13).
-- **Item 8 (federation):** each recipe gains its line on federating when the services exist.
-- **[docs-for-agents.md](done/docs-for-agents.md):** its MCP server lists and reads recipes, so that somebody can ask an agent "which recipe for a school of 300, and what do I change first?"
+1. **`site/` and `classic`:** banu.io's overlay and Makefile made general,
+   `make init`, the README from an empty server; tried on a new server:
+   about two sessions.
+2. **`from-php`:** row 92's steps as `make` targets, tried on a copy of a
+   PHP site's data: about two sessions.
+3. **`microblog`,** after row 139: half a session.
+4. **A Recipes page on anahita.io:** half a session.
+5. **`long-form`, `video`, `events`:** each with its gaps weighed first.
 
 ## Documentation
 
-1. **New services page `recipes.md`**: what a recipe is, the table, how to take one and how to write one.
-2. **services `deploying.md`**: the first step becomes choosing a recipe and a size.
-3. **services `configuration.md`**: each setting a recipe chooses says which recipes choose what.
-4. **web `customising.md`**: what a recipe suggests for the web app.
+1. anahita-recipes: its README, and each recipe's.
+2. anahita-services: `deploying.md` begins with "choose a recipe";
+   `configuration.md` says which recipe chooses what.
+3. anahita-web: `docs/customising.md`, what a recipe suggests for the web
+   app.
+4. anahita.io: a Recipes page.
 
 ## Status
 
 | Item | State |
 | --- | --- |
-| Plan | written 2026-10-11; `library` and `research` added 2026-10-13 |
-| Implementation | not started, and not before the public release (2026-10-13). Where they live settled 2026-10-26: `anahita-recipes`; banu.io is the first site made from `site/`, with `household` |
+| Plan | written 2026-10-11 by kind of organisation; written again 2026-11-07 by purpose |
+| Implementation | not started |
