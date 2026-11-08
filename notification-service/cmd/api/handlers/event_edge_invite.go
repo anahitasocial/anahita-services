@@ -50,7 +50,7 @@ func (h *eventHandler) eventFormatEdgeInviteAdded(payload *event.EventPayload) e
 		return err
 	}
 
-	_, err = h.Repos.Notifications.Add(n)
+	_, err = h.add(n)
 
 	return err
 }
@@ -112,7 +112,7 @@ func (h *eventHandler) eventFormatEdgeInviteAccepted(payload *event.EventPayload
 		return err
 	}
 
-	_, err = h.Repos.Notifications.Add(n)
+	_, err = h.add(n)
 
 	return err
 }

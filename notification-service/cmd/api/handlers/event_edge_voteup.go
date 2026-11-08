@@ -64,7 +64,7 @@ func (h *eventHandler) eventFormatEdgeVoteupAdded(payload *event.EventPayload) e
 		return err
 	}
 
-	n.ID, err = h.Repos.Notifications.Add(n)
+	n.ID, err = h.add(n)
 	if err != nil {
 		log.Println("eventFormatEdgeVoteupAdded: failed to create notification:", err)
 		return err

@@ -28,7 +28,10 @@ Releases before v1.0.17 are described on GitHub, under
    reposted, and what is on their profile, is left out of the muter's
    Following feed, custom feeds, a hashtag's and a location's posts and
    search, and their replies and what is under them out of threads; they
-   are not suggested. Their own profile, opened, is whole.
+   are not suggested. Their own profile, opened, is whole. With
+   `hide_notifications`, what they do tells the muter nothing while the
+   mute lasts. The download has `data/muted.json` and a Muted section; the
+   sweeper deletes mutes that have ended.
 
 ### Changed
 

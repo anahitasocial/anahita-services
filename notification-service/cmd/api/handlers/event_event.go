@@ -71,7 +71,7 @@ func (h *eventHandler) eventFormatEventAnswered(payload *event.EventPayload) err
 			return err
 		}
 
-		if _, err = h.Repos.Notifications.Add(n); err != nil {
+		if _, err = h.add(n); err != nil {
 			return err
 		}
 	}
@@ -112,7 +112,7 @@ func (h *eventHandler) eventFormatEventTold(payload *event.EventPayload, kind st
 	// One of each kind for an event and a person. An event moved three
 	// times says so once, with the time it has now on its page: telling
 	// them again moves the one notification to the top (Add).
-	_, err = h.Repos.Notifications.Add(n)
+	_, err = h.add(n)
 
 	return err
 }

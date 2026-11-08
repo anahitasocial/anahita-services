@@ -16,6 +16,8 @@ type SocialgraphRelInterface interface {
 	GetOne(actorAID int64, actorBID int64) (*entities.ActorRelation, error)
 	// Which of these profiles the viewer mutes, while the mute lasts.
 	MutedAmong(viewerID int64, actorIDs []int64) (map[int64]bool, error)
+	// Deletes the mutes that have ended, for the sweeper.
+	DeleteEndedMutes() (int64, error)
 }
 
 type socialgraphRelRepo struct {

@@ -178,3 +178,29 @@ func WithoutMuted(replies []*entities.AnahitaNode, muted map[int64]bool) []*enti
 	}
 	return kept
 }
+
+// deleteEndedMutes takes away mutes whose end has passed, a batch at a time.
+const deleteEndedMutes = `
+DELETE FROM edges
+WHERE type = ?
+  AND ends_at IS NOT NULL
+  AND ends_at <= UTC_TIMESTAMP()
+LIMIT ?`
+
+// endedMutesBatch is the most mutes one run deletes; the rest wait for the
+// next run, an hour on.
+const endedMutesBatch = 5000
+
+// DeleteEndedMutes deletes the mutes that have ended, for the sweeper. They
+// stopped counting the moment they ended; this keeps the table from holding
+// them.
+func (r *socialgraphRelRepo) DeleteEndedMutes() (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), r.dbTimeout)
+	defer cancel()
+
+	result, err := r.db.ExecContext(ctx, deleteEndedMutes, constants.EdgeMuteEntityType, endedMutesBatch)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}

@@ -51,7 +51,7 @@ func (h *eventHandler) eventFormatEdgeAdminAdded(payload *event.EventPayload) er
 			return err
 		}
 
-		n.ID, err = h.Repos.Notifications.Add(n)
+		n.ID, err = h.add(n)
 		if err != nil {
 			return err
 		}

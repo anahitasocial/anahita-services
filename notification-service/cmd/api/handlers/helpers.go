@@ -6,6 +6,7 @@ import (
 	"anahita-libs/data/services"
 	an_mw "anahita-libs/middleware"
 	"anahita-libs/permissions"
+	"log"
 	"notification/data/entities"
 	"strings"
 
@@ -114,4 +115,30 @@ func (h *eventHandler) mayRead(recipientID int64, ids ...int64) bool {
 		}
 	}
 	return true
+}
+
+// add makes a notification, unless its recipient muted whoever did it and
+// asked not to be told of them (roadmap row 133): then nothing is made, as
+// for a kind of thing they turned off, and nothing waits to be shown when
+// the mute ends. Every notification an event makes goes through here.
+func (h *eventHandler) add(n *entities.Notification) (int64, error) {
+	if h.mutedBy(n.RecipientID, n.Subject) {
+		return 0, nil
+	}
+	return h.Repos.Notifications.Add(n)
+}
+
+// mutedBy is whether the recipient mutes the subject, with their
+// notifications hidden. When the graph cannot say, the notification is made:
+// being told once too often is the lesser harm.
+func (h *eventHandler) mutedBy(recipientID int64, subject *an_entities.AnahitaNode) bool {
+	if subject == nil || subject.ID <= 0 || recipientID <= 0 || subject.ID == recipientID {
+		return false
+	}
+	rel, err := h.Srv.SocialgraphGRPC.Read(recipientID, subject.ID)
+	if err != nil {
+		log.Println("whether the recipient mutes the subject:", err)
+		return false
+	}
+	return rel != nil && rel.IsMuting && rel.MuteHidesNotifications
 }

@@ -52,7 +52,7 @@ func (h *eventHandler) eventFormatEdgeFollowRequestAdded(payload *event.EventPay
 			return err
 		}
 
-		_, err = h.Repos.Notifications.Add(n)
+		_, err = h.add(n)
 
 		return err
 	}
@@ -72,7 +72,7 @@ func (h *eventHandler) eventFormatEdgeFollowRequestAdded(payload *event.EventPay
 			return err
 		}
 
-		if _, err = h.Repos.Notifications.Add(n); err != nil {
+		if _, err = h.add(n); err != nil {
 			return err
 		}
 	}
@@ -128,7 +128,7 @@ func (h *eventHandler) eventFormatEdgeFollowRequestAccepted(payload *event.Event
 		return err
 	}
 
-	_, err = h.Repos.Notifications.Add(n)
+	_, err = h.add(n)
 
 	return err
 }

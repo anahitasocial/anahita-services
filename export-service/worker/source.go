@@ -53,6 +53,7 @@ var connections = map[string]struct {
 	archive.Following: {constants.EdgeFollowEntityType, constants.GraphQueryDirectionOutbound},
 	archive.Followers: {constants.EdgeFollowEntityType, constants.GraphQueryDirectionInbound},
 	archive.Blocked:   {constants.EdgeBlockEntityType, constants.GraphQueryDirectionOutbound},
+	archive.Muted:     {constants.EdgeMuteEntityType, constants.GraphQueryDirectionOutbound},
 	archive.Liked:     {constants.EdgeBaseLikeEntityType, constants.GraphQueryDirectionOutbound},
 }
 

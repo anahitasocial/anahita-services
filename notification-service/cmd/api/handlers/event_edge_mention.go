@@ -69,7 +69,7 @@ func (h *eventHandler) eventFormatEdgeMentionAdded(payload *event.EventPayload) 
 	if err := n.Validate(); err != nil {
 		return err
 	}
-	_, err = h.Repos.Notifications.Add(n)
+	_, err = h.add(n)
 	return err
 }
 

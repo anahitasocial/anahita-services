@@ -145,6 +145,7 @@ func account() (*fakeSource, fakeFiles) {
 			Following: {person(6, "Bob", "bob")},
 			Followers: {person(6, "Bob", "bob"), person(7, "Carol", "carol")},
 			Blocked:   {person(8, "Dan", "dan")},
+			Muted:     {person(9, "Naomi", "naomi")},
 			Liked:     {node(81, "note", "text-service")},
 		},
 		saved: []*entities.AnahitaNode{node(82, "article", "text-service")},
@@ -199,7 +200,7 @@ func TestAnArchiveHasEverythingAPersonWroteAndTheirFiles(t *testing.T) {
 	for _, name := range []string{
 		"index.html", "README.txt", "actor.json", "outbox.json",
 		"data/profile.json", "data/posts.ndjson", "data/following.json",
-		"data/followers.json", "data/blocked.json", "data/liked.json", "data/saved.json",
+		"data/followers.json", "data/blocked.json", "data/muted.json", "data/liked.json", "data/saved.json",
 	} {
 		if _, ok := entries[name]; !ok {
 			t.Errorf("%s is not in the archive", name)
@@ -273,7 +274,7 @@ func TestThePageShowsSomebodysWordsAsWords(t *testing.T) {
 		`<img src="media/12/1.jpg"`,
 		`<video src="media/14/video.mp4"`,
 		`<a href="https://www.example.org/@bob">Bob</a>`,
-		"Posts (6)", "Followers (2)", "Blocked (1)",
+		"Posts (6)", "Followers (2)", "Blocked (1)", "Muted (1)",
 	} {
 		if !strings.Contains(page, want) {
 			t.Errorf("the page lacks %s", want)

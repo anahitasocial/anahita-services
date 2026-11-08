@@ -61,6 +61,7 @@ const (
 	Following = "following"
 	Followers = "followers"
 	Blocked   = "blocked"
+	Muted     = "muted"
 	Liked     = "liked"
 )
 
@@ -279,6 +280,7 @@ func (b *Builder) Write(ctx context.Context, w io.Writer, personID int64) (*Summ
 		{Following, &page.Following},
 		{Followers, &page.Followers},
 		{Blocked, &page.Blocked},
+		{Muted, &page.Muted},
 		{Liked, &page.Liked},
 	} {
 		refs, err := b.connected(personID, list.kind)

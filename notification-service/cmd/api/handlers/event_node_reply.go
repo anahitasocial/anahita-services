@@ -108,7 +108,7 @@ func (h *eventHandler) replyAdded(payload *event.EventPayload, subject *an_entit
 			return err
 		}
 
-		if _, err := h.Repos.Notifications.Add(n); err != nil {
+		if _, err := h.add(n); err != nil {
 			return err
 		}
 	}

@@ -108,6 +108,9 @@ func Run(db *sql.DB, repos *repositories.Repositories, publisher *event.Publishe
 	// Hashtags and locations no post carries any more.
 	Tags(repos)
 
+	// Mutes that have ended.
+	Mutes(repos)
+
 	// The days a deleted profile can be brought back: ACCOUNT_GRACE_DAYS,
 	// the number auth-service tells people (anahita-libs/constants).
 	cutoff := time.Now().UTC().AddDate(0, 0, -constants.AccountGraceDays())

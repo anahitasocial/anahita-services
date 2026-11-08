@@ -53,6 +53,6 @@ func (h *eventHandler) quoteAdded(payload *event.EventPayload, subject *an_entit
 		return err
 	}
 
-	_, err = h.Repos.Notifications.Add(n)
+	_, err = h.add(n)
 	return err
 }

@@ -25,6 +25,7 @@ type pageData struct {
 	Following []*Ref
 	Followers []*Ref
 	Blocked   []*Ref
+	Muted     []*Ref
 	Liked     []*Ref
 	Saved     []*Ref
 	Summary   *Summary
@@ -214,6 +215,7 @@ anywhere: it works with no connection.
   data/following.json  who is followed
   data/followers.json  who follows
   data/blocked.json    who is blocked
+  data/muted.json      who is muted
   data/liked.json      what was liked
   data/saved.json      what was saved
   actor.json           the profile, as ActivityStreams
@@ -279,7 +281,7 @@ var pageTemplate = template.Must(template.New("index").Funcs(template.FuncMap{
     {{.Summary.Posts}} posts and {{.Summary.Files}} files. {{missing .Summary}}</p>
   <nav>
     <a href="#posts">Posts</a><a href="#following">Following</a><a href="#followers">Followers</a>
-    <a href="#liked">Liked</a><a href="#saved">Saved</a><a href="#blocked">Blocked</a>
+    <a href="#liked">Liked</a><a href="#saved">Saved</a><a href="#blocked">Blocked</a><a href="#muted">Muted</a>
   </nav>
 </header>
 
@@ -312,6 +314,7 @@ var pageTemplate = template.Must(template.New("index").Funcs(template.FuncMap{
 <h2 id="liked">Liked ({{len .Liked}})</h2>{{template "refs" .Liked}}
 <h2 id="saved">Saved ({{len .Saved}})</h2>{{template "refs" .Saved}}
 <h2 id="blocked">Blocked ({{len .Blocked}})</h2>{{template "refs" .Blocked}}
+<h2 id="muted">Muted ({{len .Muted}})</h2>{{template "refs" .Muted}}
 </main>
 </body>
 </html>

@@ -85,7 +85,7 @@ func (h *eventHandler) eventFormatNodeMediumAdded(payload *event.EventPayload) e
 			return err
 		}
 
-		n.ID, err = h.Repos.Notifications.Add(n)
+		n.ID, err = h.add(n)
 		if err != nil {
 			return err
 		}
