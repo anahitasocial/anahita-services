@@ -54,6 +54,9 @@ them on every server that does it Mastodon's way.
 
 ## Part 1: who you follow, out and in
 
+Imports and the files out are both export-service's, which takes imports
+in row 142 ([imports.md](imports.md)).
+
 1. **Out, in Mastodon's shape:** `following_accounts.csv`, one line a
    profile by its address (`ana@banu.io`, `alice@mastodon.social`), which
    Mastodon, Pixelfed, GoToSocial and Akkoma read. Groups, hashtags and
@@ -103,6 +106,9 @@ the screen says so first. Groups, events and websites are the
 installation's and their admins', and do not move.
 
 ## Part 4: bringing your posts
+
+Through export-service's imports ([imports.md](imports.md)), with the powers it
+keeps: a post's own date, and nothing sent for it.
 
 Between two Anahitas, which read each other's download: the new one imports
 a person's notes, articles, topics, photos and videos as theirs, with their
