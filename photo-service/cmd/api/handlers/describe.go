@@ -29,7 +29,7 @@ type FilesRefusal = photos.FilesRefusal
 type PhotoUpload struct {
 	// The profile the post will be on.
 	OwnerID int64 `param:"owner_id"`
-	// The image: a JPEG or a PNG, of at most 10 MB.
+	// The image: a JPEG, a PNG, a WebP, a HEIC or an AVIF, of at most 10 MB.
 	File apidoc.File `form:"file" validate:"required"`
 }
 

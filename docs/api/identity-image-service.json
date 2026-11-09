@@ -147,7 +147,7 @@
               "schema": {
                 "properties": {
                   "avatar": {
-                    "description": "The picture: a JPEG or a PNG, of at most 10 MB.",
+                    "description": "The picture: a JPEG, a PNG, a WebP, a HEIC or an AVIF, of at most 10 MB.",
                     "format": "binary",
                     "type": "string"
                   }
@@ -212,7 +212,7 @@
                 }
               }
             },
-            "description": "`file_unsupported`: not a JPEG or a PNG"
+            "description": "`file_unsupported`: not a JPEG, a PNG, a WebP, a HEIC or an AVIF"
           }
         },
         "security": [
@@ -340,7 +340,7 @@
               "schema": {
                 "properties": {
                   "cover": {
-                    "description": "The picture: a JPEG or a PNG, of at most 10 MB.",
+                    "description": "The picture: a JPEG, a PNG, a WebP, a HEIC or an AVIF, of at most 10 MB.",
                     "format": "binary",
                     "type": "string"
                   }
@@ -405,7 +405,7 @@
                 }
               }
             },
-            "description": "`file_unsupported`: not a JPEG or a PNG"
+            "description": "`file_unsupported`: not a JPEG, a PNG, a WebP, a HEIC or an AVIF"
           }
         },
         "security": [

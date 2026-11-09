@@ -1,7 +1,7 @@
 # WebP, HEIC and AVIF photos (roadmap row 135)
 
 From FediDB's comparison with Mastodon, Pixelfed and Loops (2026-11-07).
-Planned on 2026-11-08. Not built.
+Planned on 2026-11-08. **Done on 2026-11-09,** both phases in one session.
 
 ## Contents
 
@@ -9,6 +9,7 @@ Planned on 2026-11-08. Not built.
 2. [What there is now](#what-there-is-now)
 3. [What changes](#what-changes)
 4. [Phases](#phases)
+5. [Done](#done)
 
 ## Why
 
@@ -47,3 +48,30 @@ elsewhere, and every photo is kept at Anahita's sizes as JPEG or PNG.
 1. WebP, everywhere: half a session.
 2. HEIC and AVIF, with the image's new package and the web app's picker
    and preview: one session.
+
+## Done
+
+Done on 2026-11-09, as planned, so:
+
+1. **In `images.Accept`,** the one way in for every picture, so photo
+   uploads, profile and cover photos and pictures from other servers all
+   take them: a WebP, a HEIC or an AVIF is made a PNG first, then a JPEG
+   where nothing in it is see-through (`anahita-libs/utils/formats.go`).
+   Link previews take WebP, as they did, and not HEIC or AVIF.
+2. **A HEIC or an AVIF** is known by its `ftyp` box, and held to the
+   pixels allowed from its `ispe` boxes before it is opened; then
+   `heif-convert` writes its primary image, within 60 seconds, in a folder
+   of its own. Where `heif-convert` is not there, it is refused as before.
+3. **`libheif-tools`** is in the images of photo-service,
+   identity-image-service, activitypub-service and atproto-service, about
+   13 MB with what it reads HEIC and AVIF with (libde265, dav1d). Not in
+   link-preview-service's, which takes WebP and refuses the other two.
+4. **The web app** asks for them in the photo pickers and an article's
+   cover, sends a WebP or an AVIF as it is unless it is larger than is
+   kept, and shows a HEIC this browser cannot draw by the size the server
+   made of it.
+5. **Tested** with small files of each kind in `anahita-libs/utils/testdata`,
+   with heif-convert in Alpine and without it; and on the development
+   stack, a WebP, a HEIC and an AVIF of 1,200 pixels uploaded as photos,
+   kept as JPEG at every size, and an AVIF as a profile photo.
+

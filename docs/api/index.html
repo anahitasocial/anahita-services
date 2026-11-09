@@ -5264,7 +5264,7 @@ who may call it: somebody signed in.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>avatar</code> <span class="required">always</span></td><td>file</td><td>The picture: a JPEG or a PNG, of at most 10 MB.</td></tr>
+<tr><td><code>avatar</code> <span class="required">always</span></td><td>file</td><td>The picture: a JPEG, a PNG, a WebP, a HEIC or an AVIF, of at most 10 MB.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -5276,7 +5276,7 @@ who may call it: somebody signed in.">
 <tr><td class="status s4">403</td><td>it cannot have one, or the viewer may not change it</td></tr>
 <tr><td class="status s4">404</td><td>there is no such profile or post, or the viewer may not see it</td></tr>
 <tr><td class="status s4">413</td><td><code>file_too_large</code>: more than 10 MB, or too many pixels<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
-<tr><td class="status s4">415</td><td><code>file_unsupported</code>: not a JPEG or a PNG<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">415</td><td><code>file_unsupported</code>: not a JPEG, a PNG, a WebP, a HEIC or an AVIF<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>identityimage/cmd/api/handlers.(*imageHandler).SetAvatar</code></p>
@@ -5343,7 +5343,7 @@ who may call it: somebody signed in.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>cover</code> <span class="required">always</span></td><td>file</td><td>The picture: a JPEG or a PNG, of at most 10 MB.</td></tr>
+<tr><td><code>cover</code> <span class="required">always</span></td><td>file</td><td>The picture: a JPEG, a PNG, a WebP, a HEIC or an AVIF, of at most 10 MB.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -5355,7 +5355,7 @@ who may call it: somebody signed in.">
 <tr><td class="status s4">403</td><td>it cannot have one, or the viewer may not change it</td></tr>
 <tr><td class="status s4">404</td><td>there is no such profile or post, or the viewer may not see it</td></tr>
 <tr><td class="status s4">413</td><td><code>file_too_large</code>: more than 10 MB, or too many pixels<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
-<tr><td class="status s4">415</td><td><code>file_unsupported</code>: not a JPEG or a PNG<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">415</td><td><code>file_unsupported</code>: not a JPEG, a PNG, a WebP, a HEIC or an AVIF<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>identityimage/cmd/api/handlers.(*imageHandler).SetCover</code></p>
@@ -8014,7 +8014,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>file</code> <span class="required">always</span></td><td>file</td><td>The image: a JPEG or a PNG, of at most 10 MB.</td></tr>
+<tr><td><code>file</code> <span class="required">always</span></td><td>file</td><td>The image: a JPEG, a PNG, a WebP, a HEIC or an AVIF, of at most 10 MB.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>

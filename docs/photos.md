@@ -95,7 +95,7 @@ When the images are refused the answer says why, and how many a post holds:
 | 422 | `alt_text_too_long` | A description over 2,000 characters |
 | 404 | `file_not_found` | An upload that is gone, or an image the post does not have |
 | 403 | `upload_not_yours` | Somebody else's upload, or one made for another profile |
-| 415 | `file_unsupported` | Not a JPEG or a PNG |
+| 415 | `file_unsupported` | Not a JPEG, a PNG, a WebP, a HEIC or an AVIF |
 | 413 | `file_too_large` | Over 10 MB, or over 50 megapixels |
 | 400 | `file_unreadable` | It could not be read as an image |
 
@@ -123,7 +123,17 @@ An image is never enlarged: one smaller than a size is stored at its own
 size under that size's name. A JPEG is written at quality 85. A PNG with
 nothing see-through in it, a screenshot as often as not, is kept as a JPEG;
 one that is see-through somewhere stays a PNG. Pictures copied from posts
-on other servers are kept the same way. Photos kept before 2026-10-16 were
+on other servers are kept the same way.
+
+**A WebP, a HEIC or an AVIF** (roadmap row 135), as an iPhone takes its
+photos and websites more and more serve theirs, is made a PNG as it
+arrives, and then a JPEG where nothing in it is see-through, and kept as
+that from then on (`anahita-libs/utils/formats.go`). WebP is read by Go.
+HEIC and AVIF are read by `heif-convert`, from Alpine's `libheif-tools`,
+which is in the images of photo-service, identity-image-service,
+activitypub-service and atproto-service; their size is read from the file
+before it is opened, and it is given 60 seconds. A service without it
+refuses them as `file_unsupported`, as before. Photos kept before 2026-10-16 were
 measured by their width, up to 2,560, and their files are as they were.
 
 Images are stored under the profile the post is on, not under the post:
@@ -235,7 +245,7 @@ Videos work the same way, with `/videos/` in place of `/photos/`; see
 | Images in a post | 20, or fewer with `PHOTO_MAX_FILES` |
 | One uploaded file | 10 MB, which is what the gateway lets one request carry (`client_max_body_size` in `nginx.conf`). The two services that take images, photo-service and identity-image-service, allow a request of 11M for it (`constants.ImageRequestBodyMaxSizeLimit`); until 2026-10-10 they used the general 2M, which refused anything larger before this limit was reached |
 | Pixels in one image | 50 million |
-| Formats | JPEG, PNG. An animated PNG is kept still, as its first picture; a GIF or an animated PNG that is to move is posted as a video, which loops (see [Videos](videos.md#gifs-and-animated-pngs)) |
+| Formats | JPEG, PNG, WebP, HEIC and AVIF, each kept as JPEG, or PNG where something is see-through ([What is stored](#what-is-stored)). An animated PNG is kept still, as its first picture; a GIF or an animated PNG that is to move is posted as a video, which loops (see [Videos](videos.md#gifs-and-animated-pngs)) |
 | A description | 2,000 characters written here (what Bluesky's own app takes); 10,000 kept from another server (Mastodon's) |
 
 Bluesky takes images of up to 2 MB (1 MB until 2025). A picture sent there is

@@ -16,7 +16,7 @@ type NodeImageRequest struct {
 type AvatarUpload struct {
 	// The id of the profile.
 	NodeID int64 `param:"node_id"`
-	// The picture: a JPEG or a PNG, of at most 10 MB.
+	// The picture: a JPEG, a PNG, a WebP, a HEIC or an AVIF, of at most 10 MB.
 	Avatar apidoc.File `form:"avatar" validate:"required"`
 }
 
@@ -24,7 +24,7 @@ type AvatarUpload struct {
 type CoverUpload struct {
 	// The id of the profile or the post.
 	NodeID int64 `param:"node_id"`
-	// The picture: a JPEG or a PNG, of at most 10 MB.
+	// The picture: a JPEG, a PNG, a WebP, a HEIC or an AVIF, of at most 10 MB.
 	Cover apidoc.File `form:"cover" validate:"required"`
 }
 

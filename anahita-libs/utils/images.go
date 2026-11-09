@@ -305,7 +305,8 @@ func SquareImage(input []byte, side int) ([]byte, error) {
 
 // Why an uploaded file was not accepted as an image.
 var (
-	// Not a JPEG or a PNG, judged from its bytes.
+	// Not a JPEG, a PNG, a WebP, a HEIC or an AVIF, judged from its bytes;
+	// or a HEIC or an AVIF where heif-convert is not there to read it.
 	ErrUnsupported = errors.New("not a supported image")
 	// More bytes, or more pixels, than is accepted.
 	ErrTooLarge = errors.New("image is too large")
@@ -322,6 +323,9 @@ var (
 //
 //   - What a file is, is decided from its bytes. A page of HTML named
 //     photo.jpg is refused.
+//   - A WebP, a HEIC or an AVIF (roadmap row 135) is made a PNG first, or a
+//     JPEG where nothing in it is see-through, and is what it was made
+//     into from then on (formats.go).
 //   - Its size is checked twice, in bytes and in pixels, and the pixels are
 //     read from the header before any of the picture is opened. A small file
 //     can describe an enormous picture, and opening one takes memory by the
@@ -332,12 +336,23 @@ var (
 // it is: every stored size is written out again by FitImage or SquareImage,
 // so nothing a file carries besides its picture reaches storage.
 func Accept(content []byte, maxBytes, maxPixels int) ([]byte, string, error) {
-	if !IsValidMimeType(http.DetectContentType(content)) {
+	kind := kindOf(content)
+	if kind == "" {
 		return nil, "", ErrUnsupported
 	}
 
 	if len(content) > maxBytes {
 		return nil, "", ErrTooLarge
+	}
+
+	content, err := readable(content, kind, maxPixels)
+	if err != nil {
+		return nil, "", err
+	}
+	if kind != kindJPEG && kind != kindPNG {
+		if content, _, err = AsPhoto(content, kindPNG); err != nil {
+			return nil, "", err
+		}
 	}
 
 	declared, _, err := image.DecodeConfig(bytes.NewReader(content))

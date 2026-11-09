@@ -28,6 +28,13 @@ Releases before v1.0.17 are described on GitHub, under
    stops the thread there (`thread_stopped`, `thread_notes`). Migration
    `20261122000018_thread_media`.
 
+3. **WebP, HEIC and AVIF photos** (roadmap row 135): taken in everywhere a
+   picture is, uploads, profile and cover photos and pictures from other
+   servers, and kept as JPEG, or PNG where see-through. HEIC and AVIF are
+   read by `heif-convert` (`libheif-tools`), now in the images of
+   photo-service, identity-image-service, activitypub-service and
+   atproto-service.
+
 ### Fixed
 
 1. **A thread's chain in a list** is counted through photo, video and audio

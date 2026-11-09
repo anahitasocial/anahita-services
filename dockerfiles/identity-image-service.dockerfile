@@ -1,5 +1,6 @@
 FROM alpine:latest
-RUN mkdir /app
+# heif-convert reads a HEIC or an AVIF picture (roadmap row 135).
+RUN apk add --no-cache libheif-tools && mkdir /app
 
 COPY identity-image-service/app-binary /app
 

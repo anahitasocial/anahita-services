@@ -70,7 +70,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 				Refuses(http.StatusForbidden, "it cannot have one, or the viewer may not change it").
 				Refuses(http.StatusNotFound, "there is no such profile or post, or the viewer may not see it").
 				Sends(http.StatusRequestEntityTooLarge, responses.Refusal{}, "`file_too_large`: more than 10 MB, or too many pixels").
-				Sends(http.StatusUnsupportedMediaType, responses.Refusal{}, "`file_unsupported`: not a JPEG or a PNG")
+				Sends(http.StatusUnsupportedMediaType, responses.Refusal{}, "`file_unsupported`: not a JPEG, a PNG, a WebP, a HEIC or an AVIF")
 		}
 	}
 	remove := func(what, on string) func(*apidoc.Route) {
