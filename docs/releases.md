@@ -28,14 +28,18 @@ that did not change are tagged again, not built
 
 ## Version numbers
 
-`v<major>.<minor>.<patch>`, as [semantic versioning](https://semver.org) has
-them:
+`v<major>.<minor>.<patch>`. Anahita is built and released continuously, and
+moves forward a release at a time; the number says what a site has to do
+about each (the user, 2026-11-08):
 
 | Part | Goes up when |
 | --- | --- |
-| Major | Something a site, an app or a service of its own relies on changes in a way it must follow: a route removed or answering differently, a setting renamed, a step to take by hand when upgrading |
-| Minor | Something is added, and what was there still works the same |
-| Patch | Something is fixed, and nothing else changes |
+| Major | A milestone: Anahita stays at 1 until it has most of what other fediverse software offers, and 2.0.0 says so |
+| Minor | Something a site, an app or a service of its own relies on changes in a way it must follow: a route removed or answering differently, a setting or an image renamed, a step to take by hand when upgrading |
+| Patch | Everything else: new features and fixes, which a site takes by changing the version and nothing more |
+
+So a site goes from one patch to the next without reading more than the
+changelog, and stops to read the Upgrading notes at a new minor.
 
 What each Birth release changes, and anything to do when upgrading to it,
 is in [CHANGELOG.md](../CHANGELOG.md), from v1.0.17, and in its notes on
