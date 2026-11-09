@@ -106,8 +106,8 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Sends(http.StatusTooManyRequests, responses.Refusal{}, "`too_many`: as many as may be begun in a day")
 
 	videos.GET("/:owner_id/", r.handler.Video.Browse, r.setViewer).
-		Summary("A profile's video posts").
-		Describe("Those the viewer may see.").
+		Summary("A profile's video posts, or its audio posts").
+		Describe("Those the viewer may see. With `?type=audio`, its audio posts (roadmap row 137).").
 		Viewer(apidoc.Anyone).
 		Takes(media.Browse).
 		Sends(http.StatusOK, responses.List[*responses.MediumNodeItem]{})

@@ -158,7 +158,7 @@ type NodeInfoDocument struct {
 	OpenRegistrations bool `json:"openRegistrations"`
 	// How much it is used.
 	Usage nodeInfoUsage `json:"usage"`
-	// What the web app reads of the installation: `nodeName`, `nodeDescription`, `logoUrl`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `websitesFrom`, `locationsFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `siteRules`, `spamRemovalMaxDays`, `accountGraceDays`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.
+	// What the web app reads of the installation: `nodeName`, `nodeDescription`, `logoUrl`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `websitesFrom`, `locationsFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `siteRules`, `spamRemovalMaxDays`, `accountGraceDays`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `audioMaxBytes`, `audioMaxSeconds`, `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.
 	Metadata map[string]any `json:"metadata"`
 }
 
@@ -330,6 +330,10 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 			// video that loops, and held to far less.
 			"animationMaxBytes":   videos.AnimationMaxBytes(),
 			"animationMaxSeconds": videos.AnimationMaxSeconds(),
+			// And an audio post's (roadmap row 137), posted where videos
+			// may be.
+			"audioMaxBytes":   videos.AudioMaxBytes(),
+			"audioMaxSeconds": videos.AudioMaxSeconds(),
 
 			"termsOfServiceUrl": h.Config.GetTosURL(),
 			"privacyPolicyUrl":  h.Config.GetPrivacyURL(),

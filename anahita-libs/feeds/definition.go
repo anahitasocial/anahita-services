@@ -140,9 +140,10 @@ var mediaTypes = map[string]string{
 	"topic":   "node.medium.text-service.topic.v1",
 	"photo":   constants.NodeMediumPhotoEntityType,
 	"video":   "node.medium.video-service.video.v1",
+	"audio":   "node.medium.video-service.audio.v1",
 }
 
-var mediaOrder = []string{"note", "article", "topic", "photo", "video"}
+var mediaOrder = []string{"note", "article", "topic", "photo", "video", "audio"}
 
 // A person is somebody here or on another server: a feed kept to posts on
 // people's profiles has the posts of people followed on Mastodon and

@@ -277,13 +277,14 @@ five, under Profiles.
    7. [Sizes](videos.md#sizes)
    8. [GIFs and animated PNGs](videos.md#gifs-and-animated-pngs)
    9. [Downloading](videos.md#downloading)
-   10. [Videos from other networks](videos.md#videos-from-other-networks)
-   11. [Endpoints](videos.md#endpoints)
-   12. [Settings](videos.md#settings)
-   13. [Storage](videos.md#storage)
-   14. [Running it, and not running it](videos.md#running-it-and-not-running-it)
-   15. [Where the code is](videos.md#where-the-code-is)
-   16. [What is not built](videos.md#what-is-not-built)
+   10. [Audio posts](videos.md#audio-posts)
+   11. [Videos from other networks](videos.md#videos-from-other-networks)
+   12. [Endpoints](videos.md#endpoints)
+   13. [Settings](videos.md#settings)
+   14. [Storage](videos.md#storage)
+   15. [Running it, and not running it](videos.md#running-it-and-not-running-it)
+   16. [Where the code is](videos.md#where-the-code-is)
+   17. [What is not built](videos.md#what-is-not-built)
 3. [Link previews](link-previews.md) — the card a note carries for a link: fetching a page safely, the picture, and how long a preview is kept
    1. [Two halves](link-previews.md#two-halves)
    2. [Fetching a page safely](link-previews.md#fetching-a-page-safely)
@@ -469,7 +470,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Threads that read as threads](plans/done/threads.md) | 126 | done 2026-11-07: a thread's next note and its length in a list, counted when a page is read; the writer's notes first on its page; the composer's count, Add to thread at the limit, and Split into a thread |
 | [Refusing servers from a file](plans/domain-block-import.md) | 91 | planned 2026-10-27: a CSV of servers to refuse, Mastodon's own shape or one name a line, looked at before it is applied; the list downloaded as one too |
 | [A second profile posting to a Bluesky account](plans/bluesky-posting-only.md) | 92 | planned 2026-10-28: a profile the same person looks after (a blog, a group) connects their Bluesky account to send its posts there, posting only: nothing from Bluesky is kept as it, and the account stays the first profile's |
-| [Audio and video from everywhere](plans/audio-and-video.md) | 120, 137 | phase 1 done 2026-11-08 (videos from Bluesky and the fediverse played here); planned 2026-11-08: videos and sounds from Bluesky and the fediverse copied here on first play, one size, kept for `REMOTE_VIDEO_DAYS`; audio posts, a kind of their own, up to an hour, out to the fediverse as `Audio` |
+| [Audio and video from everywhere](plans/audio-and-video.md) | 120, 137 | phases 1 and 2 done 2026-11-08 (videos from Bluesky and the fediverse played here; audio posts), phase 3 next; planned 2026-11-08: videos and sounds from Bluesky and the fediverse copied here on first play, one size, kept for `REMOTE_VIDEO_DAYS`; audio posts, a kind of their own, up to an hour, out to the fediverse as `Audio` |
 | [WebP, HEIC and AVIF photos](plans/photo-formats.md) | 135 | planned 2026-11-08: taken in and kept as JPEG, WebP by Go, HEIC and AVIF by `heif-convert` in photo-service's image |
 | [Content warnings](plans/content-warnings.md) | 122 | planned 2026-11-03, Made with AI added 2026-11-07: six kinds, an author marks a post and each reader chooses Show, Warn or Hide; both networks in and out; moderators add one from a report |
 | [Direct messages, and being found on the fediverse](plans/direct-messages.md) | 123 | planned 2026-11-03: listed on FediDB, FediDB's 128 questions answered in features.md, then messages here and with the fediverse as private mentions, with consent first |

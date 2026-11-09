@@ -82,7 +82,7 @@ is gathered at the end, [for planning](#not-built).
 | Upload AVIF images | no | |
 | Upload MP4 video | yes | [Videos](videos.md) |
 | Upload WebM video | yes | [Videos](videos.md) |
-| Upload audio | no | |
+| Upload audio | yes | Audio posts, up to an hour, with their cover ([Videos](videos.md#audio-posts)) |
 | Several attachments per post | yes | [Photo posts](photos.md) |
 | More than four attachments per post | yes | Up to 20, set by the operator |
 | Image descriptions (alt text) | yes | |
@@ -240,8 +240,9 @@ Every **no** and **planned** above, gathered for planning.
 2. **Posting:** polls; scheduled posts; a post length the operator sets;
    custom emoji; deleting old posts automatically, each person's own choice
    (planned: [old-posts.md](plans/old-posts.md), row 132).
-3. **Media:** WebP, HEIC and AVIF images; audio; a focal point; photo
-   filters.
+3. **Media:** WebP, HEIC and AVIF images (planned:
+   [photo-formats.md](plans/photo-formats.md), row 135); a focal point;
+   photo filters.
 4. **Video:** adaptive streaming (HLS); captions, and automatic ones; live
    streaming; chapters; playlists; podcast feeds; peer-to-peer delivery.
 5. **Interactions:** emoji reactions; downvotes; lists; joining groups on

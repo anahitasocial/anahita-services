@@ -59,7 +59,12 @@ func (h *videoHandler) Browse(c echo.Context) error {
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset
 
+	// A profile's audio posts with ?type=audio (roadmap row 137); its
+	// videos otherwise.
 	gReq.Types = []string{constants.NodeMediumVideoType}
+	if c.QueryParam("type") == videos.KindAudio {
+		gReq.Types = []string{constants.NodeMediumAudioType}
+	}
 	gReq.Offset = req.Offset
 	gReq.Limit = req.Limit
 	gReq.Ordering = req.Ordering
@@ -130,7 +135,7 @@ func (h *videoHandler) Read(c echo.Context) error {
 	}
 
 	medium, err := h.Srv.MediaGRPC.Read(req.ID, viewer)
-	if err != nil || medium == nil || medium.Type != constants.NodeMediumVideoType {
+	if err != nil || medium == nil || !videos.IsOurs(medium.Type) {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
 	}
@@ -196,7 +201,7 @@ func (h *videoHandler) Edit(c echo.Context) error {
 	}
 
 	medium, err := h.Srv.MediaGRPC.Read(req.ID, viewer)
-	if err != nil || medium == nil || medium.Type != constants.NodeMediumVideoType {
+	if err != nil || medium == nil || !videos.IsOurs(medium.Type) {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
 	}
@@ -261,7 +266,7 @@ func (h *videoHandler) Delete(c echo.Context) error {
 	}
 
 	medium, err := h.Srv.MediaGRPC.Read(req.ID, viewer)
-	if err != nil || medium == nil || medium.Type != constants.NodeMediumVideoType {
+	if err != nil || medium == nil || !videos.IsOurs(medium.Type) {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
 	}
@@ -276,16 +281,16 @@ func (h *videoHandler) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	// Its files, read before the post goes: afterwards nothing says which
-	// they were.
-	video := videos.FromMeta(medium.Meta)
+	// Its files, a video's or an audio post's, read before the post goes:
+	// afterwards nothing says which they were.
+	files := videos.FilesOf(medium.Meta)
 
 	if err = h.Srv.MediaGRPC.Delete(medium.ID, viewer); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	h.deleteStored(video.Keys())
+	h.deleteStored(files)
 
 	return c.NoContent(http.StatusOK)
 }

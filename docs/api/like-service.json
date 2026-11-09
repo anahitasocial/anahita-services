@@ -209,6 +209,33 @@
         ],
         "type": "object"
       },
+      "Audio": {
+        "description": "Audio is what an audio post plays (roadmap row 137): its one file, how long it plays, and its cover when it has one.",
+        "properties": {
+          "cover": {
+            "description": "Its cover, a path under the API, when the file carried one.",
+            "type": "string"
+          },
+          "duration": {
+            "description": "How long it plays, in seconds.",
+            "type": "number"
+          },
+          "type": {
+            "description": "The kind of file: `audio/mp4`.",
+            "type": "string"
+          },
+          "url": {
+            "description": "Where it is read from: a path under the API, answered for whoever may see the post.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "duration",
+          "url",
+          "type"
+        ],
+        "type": "object"
+      },
       "Author": {
         "description": "Author is who wrote something.",
         "properties": {
@@ -528,6 +555,10 @@
           "allow_download": {
             "description": "Whether whoever can see it may download what it holds. Sent on a post that holds a file, for whoever may change it.",
             "type": "boolean"
+          },
+          "audio": {
+            "$ref": "#/components/schemas/Audio",
+            "description": "What an audio post plays (roadmap row 137)."
           },
           "author": {
             "$ref": "#/components/schemas/Author",
@@ -934,6 +965,9 @@
           "alias": {
             "description": "A profile's handle (`ana`, or `ana@mastodon.social` for somebody on another server), or a hashtag's name.",
             "type": "string"
+          },
+          "audio": {
+            "$ref": "#/components/schemas/Audio"
           },
           "author": {
             "$ref": "#/components/schemas/Author",

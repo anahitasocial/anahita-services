@@ -95,3 +95,38 @@ func NewElsewhere(node *entities.AnahitaNode) *Elsewhere {
 	}
 	return &Elsewhere{Kind: elsewhere.Kind, Page: elsewhere.Page, Site: elsewhere.Site}
 }
+
+// Audio is what an audio post plays (roadmap row 137): its one file, how
+// long it plays, and its cover when it has one.
+type Audio struct {
+	// How long it plays, in seconds.
+	Duration float64 `json:"duration"`
+	// Where it is read from: a path under the API, answered for whoever
+	// may see the post.
+	URL string `json:"url"`
+	// The kind of file: `audio/mp4`.
+	Type string `json:"type"`
+	// Its cover, a path under the API, when the file carried one.
+	Cover string `json:"cover,omitempty"`
+}
+
+// NewAudio reads an audio post's sound out of its meta, or nil when it is
+// not an audio post.
+func NewAudio(node *entities.AnahitaNode) *Audio {
+	if node == nil || node.Type != videos.AudioNodeType {
+		return nil
+	}
+	audio := videos.AudioFromMeta(node.Meta)
+	if audio == nil {
+		return nil
+	}
+	out := &Audio{
+		Duration: audio.Duration,
+		URL:      videos.NamedPath(node.ID, videos.AudioFile),
+		Type:     videos.MimeAudio,
+	}
+	if audio.Cover != "" {
+		out.Cover = videos.NamedPath(node.ID, videos.CoverFile)
+	}
+	return out
+}

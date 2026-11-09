@@ -45,3 +45,16 @@ func TestAVideosFilesAreRemovedWithIt(t *testing.T) {
 		}
 	}
 }
+
+// An audio post's sound and cover go with it too (roadmap row 137).
+func TestAnAudioPostsFilesGoWithIt(t *testing.T) {
+	node := entities.NewAnahitaNode()
+	node.Type = videos.AudioNodeType
+	node.Meta, _ = videos.AudioIntoMeta(nil, &videos.Audio{Key: "a/audio.m4a", Cover: "a/cover.jpg"})
+	paths := filePaths(node)
+	for _, want := range []string{"a/audio.m4a", "a/cover.jpg"} {
+		if !slices.Contains(paths, want) {
+			t.Errorf("%s is not removed; removed: %v", want, paths)
+		}
+	}
+}

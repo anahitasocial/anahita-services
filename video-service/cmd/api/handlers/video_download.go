@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"video/constants"
 
 	"github.com/labstack/echo/v4"
 )
@@ -45,7 +44,7 @@ func (h *videoHandler) EditDownload(c echo.Context) error {
 	}
 
 	medium, err := h.Srv.MediaGRPC.Read(req.ID, viewer)
-	if err != nil || medium == nil || medium.Type != constants.NodeMediumVideoType {
+	if err != nil || medium == nil || !videos.IsOurs(medium.Type) {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
 	}
@@ -97,11 +96,16 @@ func (h *videoHandler) Download(c echo.Context) error {
 	}
 
 	medium, err := h.Srv.MediaGRPC.Read(id, viewer)
-	if err != nil || medium == nil || medium.Type != constants.NodeMediumVideoType {
+	if err != nil || medium == nil || !videos.IsOurs(medium.Type) {
 		return c.NoContent(http.StatusNotFound)
 	}
 	if refused := handlers.MayDownload(h.Srv.GraphNodeGRPC, h.Limiter, medium, viewer); refused != 0 {
 		return c.NoContent(refused)
+	}
+
+	// An audio post's one file (roadmap row 137).
+	if audio := videos.AudioFromMeta(medium.Meta); audio != nil {
+		return handlers.SendDownload(c, h.Srv.Transfers, audio.Key, handlers.DownloadName(medium, "audio", "", audio.Key))
 	}
 
 	video := videos.FromMeta(medium.Meta)

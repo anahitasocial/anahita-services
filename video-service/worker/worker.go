@@ -34,6 +34,11 @@ type Encoder interface {
 	Poster(ctx context.Context, container, in, out string, info *encode.Info) error
 	// Remux copies a file that already plays as it is (encode.Playable).
 	Remux(ctx context.Context, container, in, out string, maxSeconds int) error
+	// For audio posts (roadmap row 137): reading a sound, making its one
+	// file, and taking out the picture it carries.
+	ProbeSound(ctx context.Context, path string, maxSeconds int) (*encode.SoundInfo, string, error)
+	EncodeSound(ctx context.Context, container, in, out string, maxSeconds int) error
+	Cover(ctx context.Context, container, in, out string) error
 }
 
 // FFmpeg is the Encoder that runs ffmpeg.
@@ -49,6 +54,18 @@ func (FFmpeg) Encode(ctx context.Context, container, in, out string, target enco
 
 func (FFmpeg) Remux(ctx context.Context, container, in, out string, maxSeconds int) error {
 	return encode.Remux(ctx, container, in, out, maxSeconds)
+}
+
+func (FFmpeg) ProbeSound(ctx context.Context, path string, maxSeconds int) (*encode.SoundInfo, string, error) {
+	return encode.ProbeSound(ctx, path, maxSeconds)
+}
+
+func (FFmpeg) EncodeSound(ctx context.Context, container, in, out string, maxSeconds int) error {
+	return encode.EncodeSound(ctx, container, in, out, maxSeconds)
+}
+
+func (FFmpeg) Cover(ctx context.Context, container, in, out string) error {
+	return encode.Cover(ctx, container, in, out)
 }
 
 func (FFmpeg) Poster(ctx context.Context, container, in, out string, info *encode.Info) error {
@@ -94,6 +111,9 @@ type Worker struct {
 	// far below a video's.
 	AnimationMaxBytes   int64
 	AnimationMaxSeconds int
+	// The limits a sound is held to, for an audio post.
+	AudioMaxBytes   int64
+	AudioMaxSeconds int
 	// How long all the work on one video may take.
 	Timeout time.Duration
 	Client  *http.Client
@@ -150,15 +170,37 @@ func (w *Worker) process(upload *repositories.Upload) {
 	}
 	defer os.RemoveAll(dir)
 
-	video, err := w.make(ctx, upload, dir)
-	if err != nil {
-		w.failed(upload, video, err)
-		return
+	// A video's sizes and poster, or an audio post's one file and cover,
+	// and what the post says of them.
+	var (
+		keys []string
+		meta []byte
+	)
+	if upload.Kind == videos.KindAudio {
+		audio, err := w.makeAudio(ctx, upload, dir)
+		keys = audio.Keys()
+		if err == nil {
+			meta, err = videos.AudioIntoMeta(nil, audio)
+		}
+		if err != nil {
+			w.failed(upload, keys, err)
+			return
+		}
+	} else {
+		video, err := w.make(ctx, upload, dir)
+		keys = video.Keys()
+		if err == nil {
+			meta, err = videos.IntoMeta(nil, video)
+		}
+		if err != nil {
+			w.failed(upload, keys, err)
+			return
+		}
 	}
 
-	node, viewer, err := w.post(upload, video)
+	node, viewer, err := w.post(upload, meta)
 	if err != nil {
-		w.failed(upload, video, err)
+		w.failed(upload, keys, err)
 		return
 	}
 
@@ -169,7 +211,7 @@ func (w *Worker) process(upload *repositories.Upload) {
 		if err := w.Posts.Delete(node.ID, viewer); err != nil {
 			log.Printf("video %s: post %d could not be taken back: %v", upload.ID, node.ID, err)
 		}
-		w.remove(video.Keys())
+		w.remove(keys)
 		w.remove([]string{upload.SourceKey})
 		return
 	}
@@ -205,9 +247,9 @@ func TimeoutFor(maxSeconds int, heights []int) time.Duration {
 // failed records why a video was not made. What is wrong with the file
 // itself is final. Anything else may be the store or the network, and is
 // tried again until its attempts run out.
-func (w *Worker) failed(upload *repositories.Upload, video *videos.Video, err error) {
+func (w *Worker) failed(upload *repositories.Upload, keys []string, err error) {
 	log.Printf("video %s: %v", upload.ID, err)
-	w.remove(video.Keys())
+	w.remove(keys)
 
 	// Given up by its uploader while it was being made: nothing to record.
 	if errors.Is(err, repositories.ErrNotInState) {
@@ -217,7 +259,7 @@ func (w *Worker) failed(upload *repositories.Upload, video *videos.Video, err er
 
 	reason := ""
 	switch {
-	case errors.Is(err, encode.ErrNotAVideo):
+	case errors.Is(err, encode.ErrNotAVideo), errors.Is(err, encode.ErrNotASound):
 		reason = constants.FailedNotAVideo
 	case errors.Is(err, encode.ErrStill):
 		reason = constants.FailedStill
@@ -319,9 +361,52 @@ func (w *Worker) make(ctx context.Context, upload *repositories.Upload, dir stri
 	return video, nil
 }
 
+// makeAudio fetches a sound and stores the one file an audio post keeps,
+// and its cover when the file carried one. It returns what was stored, as
+// far as it got, for clearing up after a failure.
+func (w *Worker) makeAudio(ctx context.Context, upload *repositories.Upload, dir string) (*videos.Audio, error) {
+	audio := &videos.Audio{}
+
+	source := filepath.Join(dir, "source")
+	if err := w.fetchUpTo(ctx, upload.SourceKey, source, w.AudioMaxBytes); err != nil {
+		return audio, err
+	}
+	info, container, err := w.Encoder.ProbeSound(ctx, source, w.AudioMaxSeconds)
+	if err != nil {
+		return audio, err
+	}
+
+	folder := videos.Folder(upload.OwnerID, upload.ID)
+	out := filepath.Join(dir, videos.AudioFile)
+	if err := w.Encoder.EncodeSound(ctx, container, source, out, w.AudioMaxSeconds); err != nil {
+		return audio, err
+	}
+	key := videos.AudioKey(folder)
+	size, err := w.store(ctx, out, key, videos.MimeAudio)
+	if err != nil {
+		return audio, err
+	}
+	audio.Key, audio.Bytes, audio.Duration = key, size, info.Duration
+
+	if info.HasCover {
+		cover := filepath.Join(dir, videos.CoverFile)
+		if err := w.Encoder.Cover(ctx, container, source, cover); err != nil {
+			// A sound with no cover is still a sound.
+			log.Printf("video %s: no cover: %v", upload.ID, err)
+			return audio, nil
+		}
+		key := videos.CoverKey(folder)
+		if _, err := w.store(ctx, cover, key, videos.MimePoster); err != nil {
+			return audio, err
+		}
+		audio.Cover = key
+	}
+	return audio, nil
+}
+
 // post makes the post, as the person who uploaded the video, on the
 // profile they chose, with everything they said about it then.
-func (w *Worker) post(upload *repositories.Upload, video *videos.Video) (*entities.AnahitaNode, *entities.Viewer, error) {
+func (w *Worker) post(upload *repositories.Upload, meta []byte) (*entities.AnahitaNode, *entities.Viewer, error) {
 	// Given up while it was being made: no post.
 	current, err := w.Uploads.Read(upload.ID)
 	if err != nil {
@@ -346,6 +431,10 @@ func (w *Worker) post(upload *repositories.Upload, video *videos.Video) (*entiti
 
 	medium := entities.NewAnahitaNode()
 	medium.Type = constants.NodeMediumVideoType
+	medium.Mimetype = videos.MimeVideo
+	if upload.Kind == videos.KindAudio {
+		medium.Type, medium.Mimetype = constants.NodeMediumAudioType, videos.MimeAudio
+	}
 	medium.Service = constants.VideoService
 	medium.OwnerID = owner.ID
 	medium.OwnerType = owner.Type
@@ -366,8 +455,6 @@ func (w *Worker) post(upload *repositories.Upload, video *videos.Video) (*entiti
 		medium.ReplyAccess = upload.ReplyAccess
 		medium.CommentStatus = upload.ReplyAccess != an_const.ReplyAccessNobody
 	}
-	medium.Mimetype = videos.MimeVideo
-
 	// A reply: made only if its thread still lets its author answer, and
 	// with no audience, rule for replies or rule for quoting of its own.
 	if upload.ParentID > 0 {
@@ -385,10 +472,7 @@ func (w *Worker) post(upload *repositories.Upload, video *videos.Video) (*entiti
 		medium.Access, medium.ReplyAccess, medium.QuotePolicy = "", "", ""
 	}
 
-	medium.Meta, err = videos.IntoMeta(nil, video)
-	if err != nil {
-		return nil, nil, err
-	}
+	medium.Meta = meta
 
 	node, err := w.Posts.Add(medium, viewer)
 	if err != nil || node == nil {
@@ -408,6 +492,11 @@ func (w *Worker) client() *http.Client {
 // video may be: what was checked when the upload was finished is checked
 // again where it is read.
 func (w *Worker) fetch(ctx context.Context, key, path string) error {
+	return w.fetchUpTo(ctx, key, path, w.MaxBytes)
+}
+
+// fetchUpTo reads the upload as fetch does, stopping at `max`.
+func (w *Worker) fetchUpTo(ctx context.Context, key, path string, max int64) error {
 	address, err := w.Transfers.FetchURL(key)
 	if err != nil {
 		return err
@@ -432,11 +521,11 @@ func (w *Worker) fetch(ctx context.Context, key, path string) error {
 	}
 	defer file.Close()
 
-	written, err := io.Copy(file, io.LimitReader(res.Body, w.MaxBytes+1))
+	written, err := io.Copy(file, io.LimitReader(res.Body, max+1))
 	if err != nil {
 		return err
 	}
-	if w.MaxBytes > 0 && written > w.MaxBytes {
+	if max > 0 && written > max {
 		return errTooLarge
 	}
 	return nil

@@ -70,7 +70,7 @@ func (h *Handlers) HandleEvent(payload *event.EventPayload) error {
 	// Notes, photo posts, video posts and articles; topics stay here.
 	case strings.HasPrefix(payload.Name, "node.medium.") &&
 		(payload.ObjectType == constants.NodeMediumNoteEntityType || payload.ObjectType == constants.NodeMediumPhotoEntityType ||
-			payload.ObjectType == videos.NodeType || payload.ObjectType == constants.NodeMediumArticleEntityType):
+			videos.IsOurs(payload.ObjectType) || payload.ObjectType == constants.NodeMediumArticleEntityType):
 		if deleted {
 			err = h.localRemoved(ctx, payload.ObjectID)
 		} else {

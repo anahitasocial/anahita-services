@@ -163,6 +163,7 @@ what it reposts.
 | | `node.medium.text-service.topic.v1` | A topic: a conversation with a title, started on a profile, with replies under it |
 | | `node.medium.photo-service.photo.v1` | A photo post, of one or more photos ([Photo posts](photos.md)) |
 | | `node.medium.video-service.video.v1` | A video post ([Videos](videos.md)) |
+| | `node.medium.video-service.audio.v1` | An audio post ([Audio posts](videos.md#audio-posts)) |
 | Tags | `node.tag.hashtag-service.hashtag.v1` | A hashtag ([Hashtags and locations](hashtags.md)) |
 | | `node.tag.location-service.location.v1` | A location posts are tagged with |
 | Feeds | `node.feed.feed-service.generator.v1` | A custom feed: what it shows, kept in its `meta` ([Custom feeds](feeds.md)) |

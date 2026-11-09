@@ -19,13 +19,14 @@ Its routes are in the API reference: [video-service](api/index.html#video-servic
 7. [Sizes](#sizes)
 8. [GIFs and animated PNGs](#gifs-and-animated-pngs)
 9. [Downloading](#downloading)
-10. [Videos from other networks](#videos-from-other-networks)
-11. [Endpoints](#endpoints)
-12. [Settings](#settings)
-13. [Storage](#storage)
-14. [Running it, and not running it](#running-it-and-not-running-it)
-15. [Where the code is](#where-the-code-is)
-16. [What is not built](#what-is-not-built)
+10. [Audio posts](#audio-posts)
+11. [Videos from other networks](#videos-from-other-networks)
+12. [Endpoints](#endpoints)
+13. [Settings](#settings)
+14. [Storage](#storage)
+15. [Running it, and not running it](#running-it-and-not-running-it)
+16. [Where the code is](#where-the-code-is)
+17. [What is not built](#what-is-not-built)
 
 ## The parts
 
@@ -118,7 +119,8 @@ could never be a video. It decides nothing.
 
 ## The post
 
-A video post is a node of type `node.medium.video-service.video.v1`. Its
+A video post is a node of type `node.medium.video-service.video.v1` (an
+audio post, `node.medium.video-service.audio.v1`: [Audio posts](#audio-posts)). Its
 files are described in its `meta` under `video`: the duration, each size
 with its key in storage, and the poster. Nothing but the worker writes
 that, and `anahita-libs/videos` is the one place that reads it.
@@ -223,6 +225,39 @@ As for a photo, and by the same rules: see
   `?size=720` another. What is downloaded is what the worker made: the
   upload itself was deleted.
 
+## Audio posts
+
+A sound is a post of its own kind, `node.medium.video-service.audio.v1`,
+made and kept by video-service, which has the worker and ffmpeg (roadmap
+row 137, [Audio and video from everywhere](plans/audio-and-video.md)). It
+is posted where videos may be (`VIDEO_UPLOADS`): the same two containers
+make it.
+
+1. **Sent as a video is,** in parts straight to storage, through the same
+   routes. What the browser says the file is decides: MP3, M4A and AAC,
+   Ogg and Opus, WAV, FLAC and WebM sound make an audio post; the upload
+   keeps its kind (`video_uploads.kind`). Held to `AUDIO_MAX_BYTES` and
+   `AUDIO_MAX_SECONDS` (500 MB and an hour unless said), and to
+   `VIDEO_DAILY_UPLOADS` with videos.
+2. **The worker** reads the file by its first bytes, as it reads a video,
+   wants a sound in it, and keeps **one file,** AAC at 128 kbit/s in an M4A
+   (`audio.m4a`), made to start at once, with nothing else of the file. The
+   picture a file carries, an album's cover, becomes its cover
+   (`cover.jpg`); a file with none has no cover.
+3. **The post** has a title, words and the rest as a video post has; its
+   meta holds `audio`: how long it plays, its file, and its cover. The API
+   sends it as `audio: { duration, url, type, cover }`, at
+   `/videos/:id/files/audio.m4a` and `cover.jpg`, answered as a video's
+   files are. A profile's audio posts are `GET /videos/:owner_id/?type=audio`,
+   under an Audio tab.
+4. **Downloaded** as a video is, its M4A, where downloading is allowed.
+5. **To the fediverse** as a note with Mastodon's `Audio` attachment, its
+   cover as its `icon`, its title first; **to Bluesky,** which has no sound,
+   as its title and opening with a card that leads to it here, its cover the
+   card's picture ([Federation](federation.md#posts-going-out)).
+6. **Kept and removed** as a video's files are: named for the nightly file
+   sweep, removed with the post, with its profile, and in the download.
+
 ## Videos from other networks
 
 A post from Bluesky or the fediverse that carries a video is kept with its
@@ -270,9 +305,9 @@ the uploads'. The worker takes what was posted here first.
 | `GET /videos/uploads/:id` | the uploader | How it is getting on |
 | `GET /videos/uploads` | signed in | What they have in hand: being sent, being made, or failed in the last day |
 | `DELETE /videos/uploads/:id` | the uploader | Give it up |
-| `GET /videos/:owner_id/` | anybody | A profile's videos |
+| `GET /videos/:owner_id/` | anybody | A profile's videos; with `?type=audio`, its audio posts |
 | `GET /videos/:id` | whoever may see it | A video post |
-| `GET /videos/:id/files/:name` | whoever may see it | Redirect to `1080.mp4`, `720.mp4`, `360.mp4` or `poster.jpg` |
+| `GET /videos/:id/files/:name` | whoever may see it | Redirect to `1080.mp4`, `720.mp4`, `360.mp4` or `poster.jpg`; an audio post's `audio.m4a` or `cover.jpg` |
 | `PATCH /videos/:id`, `DELETE /videos/:id` | whoever may edit or delete it | Change its title and text; delete it and its files |
 | `PATCH /videos/:id/access`, `/comment-status`, `/reply-access`, `/quote-policy`; `PUT`/`DELETE /videos/:id/pin` | as for any post | As for any post |
 | `PATCH /videos/:id/download` | whoever may edit it | Whether it may be downloaded |
@@ -303,13 +338,15 @@ Kubernetes.
 | `VIDEO_DAILY_UPLOADS` | How many videos one person may send in 24 hours. `20` unless said |
 | `ANIMATION_MAX_BYTES` | The largest GIF or animated PNG taken. 25 MB (`26214400`) unless said, and never more than `VIDEO_MAX_BYTES` |
 | `ANIMATION_MAX_SECONDS` | The longest one. `30` unless said, and never more than `VIDEO_MAX_SECONDS` |
+| `AUDIO_MAX_BYTES` | The largest file taken to make an audio post. 500 MB unless said |
+| `AUDIO_MAX_SECONDS` | The longest audio post. `3600`, an hour, unless said |
 | `REMOTE_MEDIA_MAX_BYTES` | The largest file from another network copied here. 100 MB unless said |
 | `REMOTE_MEDIA_MAX_SECONDS` | The longest. `3600`, an hour, unless said |
 | `REMOTE_VIDEO_DAYS` | How many days a copy from another network is kept after it was last played. `7` unless said; `0` keeps them for good |
 | `VIDEO_WORK_DIR` | Worker only: where a video is kept while it is worked on. `/work` in the image. Needs room for the largest upload and everything made of it |
 
 NodeInfo's `metadata` has `videoUploads`, `videoMaxBytes`,
-`videoMaxSeconds`, `animationMaxBytes` and `animationMaxSeconds`.
+`videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `audioMaxBytes` and `audioMaxSeconds`.
 
 ## Storage
 
@@ -340,7 +377,7 @@ it.
 | Where | What | Who writes | Who reads |
 | --- | --- | --- | --- |
 | `assets/v1/video-service/uploads/<person>/<upload>/source` | What was uploaded, kept as `application/octet-stream` whatever it is | The browser, in parts | The worker. **Never a viewer**: no address is signed for one |
-| `assets/v1/video-service/videos/<profile>/<upload>/` | Each size and the poster | The worker | Viewers, as `video/mp4` or `image/jpeg` by its name, whatever it was stored as |
+| `assets/v1/video-service/videos/<profile>/<upload>/` | Each size and the poster, or an audio post's `audio.m4a` and `cover.jpg` | The worker | Viewers, as `video/mp4`, `audio/mp4` or `image/jpeg` by its name, whatever it was stored as |
 | `assets/v1/video-service/videos/<profile>/elsewhere-<post>/720.mp4` | The copy of a video from another network | The worker | Viewers, as above, until `REMOTE_VIDEO_DAYS` after it was last played |
 
 A lifecycle rule on the bucket that aborts unfinished multipart uploads
@@ -370,6 +407,7 @@ once; each needs processor and working space of its own.
 | What a file is, how long it runs, and the sizes made | `video-service/encode/encode.go` (`Container`, `ParseProbe`, `Plan`, `PlanAnimation`), tested in `encode_test.go` and `encode_ffmpeg_test.go` |
 | The uploads | `video-service/data/repositories/uploads.go`, table `video_uploads`, tested in `uploads_integration_test.go` |
 | Where large files may be written and read | `file-grpc-service/data/services/uploads.go` (`UploadsPrefix`, `WorkerPrefix`) |
+| Audio posts | `video-service/encode/audio.go` (tested in `audio_test.go`), `video-service/worker/worker.go` (`makeAudio`), `anahita-libs/videos/audio.go`; the kind of upload in `video_uploads.kind` |
 | Videos from other networks | `video-service/cmd/api/handlers/elsewhere.go`, `video-service/worker/elsewhere.go` (tested in `elsewhere_test.go`), `video-service/data/repositories/elsewhere.go`, table `media_elsewhere`; what a post says of one, `anahita-libs/videos/elsewhere.go`; kept when a post arrives by `atproto-service/cmd/api/handlers/elsewhere.go` and `activitypub-service/cmd/api/handlers/inbox.go` |
 | Settings | `video-service/config/config.go`, `anahita-libs/videos/settings.go` |
 | The two images | `dockerfiles/video-service.dockerfile`, `dockerfiles/video-worker.dockerfile` |
@@ -379,7 +417,8 @@ once; each needs processor and working space of its own.
 1. Telling the uploader, by a notification, that a video is ready or has
    failed. The composer asks.
 2. Changing size while playing (HLS), captions, and a choice of poster.
-3. Sound from other networks, and audio posts: roadmap row 137, with
-   [Audio and video from everywhere](plans/audio-and-video.md).
+3. Sound from other networks played here: phase 3 of
+   [Audio and video from everywhere](plans/audio-and-video.md); a sound from
+   Mastodon leads to its page until then.
 4. Animated WebP, until ffmpeg reads one; and keeping what is see-through in
    a GIF (WebM with transparency, or keeping the picture as it was).

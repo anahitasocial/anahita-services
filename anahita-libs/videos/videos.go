@@ -206,3 +206,9 @@ func FilePath(nodeID int64, height int) string {
 func PosterPath(nodeID int64) string {
 	return fmt.Sprintf("%s%d/files/poster.jpg", FilesPath, nodeID)
 }
+
+// NamedPath is where one of a post's files is asked for by its name: an
+// audio post's audio.m4a or cover.jpg.
+func NamedPath(nodeID int64, name string) string {
+	return fmt.Sprintf("%s%d/files/%s", FilesPath, nodeID, name)
+}

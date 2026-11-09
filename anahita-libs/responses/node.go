@@ -94,6 +94,8 @@ type NodeItem struct {
 	MediaRemoved *MediaRemoved `json:"media_removed,omitempty"`
 	// What a video post plays.
 	Video *Video `json:"video,omitempty"`
+	// What an audio post plays.
+	Audio *Audio `json:"audio,omitempty"`
 
 	// On a custom feed: its picture and what it shows. Left out on
 	// anything else.
@@ -175,6 +177,7 @@ func (r *NodeResponse) MapNodeItem(node *entities.AnahitaNode) *NodeItem {
 		LinkPreview:          NewLinkPreview(node),
 		MediaRemoved:         NewMediaRemoved(node),
 		Video:                NewVideo(node),
+		Audio:                NewAudio(node),
 		Authorized:           NewNodeAuthorized(node),
 		Author: func() *Author {
 			if node.Author != nil {

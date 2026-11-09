@@ -269,7 +269,7 @@ SELECT
   COALESCE(node.filename, ''),
   COALESCE(node.cover_filename, ''),
   CASE
-    WHEN node.type = ? THEN COALESCE(node.meta, '')
+    WHEN node.type IN (?, ?) THEN COALESCE(node.meta, '')
     ELSE ''
   END
 FROM purge_work work
@@ -280,8 +280,9 @@ WHERE work.actor_id = ?
 ORDER BY work.node_id
 LIMIT ?`
 
-	// A video post says where its files are in its meta, and only there.
-	rows, err := r.db.QueryContext(ctx, query, videos.NodeType, actorID, purgeTaskDelete, limit)
+	// A video post or an audio post says where its files are in its meta,
+	// and only there.
+	rows, err := r.db.QueryContext(ctx, query, videos.NodeType, videos.AudioNodeType, actorID, purgeTaskDelete, limit)
 	if err != nil {
 		return nil, err
 	}

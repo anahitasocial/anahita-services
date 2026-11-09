@@ -5,6 +5,7 @@ import "anahita-libs/videos"
 const (
 	// Entity types
 	NodeMediumVideoType = videos.NodeType
+	NodeMediumAudioType = videos.AudioNodeType
 	VideoService        = videos.Service
 
 	// How big each part of an upload is. A store wants every part but the
@@ -23,6 +24,13 @@ const (
 // the worker, which reads it; this only turns away what could never be one.
 // A GIF or an animated PNG is posted here too, as a clip that loops.
 var UploadTypes = []string{"video/mp4", "video/quicktime", "video/webm", "image/gif", "image/png"}
+
+// AudioTypes are what a browser may say a sound is: an audio post (roadmap
+// row 137). MP3, M4A and AAC, Ogg and Opus, WAV, FLAC, and WebM sound.
+var AudioTypes = []string{
+	"audio/mpeg", "audio/mp3", "audio/mp4", "audio/x-m4a", "audio/aac", "audio/ogg", "audio/opus",
+	"audio/wav", "audio/x-wav", "audio/wave", "audio/flac", "audio/x-flac", "audio/webm",
+}
 
 // AnimationTypes are those of UploadTypes that are moving pictures, held to
 // the smaller limits of one.

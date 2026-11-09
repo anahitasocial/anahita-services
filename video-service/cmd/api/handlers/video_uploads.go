@@ -87,6 +87,8 @@ type UploadResponse struct {
 	Status string `json:"status"`
 	// The post's title.
 	Title string `json:"title"`
+	// `video`, or `audio` for a sound (roadmap row 137).
+	Kind string `json:"kind"`
 	// The profile the post will be on.
 	OwnerID int64 `json:"owner_id"`
 	// Why it failed.
@@ -112,6 +114,7 @@ func newUploadResponse(upload *repositories.Upload) *UploadResponse {
 		ID:        upload.ID,
 		Status:    upload.Status,
 		Title:     upload.Name,
+		Kind:      upload.Kind,
 		OwnerID:   upload.OwnerID,
 		Error:     upload.Error,
 		NodeID:    upload.NodeID,
@@ -130,11 +133,14 @@ func refuseUpload(c echo.Context, status int, code string) error {
 	return c.JSON(status, responses.Refusal{Error: code})
 }
 
-// placeholderVideo is a video on this profile that does not exist yet:
-// what the permission to post is judged on.
-func placeholderVideo(owner *entities.AnahitaNode, viewer *entities.Viewer) *entities.AnahitaNode {
+// placeholderVideo is a video, or an audio post, on this profile that does
+// not exist yet: what the permission to post is judged on.
+func placeholderVideo(owner *entities.AnahitaNode, viewer *entities.Viewer, kind string) *entities.AnahitaNode {
 	medium := entities.NewAnahitaNode()
 	medium.Type = constants.NodeMediumVideoType
+	if kind == videos.KindAudio {
+		medium.Type = constants.NodeMediumAudioType
+	}
 	medium.Service = constants.VideoService
 	medium.OwnerID = owner.ID
 	medium.OwnerType = owner.Type
@@ -169,13 +175,21 @@ func (h *videoHandler) UploadStart(c echo.Context) error {
 
 	contentType, _, _ := strings.Cut(req.ContentType, ";")
 	contentType = strings.TrimSpace(strings.ToLower(contentType))
-	if !slices.Contains(constants.UploadTypes, contentType) {
+	// A sound is an audio post (roadmap row 137), made by the same worker.
+	kind := videos.KindVideo
+	if slices.Contains(constants.AudioTypes, contentType) {
+		kind = videos.KindAudio
+	} else if !slices.Contains(constants.UploadTypes, contentType) {
 		return refuseUpload(c, http.StatusUnsupportedMediaType, constants.FailedNotAVideo)
 	}
-	// A GIF or an animated PNG is held to less than a video. What it says
-	// it is is checked by the worker, which holds it to the same.
+	// A GIF or an animated PNG is held to less than a video, a sound to its
+	// own. What it says it is is checked by the worker, which holds it to
+	// the same.
 	maxBytes := h.Config.VideoMaxBytes
-	if slices.Contains(constants.AnimationTypes, contentType) {
+	switch {
+	case kind == videos.KindAudio:
+		maxBytes = h.Config.AudioMaxBytes
+	case slices.Contains(constants.AnimationTypes, contentType):
 		maxBytes = h.Config.AnimationMaxBytes
 	}
 	if req.Size > maxBytes {
@@ -218,7 +232,7 @@ func (h *videoHandler) UploadStart(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	medium := placeholderVideo(owner, viewer)
+	medium := placeholderVideo(owner, viewer, kind)
 
 	language, valid := handlers.RequestLanguage(req.Language)
 	if !valid {
@@ -277,6 +291,7 @@ func (h *videoHandler) UploadStart(c echo.Context) error {
 		ID:            uuid.NewString(),
 		PersonID:      viewer.ID,
 		OwnerID:       owner.ID,
+		Kind:          kind,
 		Name:          strings.TrimSpace(req.Title),
 		Body:          req.Content,
 		Access:        medium.Access,

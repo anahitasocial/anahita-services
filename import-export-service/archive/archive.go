@@ -509,6 +509,18 @@ func (b *Builder) postOf(node *entities.AnahitaNode, files []*entities.PhotoFile
 			media = append(media, pendingMedia{path: entry, keys: []string{rendition.Key}})
 			post.Media = append(post.Media, entry)
 		}
+	case videos.AudioNodeType:
+		// An audio post's sound, and its cover (roadmap row 137).
+		if audio := videos.AudioFromMeta(node.Meta); audio != nil {
+			entry := fmt.Sprintf("%saudio.m4a", folder)
+			media = append(media, pendingMedia{path: entry, keys: []string{audio.Key}})
+			post.Media = append(post.Media, entry)
+			if audio.Cover != "" {
+				cover := fmt.Sprintf("%scover.jpg", folder)
+				media = append(media, pendingMedia{path: cover, keys: []string{audio.Cover}})
+				post.Media = append(post.Media, cover)
+			}
+		}
 	default:
 		// An article's cover.
 		if key := keyOf(node.Cover, entities.CoverSizeLarge); key != "" {

@@ -8,12 +8,12 @@ import (
 )
 
 // HoldsAFile says whether a post is of a kind with a file to download: a
-// photo, a video.
+// photo, a video, a sound.
 func HoldsAFile(post *entities.AnahitaNode) bool {
 	if post == nil {
 		return false
 	}
-	return post.Type == constants.NodeMediumPhotoEntityType || post.Type == videos.NodeType
+	return post.Type == constants.NodeMediumPhotoEntityType || videos.IsOurs(post.Type)
 }
 
 // CanDownload says whether the viewer may download what a post holds.

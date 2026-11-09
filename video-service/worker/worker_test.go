@@ -153,6 +153,8 @@ type fakeEncoder struct {
 	during func()
 	// How many files were copied as they are, not encoded.
 	remuxed int
+	// Whether a sound carries a cover.
+	cover bool
 }
 
 func (f *fakeEncoder) Probe(ctx context.Context, path string, max, animationMax int) (*encode.Info, string, error) {
@@ -177,6 +179,22 @@ func (f *fakeEncoder) Remux(ctx context.Context, container, in, out string, max 
 	f.remuxed++
 	f.limits = append(f.limits, max)
 	return os.WriteFile(out, []byte("copied video"), 0o644)
+}
+
+func (f *fakeEncoder) ProbeSound(ctx context.Context, path string, max int) (*encode.SoundInfo, string, error) {
+	if f.probeErr != nil {
+		return nil, "", f.probeErr
+	}
+	return &encode.SoundInfo{Duration: 183.4, HasCover: f.cover}, "mp3", nil
+}
+
+func (f *fakeEncoder) EncodeSound(ctx context.Context, container, in, out string, max int) error {
+	f.limits = append(f.limits, max)
+	return os.WriteFile(out, []byte("encoded sound"), 0o644)
+}
+
+func (f *fakeEncoder) Cover(ctx context.Context, container, in, out string) error {
+	return os.WriteFile(out, []byte("a cover"), 0o644)
 }
 
 func (f *fakeEncoder) Poster(ctx context.Context, container, in, out string, info *encode.Info) error {
@@ -494,5 +512,42 @@ func TestAVideoReplyIsMadeOnlyWhileItsThreadIsOpen(t *testing.T) {
 	h.worker.Once()
 	if h.uploads.upload.Status == videos.StatusFailed || h.uploads.released != 1 {
 		t.Errorf("a passing trouble: %+v, let go %d", h.uploads.upload, h.uploads.released)
+	}
+}
+
+// THE RULE THIS GUARDS (roadmap row 137): a sound becomes an audio post,
+// one M4A and the cover it carried, under its own limits, and nothing of
+// the upload is left.
+func TestASoundBecomesAnAudioPost(t *testing.T) {
+	f := newFixture(t)
+	f.uploads.upload.Kind = videos.KindAudio
+	f.encoder.cover = true
+	f.worker.AudioMaxBytes, f.worker.AudioMaxSeconds = 1<<20, 3600
+
+	if worked, err := f.worker.Once(); err != nil || !worked {
+		t.Fatalf("worked %v %v", worked, err)
+	}
+	if f.uploads.upload.Status != videos.StatusReady {
+		t.Fatalf("the upload ended as %+v", f.uploads.upload)
+	}
+	folder := videos.Folder(9, f.uploads.upload.ID)
+	for key, kind := range map[string]string{
+		folder + "audio.m4a": "audio/mp4",
+		folder + "cover.jpg": "image/jpeg",
+	} {
+		if _, ok := f.store.kept[key]; !ok || f.store.types[key] != kind {
+			t.Errorf("%s: kept %v as %q", key, ok, f.store.types[key])
+		}
+	}
+	if len(f.store.keys()) != 2 {
+		t.Errorf("in storage: %v", f.store.keys())
+	}
+	post := f.posts.added[0]
+	audio := videos.AudioFromMeta(post.Meta)
+	if post.Type != videos.AudioNodeType || audio == nil || audio.Duration != 183.4 || audio.Cover == "" || videos.FromMeta(post.Meta) != nil {
+		t.Errorf("the post: %s %s", post.Type, post.Meta)
+	}
+	if f.encoder.limits[0] != 3600 {
+		t.Errorf("held to %v seconds", f.encoder.limits)
 	}
 }

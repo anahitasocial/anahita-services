@@ -49,6 +49,9 @@ func (a Addresses) PhotoPage(id int64) string { return a.Site.Web(fmt.Sprintf("/
 // VideoPage is where a video post is read, in the web app.
 func (a Addresses) VideoPage(id int64) string { return a.Site.Web(fmt.Sprintf("/videos/%d", id)) }
 
+// AudioPage is where an audio post is read, in the web app (roadmap row 137).
+func (a Addresses) AudioPage(id int64) string { return a.Site.Web(fmt.Sprintf("/audio/%d", id)) }
+
 // ArticlePage is where an article is read, in the web app.
 func (a Addresses) ArticlePage(id int64) string { return a.Site.Web(fmt.Sprintf("/articles/%d", id)) }
 

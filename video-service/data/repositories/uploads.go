@@ -16,9 +16,11 @@ import (
 
 // Upload is one row of video_uploads.
 type Upload struct {
-	ID            string
-	PersonID      int64
-	OwnerID       int64
+	ID       string
+	PersonID int64
+	OwnerID  int64
+	// What the worker makes of it: videos.KindVideo or videos.KindAudio.
+	Kind          string
 	Name          string
 	Body          string
 	Access        string
@@ -49,6 +51,7 @@ const uploadColumns = `
     id,
     person_id,
     owner_id,
+    kind,
     name,
     body,
     access,
@@ -74,6 +77,7 @@ INSERT INTO video_uploads (
     id,
     person_id,
     owner_id,
+    kind,
     name,
     body,
     access,
@@ -90,7 +94,7 @@ INSERT INTO video_uploads (
     created_at,
     updated_at
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULLIF(?, 0), ?, ?, ?, ?, ?, ?)`
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULLIF(?, 0), ?, ?, ?, ?, ?, ?)`
 
 const uploadRead = `
 SELECT` + uploadColumns + `
@@ -241,9 +245,12 @@ func (r *UploadsRepo) Add(upload *Upload) error {
 	now := r.now()
 	upload.Status = videos.StatusUploading
 	upload.CreatedAt, upload.UpdatedAt = now, now
+	if upload.Kind == "" {
+		upload.Kind = videos.KindVideo
+	}
 
 	_, err := r.db.ExecContext(ctx, uploadAdd,
-		upload.ID, upload.PersonID, upload.OwnerID, upload.Name, upload.Body,
+		upload.ID, upload.PersonID, upload.OwnerID, upload.Kind, upload.Name, upload.Body,
 		upload.Access, upload.Language, upload.ReplyAccess, upload.QuotePolicy,
 		upload.AllowDownload, upload.LibraryOnly, upload.ParentID, upload.Status, upload.SourceKey, upload.StorageUploadID, upload.DeclaredBytes,
 		now, now)
@@ -257,7 +264,7 @@ type scanner interface {
 func scanUpload(row scanner) (*Upload, error) {
 	u := &Upload{}
 	err := row.Scan(
-		&u.ID, &u.PersonID, &u.OwnerID, &u.Name, &u.Body, &u.Access, &u.Language,
+		&u.ID, &u.PersonID, &u.OwnerID, &u.Kind, &u.Name, &u.Body, &u.Access, &u.Language,
 		&u.ReplyAccess, &u.QuotePolicy, &u.AllowDownload, &u.LibraryOnly, &u.ParentID, &u.Status, &u.SourceKey, &u.StorageUploadID,
 		&u.DeclaredBytes, &u.SizeBytes, &u.NodeID, &u.Error, &u.Attempts,
 		&u.CreatedAt, &u.UpdatedAt)

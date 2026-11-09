@@ -29,11 +29,12 @@
     },
     {
         "service": "video-service",
-        "node_types": ["video"],
-        "composers": ["video"],
+        "node_types": ["video", "audio"],
+        "composers": ["video", "audio"],
         "enabled": true,
         "add_permissions": [
-            { "entity": "video", "access": "followers" }
+            { "entity": "video", "access": "followers" },
+            { "entity": "audio", "access": "followers" }
         ],
         "include_common_permissions": ["content_creator"]
     }

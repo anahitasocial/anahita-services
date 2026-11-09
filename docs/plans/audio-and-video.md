@@ -7,7 +7,7 @@ posts, and the sounds that arrive from Mastodon played here. Built
 together: both are a file from elsewhere copied on demand, and both use
 video-service's worker and ffmpeg. Decided with the user on 2026-11-08:
 copied on first play, one size kept, audio a kind of post of its own, up
-to an hour. Phase 1 built 2026-11-08; phases 2 and 3 not.
+to an hour. Phases 1 and 2 built 2026-11-08; phase 3 not.
 
 ## Contents
 
@@ -100,7 +100,6 @@ tell that server who watched. It is copied here, once somebody wants it.
 
 | Setting | Default | Means |
 | --- | --- | --- |
-| `AUDIO_UPLOADS` | `on` with `VIDEO_UPLOADS` | Whether audio may be posted |
 | `AUDIO_MAX_SECONDS` | `3600` | The longest audio post |
 | `AUDIO_MAX_BYTES` | `500` MB | The largest file taken to make one |
 | `REMOTE_MEDIA_MAX_BYTES` | `100` MB | The largest file from elsewhere copied here |
@@ -127,5 +126,8 @@ tell that server who watched. It is copied here, once somebody wants it.
    waits for phase 3.
 2. **Audio posts:** the kind, the upload, the worker, the player, the
    composer, the profile tab, both networks out: about two sessions.
+   **Done 2026-11-08** ([Audio posts](../videos.md#audio-posts)). Posted
+   where videos may be (`VIDEO_UPLOADS`): no `AUDIO_UPLOADS` of its own, the
+   same two containers making both.
 3. **Sounds from the fediverse,** by phase 1's way, played by phase 2's
    player: half a session.

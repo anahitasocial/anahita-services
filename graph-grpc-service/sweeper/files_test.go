@@ -134,7 +134,7 @@ func (f *fakeStore) Delete(req *services.FileDeleteRequest) error {
 func expectRun(mock sqlmock.Sqlmock, portraits *sqlmock.Rows, portraitsErr error) {
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT GET_LOCK(?, ?)`)).
 		WillReturnRows(sqlmock.NewRows([]string{"got"}).AddRow(1))
-	mock.ExpectQuery(`FROM nodes\s+WHERE type = \?`).WithArgs(videos.NodeType).
+	mock.ExpectQuery(`FROM nodes\s+WHERE type IN \(\?, \?\)`).WithArgs(videos.NodeType, videos.AudioNodeType).
 		WillReturnRows(sqlmock.NewRows([]string{"meta"}))
 	query := mock.ExpectQuery(`FROM nodes\s+WHERE \(id IN`)
 	if portraitsErr != nil {

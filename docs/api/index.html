@@ -96,7 +96,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 </ul>
 <p class="group">Reference</p>
 <ul>
-<li><a href="#schemas">Shapes</a> <span class="count">175</span></li>
+<li><a href="#schemas">Shapes</a> <span class="count">176</span></li>
 </ul>
 </nav>
 <main>
@@ -8366,11 +8366,11 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </table>
 <p class="handler">Answered by <code>video/cmd/api/handlers.(*videoHandler).EditReplyAccess</code></p>
 </details>
-<details class="route" id="getVideosByOwnerId" data-search="get /videos/{owner_id}/ a profile&#39;s video posts those the viewer may see.
+<details class="route" id="getVideosByOwnerId" data-search="get /videos/{owner_id}/ a profile&#39;s video posts, or its audio posts those the viewer may see. with `?type=audio`, its audio posts (roadmap row 137).
 
 who may call it: anyone, signed in or not.">
-<summary><span class="method get">GET</span> <code class="path">/videos/{owner_id}/</code> <span class="summary">A profile&#39;s video posts</span></summary>
-<div class="description"><p>Those the viewer may see.</p></div>
+<summary><span class="method get">GET</span> <code class="path">/videos/{owner_id}/</code> <span class="summary">A profile&#39;s video posts, or its audio posts</span></summary>
+<div class="description"><p>Those the viewer may see. With <code>?type=audio</code>, its audio posts (roadmap row 137).</p></div>
 <p class="who"><strong>Who:</strong> anyone, signed in or not</p>
 <h4>Takes</h4>
 <table>
@@ -11032,6 +11032,19 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
+<div class="route schema" id="schema-Audio" data-search="audio cover duration type url">
+<h3>Audio</h3>
+<p>What an audio post plays (roadmap row 137): its one file, how long it plays, and its cover when it has one.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>cover</code></td><td>string</td><td>Its cover, a path under the API, when the file carried one.</td></tr>
+<tr><td><code>duration</code> <span class="required">always</span></td><td>number</td><td>How long it plays, in seconds.</td></tr>
+<tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td>The kind of file: <code>audio/mp4</code>.</td></tr>
+<tr><td><code>url</code> <span class="required">always</span></td><td>string</td><td>Where it is read from: a path under the API, answered for whoever may see the post.</td></tr>
+</tbody>
+</table>
+</div>
 <div class="route schema" id="schema-Author" data-search="author alias avatar_urls id name type">
 <h3>Author</h3>
 <p>Who wrote something.</p>
@@ -11207,7 +11220,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-MediumNode" data-search="mediumnode access alias allow_download author authorized citation_count comment_count comment_status content cover_urls created_at deleted draft editor enabled files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer is_subscribed_by_viewer language library_only likes_count link_preview link_previews media_elsewhere media_removed mimetype origin_domain owner parent_id pinned portrait_urls quote quote_count quote_id quote_policy reply_access repost_count root root_id title type updated_at uri video view_count">
+<div class="route schema" id="schema-MediumNode" data-search="mediumnode access alias allow_download audio author authorized citation_count comment_count comment_status content cover_urls created_at deleted draft editor enabled files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer is_subscribed_by_viewer language library_only likes_count link_preview link_previews media_elsewhere media_removed mimetype origin_domain owner parent_id pinned portrait_urls quote quote_count quote_id quote_policy reply_access repost_count root root_id title type updated_at uri video view_count">
 <h3>MediumNode</h3>
 <p>A post or a reply, read on its own or answered with after a change.</p>
 <table>
@@ -11216,6 +11229,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>access</code></td><td>string</td><td>Who may see it: <code>public</code>, <code>registered</code>, <code>followers</code>, <code>leaders</code>, <code>mutuals</code>, <code>admins</code> or <code>myself</code> (<a href="../permissions.md">permissions.md</a>).</td></tr>
 <tr><td><code>alias</code></td><td>string</td><td>Its short name, where it has one.</td></tr>
 <tr><td><code>allow_download</code></td><td>boolean</td><td>Whether whoever can see it may download what it holds. Sent on a post that holds a file, for whoever may change it.</td></tr>
+<tr><td><code>audio</code></td><td><a href="#schema-Audio">Audio</a></td><td>What an audio post plays (roadmap row 137).</td></tr>
 <tr><td><code>author</code></td><td><a href="#schema-Author">Author</a></td><td>Related Entities</td></tr>
 <tr><td><code>authorized</code></td><td><a href="#schema-NodeAuthorized">NodeAuthorized</a></td><td>Authorization Information</td></tr>
 <tr><td><code>citation_count</code> <span class="required">always</span></td><td>integer</td><td>How many people cite it, each once, never its author.</td></tr>
@@ -11265,7 +11279,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-MediumNodeItem" data-search="mediumnodeitem access alias author authorized comment_count content cover_urls created_at deleted files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer is_subscribed_by_viewer language likes_count link_preview link_previews media_elsewhere media_removed mimetype origin_domain owner parent_id portrait_urls quote quote_count quote_id repost_count root_id title type uri video">
+<div class="route schema" id="schema-MediumNodeItem" data-search="mediumnodeitem access alias audio author authorized comment_count content cover_urls created_at deleted files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer is_subscribed_by_viewer language likes_count link_preview link_previews media_elsewhere media_removed mimetype origin_domain owner parent_id portrait_urls quote quote_count quote_id repost_count root_id title type uri video">
 <h3>MediumNodeItem</h3>
 <p>A post or a reply in a list.</p>
 <table>
@@ -11273,6 +11287,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tbody>
 <tr><td><code>access</code></td><td>string</td><td>Who may see it: <code>public</code>, <code>registered</code>, <code>followers</code>, <code>leaders</code>, <code>mutuals</code>, <code>admins</code> or <code>myself</code> (<a href="../permissions.md">permissions.md</a>).</td></tr>
 <tr><td><code>alias</code></td><td>string</td><td>Its short name, where it has one.</td></tr>
+<tr><td><code>audio</code></td><td><a href="#schema-Audio">Audio</a></td><td>What an audio post plays (roadmap row 137).</td></tr>
 <tr><td><code>author</code></td><td><a href="#schema-Author">Author</a></td><td>Related Entities</td></tr>
 <tr><td><code>authorized</code></td><td><a href="#schema-NodeAuthorized">NodeAuthorized</a></td><td>What the viewer may do with it, as on the post&#39;s own page: reply, like, quote and the rest. Left out where a list does not say.</td></tr>
 <tr><td><code>comment_count</code> <span class="required">always</span></td><td>integer</td><td>How many replies are under it.</td></tr>
@@ -11370,7 +11385,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-NodeItem" data-search="nodeitem access alias author authorized avatar_urls body comment_count content cover_urls created_at editor event feed files follower_count id is_admined_by_viewer is_blocked_by_viewer is_following_viewer is_leading_viewer is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer is_subscribed_by_viewer language likes_count link_preview media_removed mimetype name origin_domain owner parent pinned portrait_urls quote quote_count quote_id repost_count root root_id thread thread_next title type uri verified video">
+<div class="route schema" id="schema-NodeItem" data-search="nodeitem access alias audio author authorized avatar_urls body comment_count content cover_urls created_at editor event feed files follower_count id is_admined_by_viewer is_blocked_by_viewer is_following_viewer is_leading_viewer is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer is_subscribed_by_viewer language likes_count link_preview media_removed mimetype name origin_domain owner parent pinned portrait_urls quote quote_count quote_id repost_count root root_id thread thread_next title type uri verified video">
 <h3>NodeItem</h3>
 <p>A post, a reply, a profile or anything else there is, as a list or a read sends it: what it is not is left out.</p>
 <table>
@@ -11378,6 +11393,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tbody>
 <tr><td><code>access</code></td><td>string</td><td>Who may see it: <code>public</code>, <code>registered</code>, <code>followers</code>, <code>leaders</code>, <code>mutuals</code>, <code>admins</code> or <code>myself</code> (<a href="../permissions.md">permissions.md</a>).</td></tr>
 <tr><td><code>alias</code></td><td>string</td><td>A profile&#39;s handle (<code>ana</code>, or <code>ana@mastodon.social</code> for somebody on another server), or a hashtag&#39;s name.</td></tr>
+<tr><td><code>audio</code></td><td><a href="#schema-Audio">Audio</a></td><td>What an audio post plays.</td></tr>
 <tr><td><code>author</code></td><td><a href="#schema-Author">Author</a></td><td>Related Entities</td></tr>
 <tr><td><code>authorized</code></td><td><a href="#schema-NodeAuthorized">NodeAuthorized</a></td><td>What the viewer may do with the item. feed-service fills in comment and like, which the feed&#39;s buttons read; nothing else here computes it.</td></tr>
 <tr><td><code>avatar_urls</code></td><td>map of <a href="#schema-Image">Image</a></td><td>Media URLs</td></tr>
@@ -11456,7 +11472,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-Parent" data-search="parent access alias author authorized body content cover_urls created_at files id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer link_preview name owner portrait_urls title type video">
+<div class="route schema" id="schema-Parent" data-search="parent access alias audio author authorized body content cover_urls created_at files id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer link_preview name owner portrait_urls title type video">
 <h3>Parent</h3>
 <p>A post another one hangs from: what a reply answers, what a repost reposts, or the post at the top of a thread.</p>
 <table>
@@ -11464,6 +11480,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tbody>
 <tr><td><code>access</code></td><td>string</td><td>Who may see it. Said so that a repost can be shared as what it reposts.</td></tr>
 <tr><td><code>alias</code></td><td>string</td><td>A profile&#39;s handle (<code>ana</code>, or <code>ana@mastodon.social</code> for somebody on another server), or a hashtag&#39;s name.</td></tr>
+<tr><td><code>audio</code></td><td><a href="#schema-Audio">Audio</a></td><td></td></tr>
 <tr><td><code>author</code></td><td><a href="#schema-Author">Author</a></td><td>Who wrote it.</td></tr>
 <tr><td><code>authorized</code></td><td><a href="#schema-NodeAuthorized">NodeAuthorized</a></td><td>What the viewer may do with it.</td></tr>
 <tr><td><code>body</code></td><td>string</td><td>A profile&#39;s description. Left out on a post, whose words are its content.</td></tr>
@@ -12553,7 +12570,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>metadata</code> <span class="required">always</span></td><td>map of anything or null</td><td>What the web app reads of the installation: <code>nodeName</code>, <code>nodeDescription</code>, <code>logoUrl</code>, <code>registrationMode</code>, <code>approvalRequired</code>, <code>invitationsAccepted</code>, <code>invitesFrom</code>, <code>groupsFrom</code>, <code>eventsFrom</code>, <code>websitesFrom</code>, <code>locationsFrom</code>, <code>minContentAccess</code>, <code>readAccess</code>, <code>networks</code>, <code>photoMaxFiles</code>, <code>siteRules</code>, <code>spamRemovalMaxDays</code>, <code>accountGraceDays</code>, <code>videoUploads</code>, <code>videoMaxBytes</code>, <code>videoMaxSeconds</code>, <code>animationMaxBytes</code>, <code>animationMaxSeconds</code>, <code>termsOfServiceUrl</code>, <code>privacyPolicyUrl</code>, and the support contacts <code>supportEmail</code>, <code>supportPhone</code> and <code>supportWebsite</code>.</td></tr>
+<tr><td><code>metadata</code> <span class="required">always</span></td><td>map of anything or null</td><td>What the web app reads of the installation: <code>nodeName</code>, <code>nodeDescription</code>, <code>logoUrl</code>, <code>registrationMode</code>, <code>approvalRequired</code>, <code>invitationsAccepted</code>, <code>invitesFrom</code>, <code>groupsFrom</code>, <code>eventsFrom</code>, <code>websitesFrom</code>, <code>locationsFrom</code>, <code>minContentAccess</code>, <code>readAccess</code>, <code>networks</code>, <code>photoMaxFiles</code>, <code>siteRules</code>, <code>spamRemovalMaxDays</code>, <code>accountGraceDays</code>, <code>videoUploads</code>, <code>videoMaxBytes</code>, <code>videoMaxSeconds</code>, <code>animationMaxBytes</code>, <code>animationMaxSeconds</code>, <code>audioMaxBytes</code>, <code>audioMaxSeconds</code>, <code>termsOfServiceUrl</code>, <code>privacyPolicyUrl</code>, and the support contacts <code>supportEmail</code>, <code>supportPhone</code> and <code>supportWebsite</code>.</td></tr>
 <tr><td><code>openRegistrations</code> <span class="required">always</span></td><td>boolean</td><td>Whether anybody may sign up without being invited or approved.</td></tr>
 <tr><td><code>protocols</code> <span class="required">always</span></td><td>list of string or null</td><td>What it speaks with other servers: <code>activitypub</code>, when it federates.</td></tr>
 <tr><td><code>services</code> <span class="required">always</span></td><td><a href="#schema-auth.nodeInfoServices">auth.nodeInfoServices</a></td><td>What it bridges to: nothing.</td></tr>
@@ -13595,7 +13612,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-video.UploadResponse" data-search="video.uploadresponse created_at error id node_id owner_id parent_id part_count part_size size status title">
+<div class="route schema" id="schema-video.UploadResponse" data-search="video.uploadresponse created_at error id kind node_id owner_id parent_id part_count part_size size status title">
 <h3>video.UploadResponse</h3>
 <p>An upload as its uploader is told of it.</p>
 <table>
@@ -13604,6 +13621,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>created_at</code> <span class="required">always</span></td><td>time</td><td>When it was begun.</td></tr>
 <tr><td><code>error</code></td><td>string</td><td>Why it failed.</td></tr>
 <tr><td><code>id</code> <span class="required">always</span></td><td>string</td><td>Its id.</td></tr>
+<tr><td><code>kind</code> <span class="required">always</span></td><td>string</td><td><code>video</code>, or <code>audio</code> for a sound (roadmap row 137).</td></tr>
 <tr><td><code>node_id</code></td><td>integer</td><td>The post, once it is one.</td></tr>
 <tr><td><code>owner_id</code> <span class="required">always</span></td><td>integer</td><td>The profile the post will be on.</td></tr>
 <tr><td><code>parent_id</code></td><td>integer</td><td>What it answers, when it is a reply.</td></tr>

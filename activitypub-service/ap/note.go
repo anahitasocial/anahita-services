@@ -89,6 +89,26 @@ func (n *Note) WithVideo(a Addresses, post *entities.AnahitaNode, video *videos.
 	return n
 }
 
+// WithAudio gives the note the sound of the audio post it is, as Mastodon's
+// Audio, with its cover, and the page an audio post is read at (roadmap
+// row 137). The sound is sent from the same address a video's file is.
+func (n *Note) WithAudio(a Addresses, post *entities.AnahitaNode, audio *videos.Audio) *Note {
+	n.URL = a.AudioPage(post.ID)
+	if audio == nil {
+		return n
+	}
+	sent := SentPicture{
+		Type:      "Audio",
+		MediaType: videos.MimeAudio,
+		URL:       a.Video(post.UUID),
+	}
+	if audio.Cover != "" {
+		sent.Icon = &SentIcon{Type: "Image", MediaType: videos.MimePoster, URL: a.VideoPoster(post.UUID)}
+	}
+	n.Attachment = append(n.Attachment, sent)
+	return n
+}
+
 // WithPictures gives the note the pictures of the photo post it is, and
 // the page a photo post is read at.
 func (n *Note) WithPictures(a Addresses, post *entities.AnahitaNode, files []*entities.PhotoFile) *Note {

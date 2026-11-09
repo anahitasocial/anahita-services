@@ -51,6 +51,8 @@ func (h *Handlers) goesOut(note *entities.AnahitaNode) (*entities.AnahitaNode, *
 	// is not one.
 	isPhoto := note.Type == constants.NodeMediumPhotoEntityType
 	isVideo := note.Type == videos.NodeType && videos.FromMeta(note.Meta) != nil
+	// An audio post, as a note with its sound (roadmap row 137).
+	isVideo = isVideo || (note.Type == videos.AudioNodeType && videos.AudioFromMeta(note.Meta) != nil)
 	// An article, as an Article. A topic stays here (the user, 2026-10-17).
 	isArticle := note.Type == constants.NodeMediumArticleEntityType
 	if (note.Type != constants.NodeMediumNoteEntityType && !isPhoto && !isVideo && !isArticle) || !note.Enabled || note.DeletedAt != nil || note.Hidden {
@@ -290,6 +292,14 @@ func (h *Handlers) described(note, author *entities.AnahitaNode, answering *answ
 			sent.Content = "<p>" + html.EscapeString(title) + "</p>" + sent.Content
 		}
 	}
+	// An audio post goes with its sound and its cover, its title above its
+	// words as a video's is.
+	if note.Type == videos.AudioNodeType {
+		sent.WithAudio(h.addresses, note, videos.AudioFromMeta(note.Meta))
+		if title := strings.TrimSpace(note.Name); title != "" {
+			sent.Content = "<p>" + html.EscapeString(title) + "</p>" + sent.Content
+		}
+	}
 	return sent
 }
 
@@ -298,8 +308,12 @@ func (h *Handlers) described(note, author *entities.AnahitaNode, answering *answ
 // short while. Only of a post that goes out, asked each time, as a picture
 // is.
 func (h *Handlers) Video(c echo.Context) error {
-	return h.videoFile(c, func(video *videos.Video) string {
-		if file := video.Shared(ap.VideoMax); file != nil {
+	return h.videoFile(c, func(meta []byte) string {
+		// An audio post's sound is sent from here too (roadmap row 137).
+		if audio := videos.AudioFromMeta(meta); audio != nil {
+			return audio.Key
+		}
+		if file := videos.FromMeta(meta).Shared(ap.VideoMax); file != nil {
 			return file.Key
 		}
 		return ""
@@ -307,12 +321,18 @@ func (h *Handlers) Video(c echo.Context) error {
 }
 
 func (h *Handlers) VideoPoster(c echo.Context) error {
-	return h.videoFile(c, func(video *videos.Video) string {
-		return video.Poster
+	return h.videoFile(c, func(meta []byte) string {
+		if audio := videos.AudioFromMeta(meta); audio != nil {
+			return audio.Cover
+		}
+		if video := videos.FromMeta(meta); video != nil {
+			return video.Poster
+		}
+		return ""
 	})
 }
 
-func (h *Handlers) videoFile(c echo.Context, keyOf func(*videos.Video) string) error {
+func (h *Handlers) videoFile(c echo.Context, keyOf func(meta []byte) string) error {
 	uuid := c.Param("uuid")
 	if !uuidShape.MatchString(uuid) || h.Files == nil {
 		return c.NoContent(http.StatusNotFound)
@@ -321,13 +341,13 @@ func (h *Handlers) videoFile(c echo.Context, keyOf func(*videos.Video) string) e
 		return c.NoContent(http.StatusNotFound)
 	}
 	post, err := h.Nodes.ReadByUUID(uuid)
-	if err != nil || post == nil || post.Type != videos.NodeType {
+	if err != nil || post == nil || !videos.IsOurs(post.Type) {
 		return c.NoContent(http.StatusNotFound)
 	}
 	if author, _ := h.goesOut(post); author == nil {
 		return c.NoContent(http.StatusNotFound)
 	}
-	key := keyOf(videos.FromMeta(post.Meta))
+	key := keyOf(post.Meta)
 	if key == "" {
 		return c.NoContent(http.StatusNotFound)
 	}

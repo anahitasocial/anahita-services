@@ -39,6 +39,9 @@ type Config struct {
 	// A GIF's or an animated PNG's.
 	AnimationMaxBytes   int64
 	AnimationMaxSeconds int
+	// Audio posts' limits (roadmap row 137).
+	AudioMaxBytes   int64
+	AudioMaxSeconds int
 	// How many videos one person may send in a day.
 	VideoDailyUploads int
 }
@@ -59,6 +62,8 @@ func NewConfig() *Config {
 		VideoMaxSeconds:     videos.MaxSeconds(),
 		AnimationMaxBytes:   videos.AnimationMaxBytes(),
 		AnimationMaxSeconds: videos.AnimationMaxSeconds(),
+		AudioMaxBytes:       videos.AudioMaxBytes(),
+		AudioMaxSeconds:     videos.AudioMaxSeconds(),
 		VideoDailyUploads:   getenv.Int("VIDEO_DAILY_UPLOADS", 20),
 	}
 

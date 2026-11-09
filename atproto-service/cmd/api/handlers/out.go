@@ -301,6 +301,9 @@ func (h *Handlers) localPosted(ctx context.Context, noteID int64) error {
 	// An article, as a post of its title and opening with a card that leads
 	// to it. A topic stays here (the user, 2026-10-17).
 	isArticle := note.Type == constants.NodeMediumArticleEntityType
+	// An audio post, as its title and opening with a card that leads to it:
+	// Bluesky has no sound (roadmap row 137).
+	isArticle = isArticle || (note.Type == videos.AudioNodeType && videos.AudioFromMeta(note.Meta) != nil)
 	if (note.Type != constants.NodeMediumNoteEntityType && !isPhoto && !isVideo && !isArticle) || note.IsRemote() || !note.Enabled || note.DeletedAt != nil || note.Hidden {
 		return nil
 	}
@@ -548,7 +551,7 @@ func (h *Handlers) record(ctx context.Context, w *write, upload uploader) (any, 
 	words := note.Body
 	// A video post's title comes first, as its own line, and an article's:
 	// a post on Bluesky has no title of its own.
-	if note.Type == videos.NodeType || note.Type == constants.NodeMediumArticleEntityType {
+	if videos.IsOurs(note.Type) || note.Type == constants.NodeMediumArticleEntityType {
 		if title := strings.TrimSpace(note.Name); title != "" {
 			words = strings.TrimSpace(title + "\n\n" + words)
 		}
@@ -577,6 +580,11 @@ func (h *Handlers) record(ctx context.Context, w *write, upload uploader) (any, 
 	// with its title, its opening and its cover.
 	if note.Type == constants.NodeMediumArticleEntityType {
 		post.WithCard(h.Site.Web(fmt.Sprintf("/articles/%d", note.ID)), cutTitle(note), articleOpening(note), h.coverPicture(note, upload))
+	}
+	// An audio post is listened to here: its card leads to it, with its
+	// title, its opening and its cover.
+	if note.Type == videos.AudioNodeType {
+		post.WithCard(h.Site.Web(webPathOf(note)), cutTitle(note), articleOpening(note), h.audioCover(note, upload))
 	}
 	if post.Text == "" && post.Embed == nil {
 		return nil, nil
@@ -753,6 +761,23 @@ func (h *Handlers) coverPicture(note *entities.AnahitaNode, upload uploader) *bs
 	return blob
 }
 
+// audioCover is an audio post's cover, sent to Bluesky for its card, or nil.
+func (h *Handlers) audioCover(note *entities.AnahitaNode, upload uploader) *bsky.OutBlob {
+	audio := videos.AudioFromMeta(note.Meta)
+	if audio == nil || audio.Cover == "" || h.Keeper == nil || h.Keeper.Files == nil {
+		return nil
+	}
+	content, mimeType := h.stored(audio.Cover)
+	if content == nil {
+		return nil
+	}
+	blob, err := upload(content, mimeType)
+	if err != nil {
+		return nil
+	}
+	return blob
+}
+
 // articleOpening is what an article's card says under its title: its
 // opening words, plain, near 300 characters at most.
 func articleOpening(article *entities.AnahitaNode) string {
@@ -914,6 +939,8 @@ func webPathOf(note *entities.AnahitaNode) string {
 		return fmt.Sprintf("/photos/%d", note.ID)
 	case videos.NodeType:
 		return fmt.Sprintf("/videos/%d", note.ID)
+	case videos.AudioNodeType:
+		return fmt.Sprintf("/audio/%d", note.ID)
 	case constants.NodeMediumArticleEntityType:
 		return fmt.Sprintf("/articles/%d", note.ID)
 	}

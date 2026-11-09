@@ -112,7 +112,7 @@ func TestEntityTypes(t *testing.T) {
 	if err := def.Check(); err != nil {
 		t.Fatal(err)
 	}
-	if got := len(def.MediaEntityTypes()); got != 5 {
+	if got := len(def.MediaEntityTypes()); got != 6 {
 		t.Errorf("no kind chosen is every kind, got %d", got)
 	}
 	if got := len(def.ActorEntityTypes()); got != 0 {

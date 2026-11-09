@@ -59,7 +59,7 @@ const (
 )
 
 // WorkerTypes are what a worker may store: what it encodes.
-var WorkerTypes = []string{"video/mp4", "image/jpeg"}
+var WorkerTypes = []string{"video/mp4", "image/jpeg", "audio/mp4"}
 
 // ExportType is what an export is stored as.
 const ExportType = "application/zip"
@@ -98,6 +98,9 @@ func readerRules(path string, input *s3.GetObjectInput) error {
 		input.ResponseContentType = aws.String("video/mp4")
 	case strings.HasSuffix(path, ".jpg"):
 		input.ResponseContentType = aws.String("image/jpeg")
+	// An audio post's one file (roadmap row 137).
+	case strings.HasSuffix(path, ".m4a"):
+		input.ResponseContentType = aws.String("audio/mp4")
 	default:
 		input.ResponseContentType = aws.String(rawContentType)
 		input.ResponseContentDisposition = aws.String("attachment")

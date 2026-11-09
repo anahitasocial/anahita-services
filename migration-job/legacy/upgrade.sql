@@ -1470,6 +1470,8 @@ CREATE TABLE IF NOT EXISTS video_uploads (
     -- Who is posting it, and the profile it is posted on.
     `person_id` bigint unsigned NOT NULL,
     `owner_id` bigint unsigned NOT NULL,
+    -- What the worker makes of it: video, or audio (roadmap row 137).
+    `kind` varchar(8) NOT NULL DEFAULT 'video',
     -- The post as it will be made: said when the upload began, and settled
     -- then, so that nothing has to be asked again when the video is ready.
     `name` varchar(255) NOT NULL DEFAULT '',

@@ -4,10 +4,10 @@ import (
 	"anahita-libs/data/entities"
 	"anahita-libs/permissions"
 	"anahita-libs/responses"
+	"anahita-libs/videos"
 	"log"
 	"net/http"
 	"strconv"
-	"video/constants"
 
 	"github.com/labstack/echo/v4"
 )
@@ -38,7 +38,7 @@ func (h *videoHandler) setPinned(c echo.Context, pinned bool) error {
 	}
 
 	medium, err := h.Srv.MediaGRPC.Read(id, viewer)
-	if err != nil || medium == nil || medium.Type != constants.NodeMediumVideoType {
+	if err != nil || medium == nil || !videos.IsOurs(medium.Type) {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
 	}

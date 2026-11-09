@@ -42,7 +42,7 @@ type Subject struct {
 }
 
 var (
-	postPath  = regexp.MustCompile(`^/(notes|photos|videos|articles|topics)/(\d+)(?:-[^/]*)?/?$`)
+	postPath  = regexp.MustCompile(`^/(notes|photos|videos|audio|articles|topics)/(\d+)(?:-[^/]*)?/?$`)
 	actorPath = regexp.MustCompile(`^/(groups|events|websites)/(\d+)(?:-[^/]*)?(?:/.*)?$`)
 	// Not a person's page: /people/add, and a person's settings and
 	// notifications, which are theirs alone.
@@ -217,6 +217,7 @@ var postTypes = map[string]string{
 	"notes":    "note",
 	"photos":   "photo",
 	"videos":   "video",
+	"audio":    "audio",
 	"articles": "article",
 	"topics":   "topic",
 }
@@ -268,6 +269,9 @@ func post(reader Reader, id int64, kind string) *Subject {
 	switch {
 	case node.Type == videos.NodeType && videos.FromMeta(node.Meta) != nil && videos.FromMeta(node.Meta).Poster != "":
 		subject.ImageKey = videos.FromMeta(node.Meta).Poster
+	// An audio post's cover (roadmap row 137).
+	case node.Type == videos.AudioNodeType && videos.AudioFromMeta(node.Meta) != nil && videos.AudioFromMeta(node.Meta).Cover != "":
+		subject.ImageKey = videos.AudioFromMeta(node.Meta).Cover
 	case pathOf(node.Portrait, entities.PortraitSizeLarge) != "":
 		subject.ImageKey = pathOf(node.Portrait, entities.PortraitSizeLarge)
 	case pathOf(node.Cover, entities.CoverSizeLarge) != "":

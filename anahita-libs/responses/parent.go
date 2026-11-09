@@ -40,6 +40,7 @@ func NewParent(node *entities.AnahitaNode) *Parent {
 	// A reposted note is shown as itself, with the card it carries.
 	dto.LinkPreview = NewLinkPreview(node)
 	dto.Video = NewVideo(node)
+	dto.Audio = NewAudio(node)
 
 	if node.Owner != nil {
 		dto.Owner = NewOwner(node.Owner)
@@ -90,6 +91,7 @@ type Parent struct {
 	LinkPreview *LinkPreview `json:"link_preview,omitempty"`
 	// What a video post plays.
 	Video *Video `json:"video,omitempty"`
+	Audio *Audio `json:"audio,omitempty"`
 	// The profile it is on.
 	Owner *Owner `json:"owner,omitempty"`
 	// Who wrote it.

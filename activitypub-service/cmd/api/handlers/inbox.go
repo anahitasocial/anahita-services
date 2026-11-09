@@ -502,7 +502,7 @@ func isPost(node *entities.AnahitaNode) bool {
 	}
 	return node.Type == constants.NodeMediumNoteEntityType ||
 		node.Type == constants.NodeMediumPhotoEntityType ||
-		node.Type == videos.NodeType ||
+		videos.IsOurs(node.Type) ||
 		node.Type == constants.NodeMediumArticleEntityType
 }
 

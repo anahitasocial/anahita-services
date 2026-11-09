@@ -48,6 +48,8 @@ type MediumNodeItem struct {
 	// What a video post plays, or a post from elsewhere once its video was
 	// copied here.
 	Video *Video `json:"video,omitempty"`
+	// What an audio post plays (roadmap row 137).
+	Audio *Audio `json:"audio,omitempty"`
 	// On a post from another network: the video or sound it carries, kept
 	// there until somebody here plays it (roadmap rows 120 and 137).
 	MediaElsewhere *Elsewhere `json:"media_elsewhere,omitempty"`
@@ -143,6 +145,8 @@ type MediumNode struct {
 	// What a video post plays, or a post from elsewhere once its video was
 	// copied here.
 	Video *Video `json:"video,omitempty"`
+	// What an audio post plays (roadmap row 137).
+	Audio *Audio `json:"audio,omitempty"`
 	// On a post from another network: the video or sound it carries, kept
 	// there until somebody here plays it (roadmap rows 120 and 137).
 	MediaElsewhere *Elsewhere `json:"media_elsewhere,omitempty"`
@@ -259,6 +263,7 @@ func (r *MediumNodeResponse) MapMediumNodeItem(node *entities.AnahitaNode) *Medi
 		LinkPreviews:         NewLinkPreviews(node),
 		MediaRemoved:         NewMediaRemoved(node),
 		Video:                NewVideo(node),
+		Audio:                NewAudio(node),
 		MediaElsewhere:       NewElsewhere(node),
 		Quote:                NewQuoteEmbed(node),
 		QuoteID:              node.QuoteID,
@@ -324,6 +329,7 @@ func (r *MediumNodeResponse) MapMediumNode(node *entities.AnahitaNode) *MediumNo
 		LinkPreviews:         NewLinkPreviews(node),
 		MediaRemoved:         NewMediaRemoved(node),
 		Video:                NewVideo(node),
+		Audio:                NewAudio(node),
 		MediaElsewhere:       NewElsewhere(node),
 		Quote:                NewQuoteEmbed(node),
 		QuoteID:              node.QuoteID,

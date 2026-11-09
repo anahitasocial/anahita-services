@@ -49,7 +49,9 @@ func (f *fakeElsewhere) Unplayed(before time.Time, limit int) ([]*repositories.C
 	return found, nil
 }
 
-type fakeNodes struct{ posts map[int64]*entities.AnahitaNode }
+type fakeNodes struct {
+	posts map[int64]*entities.AnahitaNode
+}
 
 func (f *fakeNodes) Read(id int64) (*entities.AnahitaNode, error) {
 	if post, ok := f.posts[id]; ok {

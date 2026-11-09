@@ -68,6 +68,8 @@ func main() {
 		MaxSeconds:          config.VideoMaxSeconds,
 		AnimationMaxBytes:   config.AnimationMaxBytes,
 		AnimationMaxSeconds: config.AnimationMaxSeconds,
+		AudioMaxBytes:       config.AudioMaxBytes,
+		AudioMaxSeconds:     config.AudioMaxSeconds,
 
 		// Videos from other networks, copied here when first played: from
 		// public addresses only, with the limits a file from elsewhere is

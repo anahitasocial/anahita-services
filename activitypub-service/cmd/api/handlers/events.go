@@ -341,7 +341,7 @@ func (h *Handlers) localUnblocked(ctx context.Context, sourceID, targetID int64)
 func goesOutKind(nodeType string) bool {
 	switch nodeType {
 	case constants.NodeMediumNoteEntityType, constants.NodeMediumPhotoEntityType,
-		videos.NodeType, constants.NodeMediumArticleEntityType:
+		videos.NodeType, videos.AudioNodeType, constants.NodeMediumArticleEntityType:
 		return true
 	}
 	return false

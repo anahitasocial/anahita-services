@@ -99,3 +99,22 @@ func RemoteDays() int {
 	}
 	return days
 }
+
+// Audio posts (roadmap row 137, audio.go), held to their own limits, and
+// posted where videos may be (VIDEO_UPLOADS): the same two containers make
+// them.
+//
+//	AUDIO_MAX_SECONDS  the longest audio post. An hour unless said.
+//	AUDIO_MAX_BYTES    the largest file taken to make one. 500 MB unless said.
+const (
+	EnvAudioMaxSeconds = "AUDIO_MAX_SECONDS"
+	EnvAudioMaxBytes   = "AUDIO_MAX_BYTES"
+
+	DefaultAudioMaxSeconds = 3600
+	DefaultAudioMaxBytes   = 500 * 1024 * 1024
+)
+
+func AudioMaxSeconds() int {
+	return int(positive(EnvAudioMaxSeconds, DefaultAudioMaxSeconds))
+}
+func AudioMaxBytes() int64 { return positive(EnvAudioMaxBytes, DefaultAudioMaxBytes) }

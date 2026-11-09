@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"anahita-libs/data/entities"
@@ -138,13 +139,12 @@ func (fl *FeatureLoader) Merge(defaults []*entities.AnahitaNodeFeature, override
 func (fl *FeatureLoader) mergeFeature(base *entities.AnahitaNodeFeature, override *FeatureOverride) *entities.AnahitaNodeFeature {
 	merged := fl.cloneFeature(base)
 
-	if len(override.NodeTypes) > 0 {
-		merged.NodeTypes = override.NodeTypes
-	}
-
-	if len(override.Composers) > 0 {
-		merged.Composers = override.Composers
-	}
+	// What kinds of post a feature has, and their composers, are the
+	// installation's to say: a profile that saved its features keeps every
+	// kind the defaults have, and gains the ones added since (audio posts,
+	// roadmap row 137), beside any of its own.
+	merged.NodeTypes = union(base.NodeTypes, override.NodeTypes)
+	merged.Composers = union(base.Composers, override.Composers)
 
 	if override.Optional != nil {
 		merged.Optional = *override.Optional
@@ -154,8 +154,11 @@ func (fl *FeatureLoader) mergeFeature(base *entities.AnahitaNodeFeature, overrid
 		merged.Enabled = *override.Enabled
 	}
 
+	// Who may add each kind is the profile's own choice where it made one,
+	// and the default's for a kind it never chose about, a kind added since
+	// among them.
 	if len(override.AddPermissions) > 0 {
-		merged.AddPermissions = override.AddPermissions
+		merged.AddPermissions = withDefaults(override.AddPermissions, base.AddPermissions)
 	}
 
 	if len(override.IncludeCommonPermissions) > 0 && fl.commonPermissions != nil {
@@ -266,4 +269,34 @@ func nodeTypeToFileName(nodeType string) string {
 		return fmt.Sprintf("%s.json", parts[3])
 	}
 	return "default.json"
+}
+
+// union is a list's own items, then those of `more` it lacks, in order.
+func union(list, more []string) []string {
+	out := append([]string(nil), list...)
+	for _, item := range more {
+		if !slices.Contains(out, item) {
+			out = append(out, item)
+		}
+	}
+	return out
+}
+
+// withDefaults is a profile's own permissions, then the defaults' for the
+// entities it has none for.
+func withDefaults(own, defaults []entities.AnahitaNodeAddPermission) []entities.AnahitaNodeAddPermission {
+	out := append([]entities.AnahitaNodeAddPermission(nil), own...)
+	for _, def := range defaults {
+		found := false
+		for _, mine := range own {
+			if mine.Entity == def.Entity {
+				found = true
+				break
+			}
+		}
+		if !found {
+			out = append(out, def)
+		}
+	}
+	return out
 }

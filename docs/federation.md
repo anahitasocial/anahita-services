@@ -619,10 +619,10 @@ also allows no second move within seven days.
 What is sent to another server cannot be called back, so what is sent is
 narrow, and is asked of the post as it is at that moment:
 
-1. a **note, a photo post, a video post or an article**, written here, by
-   somebody who is on the fediverse. A photo post is sent as a note with its
-   pictures, a video post as a note with its video, and an article as an
-   `Article`;
+1. a **note, a photo post, a video post, an audio post or an article**,
+   written here, by somebody who is on the fediverse. A photo post is sent
+   as a note with its pictures, a video post as a note with its video, an
+   audio post as a note with its sound, and an article as an `Article`;
 2. on **their own profile**: not in a group, not on somebody else's;
 3. **open to everybody**: not to members, not to followers;
 4. or **a reply**, by [the rule for replies](#replies);
@@ -667,6 +667,11 @@ goes out. A video with no size that light goes as its words, linking to
 its page. Mastodon shows a video with no sound as a GIF, silently and on a
 loop, so a clip made of a GIF is one there too, with nothing said to make
 it so.
+
+**An audio post goes with its sound,** as Mastodon's `Audio` attachment
+(`audio/mp4`) at `/ap/notes/<uuid>/video`, its cover as its `icon` at
+`/ap/notes/<uuid>/poster`, and its title as the first line, as a video
+post's are ([Audio posts](videos.md#audio-posts)).
 
 **A post goes with its locations,** the ones its author chose for it (the
 user, 2026-10-19: choosing one is their consent, for that post), and goes
@@ -1557,7 +1562,9 @@ its own. The card says to use one and where to make it.
    describe; the other, through Bluesky's video service, has it ready
    before the post appears. A video longer than three minutes or heavier
    than that goes as a card that leads to its page here, with its poster;
-   so does one Bluesky would not take. An account Bluesky hosts must have
+   so does one Bluesky would not take. An audio post goes as its title and
+   opening with a card that leads to it here, its cover the card's picture:
+   Bluesky has no sound. An account Bluesky hosts must have
    confirmed its email to post videos, and has a daily limit.
 4. **Articles.** An article goes as its title, as the first line, then its
    words, cut to what a post holds, with a card that leads to the article

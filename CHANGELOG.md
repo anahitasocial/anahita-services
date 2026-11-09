@@ -23,6 +23,20 @@ Releases before v1.0.17 are described on GitHub, under
    server. A copy is removed `REMOTE_VIDEO_DAYS` (7) after it was last
    played; `REMOTE_MEDIA_MAX_BYTES` (100 MB) and `REMOTE_MEDIA_MAX_SECONDS`
    (an hour) hold what is copied. A new table, `media_elsewhere`.
+2. **Audio posts** (roadmap row 137): a sound is a post of its own kind,
+   `node.medium.video-service.audio.v1`, sent through the video uploads and
+   made by video-service's worker into one M4A with the cover its file
+   carried; up to an hour and 500 MB (`AUDIO_MAX_SECONDS`,
+   `AUDIO_MAX_BYTES`), posted where videos may be. `audio` on a post;
+   `GET /videos/:owner_id/?type=audio`; an Audio tab on profiles. To the
+   fediverse as Mastodon's `Audio`, to Bluesky as a card leading here. A new
+   column, `video_uploads.kind`.
+
+### Fixed
+
+1. **The nightly file sweep keeps the copies of videos from other
+   networks** (row 120): it read only video posts' files, and would have
+   taken the copies for files nothing names.
 
 ## v1.1.0 Birth, 2026-11-08
 

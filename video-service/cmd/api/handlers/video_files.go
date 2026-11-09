@@ -7,13 +7,13 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"video/constants"
 
 	"github.com/labstack/echo/v4"
 )
 
 // File sends whoever asks to one of a video's files: a size of it,
-// "720.mp4", or its poster, "poster.jpg".
+// "720.mp4", or its poster, "poster.jpg"; or an audio post's, "audio.m4a"
+// and "cover.jpg".
 //
 // GET /videos/:id/files/:name
 //
@@ -39,22 +39,27 @@ func (h *videoHandler) File(c echo.Context) error {
 	medium, err := h.Srv.MediaGRPC.Read(id, viewer)
 	// A video post, or a post from elsewhere whose video was copied here.
 	if err != nil || medium == nil ||
-		(medium.Type != constants.NodeMediumVideoType && videos.ElsewhereFromMeta(medium.Meta) == nil) {
-		return c.NoContent(http.StatusNotFound)
-	}
-
-	video := videos.FromMeta(medium.Meta)
-	if video == nil {
+		(!videos.IsOurs(medium.Type) && videos.ElsewhereFromMeta(medium.Meta) == nil) {
 		return c.NoContent(http.StatusNotFound)
 	}
 
 	key := ""
 	name := c.Param("name")
-	if name == "poster.jpg" {
-		key = video.Poster
-	} else if height, ok := videos.FileHeight(name); ok {
-		if rendition := video.Rendition(height); rendition != nil {
-			key = rendition.Key
+	// An audio post's one file and its cover (roadmap row 137).
+	if audio := videos.AudioFromMeta(medium.Meta); audio != nil {
+		switch name {
+		case videos.AudioFile:
+			key = audio.Key
+		case videos.CoverFile:
+			key = audio.Cover
+		}
+	} else if video := videos.FromMeta(medium.Meta); video != nil {
+		if name == "poster.jpg" {
+			key = video.Poster
+		} else if height, ok := videos.FileHeight(name); ok {
+			if rendition := video.Rendition(height); rendition != nil {
+				key = rendition.Key
+			}
 		}
 	}
 	if key == "" {

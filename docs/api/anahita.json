@@ -338,6 +338,33 @@
         ],
         "type": "object"
       },
+      "Audio": {
+        "description": "Audio is what an audio post plays (roadmap row 137): its one file, how long it plays, and its cover when it has one.",
+        "properties": {
+          "cover": {
+            "description": "Its cover, a path under the API, when the file carried one.",
+            "type": "string"
+          },
+          "duration": {
+            "description": "How long it plays, in seconds.",
+            "type": "number"
+          },
+          "type": {
+            "description": "The kind of file: `audio/mp4`.",
+            "type": "string"
+          },
+          "url": {
+            "description": "Where it is read from: a path under the API, answered for whoever may see the post.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "duration",
+          "url",
+          "type"
+        ],
+        "type": "object"
+      },
       "Author": {
         "description": "Author is who wrote something.",
         "properties": {
@@ -768,6 +795,10 @@
             "description": "Whether whoever can see it may download what it holds. Sent on a post that holds a file, for whoever may change it.",
             "type": "boolean"
           },
+          "audio": {
+            "$ref": "#/components/schemas/Audio",
+            "description": "What an audio post plays (roadmap row 137)."
+          },
           "author": {
             "$ref": "#/components/schemas/Author",
             "description": "Related Entities"
@@ -1004,6 +1035,10 @@
           "alias": {
             "description": "Its short name, where it has one.",
             "type": "string"
+          },
+          "audio": {
+            "$ref": "#/components/schemas/Audio",
+            "description": "What an audio post plays (roadmap row 137)."
           },
           "author": {
             "$ref": "#/components/schemas/Author",
@@ -1349,6 +1384,10 @@
             "description": "A profile's handle (`ana`, or `ana@mastodon.social` for somebody on another server), or a hashtag's name.",
             "type": "string"
           },
+          "audio": {
+            "$ref": "#/components/schemas/Audio",
+            "description": "What an audio post plays."
+          },
           "author": {
             "$ref": "#/components/schemas/Author",
             "description": "Related Entities"
@@ -1646,6 +1685,9 @@
           "alias": {
             "description": "A profile's handle (`ana`, or `ana@mastodon.social` for somebody on another server), or a hashtag's name.",
             "type": "string"
+          },
+          "audio": {
+            "$ref": "#/components/schemas/Audio"
           },
           "author": {
             "$ref": "#/components/schemas/Author",
@@ -4643,7 +4685,7 @@
         "properties": {
           "metadata": {
             "additionalProperties": {},
-            "description": "What the web app reads of the installation: `nodeName`, `nodeDescription`, `logoUrl`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `websitesFrom`, `locationsFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `siteRules`, `spamRemovalMaxDays`, `accountGraceDays`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.",
+            "description": "What the web app reads of the installation: `nodeName`, `nodeDescription`, `logoUrl`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `websitesFrom`, `locationsFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `siteRules`, `spamRemovalMaxDays`, `accountGraceDays`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `audioMaxBytes`, `audioMaxSeconds`, `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.",
             "type": [
               "object",
               "null"
@@ -7330,6 +7372,10 @@
             "description": "Its id.",
             "type": "string"
           },
+          "kind": {
+            "description": "`video`, or `audio` for a sound (roadmap row 137).",
+            "type": "string"
+          },
           "node_id": {
             "description": "The post, once it is one.",
             "format": "int64",
@@ -7373,6 +7419,7 @@
           "id",
           "status",
           "title",
+          "kind",
           "owner_id",
           "created_at"
         ],
@@ -37704,7 +37751,7 @@
     },
     "/videos/{owner_id}/": {
       "get": {
-        "description": "Those the viewer may see.\n\nWho may call it: anyone, signed in or not.",
+        "description": "Those the viewer may see. With `?type=audio`, its audio posts (roadmap row 137).\n\nWho may call it: anyone, signed in or not.",
         "operationId": "getVideosByOwnerId",
         "parameters": [
           {
@@ -37834,7 +37881,7 @@
             "bearer": []
           }
         ],
-        "summary": "A profile's video posts",
+        "summary": "A profile's video posts, or its audio posts",
         "tags": [
           "video-service"
         ],

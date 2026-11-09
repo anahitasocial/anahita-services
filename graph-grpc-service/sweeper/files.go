@@ -347,10 +347,18 @@ FROM video_uploads
 WHERE id IN (%s)`
 
 	// Every video post's meta, for the files it names.
+	// Video posts and audio posts, and the posts from other networks that
+	// hold a copy of their video (roadmap rows 120 and 137): each names its
+	// files in its meta, and only there.
 	videoPostsQuery = `
 SELECT meta
 FROM nodes
-WHERE type = ?`
+WHERE type IN (?, ?)
+   OR id IN (
+       SELECT node_id
+       FROM media_elsewhere
+       WHERE status IN ('ready', 'working')
+   )`
 )
 
 // readNamed asks the database, once for the page, what names its files.
@@ -454,9 +462,10 @@ func readNamed(db *sql.DB, page []storedFile) (named, error) {
 }
 
 // readVideoKeys is every file every video post names, its sizes and its
-// poster, read once for the run.
+// poster, and every audio post its sound and cover, and every copy of a
+// video from elsewhere, read once for the run.
 func readVideoKeys(db *sql.DB) (map[string]bool, error) {
-	rows, err := db.Query(videoPostsQuery, videos.NodeType)
+	rows, err := db.Query(videoPostsQuery, videos.NodeType, videos.AudioNodeType)
 	if err != nil {
 		return nil, err
 	}
@@ -467,7 +476,7 @@ func readVideoKeys(db *sql.DB) (map[string]bool, error) {
 			rows.Close()
 			return nil, err
 		}
-		for _, key := range videos.FromMeta(meta).Keys() {
+		for _, key := range videos.FilesOf(meta) {
 			keys[key] = true
 		}
 	}

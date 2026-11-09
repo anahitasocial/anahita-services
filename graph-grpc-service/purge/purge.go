@@ -241,9 +241,11 @@ func filePaths(node *entities.AnahitaNode) []string {
 		}
 	}
 
-	// A video post's sizes and its poster, which its meta lists.
-	if node.Type == videos.NodeType {
-		paths = append(paths, videos.FromMeta(node.Meta).Keys()...)
+	// A video post's sizes and its poster, or an audio post's sound and
+	// cover, which its meta lists. Only theirs: a purge removes what was
+	// posted here, and no other kind of post names video-service's files.
+	if videos.IsOurs(node.Type) {
+		paths = append(paths, videos.FilesOf(node.Meta)...)
 	}
 
 	return paths

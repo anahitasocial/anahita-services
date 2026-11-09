@@ -109,6 +109,7 @@ var objectTypes = map[string]string{
 	"article": "Article",
 	"photo":   "Note",
 	"video":   "Note",
+	"audio":   "Note",
 }
 
 // outboxOf is what was written, as the list of activities other fediverse
@@ -254,6 +255,9 @@ var pageTemplate = template.Must(template.New("index").Funcs(template.FuncMap{
 	"isVideo": func(path string) bool {
 		return strings.HasSuffix(path, ".mp4")
 	},
+	"isAudio": func(path string) bool {
+		return strings.HasSuffix(path, ".m4a")
+	},
 	"missing": missing,
 }).Parse(`<!doctype html>
 <html lang="en">
@@ -303,7 +307,7 @@ var pageTemplate = template.Must(template.New("index").Funcs(template.FuncMap{
   {{if .Title}}<h3 dir="auto">{{.Title}}</h3>{{end}}
   {{if .Text}}<p dir="auto">{{.Text}}</p>{{end}}
   {{range .Media}}
-    {{if isVideo .}}<video src="{{.}}" controls preload="none"></video>{{else}}<img src="{{.}}" alt="" loading="lazy">{{end}}
+    {{if isVideo .}}<video src="{{.}}" controls preload="none"></video>{{else if isAudio .}}<audio src="{{.}}" controls preload="none"></audio>{{else}}<img src="{{.}}" alt="" loading="lazy">{{end}}
   {{end}}
 </article>
 {{else}}<p class="muted">Nothing posted.</p>{{end}}
