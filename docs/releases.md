@@ -38,6 +38,11 @@ of both is tagged after the newest of either, so the services may skip a
 number, their changelog saying so: from v1.2.0 to v1.2.2, say. A fix that
 needs the services as well is a release of both, the services' images that
 did not change tagged again, not built ([What is rebuilt](#what-is-rebuilt)).
+The same holds the other way: a fix to the services alone, which the web
+app's latest release works with, may be a maintenance release of the
+services alone (the user, 2026-11-09: anahita-services v1.2.3, beside
+anahita-web v1.2.2), its changelog naming the web app's release it goes
+with.
 
 ## Version numbers
 
