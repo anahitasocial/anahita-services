@@ -93,6 +93,11 @@ For whoever maintains anahita-services and anahita-web:
    and the date; commit that, tag the commit with the same `v1.0.0`, and
    push `main` and the tag. Its release on GitHub is named the same,
    "v1.0.0 Birth".
+6. In anahita-recipes, once the images are built: the manifests' `ref=`
+   and every image in `commons/k8s/kustomization.yml` at the new version,
+   renamed images by their new names, and `kubectl kustomize` to see it
+   builds. Pinned, not `latest`: a site changes version only when its
+   operator does, and reads the Upgrading notes at a new minor.
 
 Upgrading a site to it: [Upgrading](deploying.md#upgrading).
 
