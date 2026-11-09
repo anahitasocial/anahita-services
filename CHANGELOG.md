@@ -58,6 +58,23 @@ Releases before v1.0.17 are described on GitHub, under
    networks** (row 120): it read only video posts' files, and would have
    taken the copies for files nothing names.
 
+### Upgrading
+
+1. **A short post holds 500 characters** (roadmap row 144). A note, a
+   reply, a thread's note, or a photo's, video's or sound's words longer
+   than that, a link counted as 23, is refused with `400`, when written and
+   when edited; it was 8,000. An app or a service of your own that posts
+   longer ones has to split them into a thread, or post an article.
+   NodeInfo says the limit, `postMaxLength`. Posts already longer stay as
+   they are.
+2. **Two migrations,** `media_elsewhere` and the `kind` of a video upload,
+   run by the migration job as any upgrade's do
+   ([Upgrading](docs/deploying.md#upgrading)).
+3. **Audio is posted as videos are,** straight to the bucket, so it needs
+   the bucket's CORS rule that lets the web app `PUT` there
+   ([Videos](docs/videos.md#storage)); a site that takes videos has it
+   already.
+
 ## v1.1.0 Birth, 2026-11-08
 
 ### Added
