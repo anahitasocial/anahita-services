@@ -178,13 +178,42 @@ func (p *Post) HasVideo() bool {
 type PictureOf struct {
 	CID string
 	Alt string
+	// Poster says it is the still picture of a video, which is not kept
+	// here: Bluesky's video service makes one for every video.
+	Poster bool
 }
 
-// Pictures is the pictures a post carries, in the order they are shown.
+// URL is where the picture is fetched from: `cdn` is the network's store
+// of pictures ("https://cdn.bsky.app"), and `did` the author's.
+func (p PictureOf) URL(cdn, did string) string {
+	if p.Poster {
+		return VideoPosterURL(did, p.CID)
+	}
+	return PictureURL(cdn, did, p.CID)
+}
+
+// VideoPosterURL is the still picture Bluesky's video service makes of a
+// video, by its author and its file.
+func VideoPosterURL(did, cid string) string {
+	return videoService + "/watch/" + url.PathEscape(did) + "/" + cid + "/thumbnail.jpg"
+}
+
+// videoService is where Bluesky's videos and their pictures are.
+const videoService = "https://video.bsky.app"
+
+// Pictures is the pictures a post carries, in the order they are shown;
+// for a video, its poster, so that the post shows what it is
+// (anahita-web's media card draws it with a play button, leading to it).
 func (p *Post) Pictures() []PictureOf {
 	media := p.media()
 	if media == nil {
 		return nil
+	}
+	if media.Type == "app.bsky.embed.video" {
+		if media.Video == nil || !cidPattern.MatchString(media.Video.Ref.Link) {
+			return nil
+		}
+		return []PictureOf{{CID: media.Video.Ref.Link, Alt: media.Alt, Poster: true}}
 	}
 	var pictures []PictureOf
 	for _, each := range media.Images {

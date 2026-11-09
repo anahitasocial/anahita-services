@@ -1483,8 +1483,12 @@ It is kept the way a post from the fediverse is:
    whether or not the address is in its words.
 4. **A post it quotes is led to,** with a line at its end; the quoted post
    is not kept.
-5. **A video is not kept.** A post with a video ends with a line leading to
-   its page, `▶ bsky.app`, and one that is only a video is kept as that line.
+5. **A video is not kept; its poster is.** The still picture Bluesky's
+   video service makes of it (`video.bsky.app/watch/…/thumbnail.jpg`) is
+   kept as the post's picture, with the video's alt text, and the post ends
+   with a line leading to its page, `▶ bsky.app`. The web app draws the two
+   as one: the poster with a play button, leading there. A post marked as
+   not to be shown plainly keeps no picture, and only the line.
 
 When somebody is first followed, their twenty most recent posts are read,
 with their answers to themselves, once, so that their profile here is not empty until they next post. A post

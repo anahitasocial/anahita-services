@@ -73,6 +73,9 @@ type Embed struct {
 		Alt   string `json:"alt"`
 		Image Blob   `json:"image"`
 	} `json:"images"`
+	// app.bsky.embed.video: the video, and what its author said it shows.
+	Video *Blob  `json:"video"`
+	Alt   string `json:"alt"`
 	// app.bsky.embed.external
 	External *struct {
 		URI string `json:"uri"`

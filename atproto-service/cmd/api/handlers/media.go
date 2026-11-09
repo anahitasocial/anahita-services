@@ -98,7 +98,7 @@ func (h *Handlers) restorePictures(ctx context.Context, post *entities.AnahitaNo
 			if len(pictures) == federation.PostPicturesMax() {
 				break
 			}
-			pictures = append(pictures, federation.Picture{URL: bsky.PictureURL(h.CDN, did, each.CID), Alt: each.Alt})
+			pictures = append(pictures, federation.Picture{URL: each.URL(h.CDN, did), Alt: each.Alt})
 		}
 	}
 	restored, err := h.Keeper.RestorePictures(post, pictures)

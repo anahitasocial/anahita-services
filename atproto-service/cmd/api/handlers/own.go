@@ -108,7 +108,7 @@ func (h *Handlers) ownPosted(account *repositories.Account, rkey string, post *b
 				break
 			}
 			pictures = append(pictures, federation.Picture{
-				URL: bsky.PictureURL(h.CDN, account.DID, each.CID),
+				URL: each.URL(h.CDN, account.DID),
 				Alt: each.Alt,
 			})
 		}

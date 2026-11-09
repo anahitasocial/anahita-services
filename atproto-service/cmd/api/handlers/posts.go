@@ -89,7 +89,7 @@ func (h *Handlers) storePost(author *repositories.RemoteActor, rkey string, post
 				break
 			}
 			pictures = append(pictures, federation.Picture{
-				URL: bsky.PictureURL(h.CDN, author.DID, each.CID),
+				URL: each.URL(h.CDN, author.DID),
 				Alt: each.Alt,
 			})
 		}

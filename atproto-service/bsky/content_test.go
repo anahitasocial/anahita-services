@@ -176,3 +176,21 @@ func TestWhatIsTypedToFindSomebody(t *testing.T) {
 		}
 	}
 }
+
+// THE RULE THIS GUARDS: a video, which is not kept here, shows as its
+// poster, the still picture Bluesky's video service makes of it, with what
+// its author said it shows; a video file not named as one shows nothing.
+func TestAVideoShowsAsItsPoster(t *testing.T) {
+	const did = "did:plc:aaaaaaaaaaaaaaaaaaaaaaaa"
+	cid := "bafkreigh2akiscaildcqabsyg3dfr6chu3fgpregiymsck7e7aqa4s52zy"
+	got := post(t, `{"text":"x","embed":{"$type":"app.bsky.embed.video","alt":"A cat","video":{"$type":"blob","ref":{"$link":"`+cid+`"},"mimeType":"video/mp4","size":1}}}`).Pictures()
+	if len(got) != 1 || !got[0].Poster || got[0].Alt != "A cat" {
+		t.Fatalf("pictures: %+v", got)
+	}
+	if want := "https://video.bsky.app/watch/" + did + "/" + cid + "/thumbnail.jpg"; got[0].URL("https://cdn.bsky.app", did) != want {
+		t.Errorf("poster at %s", got[0].URL("https://cdn.bsky.app", did))
+	}
+	if bad := post(t, `{"text":"x","embed":{"$type":"app.bsky.embed.video","video":{"ref":{"$link":"../x"}}}}`).Pictures(); len(bad) != 0 {
+		t.Errorf("an unreadable video gave %+v", bad)
+	}
+}

@@ -71,6 +71,10 @@ Releases before v1.0.17 are described on GitHub, under
    `socialgraph:write` and `taxonomy:write`. `DELETE /activitypub/move`
    comes back. Three columns in `activitypub_accounts`: `also_known_as`,
    `moved_to`, `moved_at`.
+8. **A video from Bluesky shows its poster:** the still picture Bluesky
+   makes of it is kept as the post's picture, with the video's alt text,
+   so the post says what it is, and the web app leads from it to the
+   video there. Posts kept before keep their line alone.
 
 ### Changed
 
