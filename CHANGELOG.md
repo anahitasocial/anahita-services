@@ -10,7 +10,9 @@ made.
 Releases before v1.0.17 are described on GitHub, under
 [Releases](https://github.com/anahitasocial/anahita-services/releases).
 
-## Embryo
+## v1.2.3 Birth, 2026-11-09
+
+A maintenance release of the services alone, for Anahita Web v1.2.2.
 
 ### Added
 
