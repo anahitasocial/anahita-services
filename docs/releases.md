@@ -26,23 +26,18 @@ Birth releases.
 A Birth release is of both repositories: anahita-web is tagged with the
 same version as anahita-services, on the same day. The latest tagged
 anahita-web works with the latest tagged anahita-services, and a site runs
-the two with the same number, or a web app a maintenance release ahead. Their `main` branches go together the same
+the two with the same number. Their `main` branches go together the same
 way: the web app's `main` may call routes that only the services' `main`
 has.
 
-A fix to the web app alone may be a maintenance release of anahita-web
-alone, a patch that works with the services' release of the same minor
-(the user, 2026-11-08): anahita-web v1.2.1 with anahita-services v1.2.0.
-Its changelog names the services' release it goes with. The next release
-of both is tagged after the newest of either, so the services may skip a
-number, their changelog saying so: from v1.2.0 to v1.2.2, say. A fix that
-needs the services as well is a release of both, the services' images that
-did not change tagged again, not built ([What is rebuilt](#what-is-rebuilt)).
-The same holds the other way: a fix to the services alone, which the web
-app's latest release works with, may be a maintenance release of the
-services alone (the user, 2026-11-09: anahita-services v1.2.3, beside
-anahita-web v1.2.2), its changelog naming the web app's release it goes
-with.
+A fix to one of them alone is released by tagging both, the same day,
+with the same version: the other's changelog says nothing changed there.
+The services' images that did not change are tagged again, not built
+([What is rebuilt](#what-is-rebuilt)). Before a release, banu.io runs the
+web app's `main`, and it is tried there first. v1.2.1 and v1.2.2 of the web
+app were each released alone (2026-11-08), which left the numbers apart;
+not done again (the user, 2026-11-09). v1.2.3 is of both: the services
+first, the web app the same day, which lined them up again.
 
 ## Version numbers
 
