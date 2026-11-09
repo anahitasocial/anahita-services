@@ -743,7 +743,9 @@ with nothing changed in the feeds.
 **With pictures, it is a photo post,** which is what a post with pictures
 is here: its words are the caption and its pictures, up to what a photo post
 holds here (`PHOTO_MAX_FILES`), are its images,
-each with what its author said it shows. So it is drawn, opened and stepped
+each with what its author said it shows. From Bluesky, the pictures are a
+post's `app.bsky.embed.images`, up to four, or its `app.bsky.embed.gallery`,
+more than four, beside a quote or alone. So it is drawn, opened and stepped
 through like any photo post, and is in its author's photos. The pictures
 are copied into this installation's storage (`pictures.go`) and never shown
 from where they came from; each is checked to be a picture and nothing

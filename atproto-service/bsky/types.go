@@ -68,11 +68,11 @@ type Facet struct {
 // Embed is what a post carries besides its words.
 type Embed struct {
 	Type string `json:"$type"`
-	// app.bsky.embed.images
-	Images []struct {
-		Alt   string `json:"alt"`
-		Image Blob   `json:"image"`
-	} `json:"images"`
+	// app.bsky.embed.images: up to four.
+	Images []EmbedImage `json:"images"`
+	// app.bsky.embed.gallery: more than four, each as an image is
+	// (2026-11-08: a post of nine came as one, and none was kept).
+	Items []EmbedImage `json:"items"`
 	// app.bsky.embed.video: the video, and what its author said it shows.
 	Video *Blob  `json:"video"`
 	Alt   string `json:"alt"`
@@ -85,6 +85,12 @@ type Embed struct {
 	Record json.RawMessage `json:"record"`
 	// app.bsky.embed.recordWithMedia
 	Media *Embed `json:"media"`
+}
+
+// EmbedImage is one picture of a post, and what its author said it shows.
+type EmbedImage struct {
+	Alt   string `json:"alt"`
+	Image Blob   `json:"image"`
 }
 
 // Blob is a file an account keeps, named by what it holds.

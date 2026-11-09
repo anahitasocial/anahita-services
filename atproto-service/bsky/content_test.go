@@ -82,6 +82,22 @@ func TestWhatAPostCarries(t *testing.T) {
 		t.Errorf("fetched from %s", at)
 	}
 
+	// More than four come as a gallery, each item as an image is.
+	gallery := post(t, `{"text":"x","embed":{"$type":"app.bsky.embed.gallery","items":[
+		{"$type":"app.bsky.embed.gallery#image","alt":"Bolen Books","image":{"$type":"blob","ref":{"$link":"`+cid+`"},"mimeType":"image/jpeg","size":1}},
+		{"$type":"app.bsky.embed.gallery#image","alt":"","image":{"$type":"blob","ref":{"$link":"`+cid+`"},"mimeType":"image/jpeg","size":1}},
+		{"$type":"app.bsky.embed.gallery#image","alt":"","image":{"$type":"blob","ref":{"$link":"`+cid+`"},"mimeType":"image/jpeg","size":1}},
+		{"$type":"app.bsky.embed.gallery#image","alt":"","image":{"$type":"blob","ref":{"$link":"`+cid+`"},"mimeType":"image/jpeg","size":1}},
+		{"$type":"app.bsky.embed.gallery#image","alt":"","image":{"$type":"blob","ref":{"$link":"`+cid+`"},"mimeType":"image/jpeg","size":1}}]}}`)
+	if got := gallery.Pictures(); len(got) != 5 || got[0].Alt != "Bolen Books" {
+		t.Errorf("a gallery's pictures %+v", got)
+	}
+	quoting := post(t, `{"text":"x","embed":{"$type":"app.bsky.embed.recordWithMedia","record":{"record":{"uri":"at://did:plc:aaaaaaaaaaaaaaaaaaaaaaaa/app.bsky.feed.post/3k","cid":"`+cid+`"}},
+		"media":{"$type":"app.bsky.embed.gallery","items":[{"alt":"","image":{"ref":{"$link":"`+cid+`"},"mimeType":"image/png"}}]}}}`)
+	if len(quoting.Pictures()) != 1 {
+		t.Errorf("a gallery beside a quote: %+v", quoting.Pictures())
+	}
+
 	card := post(t, `{"text":"x","embed":{"$type":"app.bsky.embed.external","external":{"uri":"https://example.com/story","title":"T","description":"D"}}}`)
 	if card.Link() != "https://example.com/story" || card.Quoted() != "" || len(card.Pictures()) != 0 {
 		t.Errorf("card %q, quoted %q", card.Link(), card.Quoted())

@@ -58,6 +58,11 @@ Releases before v1.0.17 are described on GitHub, under
    networks** (row 120): it read only video posts' files, and would have
    taken the copies for files nothing names.
 
+2. **A post from Bluesky with more than four pictures keeps them.**
+   Bluesky sends them as a gallery (`app.bsky.embed.gallery`), which was
+   not read, so such a post was kept as words alone. Posts kept before
+   this stay so.
+
 ### Upgrading
 
 1. **A short post holds 500 characters** (roadmap row 144). A note, a

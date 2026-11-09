@@ -232,7 +232,12 @@ func (p *Post) Pictures() []PictureOf {
 		return []PictureOf{{CID: media.Video.Ref.Link, Alt: media.Alt, Poster: true}}
 	}
 	var pictures []PictureOf
-	for _, each := range media.Images {
+	// Four in app.bsky.embed.images; more in app.bsky.embed.gallery.
+	images := media.Images
+	if media.Type == "app.bsky.embed.gallery" {
+		images = media.Items
+	}
+	for _, each := range images {
 		if !cidPattern.MatchString(each.Image.Ref.Link) || !strings.HasPrefix(each.Image.MimeType, "image/") {
 			continue
 		}
