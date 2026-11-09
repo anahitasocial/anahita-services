@@ -247,6 +247,17 @@ func (r *photoFilesRepo) Set(nodeID int64, files []*entities.PhotoFile, uploadID
 		}
 	}()
 
+	if err = setPhotoFiles(ctx, tx, nodeID, files, uploadIDs); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+// setPhotoFiles is Set inside a transaction of the caller's: a post's own,
+// or a thread's (roadmap row 143), so that its parts and their images are
+// made together or not at all.
+func setPhotoFiles(ctx context.Context, tx *sql.Tx, nodeID int64, files []*entities.PhotoFile, uploadIDs []int64) (err error) {
 	if _, err = tx.ExecContext(ctx, deletePhotoFilesOfNode, nodeID); err != nil {
 		return err
 	}
@@ -284,7 +295,7 @@ WHERE id IN (` + placeholders(len(uploadIDs)) + `)`
 		return err
 	}
 
-	return tx.Commit()
+	return nil
 }
 
 func (r *photoFilesRepo) DeleteForNodes(nodeIDs []int64) error {

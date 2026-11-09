@@ -4,6 +4,7 @@ import (
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
+	"anahita-libs/photos"
 	"anahita-libs/responses"
 	images "anahita-libs/utils"
 	"io"
@@ -321,13 +322,7 @@ func (h *photoHandler) EditFiles(c echo.Context) error {
 
 // uploadIDs are the uploads a list of images names.
 func uploadIDs(refs []FileRef) []int64 {
-	var ids []int64
-	for _, ref := range refs {
-		if ref.UploadID > 0 {
-			ids = append(ids, ref.UploadID)
-		}
-	}
-	return ids
+	return photos.UploadIDs(refs)
 }
 
 // deleteStored removes every stored size of these images, in the background.

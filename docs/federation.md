@@ -869,7 +869,9 @@ Bluesky, not at the next sweep. An older note of the writer's that never
 went out still does not go out because of a reply. On Bluesky, the part
 before is read from the writer's own server (`com.atproto.repo.getRecord`)
 rather than the AppView, which may not have seen it yet; a part written
-before the one it answers is tried again shortly, and not given up on.
+before the one it answers is tried again shortly, and not given up on. A
+part with pictures (roadmap row 143) is a photo post, and goes out as any
+reply with pictures does.
 
 It is sent with `inReplyTo` set to what it answers, by the address that
 has between servers, to its author's followers and to whoever wrote what

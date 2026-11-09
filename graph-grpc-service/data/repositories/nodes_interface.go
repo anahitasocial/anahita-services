@@ -76,8 +76,9 @@ type NodesRepoInterface interface {
 	// BatchAdd creates multiple new nodes based on the provided nodes.
 	BatchAdd(nodes []*entities.AnahitaNode) ([]*entities.AnahitaNode, error)
 	// AddThread makes several posts in one go, all or none, each after the
-	// first a reply to the one before (roadmap row 101).
-	AddThread(parent *entities.AnahitaNode, parts []*entities.AnahitaNode) ([]*entities.AnahitaNode, error)
+	// first a reply to the one before (roadmap row 101); with the images of
+	// the parts that are photo posts, by their place (row 143).
+	AddThread(parent *entities.AnahitaNode, parts []*entities.AnahitaNode, files map[int]PartFiles) ([]*entities.AnahitaNode, error)
 
 	// BatchDelete removes multiple nodes based on the provided delete request and viewer context.
 	BatchDelete(ids []int64) (bool, error)

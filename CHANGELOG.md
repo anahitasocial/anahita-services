@@ -32,6 +32,14 @@ Releases before v1.0.17 are described on GitHub, under
    fediverse as Mastodon's `Audio`, to Bluesky as a card leading here. A new
    column, `video_uploads.kind`.
 
+3. **Pictures in a thread's notes** (roadmap row 143, phase 1): each part
+   of `POST /notes/:owner_id/thread` and `POST /notes/:id/replies/thread`
+   may have `uploads`, as a photo post's, and is then a photo post in the
+   thread, its pictures checked by the same rules (`anahita-libs/photos`,
+   moved from photo-service) and set in the thread's own transaction, so a
+   thread is still all or none. The first part's are uploaded for the
+   profile it is on and take `allow_download`; the rest are the writer's.
+
 ### Fixed
 
 1. **The nightly file sweep keeps the copies of videos from other

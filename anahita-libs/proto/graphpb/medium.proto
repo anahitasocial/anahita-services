@@ -107,6 +107,17 @@ message MediumThreadAddRequest {
     repeated Node parts = 2;
     Viewer viewer = 3;
     repeated int64 location_ids = 4;
+    // The images of the parts that are photo posts (roadmap row 143), set
+    // before any part is announced.
+    repeated ThreadPartFiles part_files = 5;
+}
+
+// The images of one part of a thread: its place in the thread, from 0, and
+// what PhotoFilesSetRequest takes.
+message ThreadPartFiles {
+    int32 position = 1;
+    repeated PhotoFile files = 2;
+    repeated int64 upload_ids = 3;
 }
 
 message MediumThreadAddResponse {

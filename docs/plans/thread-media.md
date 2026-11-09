@@ -2,7 +2,10 @@
 
 Asked for by the user on 2026-11-08, from Threads' composer, where each
 note of a thread can carry pictures, a GIF, a video or a sound. Planned the
-same day. Not built.
+same day.
+
+**Status:** phase 1 done 2026-11-08: photos in any note. Phase 2, GIFs,
+videos and sounds, next.
 
 ## Contents
 
@@ -86,6 +89,23 @@ so it reads whole on Mastodon and Bluesky.
    Add to thread stays offered with photos.
 
 Estimate: 2 sessions.
+
+**Done 2026-11-08,** as planned, with these besides:
+
+1. The graph sets a part's images in the thread's own transaction
+   (`setPhotoFiles`, shared with `PhotoFiles.Set`), not after it: a picture
+   that cannot be set leaves no part, and every upload kept. Tested in
+   `TestAThreadsPicturesAreMadeWithIt`.
+2. `allow_download` on the thread's request, for the first part's
+   pictures; tagging the first part's people, as on a photo post, by the web
+   app once the thread is made.
+3. In the composer, at the user's word the same day: every note's Photo,
+   GIF, Video and Audio icons under its words, not at the dialog's foot;
+   the writer's name above each note, with its place in the thread
+   ("2/3"); the words at 15 px.
+4. Tried in headless Chrome at both sizes: a thread of three, photos in the
+   first and the third, made as a photo post, a note and a photo post, in
+   order, each picture stored and its upload gone; deleted afterwards.
 
 ### 2. GIFs, videos and sounds
 

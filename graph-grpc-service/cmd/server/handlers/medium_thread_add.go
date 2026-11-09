@@ -7,6 +7,7 @@ import (
 	"context"
 	"log"
 
+	"graph/data/repositories"
 	"graph/data/validators"
 
 	"google.golang.org/grpc/codes"
@@ -62,7 +63,34 @@ func (h *mediumHandler) AddThread(ctx context.Context, req *graphpb.MediumThread
 		}
 	}
 
-	made, err := h.env.Repos.Nodes.AddThread(parent, parts)
+	// The images of the parts that are photo posts (roadmap row 143),
+	// checked as SetPhotoFiles checks a post's.
+	files := map[int]repositories.PartFiles{}
+	for _, each := range req.GetPartFiles() {
+		position := int(each.GetPosition())
+		if position < 0 || position >= len(parts) || len(each.GetFiles()) == 0 {
+			return nil, status.Error(codes.InvalidArgument, "images for a part that is not there")
+		}
+		if parts[position].Type != constants.NodeMediumPhotoEntityType {
+			return nil, status.Error(codes.InvalidArgument, "images for a part that is not a photo post")
+		}
+		var set []*entities.PhotoFile
+		for _, file := range each.GetFiles() {
+			if file.Filename == "" {
+				return nil, status.Error(codes.InvalidArgument, "an image needs a filename")
+			}
+			set = append(set, &entities.PhotoFile{
+				Filename: file.Filename,
+				Mimetype: file.Mimetype,
+				Width:    int(file.Width),
+				Height:   int(file.Height),
+				AltText:  file.AltText,
+			})
+		}
+		files[position] = repositories.PartFiles{Files: set, UploadIDs: each.GetUploadIds()}
+	}
+
+	made, err := h.env.Repos.Nodes.AddThread(parent, parts, files)
 	if err != nil {
 		return nil, err
 	}

@@ -32,7 +32,9 @@ type MediaGRPCInterface interface {
 	// AddThread makes several posts in one go, all or none, each after the
 	// first a reply to the one before; the first answers parentID, or is a
 	// post when it is 0 (roadmap row 101).
-	AddThread(parentID int64, parts []*entities.AnahitaNode, viewer *entities.Viewer, locationIDs []int64) ([]*entities.AnahitaNode, error)
+	// AddThread makes a thread's parts in one go. partFiles are the images
+	// of the parts that are photo posts, by their place in the thread.
+	AddThread(parentID int64, parts []*entities.AnahitaNode, viewer *entities.Viewer, locationIDs []int64, partFiles map[int]ThreadPartFiles) ([]*entities.AnahitaNode, error)
 
 	// Delete removes a media
 	Delete(id int64, viewer *entities.Viewer) error
@@ -273,7 +275,14 @@ func (srv *MediaGRPC) AddWithLocations(item *entities.AnahitaNode, viewer *entit
 }
 
 // AddThread makes several posts in one go, all or none (roadmap row 101).
-func (srv *MediaGRPC) AddThread(parentID int64, parts []*entities.AnahitaNode, viewer *entities.Viewer, locationIDs []int64) ([]*entities.AnahitaNode, error) {
+// ThreadPartFiles are the images of one part of a thread that is a photo
+// post (roadmap row 143): what SetPhotoFiles takes.
+type ThreadPartFiles struct {
+	Files     []*entities.PhotoFile
+	UploadIDs []int64
+}
+
+func (srv *MediaGRPC) AddThread(parentID int64, parts []*entities.AnahitaNode, viewer *entities.Viewer, locationIDs []int64, partFiles map[int]ThreadPartFiles) ([]*entities.AnahitaNode, error) {
 	client, err := srv.getClient()
 	if err != nil {
 		return nil, err
@@ -292,8 +301,15 @@ func (srv *MediaGRPC) AddThread(parentID int64, parts []*entities.AnahitaNode, v
 		},
 		LocationIds: locationIDs,
 	}
-	for _, part := range parts {
+	for position, part := range parts {
 		req.Parts = append(req.Parts, graphNodeToGrpc(part))
+		if each, ok := partFiles[position]; ok {
+			req.PartFiles = append(req.PartFiles, &graphpb.ThreadPartFiles{
+				Position:  int32(position),
+				Files:     photoFilesToGrpc(each.Files),
+				UploadIds: each.UploadIDs,
+			})
+		}
 	}
 	resp, err := client.AddThread(context.Background(), req)
 	if err != nil {

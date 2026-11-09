@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"anahita-libs/apidoc"
+	"anahita-libs/photos"
 	"anahita-libs/responses"
 )
 
@@ -21,14 +22,7 @@ type Uploaded struct {
 
 // FilesRefusal says why a post's images were refused, and how many a post
 // may have.
-type FilesRefusal struct {
-	// Why: `files_required`, `too_many_files`, `file_not_found`,
-	// `file_repeated`, `upload_not_yours`, `alt_text_too_long`,
-	// `file_unreadable`, `file_unsupported` or `file_too_large`.
-	Error string `json:"error"`
-	// How many images a post may have.
-	Max int `json:"max"`
-}
+type FilesRefusal = photos.FilesRefusal
 
 // PhotoUpload is one image for a post. The handler reads these with
 // c.Param and c.FormFile; nothing binds into it.

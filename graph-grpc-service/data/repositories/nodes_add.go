@@ -154,12 +154,19 @@ func (r *nodesRepo) insert(ctx context.Context, db execer, node *entities.Anahit
 	return result.LastInsertId()
 }
 
+// PartFiles are the images of one part of a thread that is a photo post.
+type PartFiles struct {
+	Files     []*entities.PhotoFile
+	UploadIDs []int64
+}
+
 // AddThread makes several posts in one go, all or none (roadmap row 101):
 // each after the first a reply to the one before, the first a post or a
 // reply to what `parent` is. Each is placed in its thread as Add places a
 // reply. They are written in order, in one transaction, and read back in
-// that order.
-func (r *nodesRepo) AddThread(parent *entities.AnahitaNode, parts []*entities.AnahitaNode) ([]*entities.AnahitaNode, error) {
+// that order. A part that is a photo post has its images set in the same
+// transaction (roadmap row 143), so no part is left without them.
+func (r *nodesRepo) AddThread(parent *entities.AnahitaNode, parts []*entities.AnahitaNode, files map[int]PartFiles) ([]*entities.AnahitaNode, error) {
 	if len(parts) == 0 {
 		return nil, nil
 	}
@@ -174,7 +181,7 @@ func (r *nodesRepo) AddThread(parent *entities.AnahitaNode, parts []*entities.An
 
 	ids := make([]int64, 0, len(parts))
 	before := parent
-	for _, part := range parts {
+	for position, part := range parts {
 		if before != nil {
 			part.ParentID = before.ID
 			part.ParentType = before.Type
@@ -192,6 +199,11 @@ func (r *nodesRepo) AddThread(parent *entities.AnahitaNode, parts []*entities.An
 			return nil, err
 		}
 		part.ID = id
+		if each, ok := files[position]; ok {
+			if err := setPhotoFiles(ctx, tx, id, each.Files, each.UploadIDs); err != nil {
+				return nil, err
+			}
+		}
 		ids = append(ids, id)
 		before = part
 	}

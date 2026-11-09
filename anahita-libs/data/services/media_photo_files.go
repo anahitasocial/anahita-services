@@ -90,16 +90,7 @@ func (srv *MediaGRPC) SetPhotoFiles(nodeID int64, files []*entities.PhotoFile, u
 		return nil, err
 	}
 
-	req := &graphpb.PhotoFilesSetRequest{NodeId: nodeID, UploadIds: uploadIDs}
-	for _, file := range files {
-		req.Files = append(req.Files, &graphpb.PhotoFile{
-			Filename: file.Filename,
-			Mimetype: file.Mimetype,
-			Width:    int32(file.Width),
-			Height:   int32(file.Height),
-			AltText:  file.AltText,
-		})
-	}
+	req := &graphpb.PhotoFilesSetRequest{NodeId: nodeID, UploadIds: uploadIDs, Files: photoFilesToGrpc(files)}
 
 	resp, err := client.SetPhotoFiles(context.Background(), req)
 	if err != nil {
@@ -107,6 +98,21 @@ func (srv *MediaGRPC) SetPhotoFiles(nodeID int64, files []*entities.PhotoFile, u
 	}
 
 	return grpcToPhotoFiles(resp.GetFiles()), nil
+}
+
+// photoFilesToGrpc is what a post's images are sent to the graph as.
+func photoFilesToGrpc(files []*entities.PhotoFile) []*graphpb.PhotoFile {
+	var out []*graphpb.PhotoFile
+	for _, file := range files {
+		out = append(out, &graphpb.PhotoFile{
+			Filename: file.Filename,
+			Mimetype: file.Mimetype,
+			Width:    int32(file.Width),
+			Height:   int32(file.Height),
+			AltText:  file.AltText,
+		})
+	}
+	return out
 }
 
 func grpcToPhotoFiles(files []*graphpb.PhotoFile) []*entities.PhotoFile {

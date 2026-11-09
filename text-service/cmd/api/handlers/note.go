@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	an_constants "anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	an_handlers "anahita-libs/handlers"
@@ -183,6 +184,14 @@ func (h *noteHandler) Edit(c echo.Context) error {
 // with what audience, quoting what. Or, when it may not be made, what to
 // answer instead.
 func (h *noteHandler) newNote(c echo.Context, req *requests.NoteAddRequest, viewer *entities.Viewer) (*entities.AnahitaNode, func() error) {
+	return h.newPost(c, req, viewer, false)
+}
+
+// newPost is newNote, or, with `photo`, a photo post as the first part of
+// a thread with pictures (roadmap row 143): judged as a photo post is,
+// where a profile may take the one kind and not the other. Its pictures are
+// the thread's to check.
+func (h *noteHandler) newPost(c echo.Context, req *requests.NoteAddRequest, viewer *entities.Viewer, photo bool) (*entities.AnahitaNode, func() error) {
 	owner, err := h.Srv.ActorsGRPC.Read(req.OwnerID, viewer)
 	if err != nil {
 		log.Println(err)
@@ -192,6 +201,10 @@ func (h *noteHandler) newNote(c echo.Context, req *requests.NoteAddRequest, view
 	medium := entities.NewAnahitaNode()
 	medium.Type = constants.NodeMediumNoteType
 	medium.Service = constants.TextService
+	if photo {
+		medium.Type = an_constants.NodeMediumPhotoEntityType
+		medium.Service = an_constants.PhotoServiceName
+	}
 	medium.Access = req.Access
 	medium.Body = req.Content
 

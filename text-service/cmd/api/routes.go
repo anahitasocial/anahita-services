@@ -9,6 +9,7 @@ import (
 	"anahita-libs/apidoc"
 	libs_constants "anahita-libs/constants"
 	an_mw "anahita-libs/middleware"
+	"anahita-libs/photos"
 	libs_requests "anahita-libs/requests"
 	"anahita-libs/responses"
 
@@ -243,29 +244,30 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Refuses(http.StatusNotFound, "there is no such post the viewer may see").
 		Refuses(http.StatusGone, "it answers a reply that was removed")
 	// A thread written in one go (roadmap row 101): the notes all made, or
-	// none.
+	// none; a note with pictures is a photo post in it (row 143).
 	notes.POST("/:owner_id/thread", r.handler.Note.AddThread, r.authorize).
 		Summary("Post a thread").
-		Describe("Up to ten notes, made together in order, all or none: the first a post on the profile `owner_id`, with what a post takes, and each after it a reply to the one before, written by the viewer. Each is checked as a note is. They go to other networks in order, and whoever is told of the thread is told of its first note.").
+		Describe("Up to ten notes, made together in order, all or none: the first a post on the profile `owner_id`, with what a post takes, and each after it a reply to the one before, written by the viewer. Each is checked as a note is; one with `uploads` is a photo post, its pictures checked as a photo post's, uploaded for the profile it is on: `owner_id` for the first, the viewer for the rest. They go to other networks in order, and whoever is told of the thread is told of its first note.").
 		Viewer(apidoc.SignedIn).
 		Scope(write).
 		Takes(&handlers.NoteThreadAddRequest{}).
 		Sends(http.StatusCreated, handlers.ThreadAdded{}).
-		Sends(http.StatusBadRequest, responses.Refusal{}, "`language_invalid`, `reply_access_invalid`, `quote_policy_invalid`; or not well formed, or more than ten notes, without a body").
-		Refuses(http.StatusForbidden, "the viewer may not post here").
-		Refuses(http.StatusNotFound, "there is no such profile").
-		Sends(http.StatusUnprocessableEntity, responses.AudienceRefusal{}, "`access_not_allowed`, with the audiences it may have")
+		Sends(http.StatusBadRequest, responses.Refusal{}, "`language_invalid`, `reply_access_invalid`, `quote_policy_invalid`; or not well formed, or more than ten notes, a note without words or pictures").
+		Refuses(http.StatusForbidden, "the viewer may not post here, or a picture was uploaded by somebody else or for another profile (`upload_not_yours`)").
+		Refuses(http.StatusNotFound, "there is no such profile, or no such upload (`file_not_found`)").
+		Sends(http.StatusUnprocessableEntity, responses.AudienceRefusal{}, "`access_not_allowed`, with the audiences it may have; or, as a photo post's pictures are refused, `too_many_files`, `file_repeated` or `alt_text_too_long`, with `max`")
 	notes.POST("/:id/replies/thread", r.handler.Note.AddReplyThread, r.authorize).
 		Summary("Reply with a thread").
-		Describe("Up to ten notes, made together in order, all or none: the first a reply to the post or the reply `id`, and each after it a reply to the one before. Each is checked as a reply is. They go to other networks in order, and whoever is told of the thread is told of its first note.").
+		Describe("Up to ten notes, made together in order, all or none: the first a reply to the post or the reply `id`, and each after it a reply to the one before. Each is checked as a reply is; one with `uploads` is a photo post, its pictures uploaded for the viewer. They go to other networks in order, and whoever is told of the thread is told of its first note.").
 		Viewer(apidoc.SignedIn).
 		Scope(write).
 		Takes(&handlers.ReplyThreadAddRequest{}).
 		Sends(http.StatusCreated, handlers.ThreadAdded{}).
-		Sends(http.StatusBadRequest, responses.Refusal{}, "`language_invalid`; or not well formed, or more than ten notes, without a body").
-		Refuses(http.StatusForbidden, "the viewer may not reply here").
-		Refuses(http.StatusNotFound, "there is no such post the viewer may see").
-		Refuses(http.StatusGone, "it answers a reply that was removed")
+		Sends(http.StatusBadRequest, responses.Refusal{}, "`language_invalid`; or not well formed, or more than ten notes, a note without words or pictures").
+		Refuses(http.StatusForbidden, "the viewer may not reply here, or a picture was uploaded by somebody else (`upload_not_yours`)").
+		Refuses(http.StatusNotFound, "there is no such post the viewer may see, or no such upload (`file_not_found`)").
+		Refuses(http.StatusGone, "it answers a reply that was removed").
+		Sends(http.StatusUnprocessableEntity, photos.FilesRefusal{}, "`too_many_files`, `file_repeated` or `alt_text_too_long`, with `max`")
 	notes.PATCH("/:id/hidden", r.handler.Note.HideReply, r.authorize).
 		Summary("Hide a reply, or show it again").
 		Describe("From everybody but its writer and whoever looks after the thread, with everything said under it. It is not deleted, and its writer is not told. A reply from Bluesky is hidden there too, when the post went there (federation.md).").

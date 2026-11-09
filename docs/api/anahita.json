@@ -620,6 +620,49 @@
         ],
         "type": "object"
       },
+      "FileRef": {
+        "description": "FileRef names one image a post is to have: one it has already, by its id, or one that was uploaded for it, by the upload's id.",
+        "properties": {
+          "alt_text": {
+            "description": "What it shows, for people who cannot see it.",
+            "type": "string"
+          },
+          "id": {
+            "description": "An image the post has already, by its id.",
+            "type": "string"
+          },
+          "upload_id": {
+            "description": "An image uploaded for it, by the upload's id.",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "upload_id",
+          "alt_text"
+        ],
+        "type": "object"
+      },
+      "FilesRefusal": {
+        "description": "FilesRefusal says why a post's images were refused, and how many a post may have.",
+        "properties": {
+          "error": {
+            "description": "Why: `files_required`, `too_many_files`, `file_not_found`, `file_repeated`, `upload_not_yours`, `alt_text_too_long`, `file_unreadable`, `file_unsupported` or `file_too_large`.",
+            "type": "string"
+          },
+          "max": {
+            "description": "How many images a post may have.",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "error",
+          "max"
+        ],
+        "type": "object"
+      },
       "Image": {
         "description": "Image is one size of a picture.",
         "properties": {
@@ -6648,49 +6691,6 @@
         ],
         "type": "object"
       },
-      "photo.FileRef": {
-        "description": "FileRef names one image a post is to have: one it has already, by its id, or one that was uploaded for it, by the upload's id.",
-        "properties": {
-          "alt_text": {
-            "description": "What it shows, for people who cannot see it.",
-            "type": "string"
-          },
-          "id": {
-            "description": "An image the post has already, by its id.",
-            "type": "string"
-          },
-          "upload_id": {
-            "description": "An image uploaded for it, by the upload's id.",
-            "format": "int64",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "id",
-          "upload_id",
-          "alt_text"
-        ],
-        "type": "object"
-      },
-      "photo.FilesRefusal": {
-        "description": "FilesRefusal says why a post's images were refused, and how many a post may have.",
-        "properties": {
-          "error": {
-            "description": "Why: `files_required`, `too_many_files`, `file_not_found`, `file_repeated`, `upload_not_yours`, `alt_text_too_long`, `file_unreadable`, `file_unsupported` or `file_too_large`.",
-            "type": "string"
-          },
-          "max": {
-            "description": "How many images a post may have.",
-            "format": "int64",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "error",
-          "max"
-        ],
-        "type": "object"
-      },
       "photo.Uploaded": {
         "description": "Uploaded is an image stored for a post that is not made yet.",
         "properties": {
@@ -7297,22 +7297,36 @@
         "type": "object"
       },
       "text.ThreadPart": {
-        "description": "ThreadPart is one note of a thread: what it says, in what language, and the link in it to show a card for, as on a note.",
+        "description": "ThreadPart is one note of a thread: what it says, in what language, and the link in it to show a card for, as on a note; or, with pictures, a photo post in the thread (roadmap row 143), which needs no words.",
         "properties": {
           "content": {
+            "description": "Its words, as Markdown. A part with pictures need not have any.",
             "type": "string"
           },
           "language": {
+            "description": "The language it is written in, as a BCP 47 tag.",
             "type": "string"
           },
           "link_preview_url": {
+            "description": "The link in it to show a card for. Not on a part with pictures.",
             "type": "string"
+          },
+          "uploads": {
+            "description": "Its pictures, as a photo post's: each uploaded first through POST /photos/:owner_id/uploads, for the profile the part is on, which is the thread's for the first part and the writer's for the rest.",
+            "items": {
+              "$ref": "#/components/schemas/FileRef"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
           }
         },
         "required": [
           "content",
           "language",
-          "link_preview_url"
+          "link_preview_url",
+          "uploads"
         ],
         "type": "object"
       },
@@ -24010,7 +24024,7 @@
     },
     "/notes/{id}/replies/thread": {
       "post": {
-        "description": "Up to ten notes, made together in order, all or none: the first a reply to the post or the reply `id`, and each after it a reply to the one before. Each is checked as a reply is. They go to other networks in order, and whoever is told of the thread is told of its first note.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "description": "Up to ten notes, made together in order, all or none: the first a reply to the post or the reply `id`, and each after it a reply to the one before. Each is checked as a reply is; one with `uploads` is a photo post, its pictures uploaded for the viewer. They go to other networks in order, and whoever is told of the thread is told of its first note.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
         "operationId": "postNotesByIdRepliesThread",
         "parameters": [
           {
@@ -24067,19 +24081,29 @@
                 }
               }
             },
-            "description": "`language_invalid`; or not well formed, or more than ten notes, without a body"
+            "description": "`language_invalid`; or not well formed, or more than ten notes, a note without words or pictures"
           },
           "401": {
             "description": "no token, or one that has expired"
           },
           "403": {
-            "description": "the viewer may not reply here"
+            "description": "the viewer may not reply here, or a picture was uploaded by somebody else (`upload_not_yours`)"
           },
           "404": {
-            "description": "there is no such post the viewer may see"
+            "description": "there is no such post the viewer may see, or no such upload (`file_not_found`)"
           },
           "410": {
             "description": "it answers a reply that was removed"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilesRefusal"
+                }
+              }
+            },
+            "description": "`too_many_files`, `file_repeated` or `alt_text_too_long`, with `max`"
           }
         },
         "security": [
@@ -24283,7 +24307,7 @@
         "x-viewer": "anyone"
       },
       "post": {
-        "description": "Up to ten notes, made together in order, all or none: the first a post on the profile `owner_id`, with what a post takes, and each after it a reply to the one before, written by the viewer. Each is checked as a note is. They go to other networks in order, and whoever is told of the thread is told of its first note.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "description": "Up to ten notes, made together in order, all or none: the first a post on the profile `owner_id`, with what a post takes, and each after it a reply to the one before, written by the viewer. Each is checked as a note is; one with `uploads` is a photo post, its pictures checked as a photo post's, uploaded for the profile it is on: `owner_id` for the first, the viewer for the rest. They go to other networks in order, and whoever is told of the thread is told of its first note.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
         "operationId": "postNotesByOwnerIdThread",
         "parameters": [
           {
@@ -24314,6 +24338,10 @@
                       "myself"
                     ],
                     "type": "string"
+                  },
+                  "allow_download": {
+                    "description": "Whether the first part's pictures may be downloaded, when it has any, as on a photo post. Not saying leaves it to the profile.",
+                    "type": "boolean"
                   },
                   "location_ids": {
                     "items": {
@@ -24374,16 +24402,16 @@
                 }
               }
             },
-            "description": "`language_invalid`, `reply_access_invalid`, `quote_policy_invalid`; or not well formed, or more than ten notes, without a body"
+            "description": "`language_invalid`, `reply_access_invalid`, `quote_policy_invalid`; or not well formed, or more than ten notes, a note without words or pictures"
           },
           "401": {
             "description": "no token, or one that has expired"
           },
           "403": {
-            "description": "the viewer may not post here"
+            "description": "the viewer may not post here, or a picture was uploaded by somebody else or for another profile (`upload_not_yours`)"
           },
           "404": {
-            "description": "there is no such profile"
+            "description": "there is no such profile, or no such upload (`file_not_found`)"
           },
           "422": {
             "content": {
@@ -24393,7 +24421,7 @@
                 }
               }
             },
-            "description": "`access_not_allowed`, with the audiences it may have"
+            "description": "`access_not_allowed`, with the audiences it may have; or, as a photo post's pictures are refused, `too_many_files`, `file_repeated` or `alt_text_too_long`, with `max`"
           }
         },
         "security": [
@@ -29901,7 +29929,7 @@
                   "files": {
                     "description": "Every image it is to have, in order. One left out is removed.",
                     "items": {
-                      "$ref": "#/components/schemas/photo.FileRef"
+                      "$ref": "#/components/schemas/FileRef"
                     },
                     "type": "array"
                   }
@@ -29939,7 +29967,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/photo.FilesRefusal"
+                  "$ref": "#/components/schemas/FilesRefusal"
                 }
               }
             },
@@ -30245,7 +30273,7 @@
                   "uploads": {
                     "description": "Its pictures, each uploaded first for the person replying.",
                     "items": {
-                      "$ref": "#/components/schemas/photo.FileRef"
+                      "$ref": "#/components/schemas/FileRef"
                     },
                     "type": "array"
                   }
@@ -30644,7 +30672,7 @@
                   "uploads": {
                     "description": "The images, in order, each an upload made for this profile.",
                     "items": {
-                      "$ref": "#/components/schemas/photo.FileRef"
+                      "$ref": "#/components/schemas/FileRef"
                     },
                     "type": "array"
                   }
@@ -30818,7 +30846,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/photo.FilesRefusal"
+                  "$ref": "#/components/schemas/FilesRefusal"
                 }
               }
             },
@@ -30891,7 +30919,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/photo.FilesRefusal"
+                  "$ref": "#/components/schemas/FilesRefusal"
                 }
               }
             },
@@ -30910,7 +30938,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/photo.FilesRefusal"
+                  "$ref": "#/components/schemas/FilesRefusal"
                 }
               }
             },
@@ -30920,7 +30948,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/photo.FilesRefusal"
+                  "$ref": "#/components/schemas/FilesRefusal"
                 }
               }
             },

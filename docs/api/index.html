@@ -6796,11 +6796,11 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </table>
 <p class="handler">Answered by <code>text/cmd/api/handlers.(*mediumHandler).AddReply</code></p>
 </details>
-<details class="route" id="postNotesByIdRepliesThread" data-search="post /notes/{id}/replies/thread reply with a thread up to ten notes, made together in order, all or none: the first a reply to the post or the reply `id`, and each after it a reply to the one before. each is checked as a reply is. they go to other networks in order, and whoever is told of the thread is told of its first note.
+<details class="route" id="postNotesByIdRepliesThread" data-search="post /notes/{id}/replies/thread reply with a thread up to ten notes, made together in order, all or none: the first a reply to the post or the reply `id`, and each after it a reply to the one before. each is checked as a reply is; one with `uploads` is a photo post, its pictures uploaded for the viewer. they go to other networks in order, and whoever is told of the thread is told of its first note.
 
 who may call it: somebody signed in, with a token that carries `media:write`.">
 <summary><span class="method post">POST</span> <code class="path">/notes/{id}/replies/thread</code> <span class="summary">Reply with a thread</span></summary>
-<div class="description"><p>Up to ten notes, made together in order, all or none: the first a reply to the post or the reply <code>id</code>, and each after it a reply to the one before. Each is checked as a reply is. They go to other networks in order, and whoever is told of the thread is told of its first note.</p></div>
+<div class="description"><p>Up to ten notes, made together in order, all or none: the first a reply to the post or the reply <code>id</code>, and each after it a reply to the one before. Each is checked as a reply is; one with <code>uploads</code> is a photo post, its pictures uploaded for the viewer. They go to other networks in order, and whoever is told of the thread is told of its first note.</p></div>
 <p class="who"><strong>Who:</strong> somebody signed in, with <code>media:write</code></p>
 <h4>Takes</h4>
 <table>
@@ -6820,11 +6820,12 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <table class="answers">
 <tbody>
 <tr><td class="status s2">201</td><td>Created<div class="body"><a href="#schema-text.ThreadAdded">text.ThreadAdded</a> <span class="media">application/json</span></div></td></tr>
-<tr><td class="status s4">400</td><td><code>language_invalid</code>; or not well formed, or more than ten notes, without a body<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>language_invalid</code>; or not well formed, or more than ten notes, a note without words or pictures<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
-<tr><td class="status s4">403</td><td>the viewer may not reply here</td></tr>
-<tr><td class="status s4">404</td><td>there is no such post the viewer may see</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not reply here, or a picture was uploaded by somebody else (<code>upload_not_yours</code>)</td></tr>
+<tr><td class="status s4">404</td><td>there is no such post the viewer may see, or no such upload (<code>file_not_found</code>)</td></tr>
 <tr><td class="status s4">410</td><td>it answers a reply that was removed</td></tr>
+<tr><td class="status s4">422</td><td><code>too_many_files</code>, <code>file_repeated</code> or <code>alt_text_too_long</code>, with <code>max</code><div class="body"><a href="#schema-FilesRefusal">FilesRefusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>text/cmd/api/handlers.(*noteHandler).AddReplyThread</code></p>
@@ -6885,11 +6886,11 @@ who may call it: anyone, signed in or not.">
 </table>
 <p class="handler">Answered by <code>text/cmd/api/handlers.(*mediumHandler).Thread</code></p>
 </details>
-<details class="route" id="postNotesByOwnerIdThread" data-search="post /notes/{id}/thread post a thread up to ten notes, made together in order, all or none: the first a post on the profile `owner_id`, with what a post takes, and each after it a reply to the one before, written by the viewer. each is checked as a note is. they go to other networks in order, and whoever is told of the thread is told of its first note.
+<details class="route" id="postNotesByOwnerIdThread" data-search="post /notes/{id}/thread post a thread up to ten notes, made together in order, all or none: the first a post on the profile `owner_id`, with what a post takes, and each after it a reply to the one before, written by the viewer. each is checked as a note is; one with `uploads` is a photo post, its pictures checked as a photo post&#39;s, uploaded for the profile it is on: `owner_id` for the first, the viewer for the rest. they go to other networks in order, and whoever is told of the thread is told of its first note.
 
 who may call it: somebody signed in, with a token that carries `media:write`.">
 <summary><span class="method post">POST</span> <code class="path">/notes/{id}/thread</code> <span class="summary">Post a thread</span></summary>
-<div class="description"><p>Up to ten notes, made together in order, all or none: the first a post on the profile <code>owner_id</code>, with what a post takes, and each after it a reply to the one before, written by the viewer. Each is checked as a note is. They go to other networks in order, and whoever is told of the thread is told of its first note.</p></div>
+<div class="description"><p>Up to ten notes, made together in order, all or none: the first a post on the profile <code>owner_id</code>, with what a post takes, and each after it a reply to the one before, written by the viewer. Each is checked as a note is; one with <code>uploads</code> is a photo post, its pictures checked as a photo post&#39;s, uploaded for the profile it is on: <code>owner_id</code> for the first, the viewer for the rest. They go to other networks in order, and whoever is told of the thread is told of its first note.</p></div>
 <p class="who"><strong>Who:</strong> somebody signed in, with <code>media:write</code></p>
 <h4>Takes</h4>
 <table>
@@ -6903,6 +6904,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
 <tr><td><code>access</code></td><td>string</td><td>As on NoteAddRequest, for the first part: the rest are replies, seen by whoever may see it. One of <code>public</code>, <code>registered</code>, <code>followers</code>, <code>leaders</code>, <code>mutuals</code>, <code>admins</code>, <code>myself</code>.</td></tr>
+<tr><td><code>allow_download</code></td><td>boolean</td><td>Whether the first part&#39;s pictures may be downloaded, when it has any, as on a photo post. Not saying leaves it to the profile.</td></tr>
 <tr><td><code>location_ids</code></td><td>list of integer</td><td> At most 5 of them.</td></tr>
 <tr><td><code>parts</code> <span class="required">always</span></td><td>list of <a href="#schema-text.ThreadPart">text.ThreadPart</a></td><td>The notes of the thread, first to last: up to ten. At least 1 of them. At most 10 of them.</td></tr>
 <tr><td><code>quote_id</code></td><td>integer</td><td></td></tr>
@@ -6914,11 +6916,11 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <table class="answers">
 <tbody>
 <tr><td class="status s2">201</td><td>Created<div class="body"><a href="#schema-text.ThreadAdded">text.ThreadAdded</a> <span class="media">application/json</span></div></td></tr>
-<tr><td class="status s4">400</td><td><code>language_invalid</code>, <code>reply_access_invalid</code>, <code>quote_policy_invalid</code>; or not well formed, or more than ten notes, without a body<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>language_invalid</code>, <code>reply_access_invalid</code>, <code>quote_policy_invalid</code>; or not well formed, or more than ten notes, a note without words or pictures<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
-<tr><td class="status s4">403</td><td>the viewer may not post here</td></tr>
-<tr><td class="status s4">404</td><td>there is no such profile</td></tr>
-<tr><td class="status s4">422</td><td><code>access_not_allowed</code>, with the audiences it may have<div class="body"><a href="#schema-AudienceRefusal">AudienceRefusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not post here, or a picture was uploaded by somebody else or for another profile (<code>upload_not_yours</code>)</td></tr>
+<tr><td class="status s4">404</td><td>there is no such profile, or no such upload (<code>file_not_found</code>)</td></tr>
+<tr><td class="status s4">422</td><td><code>access_not_allowed</code>, with the audiences it may have; or, as a photo post&#39;s pictures are refused, <code>too_many_files</code>, <code>file_repeated</code> or <code>alt_text_too_long</code>, with <code>max</code><div class="body"><a href="#schema-AudienceRefusal">AudienceRefusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>text/cmd/api/handlers.(*noteHandler).AddThread</code></p>
@@ -7580,7 +7582,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>files</code></td><td>list of <a href="#schema-photo.FileRef">photo.FileRef</a></td><td>Every image it is to have, in order. One left out is removed.</td></tr>
+<tr><td><code>files</code></td><td>list of <a href="#schema-FileRef">FileRef</a></td><td>Every image it is to have, in order. One left out is removed.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -7591,7 +7593,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td>the viewer may not change it, or the images were refused; the answer says why</td></tr>
 <tr><td class="status s4">404</td><td>there is no such post, or the images were refused; the answer says why</td></tr>
-<tr><td class="status s4">422</td><td>Unprocessable Entity<div class="body"><a href="#schema-photo.FilesRefusal">photo.FilesRefusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">422</td><td>Unprocessable Entity<div class="body"><a href="#schema-FilesRefusal">FilesRefusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>photo/cmd/api/handlers.(*photoHandler).EditFiles</code></p>
@@ -7697,7 +7699,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tbody>
 <tr><td><code>content</code></td><td>string</td><td>Its words, as Markdown. A reply with pictures need not have any. At most 8000 characters.</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>The language it is written in, as a BCP 47 tag. At most 12 characters.</td></tr>
-<tr><td><code>uploads</code></td><td>list of <a href="#schema-photo.FileRef">photo.FileRef</a></td><td>Its pictures, each uploaded first for the person replying.</td></tr>
+<tr><td><code>uploads</code></td><td>list of <a href="#schema-FileRef">FileRef</a></td><td>Its pictures, each uploaded first for the person replying.</td></tr>
 </tbody>
 </table>
 <h4>Takes, as <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
@@ -7802,7 +7804,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>location_ids</code></td><td>list of integer</td><td>The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its <code>location</code>, all as <code>Place</code>s in its <code>tag</code> (roadmap row 82, part 3b). Up to five; what is not a location is passed over. At most 5 of them.</td></tr>
 <tr><td><code>quote_policy</code></td><td>string</td><td>Who may quote it: &#34;anyone&#34;, &#34;followers&#34; or &#34;nobody&#34;. Left out, the author&#39;s own setting applies. At most 16 characters.</td></tr>
 <tr><td><code>reply_access</code></td><td>string</td><td>Who may reply: &#34;anyone&#34;, &#34;nobody&#34;, or any of &#34;followers&#34;, &#34;following&#34; and &#34;mentioned&#34; joined by commas. Left out, anyone the profile lets. At most 64 characters.</td></tr>
-<tr><td><code>uploads</code></td><td>list of <a href="#schema-photo.FileRef">photo.FileRef</a></td><td>The images, in order, each an upload made for this profile.</td></tr>
+<tr><td><code>uploads</code></td><td>list of <a href="#schema-FileRef">FileRef</a></td><td>The images, in order, each an upload made for this profile.</td></tr>
 </tbody>
 </table>
 <h4>Takes, as <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
@@ -7829,7 +7831,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td>the viewer may not post here</td></tr>
 <tr><td class="status s4">404</td><td>there is no such profile</td></tr>
-<tr><td class="status s4">422</td><td>Unprocessable Entity<div class="body"><a href="#schema-photo.FilesRefusal">photo.FilesRefusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">422</td><td>Unprocessable Entity<div class="body"><a href="#schema-FilesRefusal">FilesRefusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>photo/cmd/api/handlers.(*photoHandler).Add</code></p>
@@ -7858,12 +7860,12 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <table class="answers">
 <tbody>
 <tr><td class="status s2">201</td><td>Created<div class="body"><a href="#schema-photo.Uploaded">photo.Uploaded</a> <span class="media">application/json</span></div></td></tr>
-<tr><td class="status s4">400</td><td>Bad Request<div class="body"><a href="#schema-photo.FilesRefusal">photo.FilesRefusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>Bad Request<div class="body"><a href="#schema-FilesRefusal">FilesRefusal</a> <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td>the viewer may not post here</td></tr>
 <tr><td class="status s4">404</td><td>there is no such profile</td></tr>
-<tr><td class="status s4">413</td><td>Request Entity Too Large<div class="body"><a href="#schema-photo.FilesRefusal">photo.FilesRefusal</a> <span class="media">application/json</span></div></td></tr>
-<tr><td class="status s4">415</td><td>Unsupported Media Type<div class="body"><a href="#schema-photo.FilesRefusal">photo.FilesRefusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">413</td><td>Request Entity Too Large<div class="body"><a href="#schema-FilesRefusal">FilesRefusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">415</td><td>Unsupported Media Type<div class="body"><a href="#schema-FilesRefusal">FilesRefusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>photo/cmd/api/handlers.(*photoHandler).Upload</code></p>
@@ -11150,6 +11152,29 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
+<div class="route schema" id="schema-FileRef" data-search="fileref alt_text id upload_id">
+<h3>FileRef</h3>
+<p>FileRef names one image a post is to have: one it has already, by its id, or one that was uploaded for it, by the upload&#39;s id.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>alt_text</code> <span class="required">always</span></td><td>string</td><td>What it shows, for people who cannot see it.</td></tr>
+<tr><td><code>id</code> <span class="required">always</span></td><td>string</td><td>An image the post has already, by its id.</td></tr>
+<tr><td><code>upload_id</code> <span class="required">always</span></td><td>integer</td><td>An image uploaded for it, by the upload&#39;s id.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-FilesRefusal" data-search="filesrefusal error max">
+<h3>FilesRefusal</h3>
+<p>FilesRefusal says why a post&#39;s images were refused, and how many a post may have.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>error</code> <span class="required">always</span></td><td>string</td><td>Why: <code>files_required</code>, <code>too_many_files</code>, <code>file_not_found</code>, <code>file_repeated</code>, <code>upload_not_yours</code>, <code>alt_text_too_long</code>, <code>file_unreadable</code>, <code>file_unsupported</code> or <code>file_too_large</code>.</td></tr>
+<tr><td><code>max</code> <span class="required">always</span></td><td>integer</td><td>How many images a post may have.</td></tr>
+</tbody>
+</table>
+</div>
 <div class="route schema" id="schema-Image" data-search="image size url">
 <h3>Image</h3>
 <p>One size of a picture.</p>
@@ -13323,29 +13348,6 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-photo.FileRef" data-search="photo.fileref alt_text id upload_id">
-<h3>photo.FileRef</h3>
-<p>FileRef names one image a post is to have: one it has already, by its id, or one that was uploaded for it, by the upload&#39;s id.</p>
-<table>
-<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
-<tbody>
-<tr><td><code>alt_text</code> <span class="required">always</span></td><td>string</td><td>What it shows, for people who cannot see it.</td></tr>
-<tr><td><code>id</code> <span class="required">always</span></td><td>string</td><td>An image the post has already, by its id.</td></tr>
-<tr><td><code>upload_id</code> <span class="required">always</span></td><td>integer</td><td>An image uploaded for it, by the upload&#39;s id.</td></tr>
-</tbody>
-</table>
-</div>
-<div class="route schema" id="schema-photo.FilesRefusal" data-search="photo.filesrefusal error max">
-<h3>photo.FilesRefusal</h3>
-<p>FilesRefusal says why a post&#39;s images were refused, and how many a post may have.</p>
-<table>
-<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
-<tbody>
-<tr><td><code>error</code> <span class="required">always</span></td><td>string</td><td>Why: <code>files_required</code>, <code>too_many_files</code>, <code>file_not_found</code>, <code>file_repeated</code>, <code>upload_not_yours</code>, <code>alt_text_too_long</code>, <code>file_unreadable</code>, <code>file_unsupported</code> or <code>file_too_large</code>.</td></tr>
-<tr><td><code>max</code> <span class="required">always</span></td><td>integer</td><td>How many images a post may have.</td></tr>
-</tbody>
-</table>
-</div>
 <div class="route schema" id="schema-photo.Uploaded" data-search="photo.uploaded height upload_id urls width">
 <h3>photo.Uploaded</h3>
 <p>An image stored for a post that is not made yet.</p>
@@ -13577,15 +13579,16 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-text.ThreadPart" data-search="text.threadpart content language link_preview_url">
+<div class="route schema" id="schema-text.ThreadPart" data-search="text.threadpart content language link_preview_url uploads">
 <h3>text.ThreadPart</h3>
-<p>One note of a thread: what it says, in what language, and the link in it to show a card for, as on a note.</p>
+<p>One note of a thread: what it says, in what language, and the link in it to show a card for, as on a note; or, with pictures, a photo post in the thread (roadmap row 143), which needs no words.</p>
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>content</code> <span class="required">always</span></td><td>string</td><td></td></tr>
-<tr><td><code>language</code> <span class="required">always</span></td><td>string</td><td></td></tr>
-<tr><td><code>link_preview_url</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+<tr><td><code>content</code> <span class="required">always</span></td><td>string</td><td>Its words, as Markdown. A part with pictures need not have any.</td></tr>
+<tr><td><code>language</code> <span class="required">always</span></td><td>string</td><td>The language it is written in, as a BCP 47 tag.</td></tr>
+<tr><td><code>link_preview_url</code> <span class="required">always</span></td><td>string</td><td>The link in it to show a card for. Not on a part with pictures.</td></tr>
+<tr><td><code>uploads</code> <span class="required">always</span></td><td>list of <a href="#schema-FileRef">FileRef</a> or null</td><td>Its pictures, as a photo post&#39;s: each uploaded first through POST /photos/:owner_id/uploads, for the profile the part is on, which is the thread&#39;s for the first part and the writer&#39;s for the rest.</td></tr>
 </tbody>
 </table>
 </div>
