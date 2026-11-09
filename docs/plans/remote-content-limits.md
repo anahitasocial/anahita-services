@@ -81,6 +81,9 @@ pictures do:
 A video is never played straight from another server: that tells the
 other server who watched.
 
+Planned in full on 2026-11-08, with audio:
+[Audio and video from everywhere](audio-and-video.md).
+
 ## The words
 
 Kept much longer than the files, since they cost almost nothing, and
