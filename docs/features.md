@@ -49,7 +49,7 @@ is gathered at the end, [for planning](#not-built).
 | Feature | Anahita | |
 | --- | --- | --- |
 | Edit published posts | yes | |
-| Content warnings | partly | An author's, on any post, shown behind the warning; each reader's choices and both networks are planned ([Content warnings](content-warnings.md)) |
+| Content warnings | partly | An author's, on any post, shown behind the warning and sent with it to both networks; each reader's choices and warnings from elsewhere are planned ([Content warnings](content-warnings.md)) |
 | Formatted text in posts | yes | |
 | Write in Markdown | yes | Posts are kept as Markdown |
 | Posts over 500 characters | no | 500, as Mastodon and Threads, a link counted as 23; longer is a thread, an article or a topic (roadmap row 144) |
@@ -87,7 +87,7 @@ is gathered at the end, [for planning](#not-built).
 | More than four attachments per post | yes | Up to 20, set by the operator |
 | Image descriptions (alt text) | yes | |
 | Image focal point | no | |
-| Sensitive media | partly | Pictures blurred behind a post's warning; from other servers they are still left out ([Content warnings](content-warnings.md)) |
+| Sensitive media | partly | Pictures blurred behind a post's warning, here and as sent to both networks; from other servers they are still left out ([Content warnings](content-warnings.md)) |
 | Removes location data from photos | yes | Every image is written out again without its metadata |
 | Albums or collections | planned | [Collections](plans/collections.md) |
 | Photo filters | no | |

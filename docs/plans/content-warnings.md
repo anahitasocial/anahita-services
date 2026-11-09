@@ -64,7 +64,7 @@ made with AI ([Made with AI](#made-with-ai)).
 | `adult` | Adult content: explicit sexual images | `porn` | `sensitive`, `summary` "Adult content" |
 | `suggestive` | Sexually suggestive: no nudity | `sexual` | `sensitive`, `summary` "Sexually suggestive" |
 | `graphic` | Graphic media: violence, gore, disturbing images | `graphic-media` | `sensitive`, `summary` "Graphic media" |
-| `nudity` | Non-sexual nudity: artistic nudes, for example | `nudity` | `sensitive`, `summary` "Nudity" |
+| `nudity` | Non-sexual nudity: artistic nudes, for example | `nudity` | `sensitive`, `summary` "Non-sexual nudity" |
 | `other` | Other warnings, in the author's words: spoilers, grief… | none | `sensitive`, `summary` the author's words |
 | `ai` | Made with AI: pictures or video made or changed by AI | none | none, for now |
 
@@ -124,10 +124,13 @@ report.
 
 ## Federation
 
-**Out.** As in the table: ActivityPub's `sensitive` and `summary`; for an
-Article, whose `summary` carries its opening today, the warning takes its
-place. Bluesky's self-label, as `labels` on the post record; Other sends
-none.
+**Out.** **Built on 2026-11-09,** as the web app shows a warning (the
+user, 2026-11-09: the pictures blurred, the words shown). A post with a
+photo, a GIF, a video or a sound goes as `sensitive` alone, which blurs its
+pictures and shows its words; a post of words alone goes with the table's
+`summary` too. An Article keeps its opening as its `summary`, and goes as
+`sensitive`. Bluesky's self-label, as `labels` on the post record; Other
+sends none. ([Content warnings](../content-warnings.md#on-the-fediverse-and-bluesky).)
 
 **In.**
 - ActivityPub: `sensitive` or a `summary` on a Note makes a post with an
@@ -200,6 +203,7 @@ with a signature that checks out, which is roadmap row 131
    a link pasted elsewhere showing nothing of the post.
 2. **The reader's choices:** the Content tab and its preferences.
 3. **Federation** in and out, pictures from elsewhere kept and blurred.
+   **Out built on 2026-11-09;** in is left.
 4. **Moderators:** the report reason, the case's action, the post's menu,
    the notification.
 5. **Made with AI:** the sixth kind, the signs read from a file on upload,

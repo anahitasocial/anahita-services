@@ -38,6 +38,10 @@ type Note struct {
 	InReplyTo string `json:"inReplyTo,omitempty"`
 	// The pictures of a photo post, or the video of a video post.
 	Attachment []SentPicture `json:"attachment,omitempty"`
+	// Its content warning (roadmap row 122): sensitive, which has what it
+	// carries blurred; and, for a post of words alone, the warning as its
+	// Summary, which Mastodon shows to be clicked past.
+	Sensitive bool `json:"sensitive,omitempty"`
 	// An Article's cover.
 	Image *Image `json:"image,omitempty"`
 }
@@ -282,7 +286,7 @@ func (n *Note) WithPeople(people []federation.Named) *Note {
 // WithContext is the note as a document of its own, not inside an activity.
 func (n *Note) WithContext() *Note {
 	alone := *n
-	alone.Context = contextActivityStreams
+	alone.Context = noteContext
 	return &alone
 }
 
@@ -298,10 +302,26 @@ type Posted struct {
 	Object    any      `json:"object"`
 }
 
+// WithWarning carries a post's content warning (roadmap row 122), as the
+// web app shows it (the user, 2026-11-09): a post with a photo, a video or
+// a sound is sensitive, its pictures blurred and its words shown; one of
+// words alone has the warning as its summary, which hides them. An
+// article keeps its summary, its opening.
+func (n *Note) WithWarning(post *entities.AnahitaNode) *Note {
+	if post.Warning == "" {
+		return n
+	}
+	n.Sensitive = true
+	if len(n.Attachment) == 0 && n.Type == "Note" {
+		n.Summary = entities.WarningSaid(post.Warning, post.WarningText)
+	}
+	return n
+}
+
 // NewCreate says a post was made.
 func NewCreate(a Addresses, note *Note, noteUUID string) *Posted {
 	return &Posted{
-		Context: contextActivityStreams, ID: a.NoteCreate(noteUUID), Type: "Create",
+		Context: noteContext, ID: a.NoteCreate(noteUUID), Type: "Create",
 		Actor: note.AttributedTo, Published: note.Published, To: note.To, Cc: note.Cc, Object: note,
 	}
 }
@@ -310,7 +330,7 @@ func NewCreate(a Addresses, note *Note, noteUUID string) *Posted {
 // thing that happened.
 func NewUpdate(id string, note *Note) *Posted {
 	return &Posted{
-		Context: contextActivityStreams, ID: id, Type: "Update",
+		Context: noteContext, ID: id, Type: "Update",
 		Actor: note.AttributedTo, Published: note.Updated, To: note.To, Cc: note.Cc, Object: note,
 	}
 }

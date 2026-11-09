@@ -64,3 +64,36 @@ func NormalizeWarning(kind, text string) (string, string, bool) {
 	}
 	return kind, text, true
 }
+
+// The self-label each kind is on Bluesky, one for one; Other has none: a
+// warning in one's own words is not something Bluesky has.
+var warningLabels = map[string]string{
+	WarningAdult:      "porn",
+	WarningSuggestive: "sexual",
+	WarningGraphic:    "graphic-media",
+	WarningNudity:     "nudity",
+}
+
+// WarningLabel is the self-label a post with this warning is sent to
+// Bluesky with, or "" for none.
+func WarningLabel(kind string) string {
+	return warningLabels[kind]
+}
+
+// The words of each kind, as the fediverse is told them: in English, as
+// the web app says them in en-CA, since one post goes to every server.
+var warningWords = map[string]string{
+	WarningAdult:      "Adult content",
+	WarningSuggestive: "Sexually suggestive",
+	WarningGraphic:    "Graphic media",
+	WarningNudity:     "Non-sexual nudity",
+}
+
+// WarningSaid is a warning as the fediverse is told it (a post's summary):
+// its author's words for Other, its kind's otherwise, or "" for none.
+func WarningSaid(kind, text string) string {
+	if kind == WarningOther {
+		return strings.TrimSpace(text)
+	}
+	return warningWords[kind]
+}

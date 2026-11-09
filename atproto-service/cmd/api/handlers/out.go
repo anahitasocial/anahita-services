@@ -557,6 +557,9 @@ func (h *Handlers) record(ctx context.Context, w *write, upload uploader) (any, 
 		}
 	}
 	post := bsky.NewOutPost(words, note.Language, note.CreatedAt)
+	// Its content warning, as the self-label of its kind; Other, in its
+	// author's words, has none on Bluesky (roadmap row 122).
+	post.WithLabel(entities.WarningLabel(note.Warning))
 	// More pictures than Bluesky takes.
 	morePictures := false
 	if subject != nil {

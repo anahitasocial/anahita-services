@@ -28,9 +28,31 @@ type OutPost struct {
 	Langs     []string   `json:"langs,omitempty"`
 	Reply     *OutReply  `json:"reply,omitempty"`
 	Embed     *OutEmbed  `json:"embed,omitempty"`
+	// Its content warning, as a self-label (roadmap row 122).
+	Labels *OutLabels `json:"labels,omitempty"`
 	// Cut is that its words were more than a post may hold, and were cut:
 	// not sent, and for whoever sends it to add the way to the rest.
 	Cut bool `json:"-"`
+}
+
+// OutLabels are the labels a post's author gives it: Bluesky blurs its
+// pictures for those who asked to be warned of what they say.
+type OutLabels struct {
+	Type   string     `json:"$type"`
+	Values []OutLabel `json:"values"`
+}
+
+// OutLabel is one of them.
+type OutLabel struct {
+	Val string `json:"val"`
+}
+
+// WithLabel gives a post a self-label, none when it is "".
+func (p *OutPost) WithLabel(label string) {
+	if label == "" {
+		return
+	}
+	p.Labels = &OutLabels{Type: "com.atproto.label.defs#selfLabels", Values: []OutLabel{{Val: label}}}
 }
 
 // OutEmbed is what a post carries besides its words: the card of a link,

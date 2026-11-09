@@ -300,7 +300,8 @@ func (h *Handlers) described(note, author *entities.AnahitaNode, answering *answ
 			sent.Content = "<p>" + html.EscapeString(title) + "</p>" + sent.Content
 		}
 	}
-	return sent
+	// Its content warning, once what it carries is known.
+	return sent.WithWarning(note)
 }
 
 // Video sends a server that asks for a video post's file to where it is,

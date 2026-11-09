@@ -19,6 +19,14 @@ const (
 	contextSecurity        = "https://w3id.org/security/v1"
 )
 
+// noteContext is what the words in a post mean: ActivityStreams, and
+// sensitive, which is not in its context though every server reads it
+// (roadmap row 122), declared as Mastodon declares it.
+var noteContext = []any{
+	contextActivityStreams,
+	map[string]any{"sensitive": "as:sensitive"},
+}
+
 // actorContext is what the words in a person's description mean. The last
 // part names the two that are Mastodon's and that every server has since
 // come to read.

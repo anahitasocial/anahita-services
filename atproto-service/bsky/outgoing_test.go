@@ -1,6 +1,7 @@
 package bsky
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 	"time"
@@ -130,5 +131,27 @@ func TestNamesOfRecordsSortAsTheyWereMade(t *testing.T) {
 			t.Fatalf("%q after %q", name, before)
 		}
 		before = name
+	}
+}
+
+// A post's content warning goes to Bluesky as a self-label, which has its
+// pictures blurred there for those who asked to be warned (roadmap row 122),
+// and as Bluesky reads its own posts' labels.
+func TestAWarningGoesAsASelfLabel(t *testing.T) {
+	post := NewOutPost("Fresh coffee", "en", time.Time{})
+	post.WithLabel("graphic-media")
+	sent, _ := json.Marshal(post)
+	if !strings.Contains(string(sent), `"labels":{"$type":"com.atproto.label.defs#selfLabels","values":[{"val":"graphic-media"}]}`) {
+		t.Errorf("labels: %s", sent)
+	}
+	read := &Post{}
+	if err := json.Unmarshal(sent, read); err != nil || !read.IsSensitive() {
+		t.Errorf("not read back as one to warn of: %v", err)
+	}
+
+	plain := NewOutPost("Fresh coffee", "en", time.Time{})
+	plain.WithLabel("")
+	if sent, _ := json.Marshal(plain); strings.Contains(string(sent), "labels") {
+		t.Errorf("no warning, but: %s", sent)
 	}
 }

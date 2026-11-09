@@ -100,18 +100,48 @@ menu for administrators are phase 4 of the plan.
 3. **A post's menu**, on its own page, has **Content warning** for whoever
    may edit it, and a reply's menu for its writer; not on a warning the
    administrators gave.
-4. **A post with one** shows, in place of its pictures and words, the
-   warning with its kind's icon and **View**, the post drawn blurred behind
-   it so that the card keeps its height and nothing jumps. View opens it for
-   that showing of the page. The same in feeds, on profiles, on a post's own
-   page, in replies, quotes, reposts and posts shown in an article; in the
-   photo theatre, a veil over the picture and the words blurred, each post
-   behind its own as one steps through them, and the warning for its title.
+4. **A post with one** shows the warning with its kind's icon and
+   **View** over its photo, GIF, video or sound, drawn blurred behind it so
+   that the card keeps its height and nothing jumps, and its words as they
+   are, as Bluesky and Mastodon show a post marked sensitive (the user,
+   2026-11-09); a link's card under them is blurred too. A post of words
+   alone, and an article or a topic, whose words may hold pictures, have
+   the warning over all of it. View opens it for that showing of the page.
+   The same in feeds, on profiles, on a post's own page, in replies,
+   quotes, reposts and posts shown in an article; in the photo theatre, a
+   veil over the picture, each post behind its own as one steps through
+   them, and the warning for its title.
 5. **A profile's Photos card** leaves out a photo with a warning: the card
    is a glance at who somebody is.
 
 Everybody sees every kind behind its warning; each reader's own choice of
 Show, Warn or Hide is phase 2.
+
+## On the fediverse and Bluesky
+
+A post's warning goes with it to both networks, as it is shown here:
+
+| Network | A post with a photo, a GIF, a video or a sound | A post of words alone |
+| --- | --- | --- |
+| The fediverse | `sensitive: true`: its pictures blurred, its words shown | `sensitive: true`, and the warning as its `summary`, which Mastodon shows to be clicked past |
+| Bluesky | The self-label of its kind, in the record's `labels`: its pictures blurred for those who asked to be warned | The same label, which hides nothing there: Bluesky warns of pictures |
+
+The warning's words are its author's for Other, and its kind's name in
+English for the rest, "Graphic media" for example: one post goes to every
+server. An article keeps its opening as its summary, and is sent
+`sensitive`.
+
+Bluesky's labels are its four kinds, one for one: `adult` is `porn`,
+`suggestive` is `sexual`, `graphic` is `graphic-media`, and `nudity` is
+`nudity`. Other has none: a warning in one's own words is not something
+Bluesky has, and a post with one goes there without a warning.
+
+A warning given or changed after a post was sent goes to the fediverse as
+an `Update`. Bluesky has no changing a post: there, a post keeps the
+warning it was sent with.
+
+Warnings from other servers are not read yet: a post from elsewhere marked
+sensitive is still kept without its pictures ([Federation](federation.md)).
 
 ## Where the code is
 
@@ -125,6 +155,8 @@ Show, Warn or Hide is phase 2.
 | A video's, until it is made | `video-service/data/repositories/uploads.go`, `video-service/worker/worker.go` |
 | In a person's download | `import-export-service/archive/archive.go` |
 | A link pasted elsewhere | `web-shell/shell/pages.go` (`warningDescription`) |
+| Sent to the fediverse | `activitypub-service/ap/note.go` (`WithWarning`), its words from `entities.WarningSaid` |
+| Sent to Bluesky | `atproto-service/bsky/outgoing.go` (`WithLabel`), its label from `entities.WarningLabel` |
 | The web app | `src/utils/warnings.js`, `src/components/ContentWarningDialog.jsx`, `ContentWarningButton.jsx`, `WarningCover.jsx`, `src/containers/controls/medium/ContentWarning.jsx` (anahita-web) |
 
 ## What is not built
@@ -133,9 +165,9 @@ The rest of the plan, each a phase of it:
 
 1. **Each reader's choices** of Show, Warn or Hide for each kind, in a
    Content tab of their settings.
-2. **Federation**, both ways: `sensitive` and `summary` on ActivityPub,
-   self-labels on Bluesky; and pictures from elsewhere kept and blurred, not
-   left out as they are now ([Federation](federation.md)).
+2. **Warnings from elsewhere:** `sensitive` and `summary` read from the
+   fediverse, self-labels from Bluesky, and their pictures kept and
+   blurred, not left out as they are now ([Federation](federation.md)).
 3. **The administrators' warning:** a report reason, the case's action, the
    post's menu, and a notification to the author.
 4. **Made with AI**, a sixth kind, chosen for an author when the file says

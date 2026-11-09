@@ -10,6 +10,19 @@ made.
 Releases before v1.0.17 are described on GitHub, under
 [Releases](https://github.com/anahitasocial/anahita-services/releases).
 
+## Embryo
+
+### Added
+
+1. **Content warnings go out with posts** (roadmap row 122, phase 3, its
+   first half): to the fediverse as `sensitive: true`, which blurs a
+   post's pictures and shows its words, with the warning as its `summary`
+   too for a post of words alone; to Bluesky as the self-label of its kind
+   (`porn`, `sexual`, `graphic-media`, `nudity`; Other has none). A
+   warning changed later reaches the fediverse as an `Update`. Posts went
+   without one before: a warned photo showed plainly on Bluesky and
+   Mastodon ([Content warnings](docs/content-warnings.md#on-the-fediverse-and-bluesky)).
+
 ## v1.2.4 Birth, 2026-11-09
 
 ### Added

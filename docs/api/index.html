@@ -12253,7 +12253,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-activitypub.Note" data-search="activitypub.note @context attachment attributedto cc content contentmap id image inreplyto location name published summary tag to type updated url">
+<div class="route schema" id="schema-activitypub.Note" data-search="activitypub.note @context attachment attributedto cc content contentmap id image inreplyto location name published sensitive summary tag to type updated url">
 <h3>activitypub.Note</h3>
 <p>A post, as it is sent to and read from another server.</p>
 <table>
@@ -12271,6 +12271,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>location</code></td><td>map of anything</td><td>Where it is: the first location its author chose for it, a <code>Place</code> (roadmap row 82, part 3b). Every one is also a <code>Place</code> in Tag.</td></tr>
 <tr><td><code>name</code></td><td>string</td><td>An Article&#39;s title, and the opening it is summed up by. A note has neither: Mastodon shows a note&#39;s summary as a warning to click past.</td></tr>
 <tr><td><code>published</code></td><td>string</td><td></td></tr>
+<tr><td><code>sensitive</code></td><td>boolean</td><td>Its content warning (roadmap row 122): sensitive, which has what it carries blurred; and, for a post of words alone, the warning as its Summary, which Mastodon shows to be clicked past.</td></tr>
 <tr><td><code>summary</code></td><td>string</td><td></td></tr>
 <tr><td><code>tag</code></td><td>list of <a href="#schema-activitypub.Tag">activitypub.Tag</a></td><td></td></tr>
 <tr><td><code>to</code> <span class="required">always</span></td><td>list of string or null</td><td></td></tr>

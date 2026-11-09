@@ -3133,6 +3133,10 @@
           "published": {
             "type": "string"
           },
+          "sensitive": {
+            "description": "Its content warning (roadmap row 122): sensitive, which has what it carries blurred; and, for a post of words alone, the warning as its Summary, which Mastodon shows to be clicked past.",
+            "type": "boolean"
+          },
           "summary": {
             "type": "string"
           },
