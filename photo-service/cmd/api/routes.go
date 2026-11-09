@@ -165,6 +165,17 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Refuses(http.StatusForbidden, "the viewer may not change it").
 		Refuses(http.StatusNotFound, "there is no such post").
 		Sends(http.StatusUnprocessableEntity, responses.Refusal{}, reply)
+	photos.PATCH("/:id/warning", r.handler.Photo.EditWarning, r.authorize).
+		Summary("Give it a content warning, or take it off").
+		Describe("Its kind, and for `other` its words: shown in place of the post until a reader chooses to see it. An empty `warning` takes it off. Whoever may edit the post may; a reply, its author alone. A warning a moderator gave stays as it is.").
+		Viewer(apidoc.SignedIn).
+		Scope(write).
+		Takes(&requests.MediumEditWarningRequest{}).
+		Sends(http.StatusOK, responses.MediumNode{}).
+		Sends(http.StatusBadRequest, responses.Refusal{}, "`warning_invalid`, or not well formed").
+		Refuses(http.StatusForbidden, "the viewer may not change it").
+		Sends(http.StatusForbidden, responses.Refusal{}, "`warning_not_allowed`: a moderator gave it").
+		Refuses(http.StatusNotFound, "there is no such post")
 	// Whether it may be downloaded, and the download itself.
 	photos.PATCH("/:id/download", r.handler.Photo.EditDownload, r.authorize).
 		Summary("Change whether it may be downloaded").

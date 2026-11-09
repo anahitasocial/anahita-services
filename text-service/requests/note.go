@@ -80,6 +80,9 @@ type NoteAddRequest struct {
 	ReplyAccess string `json:"reply_access" form:"reply_access" validate:"omitempty,max=64"`
 	// As on requests.MediumAddRequest.
 	QuotePolicy string `json:"quote_policy" form:"quote_policy" validate:"omitempty,max=16"`
+	// Its content warning, as on requests.MediumAddRequest.
+	Warning     string `json:"warning" form:"warning" validate:"omitempty,max=16"`
+	WarningText string `json:"warning_text" form:"warning_text" validate:"omitempty,max=400"`
 	// The post this note quotes: it is carried under the note's own words.
 	// Checked against that post's policy. See permissions.CanQuote.
 	QuoteID int64 `json:"quote_id" form:"quote_id" validate:"omitempty,numeric"`

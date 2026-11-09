@@ -447,6 +447,9 @@ func (w *Worker) post(upload *repositories.Upload, meta []byte) (*entities.Anahi
 	medium.Language = upload.Language
 	medium.QuotePolicy = upload.QuotePolicy
 	medium.AllowDownload = upload.AllowDownload
+	// Its content warning, as chosen when it was sent.
+	medium.Warning = upload.Warning
+	medium.WarningText = upload.WarningText
 	// In its author's media library only, as chosen when it was sent.
 	medium.LibraryOnly = upload.LibraryOnly
 	medium.Enabled = true

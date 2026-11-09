@@ -58,6 +58,10 @@ twice.
 | `/hashtags/<tag>`, and `/tags/<tag>`, the address other servers are given | `#tag` | The site's | The site's |
 | Any other | The site's name | The site's | `/statics/media/ogimage.jpg` |
 
+A post with a content warning gives no picture, so the site's is used, and
+the warning in place of its words: "Content warning: graphic media", or
+"Content warning: " and the author's own words ([Content warnings](content-warnings.md)).
+
 Text is made plain, with Markdown and HTML taken out, and cut to 200
 characters. A profile's address in its tags (`og:url`, the canonical link)
 is always its alias, `/@ana`, however its page was reached, so a link

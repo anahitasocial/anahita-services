@@ -96,6 +96,12 @@ CREATE TABLE nodes (
   -- On an article or a topic, that it is still being written: seen by its
   -- author alone, listed nowhere, announced to nobody.
   `draft` tinyint(1) NOT NULL DEFAULT 0,
+  -- A post's content warning: its kind (adult, suggestive, graphic,
+  -- nudity, other) or empty; the words of an Other warning; and whether a
+  -- moderator gave it, which its author may then not take off.
+  `warning` varchar(16) NOT NULL DEFAULT '',
+  `warning_text` varchar(100) NOT NULL DEFAULT '',
+  `warning_by_moderator` tinyint(1) NOT NULL DEFAULT 0,
   `subscriber_count` int unsigned NOT NULL DEFAULT 0,
   `vote_up_count` int unsigned NOT NULL DEFAULT 0,
   `mimetype` varchar(100) NOT NULL DEFAULT '',
@@ -1061,6 +1067,9 @@ CREATE TABLE IF NOT EXISTS video_uploads (
     `quote_policy` varchar(16) NOT NULL DEFAULT '',
     -- Whether the post may be downloaded, as chosen when the upload began.
     `allow_download` tinyint(1) NOT NULL DEFAULT 0,
+    -- Its content warning, as chosen when the upload began.
+    `warning` varchar(16) NOT NULL DEFAULT '',
+    `warning_text` varchar(100) NOT NULL DEFAULT '',
     -- Whether its post is to be in the media library only.
     `library_only` tinyint(1) NOT NULL DEFAULT 0,
     -- What the video answers, when it is a reply. NULL for a post.

@@ -7,7 +7,9 @@ button?", and then: "We don't want to censor, but we want to give viewers
 consent." Shaped with the user the same day, after Bluesky's moderation
 settings and Mastodon's content warnings. **Made with AI** added as a sixth
 kind on 2026-11-07, at the user's word, after asking how to tell AI images
-apart ([Made with AI](#made-with-ai)). Not built.
+apart ([Made with AI](#made-with-ai)). **Phase 1 built on 2026-11-09:** posts
+carry a warning, everybody at Warn ([Content warnings](../content-warnings.md));
+the rest is not built.
 
 ## Contents
 
@@ -192,7 +194,10 @@ with a signature that checks out, which is roadmap row 131
 ## Phases
 
 1. **Posts carry a warning:** the columns, the API, the composer and the
-   reply form, the card's Warn, Show and Hide with everybody at Warn.
+   reply form, the card's Warn with everybody at Warn. **Built on
+   2026-11-09;** Show and Hide come with the reader's choices. Also: a
+   `PATCH /…/:id/warning` of each kind, the post's menu for its author, and
+   a link pasted elsewhere showing nothing of the post.
 2. **The reader's choices:** the Content tab and its preferences.
 3. **Federation** in and out, pictures from elsewhere kept and blurred.
 4. **Moderators:** the report reason, the case's action, the post's menu,

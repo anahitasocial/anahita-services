@@ -39,6 +39,11 @@ func applyEditableMediumFields(node *entities.AnahitaNode, req *graphpb.Node) {
 	// Whether it may be downloaded. An edit of anything else carries what
 	// was read, and leaves it as it was.
 	node.AllowDownload = req.AllowDownload
+	// Its content warning, written whichever way it is, so that it can be
+	// taken off; the services refuse an author's taking off a moderator's.
+	node.Warning = req.Warning
+	node.WarningText = req.WarningText
+	node.WarningByModerator = req.WarningByModerator
 	node.CommentCount = req.CommentCount
 	// Kept as it is when the request carries none: the repository writes
 	// it only when it is set.

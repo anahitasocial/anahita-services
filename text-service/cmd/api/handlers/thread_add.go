@@ -72,6 +72,9 @@ type NoteThreadAddRequest struct {
 	// Whether the first part's pictures may be downloaded, when it has
 	// any, as on a photo post. Not saying leaves it to the profile.
 	AllowDownload *bool `json:"allow_download"`
+	// Its content warning, as on a note, given to every part.
+	Warning     string `json:"warning" validate:"omitempty,max=16"`
+	WarningText string `json:"warning_text" validate:"omitempty,max=400"`
 	// The notes of the thread, first to last: up to ten.
 	Parts []ThreadPart `json:"parts" validate:"required,min=1,max=10,dive"`
 }
@@ -82,6 +85,9 @@ type ReplyThreadAddRequest struct {
 	// The id of the post or the reply it answers. Read by the handler from
 	// the path itself.
 	ParentID int64 `param:"id"`
+	// Its content warning, as on a reply, given to every part.
+	Warning     string `json:"warning" validate:"omitempty,max=16"`
+	WarningText string `json:"warning_text" validate:"omitempty,max=400"`
 	// The notes of the thread, first to last: up to ten.
 	Parts []ThreadPart `json:"parts" validate:"required,min=1,max=10,dive"`
 }
@@ -121,6 +127,8 @@ func (h *noteHandler) AddThread(c echo.Context) error {
 		QuotePolicy:    req.QuotePolicy,
 		QuoteID:        req.QuoteID,
 		LinkPreviewURL: req.Parts[0].linkPreviewURL(),
+		Warning:        req.Warning,
+		WarningText:    req.WarningText,
 	}, viewer, req.Parts[0].hasPictures())
 	if refuse != nil {
 		return refuse()
@@ -158,6 +166,8 @@ func (h *noteHandler) AddReplyThread(c echo.Context) error {
 		Content:        req.Parts[0].Content,
 		Language:       req.Parts[0].Language,
 		LinkPreviewURL: req.Parts[0].linkPreviewURL(),
+		Warning:        req.Warning,
+		WarningText:    req.WarningText,
 	}, viewer)
 	if refuse != nil {
 		return refuse()
@@ -238,6 +248,9 @@ func (h *noteHandler) nextPart(c echo.Context, first *entities.AnahitaNode, each
 	}
 	part.Enabled = true
 	part.CommentStatus = true
+	// The thread's warning is every part's: what it holds goes on.
+	part.Warning = first.Warning
+	part.WarningText = first.WarningText
 	part.ModifiedBy = viewer.ID
 	if first.OwnerType == an_constants.NodeActorWebsiteEntityType {
 		part.OwnerID = first.OwnerID

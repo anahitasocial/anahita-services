@@ -161,6 +161,19 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	commentStatus := setting("Open or close replies", media.EditCommentStatus, "")
 	replyAccess := setting("Change who may reply", &libs_requests.MediumEditReplyAccessRequest{}, "`reply_access_invalid`, or not well formed")
 	quotePolicy := setting("Change who may quote it", &libs_requests.MediumEditQuotePolicyRequest{}, "`quote_policy_invalid`, or not well formed")
+	warning := func(route *apidoc.Route) {
+		route.Summary("Give it a content warning, or take it off").
+			Describe("Its kind, and for `other` its words: shown in place of the post until a reader chooses to see it. An empty `warning` takes it off. Whoever may edit the post may; a reply, its author alone. A warning a moderator gave stays as it is.").
+			Viewer(apidoc.SignedIn).
+			Scope(write).
+			Takes(&libs_requests.MediumEditWarningRequest{}).
+			Sends(http.StatusOK, responses.MediumNode{}).
+			Refuses(http.StatusForbidden, "the viewer may not change it").
+			Sends(http.StatusForbidden, responses.Refusal{}, "`warning_not_allowed`: a moderator gave it").
+			Refuses(http.StatusNotFound, "there is no such post").
+			Refuses(http.StatusGone, "a reply that was removed").
+			Sends(http.StatusBadRequest, responses.Refusal{}, "`warning_invalid`, or not well formed")
+	}
 	save := func(what string) func(*apidoc.Route) {
 		return func(route *apidoc.Route) {
 			route.Summary(what).
@@ -200,6 +213,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	articles.PATCH("/:id/comment-status", r.handler.Article.EditCommentStatus, r.authorize).With(commentStatus)
 	articles.PATCH("/:id/reply-access", r.handler.Article.EditReplyAccess, r.authorize).With(replyAccess)
 	articles.PATCH("/:id/quote-policy", r.handler.Article.EditQuotePolicy, r.authorize).With(quotePolicy)
+	articles.PATCH("/:id/warning", r.handler.Article.EditWarning, r.authorize).With(warning)
 	articles.PUT("/:id/pin", r.handler.Article.Pin, r.authorize).With(pin("Pin it to the profile it is on"))
 	articles.DELETE("/:id/pin", r.handler.Article.Unpin, r.authorize).With(pin("Take its pin off"))
 
@@ -319,6 +333,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	notes.PATCH("/:id/comment-status", r.handler.Note.EditCommentStatus, r.authorize).With(commentStatus)
 	notes.PATCH("/:id/reply-access", r.handler.Note.EditReplyAccess, r.authorize).With(replyAccess)
 	notes.PATCH("/:id/quote-policy", r.handler.Note.EditQuotePolicy, r.authorize).With(quotePolicy)
+	notes.PATCH("/:id/warning", r.handler.Note.EditWarning, r.authorize).With(warning)
 	notes.PUT("/:id/pin", r.handler.Note.Pin, r.authorize).With(pin("Pin it to the profile it is on"))
 	notes.DELETE("/:id/pin", r.handler.Note.Unpin, r.authorize).With(pin("Take its pin off"))
 
@@ -338,6 +353,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	topics.PATCH("/:id/comment-status", r.handler.Topic.EditCommentStatus, r.authorize).With(commentStatus)
 	topics.PATCH("/:id/reply-access", r.handler.Topic.EditReplyAccess, r.authorize).With(replyAccess)
 	topics.PATCH("/:id/quote-policy", r.handler.Topic.EditQuotePolicy, r.authorize).With(quotePolicy)
+	topics.PATCH("/:id/warning", r.handler.Topic.EditWarning, r.authorize).With(warning)
 	topics.PUT("/:id/pin", r.handler.Topic.Pin, r.authorize).With(pin("Pin it to the profile it is on"))
 	topics.DELETE("/:id/pin", r.handler.Topic.Unpin, r.authorize).With(pin("Take its pin off"))
 

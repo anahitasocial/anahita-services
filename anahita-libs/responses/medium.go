@@ -53,6 +53,9 @@ type MediumNodeItem struct {
 	// On a post from another network: the video or sound it carries, kept
 	// there until somebody here plays it (roadmap rows 120 and 137).
 	MediaElsewhere *Elsewhere `json:"media_elsewhere,omitempty"`
+	// Its content warning, when it has one: shown in place of the post
+	// until the reader chooses to see it.
+	Warning *Warning `json:"warning,omitempty"`
 	// On a note that quotes a post: that post, or why it is not shown.
 	Quote *QuoteEmbed `json:"quote,omitempty"`
 	// The id of the post it quotes, whether or not it is shown.
@@ -163,6 +166,9 @@ type MediumNode struct {
 	// Whether whoever can see it may download what it holds. Sent on a post
 	// that holds a file, for whoever may change it.
 	AllowDownload *bool `json:"allow_download,omitempty"`
+	// Its content warning, when it has one: shown in place of the post
+	// until the reader chooses to see it.
+	Warning *Warning `json:"warning,omitempty"`
 	// That it is in its author's media library only: put up to be shown in
 	// an article, and listed nowhere else.
 	LibraryOnly bool `json:"library_only,omitempty"`
@@ -265,6 +271,7 @@ func (r *MediumNodeResponse) MapMediumNodeItem(node *entities.AnahitaNode) *Medi
 		Video:                NewVideo(node),
 		Audio:                NewAudio(node),
 		MediaElsewhere:       NewElsewhere(node),
+		Warning:              NewWarning(node),
 		Quote:                NewQuoteEmbed(node),
 		QuoteID:              node.QuoteID,
 		Deleted:              node.RootID > 0 && node.DeletedAt != nil,
@@ -336,6 +343,7 @@ func (r *MediumNodeResponse) MapMediumNode(node *entities.AnahitaNode) *MediumNo
 		Root:                 NewRoot(node.Root),
 		QuotePolicy:          node.QuotePolicy,
 		AllowDownload:        allowDownloadOf(node),
+		Warning:              NewWarning(node),
 		LibraryOnly:          node.LibraryOnly,
 		Draft:                node.Draft,
 		CitationCount:        node.CitationCount,

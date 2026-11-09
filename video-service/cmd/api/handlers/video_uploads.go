@@ -51,6 +51,11 @@ type UploadStartRequest struct {
 	ReplyAccess string `json:"reply_access" form:"reply_access" validate:"omitempty,max=64"`
 	// Who may quote it: `anyone`, `followers` or `nobody`.
 	QuotePolicy string `json:"quote_policy" form:"quote_policy" validate:"omitempty,max=16"`
+	// Its content warning: `adult`, `suggestive`, `graphic`, `nudity` or
+	// `other`, with the words of an `other` warning, up to 100
+	// characters. Left out, none. A reply may have one too.
+	Warning     string `json:"warning" form:"warning" validate:"omitempty,max=16"`
+	WarningText string `json:"warning_text" form:"warning_text" validate:"omitempty,max=400"`
 	// Whether whoever can see it may download it. Left out, the post
 	// starts with what the profile it is on says.
 	AllowDownload *bool `json:"allow_download" form:"allow_download"`
@@ -250,6 +255,10 @@ func (h *videoHandler) UploadStart(c echo.Context) error {
 	if !valid {
 		return handlers.RefuseQuotePolicy(c)
 	}
+	warning, warningText, valid := entities.NormalizeWarning(req.Warning, req.WarningText)
+	if !valid {
+		return handlers.RefuseWarning(c)
+	}
 
 	if parent != nil {
 		// Its thread's: none of its own.
@@ -302,6 +311,8 @@ func (h *videoHandler) UploadStart(c echo.Context) error {
 		Language:      language,
 		ReplyAccess:   replyAccess,
 		QuotePolicy:   quotePolicy,
+		Warning:       warning,
+		WarningText:   warningText,
 		AllowDownload: handlers.DefaultAllowDownload(req.AllowDownload, owner),
 		LibraryOnly:   req.LibraryOnly,
 		DeclaredBytes: req.Size,

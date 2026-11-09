@@ -242,6 +242,11 @@ func (h *noteHandler) newPost(c echo.Context, req *requests.NoteAddRequest, view
 	} else if quotePolicy != "" {
 		medium.QuotePolicy = quotePolicy
 	}
+
+	// Its content warning, when the author gives it one.
+	if valid, _ := an_handlers.SetWarning(medium, req.Warning, req.WarningText); !valid {
+		return nil, func() error { return an_handlers.RefuseWarning(c) }
+	}
 	medium.Access = an_handlers.DetermineMediumNodeAccess(req.Access, medium.Owner.Access)
 	mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)
 	if err != nil {

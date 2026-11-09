@@ -40,6 +40,11 @@ type PhotoReplyRequest struct {
 	Language string `json:"language" form:"language" validate:"omitempty,max=12"`
 	// Its pictures, each uploaded first for the person replying.
 	Uploads []FileRef `json:"uploads" form:"-"`
+	// Its content warning: "adult", "suggestive", "graphic", "nudity" or
+	// "other", with the words of an "other" warning, up to 100
+	// characters. Left out, none.
+	Warning     string `json:"warning" form:"warning" validate:"omitempty,max=16"`
+	WarningText string `json:"warning_text" form:"warning_text" validate:"omitempty,max=400"`
 }
 
 // AddReply answers a post or a reply with pictures.
@@ -100,6 +105,9 @@ func (h *photoHandler) AddReply(c echo.Context) error {
 	reply.Enabled = true
 	reply.CommentStatus = true
 	reply.AllowDownload = handlers.DefaultAllowDownload(nil, author)
+	if valid, _ := handlers.SetWarning(reply, req.Warning, req.WarningText); !valid {
+		return handlers.RefuseWarning(c)
+	}
 
 	// In the language it is written in, or failing that the one of what it
 	// answers.

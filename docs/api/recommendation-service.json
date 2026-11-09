@@ -657,6 +657,10 @@
           "video": {
             "$ref": "#/components/schemas/Video",
             "description": "What a video post plays."
+          },
+          "warning": {
+            "$ref": "#/components/schemas/Warning",
+            "description": "A post's content warning, when it has one."
           }
         },
         "required": [
@@ -807,6 +811,10 @@
           "video": {
             "$ref": "#/components/schemas/Video",
             "description": "What a video post plays."
+          },
+          "warning": {
+            "$ref": "#/components/schemas/Warning",
+            "description": "A post's content warning, when it has one, so that a repost or a quote of it is shown behind the warning too."
           }
         },
         "required": [
@@ -962,6 +970,27 @@
           "width",
           "url",
           "type"
+        ],
+        "type": "object"
+      },
+      "Warning": {
+        "description": "Warning is a post's content warning (anahita-services row 122): what it holds, so that a reader is shown it behind the warning until they choose to see it.",
+        "properties": {
+          "by_moderator": {
+            "description": "That a moderator gave it, which its author may then not take off.",
+            "type": "boolean"
+          },
+          "kind": {
+            "description": "Its kind: \"adult\", \"suggestive\", \"graphic\", \"nudity\" or \"other\".",
+            "type": "string"
+          },
+          "text": {
+            "description": "An Other warning's words, as its author wrote them. Left out for the other kinds, which are said in the reader's own language.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind"
         ],
         "type": "object"
       },

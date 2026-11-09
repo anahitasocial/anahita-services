@@ -519,6 +519,13 @@ ALTER TABLE nodes ADD COLUMN `library_only` tinyint(1) NOT NULL DEFAULT 0 AFTER 
 -- nodes.draft.
 ALTER TABLE nodes ADD COLUMN `draft` tinyint(1) NOT NULL DEFAULT 0 AFTER `library_only`;
 
+-- nodes.warning, warning_text and warning_by_moderator: a post's content
+-- warning (20261122000017_content_warnings).
+ALTER TABLE nodes
+    ADD COLUMN `warning` varchar(16) NOT NULL DEFAULT '' AFTER `draft`,
+    ADD COLUMN `warning_text` varchar(100) NOT NULL DEFAULT '' AFTER `warning`,
+    ADD COLUMN `warning_by_moderator` tinyint(1) NOT NULL DEFAULT 0 AFTER `warning_text`;
+
 -- nodes.citation_count.
 -- Nothing on the PHP site cited anything, so every count starts at 0.
 ALTER TABLE nodes ADD COLUMN `citation_count` int(11) unsigned NOT NULL DEFAULT 0 AFTER `quote_count`;
@@ -1482,6 +1489,9 @@ CREATE TABLE IF NOT EXISTS video_uploads (
     `quote_policy` varchar(16) NOT NULL DEFAULT '',
     -- Whether the post may be downloaded, as chosen when the upload began.
     `allow_download` tinyint(1) NOT NULL DEFAULT 0,
+    -- Its content warning, as chosen when the upload began.
+    `warning` varchar(16) NOT NULL DEFAULT '',
+    `warning_text` varchar(100) NOT NULL DEFAULT '',
     -- Whether its post is to be in the media library only.
     `library_only` tinyint(1) NOT NULL DEFAULT 0,
     -- What the video answers, when it is a reply. NULL for a post.

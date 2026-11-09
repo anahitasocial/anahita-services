@@ -263,6 +263,14 @@ func post(reader Reader, id int64, kind string) *Subject {
 	}
 	subject.Tags.ImageAlt = subject.Tags.Title
 
+	// A post with a content warning (row 122) shows nothing of itself where
+	// its link is pasted, which would show it to whoever sees the link,
+	// warned or not: no picture, and the warning in place of its words.
+	if node.Warning != "" {
+		subject.Tags.Description = warningDescription(node)
+		return subject
+	}
+
 	// Its own picture: a photo, an article's cover, a video's poster (its
 	// first picture, for a GIF), or the picture of the link a note carries
 	// a card for.
@@ -283,6 +291,24 @@ func post(reader Reader, id int64, kind string) *Subject {
 	}
 
 	return subject
+}
+
+// warningDescriptions say each kind of warning, in place of a post's words.
+var warningDescriptions = map[string]string{
+	entities.WarningAdult:      "Content warning: adult content",
+	entities.WarningSuggestive: "Content warning: sexually suggestive",
+	entities.WarningGraphic:    "Content warning: graphic media",
+	entities.WarningNudity:     "Content warning: non-sexual nudity",
+}
+
+func warningDescription(node *entities.AnahitaNode) string {
+	if node.Warning == entities.WarningOther && node.WarningText != "" {
+		return "Content warning: " + node.WarningText
+	}
+	if said, ok := warningDescriptions[node.Warning]; ok {
+		return said
+	}
+	return "Content warning"
 }
 
 func pathOf(images map[string]entities.AnahitaNodeImage, size string) string {

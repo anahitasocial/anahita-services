@@ -10,6 +10,18 @@ made.
 Releases before v1.0.17 are described on GitHub, under
 [Releases](https://github.com/anahitasocial/anahita-services/releases).
 
+## Embryo
+
+### Added
+
+1. **Content warnings** (roadmap row 122, phase 1): any post can carry one,
+   of five kinds, `adult`, `suggestive`, `graphic`, `nudity` or `other` in
+   its author's words; taken as `warning` and `warning_text` when a post or
+   a reply is made, changed with `PATCH /…/:id/warning`, and sent with every
+   post as `warning`. A link pasted elsewhere shows nothing of such a post,
+   and a person's download keeps it ([Content warnings](docs/content-warnings.md)).
+   Migration `20261122000017_content_warnings`.
+
 ## v1.2.3 Birth, 2026-11-09
 
 A maintenance release of the services alone, for Anahita Web v1.2.2.

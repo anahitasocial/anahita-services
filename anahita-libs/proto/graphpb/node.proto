@@ -178,6 +178,14 @@ message Node {
     // second. Unset for any other.
     int64 thread_count = 99;
     Node thread_next = 100;
+
+    // A post's content warning (anahita-services row 122): its kind
+    // (adult, suggestive, graphic, nudity, other), or empty for none; the
+    // words of an "other" warning, up to 100 characters; and whether a
+    // moderator gave it, which its author may then not take off.
+    string warning = 101;
+    string warning_text = 102;
+    bool warning_by_moderator = 103;
 }
 
 message Nodes {

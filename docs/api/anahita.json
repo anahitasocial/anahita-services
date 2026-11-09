@@ -1049,6 +1049,10 @@
             "description": "How many times it has been read.",
             "format": "int64",
             "type": "integer"
+          },
+          "warning": {
+            "$ref": "#/components/schemas/Warning",
+            "description": "Its content warning, when it has one: shown in place of the post until the reader chooses to see it."
           }
         },
         "required": [
@@ -1239,6 +1243,10 @@
           "video": {
             "$ref": "#/components/schemas/Video",
             "description": "What a video post plays, or a post from elsewhere once its video was copied here."
+          },
+          "warning": {
+            "$ref": "#/components/schemas/Warning",
+            "description": "Its content warning, when it has one: shown in place of the post until the reader chooses to see it."
           }
         },
         "required": [
@@ -1635,6 +1643,10 @@
           "video": {
             "$ref": "#/components/schemas/Video",
             "description": "What a video post plays."
+          },
+          "warning": {
+            "$ref": "#/components/schemas/Warning",
+            "description": "A post's content warning, when it has one."
           }
         },
         "required": [
@@ -1814,6 +1826,10 @@
           "video": {
             "$ref": "#/components/schemas/Video",
             "description": "What a video post plays."
+          },
+          "warning": {
+            "$ref": "#/components/schemas/Warning",
+            "description": "A post's content warning, when it has one, so that a repost or a quote of it is shown behind the warning too."
           }
         },
         "required": [
@@ -2292,6 +2308,27 @@
           "width",
           "url",
           "type"
+        ],
+        "type": "object"
+      },
+      "Warning": {
+        "description": "Warning is a post's content warning (anahita-services row 122): what it holds, so that a reader is shown it behind the warning until they choose to see it.",
+        "properties": {
+          "by_moderator": {
+            "description": "That a moderator gave it, which its author may then not take off.",
+            "type": "boolean"
+          },
+          "kind": {
+            "description": "Its kind: \"adult\", \"suggestive\", \"graphic\", \"nudity\" or \"other\".",
+            "type": "string"
+          },
+          "text": {
+            "description": "An Other warning's words, as its author wrote them. Left out for the other kinds, which are said in the reader's own language.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind"
         ],
         "type": "object"
       },
@@ -11765,6 +11802,134 @@
         "x-viewer": "signed_in"
       }
     },
+    "/articles/{id}/warning": {
+      "patch": {
+        "description": "Its kind, and for `other` its words: shown in place of the post until a reader chooses to see it. An empty `warning` takes it off. Whoever may edit the post may; a reply, its author alone. A warning a moderator gave stays as it is.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "operationId": "patchArticlesByIdWarning",
+        "parameters": [
+          {
+            "description": "The post's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "warning": {
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "description": "An `other` warning's words, up to 100 characters. Not read of the other kinds.",
+                    "maxLength": 400,
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "warning": {
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "description": "An `other` warning's words, up to 100 characters. Not read of the other kinds.",
+                    "maxLength": 400,
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "warning": {
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "description": "An `other` warning's words, up to 100 characters. Not read of the other kinds.",
+                    "maxLength": 400,
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediumNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`warning_invalid`, or not well formed"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`warning_not_allowed`: a moderator gave it; or, without a body: the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such post"
+          },
+          "410": {
+            "description": "a reply that was removed"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "media:write"
+            ]
+          }
+        ],
+        "summary": "Give it a content warning, or take it off",
+        "tags": [
+          "text-service"
+        ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).EditWarning",
+        "x-viewer": "signed_in"
+      }
+    },
     "/articles/{owner_id}/": {
       "get": {
         "description": "Those the viewer may see.\n\nWho may call it: anyone, signed in or not.",
@@ -11950,6 +12115,15 @@
                     "description": "Who may reply: \"anyone\", \"nobody\", or any of \"followers\", \"following\" and \"mentioned\" joined by commas. Left out, anyone the profile lets. See constants.NormalizeReplyAccess.",
                     "maxLength": 64,
                     "type": "string"
+                  },
+                  "warning": {
+                    "description": "Its content warning: \"adult\", \"suggestive\", \"graphic\", \"nudity\" or \"other\"; left out, none. An \"other\" warning's words are in WarningText, up to 100 characters.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "maxLength": 400,
+                    "type": "string"
                   }
                 },
                 "type": "object"
@@ -12009,6 +12183,15 @@
                   "title": {
                     "description": "Its title.",
                     "maxLength": 100,
+                    "type": "string"
+                  },
+                  "warning": {
+                    "description": "Its content warning: \"adult\", \"suggestive\", \"graphic\", \"nudity\" or \"other\"; left out, none. An \"other\" warning's words are in WarningText, up to 100 characters.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "maxLength": 400,
                     "type": "string"
                   }
                 },
@@ -12073,6 +12256,15 @@
                   "title": {
                     "description": "Its title.",
                     "maxLength": 100,
+                    "type": "string"
+                  },
+                  "warning": {
+                    "description": "Its content warning: \"adult\", \"suggestive\", \"graphic\", \"nudity\" or \"other\"; left out, none. An \"other\" warning's words are in WarningText, up to 100 characters.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "maxLength": 400,
                     "type": "string"
                   }
                 },
@@ -23915,6 +24107,15 @@
                     "description": "The link in it to show a card for, as on a note. See NoteAddRequest.",
                     "maxLength": 2000,
                     "type": "string"
+                  },
+                  "warning": {
+                    "description": "Its content warning, as on requests.MediumAddRequest.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "maxLength": 400,
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -23941,6 +24142,15 @@
                     "description": "The link in it to show a card for, as on a note. See NoteAddRequest.",
                     "maxLength": 2000,
                     "type": "string"
+                  },
+                  "warning": {
+                    "description": "Its content warning, as on requests.MediumAddRequest.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "maxLength": 400,
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -23966,6 +24176,15 @@
                   "link_preview_url": {
                     "description": "The link in it to show a card for, as on a note. See NoteAddRequest.",
                     "maxLength": 2000,
+                    "type": "string"
+                  },
+                  "warning": {
+                    "description": "Its content warning, as on requests.MediumAddRequest.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "maxLength": 400,
                     "type": "string"
                   }
                 },
@@ -24056,6 +24275,15 @@
                     "maxItems": 10,
                     "minItems": 1,
                     "type": "array"
+                  },
+                  "warning": {
+                    "description": "Its content warning, as on a reply, given to every part.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "maxLength": 400,
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -24377,6 +24605,15 @@
                   "reply_access": {
                     "maxLength": 64,
                     "type": "string"
+                  },
+                  "warning": {
+                    "description": "Its content warning, as on a note, given to every part.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "maxLength": 400,
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -24441,6 +24678,134 @@
           "text-service"
         ],
         "x-handler": "text/cmd/api/handlers.(*noteHandler).AddThread",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/notes/{id}/warning": {
+      "patch": {
+        "description": "Its kind, and for `other` its words: shown in place of the post until a reader chooses to see it. An empty `warning` takes it off. Whoever may edit the post may; a reply, its author alone. A warning a moderator gave stays as it is.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "operationId": "patchNotesByIdWarning",
+        "parameters": [
+          {
+            "description": "The post's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "warning": {
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "description": "An `other` warning's words, up to 100 characters. Not read of the other kinds.",
+                    "maxLength": 400,
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "warning": {
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "description": "An `other` warning's words, up to 100 characters. Not read of the other kinds.",
+                    "maxLength": 400,
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "warning": {
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "description": "An `other` warning's words, up to 100 characters. Not read of the other kinds.",
+                    "maxLength": 400,
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediumNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`warning_invalid`, or not well formed"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`warning_not_allowed`: a moderator gave it; or, without a body: the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such post"
+          },
+          "410": {
+            "description": "a reply that was removed"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "media:write"
+            ]
+          }
+        ],
+        "summary": "Give it a content warning, or take it off",
+        "tags": [
+          "text-service"
+        ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).EditWarning",
         "x-viewer": "signed_in"
       }
     },
@@ -24635,6 +25000,15 @@
                     "description": "As on requests.MediumAddRequest.",
                     "maxLength": 64,
                     "type": "string"
+                  },
+                  "warning": {
+                    "description": "Its content warning, as on requests.MediumAddRequest.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "maxLength": 400,
+                    "type": "string"
                   }
                 },
                 "type": "object"
@@ -24696,6 +25070,15 @@
                   "reply_access": {
                     "description": "As on requests.MediumAddRequest.",
                     "maxLength": 64,
+                    "type": "string"
+                  },
+                  "warning": {
+                    "description": "Its content warning, as on requests.MediumAddRequest.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "maxLength": 400,
                     "type": "string"
                   }
                 },
@@ -24761,6 +25144,15 @@
                   "reply_access": {
                     "description": "As on requests.MediumAddRequest.",
                     "maxLength": 64,
+                    "type": "string"
+                  },
+                  "warning": {
+                    "description": "Its content warning, as on requests.MediumAddRequest.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "maxLength": 400,
                     "type": "string"
                   }
                 },
@@ -30286,6 +30678,15 @@
                       "$ref": "#/components/schemas/FileRef"
                     },
                     "type": "array"
+                  },
+                  "warning": {
+                    "description": "Its content warning: \"adult\", \"suggestive\", \"graphic\", \"nudity\" or \"other\", with the words of an \"other\" warning, up to 100 characters. Left out, none.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "maxLength": 400,
+                    "type": "string"
                   }
                 },
                 "type": "object"
@@ -30304,6 +30705,15 @@
                     "description": "The language it is written in, as a BCP 47 tag.",
                     "maxLength": 12,
                     "type": "string"
+                  },
+                  "warning": {
+                    "description": "Its content warning: \"adult\", \"suggestive\", \"graphic\", \"nudity\" or \"other\", with the words of an \"other\" warning, up to 100 characters. Left out, none.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "maxLength": 400,
+                    "type": "string"
                   }
                 },
                 "type": "object"
@@ -30321,6 +30731,15 @@
                   "language": {
                     "description": "The language it is written in, as a BCP 47 tag.",
                     "maxLength": 12,
+                    "type": "string"
+                  },
+                  "warning": {
+                    "description": "Its content warning: \"adult\", \"suggestive\", \"graphic\", \"nudity\" or \"other\", with the words of an \"other\" warning, up to 100 characters. Left out, none.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "maxLength": 400,
                     "type": "string"
                   }
                 },
@@ -30491,6 +30910,131 @@
           "photo-service"
         ],
         "x-handler": "photo/cmd/api/handlers.(*photoHandler).EditReplyAccess",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/photos/{id}/warning": {
+      "patch": {
+        "description": "Its kind, and for `other` its words: shown in place of the post until a reader chooses to see it. An empty `warning` takes it off. Whoever may edit the post may; a reply, its author alone. A warning a moderator gave stays as it is.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "operationId": "patchPhotosByIdWarning",
+        "parameters": [
+          {
+            "description": "The post's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "warning": {
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "description": "An `other` warning's words, up to 100 characters. Not read of the other kinds.",
+                    "maxLength": 400,
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "warning": {
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "description": "An `other` warning's words, up to 100 characters. Not read of the other kinds.",
+                    "maxLength": 400,
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "warning": {
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "description": "An `other` warning's words, up to 100 characters. Not read of the other kinds.",
+                    "maxLength": 400,
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediumNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`warning_invalid`, or not well formed"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`warning_not_allowed`: a moderator gave it; or, without a body: the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such post"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "media:write"
+            ]
+          }
+        ],
+        "summary": "Give it a content warning, or take it off",
+        "tags": [
+          "photo-service"
+        ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).EditWarning",
         "x-viewer": "signed_in"
       }
     },
@@ -30687,6 +31231,15 @@
                       "$ref": "#/components/schemas/FileRef"
                     },
                     "type": "array"
+                  },
+                  "warning": {
+                    "description": "Its content warning: \"adult\", \"suggestive\", \"graphic\", \"nudity\" or \"other\", with the words of an \"other\" warning, up to 100 characters. Left out, none.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "maxLength": 400,
+                    "type": "string"
                   }
                 },
                 "type": "object"
@@ -30756,6 +31309,15 @@
                     "description": "Its title, if it has one.",
                     "maxLength": 100,
                     "type": "string"
+                  },
+                  "warning": {
+                    "description": "Its content warning: \"adult\", \"suggestive\", \"graphic\", \"nudity\" or \"other\", with the words of an \"other\" warning, up to 100 characters. Left out, none.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "maxLength": 400,
+                    "type": "string"
                   }
                 },
                 "type": "object"
@@ -30824,6 +31386,15 @@
                   "title": {
                     "description": "Its title, if it has one.",
                     "maxLength": 100,
+                    "type": "string"
+                  },
+                  "warning": {
+                    "description": "Its content warning: \"adult\", \"suggestive\", \"graphic\", \"nudity\" or \"other\", with the words of an \"other\" warning, up to 100 characters. Left out, none.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "maxLength": 400,
                     "type": "string"
                   }
                 },
@@ -35493,6 +36064,134 @@
         "x-viewer": "signed_in"
       }
     },
+    "/topics/{id}/warning": {
+      "patch": {
+        "description": "Its kind, and for `other` its words: shown in place of the post until a reader chooses to see it. An empty `warning` takes it off. Whoever may edit the post may; a reply, its author alone. A warning a moderator gave stays as it is.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "operationId": "patchTopicsByIdWarning",
+        "parameters": [
+          {
+            "description": "The post's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "warning": {
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "description": "An `other` warning's words, up to 100 characters. Not read of the other kinds.",
+                    "maxLength": 400,
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "warning": {
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "description": "An `other` warning's words, up to 100 characters. Not read of the other kinds.",
+                    "maxLength": 400,
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "warning": {
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "description": "An `other` warning's words, up to 100 characters. Not read of the other kinds.",
+                    "maxLength": 400,
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediumNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`warning_invalid`, or not well formed"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`warning_not_allowed`: a moderator gave it; or, without a body: the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such post"
+          },
+          "410": {
+            "description": "a reply that was removed"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "media:write"
+            ]
+          }
+        ],
+        "summary": "Give it a content warning, or take it off",
+        "tags": [
+          "text-service"
+        ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).EditWarning",
+        "x-viewer": "signed_in"
+      }
+    },
     "/topics/{owner_id}/": {
       "get": {
         "description": "Those the viewer may see.\n\nWho may call it: anyone, signed in or not.",
@@ -35678,6 +36377,15 @@
                     "description": "Who may reply: \"anyone\", \"nobody\", or any of \"followers\", \"following\" and \"mentioned\" joined by commas. Left out, anyone the profile lets. See constants.NormalizeReplyAccess.",
                     "maxLength": 64,
                     "type": "string"
+                  },
+                  "warning": {
+                    "description": "Its content warning: \"adult\", \"suggestive\", \"graphic\", \"nudity\" or \"other\"; left out, none. An \"other\" warning's words are in WarningText, up to 100 characters.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "maxLength": 400,
+                    "type": "string"
                   }
                 },
                 "type": "object"
@@ -35737,6 +36445,15 @@
                   "title": {
                     "description": "Its title.",
                     "maxLength": 100,
+                    "type": "string"
+                  },
+                  "warning": {
+                    "description": "Its content warning: \"adult\", \"suggestive\", \"graphic\", \"nudity\" or \"other\"; left out, none. An \"other\" warning's words are in WarningText, up to 100 characters.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "maxLength": 400,
                     "type": "string"
                   }
                 },
@@ -35801,6 +36518,15 @@
                   "title": {
                     "description": "Its title.",
                     "maxLength": 100,
+                    "type": "string"
+                  },
+                  "warning": {
+                    "description": "Its content warning: \"adult\", \"suggestive\", \"graphic\", \"nudity\" or \"other\"; left out, none. An \"other\" warning's words are in WarningText, up to 100 characters.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "maxLength": 400,
                     "type": "string"
                   }
                 },
@@ -37794,6 +38520,131 @@
         "x-viewer": "signed_in"
       }
     },
+    "/videos/{id}/warning": {
+      "patch": {
+        "description": "A video or a sound. Its kind, and for `other` its words: shown in place of the post until a reader chooses to see it. An empty `warning` takes it off. Whoever may edit the post may; a reply, its author alone. A warning a moderator gave stays as it is.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "operationId": "patchVideosByIdWarning",
+        "parameters": [
+          {
+            "description": "The post's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "warning": {
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "description": "An `other` warning's words, up to 100 characters. Not read of the other kinds.",
+                    "maxLength": 400,
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "warning": {
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "description": "An `other` warning's words, up to 100 characters. Not read of the other kinds.",
+                    "maxLength": 400,
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "warning": {
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "description": "An `other` warning's words, up to 100 characters. Not read of the other kinds.",
+                    "maxLength": 400,
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediumNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`warning_invalid`, or not well formed"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`warning_not_allowed`: a moderator gave it; or, without a body: the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such post"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "media:write"
+            ]
+          }
+        ],
+        "summary": "Give it a content warning, or take it off",
+        "tags": [
+          "video-service"
+        ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).EditWarning",
+        "x-viewer": "signed_in"
+      }
+    },
     "/videos/{owner_id}/": {
       "get": {
         "description": "Those the viewer may see. With `?type=audio`, its audio posts (roadmap row 137).\n\nWho may call it: anyone, signed in or not.",
@@ -38018,6 +38869,15 @@
                     "description": "Its title, if it has one: neither a post nor a reply needs one.",
                     "maxLength": 100,
                     "type": "string"
+                  },
+                  "warning": {
+                    "description": "Its content warning: `adult`, `suggestive`, `graphic`, `nudity` or `other`, with the words of an `other` warning, up to 100 characters. Left out, none. A reply may have one too.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "maxLength": 400,
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -38093,6 +38953,15 @@
                     "description": "Its title, if it has one: neither a post nor a reply needs one.",
                     "maxLength": 100,
                     "type": "string"
+                  },
+                  "warning": {
+                    "description": "Its content warning: `adult`, `suggestive`, `graphic`, `nudity` or `other`, with the words of an `other` warning, up to 100 characters. Left out, none. A reply may have one too.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "maxLength": 400,
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -38167,6 +39036,15 @@
                   "title": {
                     "description": "Its title, if it has one: neither a post nor a reply needs one.",
                     "maxLength": 100,
+                    "type": "string"
+                  },
+                  "warning": {
+                    "description": "Its content warning: `adult`, `suggestive`, `graphic`, `nudity` or `other`, with the words of an `other` warning, up to 100 characters. Left out, none. A reply may have one too.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "warning_text": {
+                    "maxLength": 400,
                     "type": "string"
                   }
                 },

@@ -49,7 +49,7 @@ is gathered at the end, [for planning](#not-built).
 | Feature | Anahita | |
 | --- | --- | --- |
 | Edit published posts | yes | |
-| Content warnings | planned | [Content warnings](plans/content-warnings.md) |
+| Content warnings | partly | An author's, on any post, shown behind the warning; each reader's choices and both networks are planned ([Content warnings](content-warnings.md)) |
 | Formatted text in posts | yes | |
 | Write in Markdown | yes | Posts are kept as Markdown |
 | Posts over 500 characters | no | 500, as Mastodon and Threads, a link counted as 23; longer is a thread, an article or a topic (roadmap row 144) |
@@ -87,7 +87,7 @@ is gathered at the end, [for planning](#not-built).
 | More than four attachments per post | yes | Up to 20, set by the operator |
 | Image descriptions (alt text) | yes | |
 | Image focal point | no | |
-| Sensitive media | planned | [Content warnings](plans/content-warnings.md) |
+| Sensitive media | partly | Pictures blurred behind a post's warning; from other servers they are still left out ([Content warnings](content-warnings.md)) |
 | Removes location data from photos | yes | Every image is written out again without its metadata |
 | Albums or collections | planned | [Collections](plans/collections.md) |
 | Photo filters | no | |
@@ -216,8 +216,8 @@ Every **no** and **planned** above, gathered for planning.
 
 **Planned,** each with its plan:
 
-1. Content warnings and sensitive media:
-   [Content warnings](plans/content-warnings.md)
+1. Content warnings and sensitive media, each reader's choices and
+   federation: [Content warnings](plans/content-warnings.md)
 2. Direct messages: [Direct messages](plans/direct-messages.md)
 3. Translating posts: [Translation](plans/translation.md)
 4. Albums or collections: [Collections](plans/collections.md)

@@ -187,6 +187,12 @@ type AnahitaNode struct {
 	// it. On a person or a group: what their new posts start with. Off
 	// unless somebody turned it on; nobody is taken to have agreed.
 	AllowDownload bool
+	// A post's content warning: its kind (entities.Warning*), or empty for
+	// none; the words of an "other" warning; and whether a moderator gave
+	// it, which its author may then not take off.
+	Warning            string
+	WarningText        string
+	WarningByModerator bool
 	// A photo or video post in its author's media library only: read by
 	// its address with the access any post has, listed nowhere but the
 	// library, and announced to nobody. Set when it is made.

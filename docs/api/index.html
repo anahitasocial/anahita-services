@@ -74,9 +74,9 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 </ul>
 <p class="group">Posts</p>
 <ul>
-<li><a href="#text-service">Notes, articles and topics</a> <span class="count">46</span></li>
-<li><a href="#photo-service">Photo posts</a> <span class="count">16</span></li>
-<li><a href="#video-service">Video posts</a> <span class="count">21</span></li>
+<li><a href="#text-service">Notes, articles and topics</a> <span class="count">49</span></li>
+<li><a href="#photo-service">Photo posts</a> <span class="count">17</span></li>
+<li><a href="#video-service">Video posts</a> <span class="count">22</span></li>
 <li><a href="#like-service">Likes</a> <span class="count">3</span></li>
 <li><a href="#link-preview-service">Link previews</a> <span class="count">4</span></li>
 <li><a href="#hashtag-service">Hashtags</a> <span class="count">10</span></li>
@@ -96,7 +96,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 </ul>
 <p class="group">Reference</p>
 <ul>
-<li><a href="#schemas">Shapes</a> <span class="count">176</span></li>
+<li><a href="#schemas">Shapes</a> <span class="count">177</span></li>
 </ul>
 </nav>
 <main>
@@ -6268,6 +6268,40 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </table>
 <p class="handler">Answered by <code>text/cmd/api/handlers.(*mediumHandler).EditReplyAccess</code></p>
 </details>
+<details class="route" id="patchArticlesByIdWarning" data-search="patch /articles/{id}/warning give it a content warning, or take it off its kind, and for `other` its words: shown in place of the post until a reader chooses to see it. an empty `warning` takes it off. whoever may edit the post may; a reply, its author alone. a warning a moderator gave stays as it is.
+
+who may call it: somebody signed in, with a token that carries `media:write`.">
+<summary><span class="method patch">PATCH</span> <code class="path">/articles/{id}/warning</code> <span class="summary">Give it a content warning, or take it off</span></summary>
+<div class="description"><p>Its kind, and for <code>other</code> its words: shown in place of the post until a reader chooses to see it. An empty <code>warning</code> takes it off. Whoever may edit the post may; a reply, its author alone. A warning a moderator gave stays as it is.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in, with <code>media:write</code></p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The post&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code> or <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>warning</code></td><td>string</td><td>Its kind: <code>adult</code>, <code>suggestive</code>, <code>graphic</code>, <code>nudity</code> or <code>other</code>; empty takes it off. At most 16 characters.</td></tr>
+<tr><td><code>warning_text</code></td><td>string</td><td>An <code>other</code> warning&#39;s words, up to 100 characters. Not read of the other kinds. At most 400 characters.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-MediumNode">MediumNode</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>warning_invalid</code>, or not well formed<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td><code>warning_not_allowed</code>: a moderator gave it; or, without a body: the viewer may not change it<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">404</td><td>there is no such post</td></tr>
+<tr><td class="status s4">410</td><td>a reply that was removed</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>text/cmd/api/handlers.(*mediumHandler).EditWarning</code></p>
+</details>
 <details class="route" id="getArticlesByOwnerId" data-search="get /articles/{owner_id}/ a profile&#39;s articles those the viewer may see.
 
 who may call it: anyone, signed in or not.">
@@ -6316,6 +6350,8 @@ who may call it: anyone, signed in or not.">
 <tr><td><code>location_ids</code></td><td>list of integer</td><td>The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its <code>location</code>, all as <code>Place</code>s in its <code>tag</code> (roadmap row 82, part 3b). Up to five; what is not a location is passed over. At most 5 of them.</td></tr>
 <tr><td><code>quote_policy</code></td><td>string</td><td>Who may quote it: &#34;anyone&#34;, &#34;followers&#34; or &#34;nobody&#34;. Left out, the author&#39;s own setting applies. See constants.EffectiveQuotePolicy. At most 16 characters.</td></tr>
 <tr><td><code>reply_access</code></td><td>string</td><td>Who may reply: &#34;anyone&#34;, &#34;nobody&#34;, or any of &#34;followers&#34;, &#34;following&#34; and &#34;mentioned&#34; joined by commas. Left out, anyone the profile lets. See constants.NormalizeReplyAccess. At most 64 characters.</td></tr>
+<tr><td><code>warning</code></td><td>string</td><td>Its content warning: &#34;adult&#34;, &#34;suggestive&#34;, &#34;graphic&#34;, &#34;nudity&#34; or &#34;other&#34;; left out, none. An &#34;other&#34; warning&#39;s words are in WarningText, up to 100 characters. At most 16 characters.</td></tr>
+<tr><td><code>warning_text</code></td><td>string</td><td> At most 400 characters.</td></tr>
 </tbody>
 </table>
 <h4>Takes, as <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
@@ -6330,6 +6366,8 @@ who may call it: anyone, signed in or not.">
 <tr><td><code>quote_policy</code></td><td>string</td><td>Who may quote it: &#34;anyone&#34;, &#34;followers&#34; or &#34;nobody&#34;. Left out, the author&#39;s own setting applies. See constants.EffectiveQuotePolicy. At most 16 characters.</td></tr>
 <tr><td><code>reply_access</code></td><td>string</td><td>Who may reply: &#34;anyone&#34;, &#34;nobody&#34;, or any of &#34;followers&#34;, &#34;following&#34; and &#34;mentioned&#34; joined by commas. Left out, anyone the profile lets. See constants.NormalizeReplyAccess. At most 64 characters.</td></tr>
 <tr><td><code>title</code> <span class="required">always</span></td><td>string</td><td>Its title. At most 100 characters.</td></tr>
+<tr><td><code>warning</code></td><td>string</td><td>Its content warning: &#34;adult&#34;, &#34;suggestive&#34;, &#34;graphic&#34;, &#34;nudity&#34; or &#34;other&#34;; left out, none. An &#34;other&#34; warning&#39;s words are in WarningText, up to 100 characters. At most 16 characters.</td></tr>
+<tr><td><code>warning_text</code></td><td>string</td><td> At most 400 characters.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -6781,6 +6819,8 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>content</code> <span class="required">always</span></td><td>string</td><td>Its words, as Markdown. Up to 500 characters, a link counted as 23. At most 8000 characters.</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>The language it is written in, as a BCP 47 tag. At most 12 characters.</td></tr>
 <tr><td><code>link_preview_url</code></td><td>string</td><td>The link in it to show a card for, as on a note. See NoteAddRequest. At most 2000 characters.</td></tr>
+<tr><td><code>warning</code></td><td>string</td><td>Its content warning, as on requests.MediumAddRequest. At most 16 characters.</td></tr>
+<tr><td><code>warning_text</code></td><td>string</td><td> At most 400 characters.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -6814,6 +6854,8 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
 <tr><td><code>parts</code> <span class="required">always</span></td><td>list of <a href="#schema-text.ThreadPart">text.ThreadPart</a></td><td>The notes of the thread, first to last: up to ten. At least 1 of them. At most 10 of them.</td></tr>
+<tr><td><code>warning</code></td><td>string</td><td>Its content warning, as on a reply, given to every part. At most 16 characters.</td></tr>
+<tr><td><code>warning_text</code></td><td>string</td><td> At most 400 characters.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -6910,6 +6952,8 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>quote_id</code></td><td>integer</td><td></td></tr>
 <tr><td><code>quote_policy</code></td><td>string</td><td> At most 16 characters.</td></tr>
 <tr><td><code>reply_access</code></td><td>string</td><td> At most 64 characters.</td></tr>
+<tr><td><code>warning</code></td><td>string</td><td>Its content warning, as on a note, given to every part. At most 16 characters.</td></tr>
+<tr><td><code>warning_text</code></td><td>string</td><td> At most 400 characters.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -6924,6 +6968,40 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>text/cmd/api/handlers.(*noteHandler).AddThread</code></p>
+</details>
+<details class="route" id="patchNotesByIdWarning" data-search="patch /notes/{id}/warning give it a content warning, or take it off its kind, and for `other` its words: shown in place of the post until a reader chooses to see it. an empty `warning` takes it off. whoever may edit the post may; a reply, its author alone. a warning a moderator gave stays as it is.
+
+who may call it: somebody signed in, with a token that carries `media:write`.">
+<summary><span class="method patch">PATCH</span> <code class="path">/notes/{id}/warning</code> <span class="summary">Give it a content warning, or take it off</span></summary>
+<div class="description"><p>Its kind, and for <code>other</code> its words: shown in place of the post until a reader chooses to see it. An empty <code>warning</code> takes it off. Whoever may edit the post may; a reply, its author alone. A warning a moderator gave stays as it is.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in, with <code>media:write</code></p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The post&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code> or <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>warning</code></td><td>string</td><td>Its kind: <code>adult</code>, <code>suggestive</code>, <code>graphic</code>, <code>nudity</code> or <code>other</code>; empty takes it off. At most 16 characters.</td></tr>
+<tr><td><code>warning_text</code></td><td>string</td><td>An <code>other</code> warning&#39;s words, up to 100 characters. Not read of the other kinds. At most 400 characters.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-MediumNode">MediumNode</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>warning_invalid</code>, or not well formed<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td><code>warning_not_allowed</code>: a moderator gave it; or, without a body: the viewer may not change it<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">404</td><td>there is no such post</td></tr>
+<tr><td class="status s4">410</td><td>a reply that was removed</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>text/cmd/api/handlers.(*mediumHandler).EditWarning</code></p>
 </details>
 <details class="route" id="getNotesByOwnerId" data-search="get /notes/{owner_id}/ a profile&#39;s notes those the viewer may see.
 
@@ -6977,6 +7055,8 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>quote_id</code></td><td>integer</td><td>The post this note quotes: it is carried under the note&#39;s own words. Checked against that post&#39;s policy. See permissions.CanQuote.</td></tr>
 <tr><td><code>quote_policy</code></td><td>string</td><td>As on requests.MediumAddRequest. At most 16 characters.</td></tr>
 <tr><td><code>reply_access</code></td><td>string</td><td>As on requests.MediumAddRequest. At most 64 characters.</td></tr>
+<tr><td><code>warning</code></td><td>string</td><td>Its content warning, as on requests.MediumAddRequest. At most 16 characters.</td></tr>
+<tr><td><code>warning_text</code></td><td>string</td><td> At most 400 characters.</td></tr>
 </tbody>
 </table>
 <h4>Takes, as <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
@@ -6991,6 +7071,8 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>quote_id</code></td><td>integer</td><td>The post this note quotes: it is carried under the note&#39;s own words. Checked against that post&#39;s policy. See permissions.CanQuote.</td></tr>
 <tr><td><code>quote_policy</code></td><td>string</td><td>As on requests.MediumAddRequest. At most 16 characters.</td></tr>
 <tr><td><code>reply_access</code></td><td>string</td><td>As on requests.MediumAddRequest. At most 64 characters.</td></tr>
+<tr><td><code>warning</code></td><td>string</td><td>Its content warning, as on requests.MediumAddRequest. At most 16 characters.</td></tr>
+<tr><td><code>warning_text</code></td><td>string</td><td> At most 400 characters.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -7292,6 +7374,40 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </table>
 <p class="handler">Answered by <code>text/cmd/api/handlers.(*mediumHandler).EditReplyAccess</code></p>
 </details>
+<details class="route" id="patchTopicsByIdWarning" data-search="patch /topics/{id}/warning give it a content warning, or take it off its kind, and for `other` its words: shown in place of the post until a reader chooses to see it. an empty `warning` takes it off. whoever may edit the post may; a reply, its author alone. a warning a moderator gave stays as it is.
+
+who may call it: somebody signed in, with a token that carries `media:write`.">
+<summary><span class="method patch">PATCH</span> <code class="path">/topics/{id}/warning</code> <span class="summary">Give it a content warning, or take it off</span></summary>
+<div class="description"><p>Its kind, and for <code>other</code> its words: shown in place of the post until a reader chooses to see it. An empty <code>warning</code> takes it off. Whoever may edit the post may; a reply, its author alone. A warning a moderator gave stays as it is.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in, with <code>media:write</code></p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The post&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code> or <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>warning</code></td><td>string</td><td>Its kind: <code>adult</code>, <code>suggestive</code>, <code>graphic</code>, <code>nudity</code> or <code>other</code>; empty takes it off. At most 16 characters.</td></tr>
+<tr><td><code>warning_text</code></td><td>string</td><td>An <code>other</code> warning&#39;s words, up to 100 characters. Not read of the other kinds. At most 400 characters.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-MediumNode">MediumNode</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>warning_invalid</code>, or not well formed<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td><code>warning_not_allowed</code>: a moderator gave it; or, without a body: the viewer may not change it<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">404</td><td>there is no such post</td></tr>
+<tr><td class="status s4">410</td><td>a reply that was removed</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>text/cmd/api/handlers.(*mediumHandler).EditWarning</code></p>
+</details>
 <details class="route" id="getTopicsByOwnerId" data-search="get /topics/{owner_id}/ a profile&#39;s topics those the viewer may see.
 
 who may call it: anyone, signed in or not.">
@@ -7340,6 +7456,8 @@ who may call it: anyone, signed in or not.">
 <tr><td><code>location_ids</code></td><td>list of integer</td><td>The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its <code>location</code>, all as <code>Place</code>s in its <code>tag</code> (roadmap row 82, part 3b). Up to five; what is not a location is passed over. At most 5 of them.</td></tr>
 <tr><td><code>quote_policy</code></td><td>string</td><td>Who may quote it: &#34;anyone&#34;, &#34;followers&#34; or &#34;nobody&#34;. Left out, the author&#39;s own setting applies. See constants.EffectiveQuotePolicy. At most 16 characters.</td></tr>
 <tr><td><code>reply_access</code></td><td>string</td><td>Who may reply: &#34;anyone&#34;, &#34;nobody&#34;, or any of &#34;followers&#34;, &#34;following&#34; and &#34;mentioned&#34; joined by commas. Left out, anyone the profile lets. See constants.NormalizeReplyAccess. At most 64 characters.</td></tr>
+<tr><td><code>warning</code></td><td>string</td><td>Its content warning: &#34;adult&#34;, &#34;suggestive&#34;, &#34;graphic&#34;, &#34;nudity&#34; or &#34;other&#34;; left out, none. An &#34;other&#34; warning&#39;s words are in WarningText, up to 100 characters. At most 16 characters.</td></tr>
+<tr><td><code>warning_text</code></td><td>string</td><td> At most 400 characters.</td></tr>
 </tbody>
 </table>
 <h4>Takes, as <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
@@ -7354,6 +7472,8 @@ who may call it: anyone, signed in or not.">
 <tr><td><code>quote_policy</code></td><td>string</td><td>Who may quote it: &#34;anyone&#34;, &#34;followers&#34; or &#34;nobody&#34;. Left out, the author&#39;s own setting applies. See constants.EffectiveQuotePolicy. At most 16 characters.</td></tr>
 <tr><td><code>reply_access</code></td><td>string</td><td>Who may reply: &#34;anyone&#34;, &#34;nobody&#34;, or any of &#34;followers&#34;, &#34;following&#34; and &#34;mentioned&#34; joined by commas. Left out, anyone the profile lets. See constants.NormalizeReplyAccess. At most 64 characters.</td></tr>
 <tr><td><code>title</code> <span class="required">always</span></td><td>string</td><td>Its title. At most 100 characters.</td></tr>
+<tr><td><code>warning</code></td><td>string</td><td>Its content warning: &#34;adult&#34;, &#34;suggestive&#34;, &#34;graphic&#34;, &#34;nudity&#34; or &#34;other&#34;; left out, none. An &#34;other&#34; warning&#39;s words are in WarningText, up to 100 characters. At most 16 characters.</td></tr>
+<tr><td><code>warning_text</code></td><td>string</td><td> At most 400 characters.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -7700,6 +7820,8 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>content</code></td><td>string</td><td>Its words, as Markdown. A reply with pictures need not have any. Up to 500 characters, a link counted as 23. At most 8000 characters.</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>The language it is written in, as a BCP 47 tag. At most 12 characters.</td></tr>
 <tr><td><code>uploads</code></td><td>list of <a href="#schema-FileRef">FileRef</a></td><td>Its pictures, each uploaded first for the person replying.</td></tr>
+<tr><td><code>warning</code></td><td>string</td><td>Its content warning: &#34;adult&#34;, &#34;suggestive&#34;, &#34;graphic&#34;, &#34;nudity&#34; or &#34;other&#34;, with the words of an &#34;other&#34; warning, up to 100 characters. Left out, none. At most 16 characters.</td></tr>
+<tr><td><code>warning_text</code></td><td>string</td><td> At most 400 characters.</td></tr>
 </tbody>
 </table>
 <h4>Takes, as <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
@@ -7708,6 +7830,8 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tbody>
 <tr><td><code>content</code></td><td>string</td><td>Its words, as Markdown. A reply with pictures need not have any. Up to 500 characters, a link counted as 23. At most 8000 characters.</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>The language it is written in, as a BCP 47 tag. At most 12 characters.</td></tr>
+<tr><td><code>warning</code></td><td>string</td><td>Its content warning: &#34;adult&#34;, &#34;suggestive&#34;, &#34;graphic&#34;, &#34;nudity&#34; or &#34;other&#34;, with the words of an &#34;other&#34; warning, up to 100 characters. Left out, none. At most 16 characters.</td></tr>
+<tr><td><code>warning_text</code></td><td>string</td><td> At most 400 characters.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -7752,6 +7876,39 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>photo/cmd/api/handlers.(*photoHandler).EditReplyAccess</code></p>
+</details>
+<details class="route" id="patchPhotosByIdWarning" data-search="patch /photos/{id}/warning give it a content warning, or take it off its kind, and for `other` its words: shown in place of the post until a reader chooses to see it. an empty `warning` takes it off. whoever may edit the post may; a reply, its author alone. a warning a moderator gave stays as it is.
+
+who may call it: somebody signed in, with a token that carries `media:write`.">
+<summary><span class="method patch">PATCH</span> <code class="path">/photos/{id}/warning</code> <span class="summary">Give it a content warning, or take it off</span></summary>
+<div class="description"><p>Its kind, and for <code>other</code> its words: shown in place of the post until a reader chooses to see it. An empty <code>warning</code> takes it off. Whoever may edit the post may; a reply, its author alone. A warning a moderator gave stays as it is.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in, with <code>media:write</code></p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The post&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code> or <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>warning</code></td><td>string</td><td>Its kind: <code>adult</code>, <code>suggestive</code>, <code>graphic</code>, <code>nudity</code> or <code>other</code>; empty takes it off. At most 16 characters.</td></tr>
+<tr><td><code>warning_text</code></td><td>string</td><td>An <code>other</code> warning&#39;s words, up to 100 characters. Not read of the other kinds. At most 400 characters.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-MediumNode">MediumNode</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>warning_invalid</code>, or not well formed<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td><code>warning_not_allowed</code>: a moderator gave it; or, without a body: the viewer may not change it<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">404</td><td>there is no such post</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>photo/cmd/api/handlers.(*photoHandler).EditWarning</code></p>
 </details>
 <details class="route" id="getPhotosByOwnerId" data-search="get /photos/{owner_id}/ a profile&#39;s photo posts those the viewer may see.
 
@@ -7805,6 +7962,8 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>quote_policy</code></td><td>string</td><td>Who may quote it: &#34;anyone&#34;, &#34;followers&#34; or &#34;nobody&#34;. Left out, the author&#39;s own setting applies. At most 16 characters.</td></tr>
 <tr><td><code>reply_access</code></td><td>string</td><td>Who may reply: &#34;anyone&#34;, &#34;nobody&#34;, or any of &#34;followers&#34;, &#34;following&#34; and &#34;mentioned&#34; joined by commas. Left out, anyone the profile lets. At most 64 characters.</td></tr>
 <tr><td><code>uploads</code></td><td>list of <a href="#schema-FileRef">FileRef</a></td><td>The images, in order, each an upload made for this profile.</td></tr>
+<tr><td><code>warning</code></td><td>string</td><td>Its content warning: &#34;adult&#34;, &#34;suggestive&#34;, &#34;graphic&#34;, &#34;nudity&#34; or &#34;other&#34;, with the words of an &#34;other&#34; warning, up to 100 characters. Left out, none. At most 16 characters.</td></tr>
+<tr><td><code>warning_text</code></td><td>string</td><td> At most 400 characters.</td></tr>
 </tbody>
 </table>
 <h4>Takes, as <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
@@ -7821,6 +7980,8 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>quote_policy</code></td><td>string</td><td>Who may quote it: &#34;anyone&#34;, &#34;followers&#34; or &#34;nobody&#34;. Left out, the author&#39;s own setting applies. At most 16 characters.</td></tr>
 <tr><td><code>reply_access</code></td><td>string</td><td>Who may reply: &#34;anyone&#34;, &#34;nobody&#34;, or any of &#34;followers&#34;, &#34;following&#34; and &#34;mentioned&#34; joined by commas. Left out, anyone the profile lets. At most 64 characters.</td></tr>
 <tr><td><code>title</code></td><td>string</td><td>Its title, if it has one. At most 100 characters.</td></tr>
+<tr><td><code>warning</code></td><td>string</td><td>Its content warning: &#34;adult&#34;, &#34;suggestive&#34;, &#34;graphic&#34;, &#34;nudity&#34; or &#34;other&#34;, with the words of an &#34;other&#34; warning, up to 100 characters. Left out, none. At most 16 characters.</td></tr>
+<tr><td><code>warning_text</code></td><td>string</td><td> At most 400 characters.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -8368,6 +8529,39 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </table>
 <p class="handler">Answered by <code>video/cmd/api/handlers.(*videoHandler).EditReplyAccess</code></p>
 </details>
+<details class="route" id="patchVideosByIdWarning" data-search="patch /videos/{id}/warning give it a content warning, or take it off a video or a sound. its kind, and for `other` its words: shown in place of the post until a reader chooses to see it. an empty `warning` takes it off. whoever may edit the post may; a reply, its author alone. a warning a moderator gave stays as it is.
+
+who may call it: somebody signed in, with a token that carries `media:write`.">
+<summary><span class="method patch">PATCH</span> <code class="path">/videos/{id}/warning</code> <span class="summary">Give it a content warning, or take it off</span></summary>
+<div class="description"><p>A video or a sound. Its kind, and for <code>other</code> its words: shown in place of the post until a reader chooses to see it. An empty <code>warning</code> takes it off. Whoever may edit the post may; a reply, its author alone. A warning a moderator gave stays as it is.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in, with <code>media:write</code></p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The post&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code> or <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>warning</code></td><td>string</td><td>Its kind: <code>adult</code>, <code>suggestive</code>, <code>graphic</code>, <code>nudity</code> or <code>other</code>; empty takes it off. At most 16 characters.</td></tr>
+<tr><td><code>warning_text</code></td><td>string</td><td>An <code>other</code> warning&#39;s words, up to 100 characters. Not read of the other kinds. At most 400 characters.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-MediumNode">MediumNode</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>warning_invalid</code>, or not well formed<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td><code>warning_not_allowed</code>: a moderator gave it; or, without a body: the viewer may not change it<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">404</td><td>there is no such post</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>video/cmd/api/handlers.(*videoHandler).EditWarning</code></p>
+</details>
 <details class="route" id="getVideosByOwnerId" data-search="get /videos/{owner_id}/ a profile&#39;s video posts, or its audio posts those the viewer may see. with `?type=audio`, its audio posts (roadmap row 137).
 
 who may call it: anyone, signed in or not.">
@@ -8425,6 +8619,8 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>reply_access</code></td><td>string</td><td>Who may reply: <code>anyone</code>, <code>nobody</code>, or any of <code>followers</code>, <code>following</code> and <code>mentioned</code> joined by commas. At most 64 characters.</td></tr>
 <tr><td><code>size</code> <span class="required">always</span></td><td>integer</td><td>How large the file is, in bytes. At least 1.</td></tr>
 <tr><td><code>title</code></td><td>string</td><td>Its title, if it has one: neither a post nor a reply needs one. At most 100 characters.</td></tr>
+<tr><td><code>warning</code></td><td>string</td><td>Its content warning: <code>adult</code>, <code>suggestive</code>, <code>graphic</code>, <code>nudity</code> or <code>other</code>, with the words of an <code>other</code> warning, up to 100 characters. Left out, none. A reply may have one too. At most 16 characters.</td></tr>
+<tr><td><code>warning_text</code></td><td>string</td><td> At most 400 characters.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -11245,7 +11441,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-MediumNode" data-search="mediumnode access alias allow_download audio author authorized citation_count comment_count comment_status content cover_urls created_at deleted draft editor enabled files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer is_subscribed_by_viewer language library_only likes_count link_preview link_previews media_elsewhere media_removed mimetype origin_domain owner parent_id pinned portrait_urls quote quote_count quote_id quote_policy reply_access repost_count root root_id title type updated_at uri video view_count">
+<div class="route schema" id="schema-MediumNode" data-search="mediumnode access alias allow_download audio author authorized citation_count comment_count comment_status content cover_urls created_at deleted draft editor enabled files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer is_subscribed_by_viewer language library_only likes_count link_preview link_previews media_elsewhere media_removed mimetype origin_domain owner parent_id pinned portrait_urls quote quote_count quote_id quote_policy reply_access repost_count root root_id title type updated_at uri video view_count warning">
 <h3>MediumNode</h3>
 <p>A post or a reply, read on its own or answered with after a change.</p>
 <table>
@@ -11301,10 +11497,11 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>uri</code></td><td>string</td><td>What it is called on the server it came from, and that server, when it came from another. Left out of everything made here.</td></tr>
 <tr><td><code>video</code></td><td><a href="#schema-Video">Video</a></td><td>What a video post plays, or a post from elsewhere once its video was copied here.</td></tr>
 <tr><td><code>view_count</code> <span class="required">always</span></td><td>integer</td><td>How many times it has been read.</td></tr>
+<tr><td><code>warning</code></td><td><a href="#schema-Warning">Warning</a></td><td>Its content warning, when it has one: shown in place of the post until the reader chooses to see it.</td></tr>
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-MediumNodeItem" data-search="mediumnodeitem access alias audio author authorized comment_count content cover_urls created_at deleted files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer is_subscribed_by_viewer language likes_count link_preview link_previews media_elsewhere media_removed mimetype origin_domain owner parent_id portrait_urls quote quote_count quote_id repost_count root_id title type uri video">
+<div class="route schema" id="schema-MediumNodeItem" data-search="mediumnodeitem access alias audio author authorized comment_count content cover_urls created_at deleted files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer is_subscribed_by_viewer language likes_count link_preview link_previews media_elsewhere media_removed mimetype origin_domain owner parent_id portrait_urls quote quote_count quote_id repost_count root_id title type uri video warning">
 <h3>MediumNodeItem</h3>
 <p>A post or a reply in a list.</p>
 <table>
@@ -11347,6 +11544,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td>What kind of post it is: <code>node.medium.text-service.note.v1</code> for a note, and so on.</td></tr>
 <tr><td><code>uri</code></td><td>string</td><td>What it is called on the server it came from, and that server, when it came from another. Left out of everything made here.</td></tr>
 <tr><td><code>video</code></td><td><a href="#schema-Video">Video</a></td><td>What a video post plays, or a post from elsewhere once its video was copied here.</td></tr>
+<tr><td><code>warning</code></td><td><a href="#schema-Warning">Warning</a></td><td>Its content warning, when it has one: shown in place of the post until the reader chooses to see it.</td></tr>
 </tbody>
 </table>
 </div>
@@ -11410,7 +11608,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-NodeItem" data-search="nodeitem access alias audio author authorized avatar_urls body comment_count content cover_urls created_at editor event feed files follower_count id is_admined_by_viewer is_blocked_by_viewer is_following_viewer is_leading_viewer is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer is_subscribed_by_viewer language likes_count link_preview media_removed mimetype name origin_domain owner parent pinned portrait_urls quote quote_count quote_id repost_count root root_id thread thread_next title type uri verified video">
+<div class="route schema" id="schema-NodeItem" data-search="nodeitem access alias audio author authorized avatar_urls body comment_count content cover_urls created_at editor event feed files follower_count id is_admined_by_viewer is_blocked_by_viewer is_following_viewer is_leading_viewer is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer is_subscribed_by_viewer language likes_count link_preview media_removed mimetype name origin_domain owner parent pinned portrait_urls quote quote_count quote_id repost_count root root_id thread thread_next title type uri verified video warning">
 <h3>NodeItem</h3>
 <p>A post, a reply, a profile or anything else there is, as a list or a read sends it: what it is not is left out.</p>
 <table>
@@ -11465,6 +11663,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>uri</code></td><td>string</td><td>What it is called on the server it came from, and that server, when it came from another. Left out of everything made here.</td></tr>
 <tr><td><code>verified</code></td><td>boolean</td><td>A mark kept from earlier versions of Anahita. Nothing sets it yet.</td></tr>
 <tr><td><code>video</code></td><td><a href="#schema-Video">Video</a></td><td>What a video post plays.</td></tr>
+<tr><td><code>warning</code></td><td><a href="#schema-Warning">Warning</a></td><td>A post&#39;s content warning, when it has one.</td></tr>
 </tbody>
 </table>
 </div>
@@ -11497,7 +11696,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-Parent" data-search="parent access alias audio author authorized body content cover_urls created_at files id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer link_preview name owner portrait_urls title type video">
+<div class="route schema" id="schema-Parent" data-search="parent access alias audio author authorized body content cover_urls created_at files id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer link_preview name owner portrait_urls title type video warning">
 <h3>Parent</h3>
 <p>A post another one hangs from: what a reply answers, what a repost reposts, or the post at the top of a thread.</p>
 <table>
@@ -11524,6 +11723,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>title</code></td><td>string</td><td>A post&#39;s title, where it has one.</td></tr>
 <tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td>What kind of thing it is: <code>node.actor.&lt;service&gt;.person.v1</code>, <code>...group.v1</code>, <code>...event.v1</code>, or a post&#39;s kind.</td></tr>
 <tr><td><code>video</code></td><td><a href="#schema-Video">Video</a></td><td>What a video post plays.</td></tr>
+<tr><td><code>warning</code></td><td><a href="#schema-Warning">Warning</a></td><td>A post&#39;s content warning, when it has one, so that a repost or a quote of it is shown behind the warning too.</td></tr>
 </tbody>
 </table>
 </div>
@@ -11720,6 +11920,18 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td>The kind of file: <code>video/mp4</code>.</td></tr>
 <tr><td><code>url</code> <span class="required">always</span></td><td>string</td><td>Where it is read from: a path under the API, the same for as long as the post is there, answered for whoever may see the post.</td></tr>
 <tr><td><code>width</code> <span class="required">always</span></td><td>integer</td><td>In pixels.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-Warning" data-search="warning by_moderator kind text">
+<h3>Warning</h3>
+<p>A post&#39;s content warning (anahita-services row 122): what it holds, so that a reader is shown it behind the warning until they choose to see it.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>by_moderator</code></td><td>boolean</td><td>That a moderator gave it, which its author may then not take off.</td></tr>
+<tr><td><code>kind</code> <span class="required">always</span></td><td>string</td><td>Its kind: &#34;adult&#34;, &#34;suggestive&#34;, &#34;graphic&#34;, &#34;nudity&#34; or &#34;other&#34;.</td></tr>
+<tr><td><code>text</code></td><td>string</td><td>An Other warning&#39;s words, as its author wrote them. Left out for the other kinds, which are said in the reader&#39;s own language.</td></tr>
 </tbody>
 </table>
 </div>

@@ -162,10 +162,17 @@ type Node struct {
 	// A note that opens a chain of its writer's replies, in a list (anahita-web
 	// row 126): how many notes the chain has, the first counted, and the
 	// second. Unset for any other.
-	ThreadCount   int64 `protobuf:"varint,99,opt,name=thread_count,json=threadCount,proto3" json:"thread_count,omitempty"`
-	ThreadNext    *Node `protobuf:"bytes,100,opt,name=thread_next,json=threadNext,proto3" json:"thread_next,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	ThreadCount int64 `protobuf:"varint,99,opt,name=thread_count,json=threadCount,proto3" json:"thread_count,omitempty"`
+	ThreadNext  *Node `protobuf:"bytes,100,opt,name=thread_next,json=threadNext,proto3" json:"thread_next,omitempty"`
+	// A post's content warning (anahita-services row 122): its kind
+	// (adult, suggestive, graphic, nudity, other), or empty for none; the
+	// words of an "other" warning, up to 100 characters; and whether a
+	// moderator gave it, which its author may then not take off.
+	Warning            string `protobuf:"bytes,101,opt,name=warning,proto3" json:"warning,omitempty"`
+	WarningText        string `protobuf:"bytes,102,opt,name=warning_text,json=warningText,proto3" json:"warning_text,omitempty"`
+	WarningByModerator bool   `protobuf:"varint,103,opt,name=warning_by_moderator,json=warningByModerator,proto3" json:"warning_by_moderator,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *Node) Reset() {
@@ -770,6 +777,27 @@ func (x *Node) GetThreadNext() *Node {
 		return x.ThreadNext
 	}
 	return nil
+}
+
+func (x *Node) GetWarning() string {
+	if x != nil {
+		return x.Warning
+	}
+	return ""
+}
+
+func (x *Node) GetWarningText() string {
+	if x != nil {
+		return x.WarningText
+	}
+	return ""
+}
+
+func (x *Node) GetWarningByModerator() bool {
+	if x != nil {
+		return x.WarningByModerator
+	}
+	return false
 }
 
 type Nodes struct {
@@ -3197,7 +3225,7 @@ var File_proto_graphpb_node_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\n" +
-	"\x18proto/graphpb/node.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb1\x18\n" +
+	"\x18proto/graphpb/node.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa0\x19\n" +
 	"\x04Node\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12\x18\n" +
@@ -3300,7 +3328,10 @@ const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\x1dis_follow_requested_by_viewer\x18[ \x01(\bR\x19isFollowRequestedByViewer\x12!\n" +
 	"\fthread_count\x18c \x01(\x03R\vthreadCount\x12,\n" +
 	"\vthread_next\x18d \x01(\v2\v.graph.NodeR\n" +
-	"threadNextJ\x04\b\t\x10\n" +
+	"threadNext\x12\x18\n" +
+	"\awarning\x18e \x01(\tR\awarning\x12!\n" +
+	"\fwarning_text\x18f \x01(\tR\vwarningText\x120\n" +
+	"\x14warning_by_moderator\x18g \x01(\bR\x12warningByModeratorJ\x04\b\t\x10\n" +
 	"J\x04\b\x1e\x10\x1fJ\x04\b\f\x10\rJ\x04\b\x12\x10\x13J\x04\b\x17\x10\x18J\x04\b/\x103J\x04\b5\x106J\x04\b@\x10AJ\x04\bB\x10CJ\x04\bD\x10HJ\x04\bI\x10JR\aexcerpt\"*\n" +
 	"\x05Nodes\x12!\n" +
 	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes\"\xd9\x03\n" +

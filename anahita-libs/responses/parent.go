@@ -41,6 +41,7 @@ func NewParent(node *entities.AnahitaNode) *Parent {
 	dto.LinkPreview = NewLinkPreview(node)
 	dto.Video = NewVideo(node)
 	dto.Audio = NewAudio(node)
+	dto.Warning = NewWarning(node)
 
 	if node.Owner != nil {
 		dto.Owner = NewOwner(node.Owner)
@@ -92,6 +93,9 @@ type Parent struct {
 	// What a video post plays.
 	Video *Video `json:"video,omitempty"`
 	Audio *Audio `json:"audio,omitempty"`
+	// A post's content warning, when it has one, so that a repost or a
+	// quote of it is shown behind the warning too.
+	Warning *Warning `json:"warning,omitempty"`
 	// The profile it is on.
 	Owner *Owner `json:"owner,omitempty"`
 	// Who wrote it.

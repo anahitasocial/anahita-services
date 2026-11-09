@@ -79,6 +79,7 @@ as text: the page is made with a template that escapes all of it.
 | `address` | A person's handle: `ana@example.org` for somebody here, `alice@mastodon.social` or `alice.bsky.social` for somebody elsewhere |
 | `uri` | The ActivityPub id of a person or a post: the one their server gave, or, for what is here, `PUBLIC_API_URL/ap/users/<uuid>` and `/ap/notes/<uuid>`. None for a group or an event, which are not on the fediverse |
 | `hide_notifications`, `ends_at` | In `muted.json`: whether the mute hides their notifications, and when it ends, if it does |
+| `warning`, `warning_text` | In `posts.ndjson`: a post's content warning, its kind and an Other warning's words ([Content warnings](content-warnings.md)) |
 
 ## What is not
 

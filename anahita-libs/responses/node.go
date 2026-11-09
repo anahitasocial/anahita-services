@@ -96,6 +96,8 @@ type NodeItem struct {
 	Video *Video `json:"video,omitempty"`
 	// What an audio post plays.
 	Audio *Audio `json:"audio,omitempty"`
+	// A post's content warning, when it has one.
+	Warning *Warning `json:"warning,omitempty"`
 
 	// On a custom feed: its picture and what it shows. Left out on
 	// anything else.
@@ -178,6 +180,7 @@ func (r *NodeResponse) MapNodeItem(node *entities.AnahitaNode) *NodeItem {
 		MediaRemoved:         NewMediaRemoved(node),
 		Video:                NewVideo(node),
 		Audio:                NewAudio(node),
+		Warning:              NewWarning(node),
 		Authorized:           NewNodeAuthorized(node),
 		Author: func() *Author {
 			if node.Author != nil {

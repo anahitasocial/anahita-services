@@ -131,6 +131,9 @@ type ReplyAddRequest struct {
 	Language string `json:"language" form:"language" validate:"omitempty,max=12"`
 	// The link in it to show a card for, as on a note. See NoteAddRequest.
 	LinkPreviewURL string `json:"link_preview_url" form:"link_preview_url" validate:"omitempty,max=2000"`
+	// Its content warning, as on requests.MediumAddRequest.
+	Warning     string `json:"warning" form:"warning" validate:"omitempty,max=16"`
+	WarningText string `json:"warning_text" form:"warning_text" validate:"omitempty,max=400"`
 }
 
 // AddReply answers a post or a reply.
@@ -218,6 +221,10 @@ func (h *mediumHandler) newReply(c echo.Context, parentID int64, req *ReplyAddRe
 
 	reply.Enabled = true
 	reply.CommentStatus = true
+
+	if valid, _ := an_handlers.SetWarning(reply, req.Warning, req.WarningText); !valid {
+		return nil, nil, func() error { return an_handlers.RefuseWarning(c) }
+	}
 
 	// Only what it answers is sent. The graph works out the root from
 	// that, and gives the reply no audience of its own.

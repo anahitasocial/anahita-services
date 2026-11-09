@@ -413,3 +413,29 @@ func TestAVideoPostIsShownByItsPoster(t *testing.T) {
 		t.Errorf("the picture leads to %q (%d)", location, image.Code)
 	}
 }
+
+func TestAPostWithAWarningShowsNothingOfItself(t *testing.T) {
+	s, reader := newServer(t)
+
+	photo := reader.media[13]
+	photo.Warning = entities.WarningOther
+	photo.WarningText = "Spoilers: the last season"
+	photo.Body = "Who lives, who dies"
+
+	page := get(s, "/photos/13").Body.String()
+	for _, want := range []string{
+		`<meta property="og:description" content="Content warning: Spoilers: the last season"/>`,
+		`<meta property="og:image" content="https://www.example.org/statics/media/ogimage.jpg"/>`,
+	} {
+		if !strings.Contains(page, want) {
+			t.Errorf("missing %s in\n%s", want, page)
+		}
+	}
+	if strings.Contains(page, "Who lives") || strings.Contains(page, "post-13") {
+		t.Errorf("the post shows itself in\n%s", page)
+	}
+
+	if image := get(s, "/_shell/image/post-13"); image.Header().Get("Location") != "" && strings.Contains(image.Header().Get("Location"), "13_large") {
+		t.Errorf("its picture is still served: %q", image.Header().Get("Location"))
+	}
+}

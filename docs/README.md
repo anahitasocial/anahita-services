@@ -313,7 +313,15 @@ five, under Profiles.
    5. [What the web app does](post-language.md#what-the-web-app-does)
    6. [Where the code is](post-language.md#where-the-code-is)
    7. [What is not built](post-language.md#what-is-not-built)
-6. [Custom feeds](feeds.md) — feeds people build: what one is made of, who sees it, and what they see in it
+6. [Content warnings](content-warnings.md) — what a post holds, said by its author: the kinds, what is stored and sent, and what the web app shows
+   1. [The kinds](content-warnings.md#the-kinds)
+   2. [On a post](content-warnings.md#on-a-post)
+   3. [A warning the administrators gave](content-warnings.md#a-warning-the-administrators-gave)
+   4. [Where it is shown](content-warnings.md#where-it-is-shown)
+   5. [What the web app does](content-warnings.md#what-the-web-app-does)
+   6. [Where the code is](content-warnings.md#where-the-code-is)
+   7. [What is not built](content-warnings.md#what-is-not-built)
+7. [Custom feeds](feeds.md) — feeds people build: what one is made of, who sees it, and what they see in it
    1. [The home page](feeds.md#the-home-page)
    2. [A feed is a node](feeds.md#a-feed-is-a-node)
    3. [The definition](feeds.md#the-definition)
@@ -326,7 +334,7 @@ five, under Profiles.
    10. [Endpoints](feeds.md#endpoints)
    11. [Where the code is](feeds.md#where-the-code-is)
    12. [What is not built](feeds.md#what-is-not-built)
-7. [Search](search.md) — the order results come in, old and useful counting as much as new, and how an operator tunes it
+8. [Search](search.md) — the order results come in, old and useful counting as much as new, and how an operator tunes it
    1. [Two orders](search.md#two-orders)
    2. [Most relevant](search.md#most-relevant)
    3. [Old and useful counts as much as new](search.md#old-and-useful-counts-as-much-as-new)

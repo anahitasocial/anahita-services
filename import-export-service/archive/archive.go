@@ -134,9 +134,13 @@ type Post struct {
 	// Its pictures and videos, as paths in this archive.
 	Media         []string `json:"media,omitempty"`
 	AllowDownload bool     `json:"allow_download,omitempty"`
-	Likes         int64    `json:"likes"`
-	Replies       int64    `json:"replies"`
-	Reposts       int64    `json:"reposts"`
+	// Its content warning, when it has one: its kind, and an Other
+	// warning's words.
+	Warning     string `json:"warning,omitempty"`
+	WarningText string `json:"warning_text,omitempty"`
+	Likes       int64  `json:"likes"`
+	Replies     int64  `json:"replies"`
+	Reposts     int64  `json:"reposts"`
 }
 
 // Ref names somebody or something else: enough to recognise it and find it,
@@ -450,6 +454,8 @@ func (b *Builder) postOf(node *entities.AnahitaNode, files []*entities.PhotoFile
 		Language:      node.Language,
 		Quotes:        node.QuoteID,
 		AllowDownload: node.AllowDownload,
+		Warning:       node.Warning,
+		WarningText:   node.WarningText,
 		Likes:         node.LikesCount,
 		Replies:       node.CommentCount,
 		Reposts:       node.RepostCount,

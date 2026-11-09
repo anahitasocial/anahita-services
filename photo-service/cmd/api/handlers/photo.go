@@ -256,6 +256,11 @@ type PhotoAddRequest struct {
 	// Who may quote it: "anyone", "followers" or "nobody". Left out, the
 	// author's own setting applies.
 	QuotePolicy string `json:"quote_policy" form:"quote_policy" validate:"omitempty,max=16"`
+	// Its content warning: "adult", "suggestive", "graphic", "nudity" or
+	// "other", with the words of an "other" warning, up to 100
+	// characters. Left out, none.
+	Warning     string `json:"warning" form:"warning" validate:"omitempty,max=16"`
+	WarningText string `json:"warning_text" form:"warning_text" validate:"omitempty,max=400"`
 	// The images, in order, each an upload made for this profile.
 	Uploads []FileRef `json:"uploads" form:"-"`
 	// What the one image of a form post shows.
@@ -352,6 +357,11 @@ func (h *photoHandler) Add(c echo.Context) error {
 		return handlers.RefuseQuotePolicy(c)
 	} else if quotePolicy != "" {
 		medium.QuotePolicy = quotePolicy
+	}
+
+	// Its content warning, when the author gives it one.
+	if valid, _ := handlers.SetWarning(medium, req.Warning, req.WarningText); !valid {
+		return handlers.RefuseWarning(c)
 	}
 	medium.Access = handlers.DetermineMediumNodeAccess(req.Access, medium.Owner.Access)
 
