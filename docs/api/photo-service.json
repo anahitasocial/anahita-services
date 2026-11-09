@@ -1264,9 +1264,10 @@
               "schema": {
                 "properties": {
                   "content": {
-                    "description": "Its words, as Markdown, if it has any.",
+                    "description": "Its words, as Markdown, if it has any. Up to 500 characters, a link counted as 23.",
                     "maxLength": 8000,
-                    "type": "string"
+                    "type": "string",
+                    "x-validate": "post_length"
                   },
                   "language": {
                     "description": "The language it is written in, as a BCP 47 tag.",
@@ -1286,9 +1287,10 @@
               "schema": {
                 "properties": {
                   "content": {
-                    "description": "Its words, as Markdown, if it has any.",
+                    "description": "Its words, as Markdown, if it has any. Up to 500 characters, a link counted as 23.",
                     "maxLength": 8000,
-                    "type": "string"
+                    "type": "string",
+                    "x-validate": "post_length"
                   },
                   "language": {
                     "description": "The language it is written in, as a BCP 47 tag.",
@@ -2050,9 +2052,10 @@
               "schema": {
                 "properties": {
                   "content": {
-                    "description": "Its words, as Markdown. A reply with pictures need not have any.",
+                    "description": "Its words, as Markdown. A reply with pictures need not have any. Up to 500 characters, a link counted as 23.",
                     "maxLength": 8000,
-                    "type": "string"
+                    "type": "string",
+                    "x-validate": "post_length"
                   },
                   "language": {
                     "description": "The language it is written in, as a BCP 47 tag.",
@@ -2074,9 +2077,10 @@
               "schema": {
                 "properties": {
                   "content": {
-                    "description": "Its words, as Markdown. A reply with pictures need not have any.",
+                    "description": "Its words, as Markdown. A reply with pictures need not have any. Up to 500 characters, a link counted as 23.",
                     "maxLength": 8000,
-                    "type": "string"
+                    "type": "string",
+                    "x-validate": "post_length"
                   },
                   "language": {
                     "description": "The language it is written in, as a BCP 47 tag.",
@@ -2091,9 +2095,10 @@
               "schema": {
                 "properties": {
                   "content": {
-                    "description": "Its words, as Markdown. A reply with pictures need not have any.",
+                    "description": "Its words, as Markdown. A reply with pictures need not have any. Up to 500 characters, a link counted as 23.",
                     "maxLength": 8000,
-                    "type": "string"
+                    "type": "string",
+                    "x-validate": "post_length"
                   },
                   "language": {
                     "description": "The language it is written in, as a BCP 47 tag.",
@@ -2495,9 +2500,10 @@
                     "type": "string"
                   },
                   "content": {
-                    "description": "Its words, as Markdown, if it has any.",
+                    "description": "Its words, as Markdown, if it has any. Up to 500 characters, a link counted as 23.",
                     "maxLength": 8000,
-                    "type": "string"
+                    "type": "string",
+                    "x-validate": "post_length"
                   },
                   "language": {
                     "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\".",
@@ -2563,9 +2569,10 @@
                     "type": "string"
                   },
                   "content": {
-                    "description": "Its words, as Markdown, if it has any.",
+                    "description": "Its words, as Markdown, if it has any. Up to 500 characters, a link counted as 23.",
                     "maxLength": 8000,
-                    "type": "string"
+                    "type": "string",
+                    "x-validate": "post_length"
                   },
                   "language": {
                     "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\".",

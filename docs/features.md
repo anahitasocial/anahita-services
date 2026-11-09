@@ -52,7 +52,7 @@ is gathered at the end, [for planning](#not-built).
 | Content warnings | planned | [Content warnings](plans/content-warnings.md) |
 | Formatted text in posts | yes | |
 | Write in Markdown | yes | Posts are kept as Markdown |
-| Posts over 500 characters | yes | Up to 8,000 |
+| Posts over 500 characters | no | 500, as Mastodon and Threads, a link counted as 23; longer is a thread, an article or a topic (roadmap row 144) |
 | Admin-configurable post length | no | |
 | Polls | no | |
 | Scheduled posts | no | |

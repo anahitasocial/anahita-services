@@ -3,6 +3,7 @@ package handlers
 import (
 	an_constants "anahita-libs/constants"
 	"anahita-libs/policy"
+	"anahita-libs/posts"
 	"anahita-libs/videos"
 	"log"
 	"net/http"
@@ -158,7 +159,7 @@ type NodeInfoDocument struct {
 	OpenRegistrations bool `json:"openRegistrations"`
 	// How much it is used.
 	Usage nodeInfoUsage `json:"usage"`
-	// What the web app reads of the installation: `nodeName`, `nodeDescription`, `logoUrl`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `websitesFrom`, `locationsFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `siteRules`, `spamRemovalMaxDays`, `accountGraceDays`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `audioMaxBytes`, `audioMaxSeconds`, `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.
+	// What the web app reads of the installation: `nodeName`, `nodeDescription`, `logoUrl`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `websitesFrom`, `locationsFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `siteRules`, `spamRemovalMaxDays`, `accountGraceDays`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `audioMaxBytes`, `audioMaxSeconds`, `postMaxLength`, `postLinkLength`, `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.
 	Metadata map[string]any `json:"metadata"`
 }
 
@@ -334,6 +335,10 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 			// may be.
 			"audioMaxBytes":   videos.AudioMaxBytes(),
 			"audioMaxSeconds": videos.AudioMaxSeconds(),
+			// How long a short post may be (roadmap row 144), a link
+			// counted as 23 however long, as Mastodon counts it.
+			"postMaxLength":  posts.MaxLength,
+			"postLinkLength": posts.LinkLength,
 
 			"termsOfServiceUrl": h.Config.GetTosURL(),
 			"privacyPolicyUrl":  h.Config.GetPrivacyURL(),

@@ -47,8 +47,8 @@ func NewNoteRequest() *NoteRequest {
 type NoteEditRequest struct {
 	// The note's id.
 	ID int64 `param:"id" validate:"required,numeric"`
-	// Its words, as Markdown.
-	Content string `form:"content" validate:"required,max=8000"`
+	// Its words, as Markdown. Up to 500 characters, a link counted as 23.
+	Content string `form:"content" validate:"required,max=8000,post_length"`
 	// As on NoteAddRequest. Left out, the note keeps the preview it has for
 	// as long as that link is still in it.
 	LinkPreviewURL string `json:"link_preview_url" form:"link_preview_url" validate:"omitempty,max=2000"`
@@ -68,8 +68,8 @@ type NoteEditAccessRequest struct {
 type NoteAddRequest struct {
 	// The profile it is posted on.
 	OwnerID int64 `param:"owner_id" validate:"required,numeric"`
-	// Its words, as Markdown.
-	Content string `form:"content" validate:"required,max=8000"`
+	// Its words, as Markdown. Up to 500 characters, a link counted as 23.
+	Content string `form:"content" validate:"required,max=8000,post_length"`
 	// Who may see it (permissions.md). The widest the installation allows
 	// when left out.
 	Access string `form:"access" validate:"omitempty,oneof=public registered followers leaders mutuals admins myself"`

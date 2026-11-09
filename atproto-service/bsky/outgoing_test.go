@@ -10,7 +10,9 @@ func TestWhatIsWrittenHereAsABlueskyPost(t *testing.T) {
 	at := time.Date(2026, 10, 13, 6, 0, 0, 0, time.UTC)
 	post := NewOutPost("Café **news**: [the story](https://example.com/a?b=1) and https://example.org/x. See #garden, not a#b\n\n> quoted\\_words", "en", at)
 
-	want := "Café news: the story and https://example.org/x. See #garden, not a#b\n\nquoted_words"
+	// The address standing alone shown short, as Bluesky's app shows it
+	// (roadmap row 144).
+	want := "Café news: the story and example.org/x. See #garden, not a#b\n\nquoted_words"
 	if post.Text != want {
 		t.Fatalf("text %q\nwant %q", post.Text, want)
 	}
@@ -27,9 +29,9 @@ func TestWhatIsWrittenHereAsABlueskyPost(t *testing.T) {
 		}
 	}
 	for words, is := range map[string]string{
-		"the story":             "https://example.com/a?b=1",
-		"https://example.org/x": "https://example.org/x",
-		"#garden":               "garden",
+		"the story":     "https://example.com/a?b=1",
+		"example.org/x": "https://example.org/x",
+		"#garden":       "garden",
 	} {
 		if marked[words] != is {
 			t.Errorf("%q marked as %q, want %q (%v)", words, marked[words], is, marked)
@@ -37,6 +39,19 @@ func TestWhatIsWrittenHereAsABlueskyPost(t *testing.T) {
 	}
 	if len(post.Facets) != 3 {
 		t.Errorf("%d stretches marked", len(post.Facets))
+	}
+}
+
+// A long address is shown as 23 characters, what it costs here, and leads
+// to the whole of it.
+func TestALongLinkIsShownShort(t *testing.T) {
+	address := "https://www.example.org/2026/11/08/the-long-walk-up-to-the-ring?utm_source=anahita"
+	if shown := ShortLink(address); shown != "example.org/2026/11/08…" || len([]rune(shown)) != 23 {
+		t.Errorf("shown as %q", shown)
+	}
+	post := NewOutPost("Read "+address, "", time.Now())
+	if post.Text != "Read example.org/2026/11/08…" || len(post.Facets) != 1 || post.Facets[0].Features[0]["uri"] != address {
+		t.Errorf("%q %+v", post.Text, post.Facets)
 	}
 }
 

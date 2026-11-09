@@ -678,7 +678,7 @@ func TestANoteOfOnesOwnGoesToBluesky(t *testing.T) {
 
 	out, _ := json.Marshal(w.writer.records["app.bsky.feed.post/"+w.sent.rows[0].RKey])
 	for _, want := range []string{
-		`"text":"Anahita to Bluesky #HelloWorld https://example.com/story"`, `"tag":"HelloWorld"`,
+		`"text":"Anahita to Bluesky #HelloWorld example.com/story"`, `"tag":"HelloWorld"`,
 		`"embed":{"$type":"app.bsky.embed.external","external":{"uri":"https://example.com/story","title":"The story","description":"What it says"}}`,
 	} {
 		if !strings.Contains(string(out), want) {

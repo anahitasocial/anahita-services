@@ -1747,9 +1747,10 @@
               "schema": {
                 "properties": {
                   "content": {
-                    "description": "Its words, as Markdown.",
+                    "description": "Its words, as Markdown. Up to 500 characters, a link counted as 23.",
                     "maxLength": 8000,
-                    "type": "string"
+                    "type": "string",
+                    "x-validate": "post_length"
                   },
                   "language": {
                     "description": "The language it is written in, as a BCP 47 tag.",
@@ -1769,9 +1770,10 @@
               "schema": {
                 "properties": {
                   "content": {
-                    "description": "Its words, as Markdown.",
+                    "description": "Its words, as Markdown. Up to 500 characters, a link counted as 23.",
                     "maxLength": 8000,
-                    "type": "string"
+                    "type": "string",
+                    "x-validate": "post_length"
                   },
                   "language": {
                     "description": "The language it is written in, as a BCP 47 tag.",
@@ -1791,9 +1793,10 @@
               "schema": {
                 "properties": {
                   "content": {
-                    "description": "Its words, as Markdown.",
+                    "description": "Its words, as Markdown. Up to 500 characters, a link counted as 23.",
                     "maxLength": 8000,
-                    "type": "string"
+                    "type": "string",
+                    "x-validate": "post_length"
                   },
                   "language": {
                     "description": "The language it is written in, as a BCP 47 tag.",
@@ -2804,9 +2807,10 @@
                     "type": "boolean"
                   },
                   "content": {
-                    "description": "Its words, as Markdown.",
+                    "description": "Its words, as Markdown. Up to 500 characters, a link counted as 23.",
                     "maxLength": 8000,
-                    "type": "string"
+                    "type": "string",
+                    "x-validate": "post_length"
                   },
                   "content_type": {
                     "description": "What kind of file it is: `video/mp4`, `video/quicktime`, `video/webm`, `image/gif` or `image/png`.",
@@ -2878,9 +2882,10 @@
                     "type": "boolean"
                   },
                   "content": {
-                    "description": "Its words, as Markdown.",
+                    "description": "Its words, as Markdown. Up to 500 characters, a link counted as 23.",
                     "maxLength": 8000,
-                    "type": "string"
+                    "type": "string",
+                    "x-validate": "post_length"
                   },
                   "content_type": {
                     "description": "What kind of file it is: `video/mp4`, `video/quicktime`, `video/webm`, `image/gif` or `image/png`.",
@@ -2952,9 +2957,10 @@
                     "type": "boolean"
                   },
                   "content": {
-                    "description": "Its words, as Markdown.",
+                    "description": "Its words, as Markdown. Up to 500 characters, a link counted as 23.",
                     "maxLength": 8000,
-                    "type": "string"
+                    "type": "string",
+                    "x-validate": "post_length"
                   },
                   "content_type": {
                     "description": "What kind of file it is: `video/mp4`, `video/quicktime`, `video/webm`, `image/gif` or `image/png`.",

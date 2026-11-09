@@ -20,10 +20,9 @@ const (
 	BioMax = 500
 	// A post's title: an article's, a topic's, a photo's, a video's.
 	TitleMax = 100
-	// What a post says: a note, a reply, an article, a topic, a photo's or
-	// a video's description; and an event's details. Mastodon shows any
-	// length it is sent; Bluesky is sent the first 300, and a link to the
-	// rest.
+	// The most any post may say: an article or a topic, and an event's
+	// details. A short post (a note, a reply, a photo's, a video's or a
+	// sound's words) holds posts.MaxLength, 500 (roadmap row 144).
 	PostBodyMax = 8000
 
 	// ThreadPartsMax is how many posts a thread written in one go may have

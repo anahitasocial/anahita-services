@@ -30,8 +30,9 @@ import (
 // the link in it to show a card for, as on a note; or, with pictures, a
 // photo post in the thread (roadmap row 143), which needs no words.
 type ThreadPart struct {
-	// Its words, as Markdown. A part with pictures need not have any.
-	Content string `json:"content" validate:"omitempty,max=8000"`
+	// Its words, as Markdown. A part with pictures need not have any. Up to 500
+	// characters, a link counted as 23.
+	Content string `json:"content" validate:"omitempty,max=8000,post_length"`
 	// The language it is written in, as a BCP 47 tag.
 	Language string `json:"language" validate:"omitempty,max=12"`
 	// The link in it to show a card for. Not on a part with pictures.

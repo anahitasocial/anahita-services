@@ -2,6 +2,7 @@ package bsky
 
 import (
 	"anahita-libs/constants"
+	"anahita-libs/posts"
 	"regexp"
 	"strings"
 	"time"
@@ -221,6 +222,19 @@ var (
 	outQuote    = regexp.MustCompile(`(?m)^>\s?`)
 )
 
+// ShortLink is how a link standing alone is shown: without its scheme or a
+// leading "www.", and cut to posts.LinkLength with "…", what it is counted
+// as here.
+func ShortLink(address string) string {
+	shown := strings.TrimPrefix(strings.TrimPrefix(address, "https://"), "http://")
+	shown = strings.TrimPrefix(shown, "www.")
+	shown = strings.TrimSuffix(shown, "/")
+	if letters := []rune(shown); len(letters) > posts.LinkLength {
+		return string(letters[:posts.LinkLength-1]) + "…"
+	}
+	return shown
+}
+
 // plain is words with Markdown's marks taken out.
 func plain(markdown string) string {
 	markdown = outHeading.ReplaceAllString(markdown, "")
@@ -263,7 +277,10 @@ func NewOutPost(markdown, language string, at time.Time) *OutPost {
 		case m[6] >= 0: // an address alone
 			address := strings.TrimRight(markdown[m[6]:m[7]], ".,;:!?")
 			at0 = m[6] + len(address)
-			mark(address, map[string]string{"$type": "app.bsky.richtext.facet#link", "uri": address})
+			// Shown short, as Bluesky's own app shows a link, the whole
+			// address beside it: it costs there what it costs here
+			// (roadmap row 144).
+			mark(ShortLink(address), map[string]string{"$type": "app.bsky.richtext.facet#link", "uri": address})
 		default: // #hashtag, after what came before it
 			text.WriteString(markdown[m[8]:m[9]])
 			tag := markdown[m[10]:m[11]]

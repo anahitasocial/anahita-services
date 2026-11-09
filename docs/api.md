@@ -118,7 +118,8 @@ longer one is refused with `400`.
 | A username, and so a handle | 3 to 30 | Mastodon's |
 | What a person or a group says of itself | 500 | Mastodon's. Bluesky's is 256, but a profile here is never written there |
 | A post's title | 100 | |
-| What a post says: a note, a reply, an article, a topic, a photo's or a video's description; an event's details | 8,000 | Mastodon shows a post of any length from another server. Bluesky is sent the first 300 characters and, for a note, a link to the rest |
+| What a short post says: a note, a reply, a thread's note, a photo's, a video's or a sound's words, when written and when edited | 500, a link counted as 23 however long, a Markdown link as its words (`posts.MaxLength`, `post_length`; roadmap row 144) | Mastodon's and Threads'. Bluesky is sent the first 300 and a link to the rest; longer is a thread, an article or a topic. NodeInfo says it: `postMaxLength`, `postLinkLength` |
+| What an article or a topic says; an event's details | 8,000 | Mastodon shows a post of any length from another server |
 | A location's name | 100 | |
 | An image's description, written here | 2,000 | Bluesky's own app. One from another server is kept up to 10,000, Mastodon's |
 

@@ -177,8 +177,8 @@ type VideoEditRequest struct {
 	ID int64 `param:"id" validate:"required,numeric"`
 	// Its title, if it has one.
 	Title string `json:"title" form:"title" validate:"omitempty,max=100"`
-	// Its words, as Markdown.
-	Content string `json:"content" form:"content" validate:"omitempty,max=8000"`
+	// Its words, as Markdown. Up to 500 characters, a link counted as 23.
+	Content string `json:"content" form:"content" validate:"omitempty,max=8000,post_length"`
 	// The language it is written in, as a BCP 47 tag.
 	Language string `json:"language" form:"language" validate:"omitempty,max=12"`
 }

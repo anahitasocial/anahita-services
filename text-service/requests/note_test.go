@@ -3,6 +3,8 @@ package requests
 import (
 	"testing"
 
+	"anahita-libs/validators"
+
 	"github.com/go-playground/validator/v10"
 )
 
@@ -12,7 +14,9 @@ import (
 // (migrations/20261003000001_delete_private_notes.sql). This keeps the shape
 // from coming back through the API.
 func TestNoteAccessIsAKeyword(t *testing.T) {
-	validate := validator.New()
+	// The validator the service runs with, its own rules (post_length)
+	// among them.
+	validate := validators.NewRequestValidator(validator.New()).Validator
 
 	cases := []struct {
 		access string

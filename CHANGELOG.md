@@ -40,6 +40,18 @@ Releases before v1.0.17 are described on GitHub, under
    thread is still all or none. The first part's are uploaded for the
    profile it is on and take `allow_download`; the rest are the writer's.
 
+### Changed
+
+1. **Short posts of 500 characters** (roadmap row 144): a note, a reply, a
+   thread's note, and a photo's, video's or sound's words hold 500, as on
+   Mastodon and Threads, when written and when edited (`post_length`, from
+   `anahita-libs/posts`); a link counts as 23 however long, a Markdown link
+   as its words. Articles, topics and an event's details keep 8,000.
+   NodeInfo says it: `postMaxLength`, `postLinkLength`. To Bluesky, a link
+   standing alone is shown short, at most 23 characters, with the whole
+   address beside it. Posts already longer stay as they are; an edit is
+   held to 500.
+
 ### Fixed
 
 1. **The nightly file sweep keeps the copies of videos from other

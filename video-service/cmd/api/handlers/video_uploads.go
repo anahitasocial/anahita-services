@@ -40,8 +40,8 @@ type UploadStartRequest struct {
 	OwnerID int64 `param:"owner_id" validate:"required,numeric"`
 	// Its title, if it has one: neither a post nor a reply needs one.
 	Title string `json:"title" form:"title" validate:"omitempty,max=100"`
-	// Its words, as Markdown.
-	Content string `json:"content" form:"content" validate:"omitempty,max=8000"`
+	// Its words, as Markdown. Up to 500 characters, a link counted as 23.
+	Content string `json:"content" form:"content" validate:"omitempty,max=8000,post_length"`
 	// Who may see it (permissions.md).
 	Access string `json:"access" form:"access" validate:"omitempty,oneof=public registered followers leaders mutuals admins myself"`
 	// The language it is written in, as a BCP 47 tag.

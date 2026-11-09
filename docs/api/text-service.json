@@ -1232,7 +1232,7 @@
         "description": "ThreadPart is one note of a thread: what it says, in what language, and the link in it to show a card for, as on a note; or, with pictures, a photo post in the thread (roadmap row 143), which needs no words.",
         "properties": {
           "content": {
-            "description": "Its words, as Markdown. A part with pictures need not have any.",
+            "description": "Its words, as Markdown. A part with pictures need not have any. Up to 500 characters, a link counted as 23.",
             "type": "string"
           },
           "language": {
@@ -2889,9 +2889,10 @@
               "schema": {
                 "properties": {
                   "content": {
-                    "description": "Its words, as Markdown.",
+                    "description": "Its words, as Markdown. Up to 500 characters, a link counted as 23.",
                     "maxLength": 8000,
-                    "type": "string"
+                    "type": "string",
+                    "x-validate": "post_length"
                   },
                   "language": {
                     "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\". Chosen by the author; left out, the post has none. See package language.",
@@ -2918,9 +2919,10 @@
               "schema": {
                 "properties": {
                   "content": {
-                    "description": "Its words, as Markdown.",
+                    "description": "Its words, as Markdown. Up to 500 characters, a link counted as 23.",
                     "maxLength": 8000,
-                    "type": "string"
+                    "type": "string",
+                    "x-validate": "post_length"
                   },
                   "language": {
                     "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\". Chosen by the author; left out, the post has none. See package language.",
@@ -3788,9 +3790,10 @@
               "schema": {
                 "properties": {
                   "content": {
-                    "description": "Its words, as Markdown.",
+                    "description": "Its words, as Markdown. Up to 500 characters, a link counted as 23.",
                     "maxLength": 8000,
-                    "type": "string"
+                    "type": "string",
+                    "x-validate": "post_length"
                   },
                   "language": {
                     "description": "The language it is written in, as a BCP 47 tag.",
@@ -3813,9 +3816,10 @@
               "schema": {
                 "properties": {
                   "content": {
-                    "description": "Its words, as Markdown.",
+                    "description": "Its words, as Markdown. Up to 500 characters, a link counted as 23.",
                     "maxLength": 8000,
-                    "type": "string"
+                    "type": "string",
+                    "x-validate": "post_length"
                   },
                   "language": {
                     "description": "The language it is written in, as a BCP 47 tag.",
@@ -3838,9 +3842,10 @@
               "schema": {
                 "properties": {
                   "content": {
-                    "description": "Its words, as Markdown.",
+                    "description": "Its words, as Markdown. Up to 500 characters, a link counted as 23.",
                     "maxLength": 8000,
-                    "type": "string"
+                    "type": "string",
+                    "x-validate": "post_length"
                   },
                   "language": {
                     "description": "The language it is written in, as a BCP 47 tag.",
@@ -4542,9 +4547,10 @@
                     "type": "string"
                   },
                   "content": {
-                    "description": "Its words, as Markdown.",
+                    "description": "Its words, as Markdown. Up to 500 characters, a link counted as 23.",
                     "maxLength": 8000,
-                    "type": "string"
+                    "type": "string",
+                    "x-validate": "post_length"
                   },
                   "language": {
                     "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\". Chosen by the author; left out, the post has none. See package language.",
@@ -4606,9 +4612,10 @@
                     "type": "string"
                   },
                   "content": {
-                    "description": "Its words, as Markdown.",
+                    "description": "Its words, as Markdown. Up to 500 characters, a link counted as 23.",
                     "maxLength": 8000,
-                    "type": "string"
+                    "type": "string",
+                    "x-validate": "post_length"
                   },
                   "language": {
                     "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\". Chosen by the author; left out, the post has none. See package language.",

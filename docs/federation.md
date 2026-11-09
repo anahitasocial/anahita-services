@@ -1581,7 +1581,10 @@ its own. The card says to use one and where to make it.
    megabytes for each: one that weighs more is made smaller, and written
    again as a JPEG when that is not enough. Words become
    what Bluesky takes: Markdown's marks are taken out, links and the first
-   ten hashtags are marked as such, and what is longer than three hundred letters is cut
+   ten hashtags are marked as such, a link standing alone shown short, as
+   Bluesky's app shows one, 23 characters at most with the whole address
+   beside it (`bsky.ShortLink`, roadmap row 144), and what is longer than
+   three hundred letters is cut
    with a mark to say so; a note so cut carries a card of itself here,
    where the rest is. A post with pictures or a video has no room for a
    card, so when it is cut its words end instead with the address of the

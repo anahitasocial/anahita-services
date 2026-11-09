@@ -6467,7 +6467,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>content</code> <span class="required">always</span></td><td>string</td><td>Its words, as Markdown. At most 8000 characters.</td></tr>
+<tr><td><code>content</code> <span class="required">always</span></td><td>string</td><td>Its words, as Markdown. Up to 500 characters, a link counted as 23. At most 8000 characters.</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>The language it is written in, as a BCP 47 tag: &#34;en&#34;, &#34;fr-CA&#34;. Chosen by the author; left out, the post has none. See package language. At most 12 characters.</td></tr>
 <tr><td><code>link_preview_remove</code></td><td>boolean</td><td>The writer took the card off: the note is saved without one, though its link is still there.</td></tr>
 <tr><td><code>link_preview_url</code></td><td>string</td><td>As on NoteAddRequest. Left out, the note keeps the preview it has for as long as that link is still in it. At most 2000 characters.</td></tr>
@@ -6778,7 +6778,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>content</code> <span class="required">always</span></td><td>string</td><td>Its words, as Markdown. At most 8000 characters.</td></tr>
+<tr><td><code>content</code> <span class="required">always</span></td><td>string</td><td>Its words, as Markdown. Up to 500 characters, a link counted as 23. At most 8000 characters.</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>The language it is written in, as a BCP 47 tag. At most 12 characters.</td></tr>
 <tr><td><code>link_preview_url</code></td><td>string</td><td>The link in it to show a card for, as on a note. See NoteAddRequest. At most 2000 characters.</td></tr>
 </tbody>
@@ -6984,7 +6984,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
 <tr><td><code>access</code></td><td>string</td><td>Who may see it (<a href="../permissions.md">permissions.md</a>). The widest the installation allows when left out. One of <code>public</code>, <code>registered</code>, <code>followers</code>, <code>leaders</code>, <code>mutuals</code>, <code>admins</code>, <code>myself</code>. <code>public</code> unless given.</td></tr>
-<tr><td><code>content</code> <span class="required">always</span></td><td>string</td><td>Its words, as Markdown. At most 8000 characters.</td></tr>
+<tr><td><code>content</code> <span class="required">always</span></td><td>string</td><td>Its words, as Markdown. Up to 500 characters, a link counted as 23. At most 8000 characters.</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>The language it is written in, as a BCP 47 tag: &#34;en&#34;, &#34;fr-CA&#34;. Chosen by the author; left out, the post has none. See package language. At most 12 characters.</td></tr>
 <tr><td><code>link_preview_url</code></td><td>string</td><td>The link whose preview the note carries: one its writer was shown a preview of while writing. Only the address is taken. What the card says is what this installation read off the page, and never what is sent here. At most 2000 characters.</td></tr>
 <tr><td><code>location_ids</code></td><td>list of integer</td><td>The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its <code>location</code>, all as <code>Place</code>s in its <code>tag</code> (roadmap row 82, part 3b). Up to five; what is not a location is passed over. At most 5 of them.</td></tr>
@@ -7412,7 +7412,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>content</code></td><td>string</td><td>Its words, as Markdown, if it has any. At most 8000 characters.</td></tr>
+<tr><td><code>content</code></td><td>string</td><td>Its words, as Markdown, if it has any. Up to 500 characters, a link counted as 23. At most 8000 characters.</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>The language it is written in, as a BCP 47 tag. At most 12 characters.</td></tr>
 <tr><td><code>title</code></td><td>string</td><td>Its title, if it has one. At most 100 characters.</td></tr>
 </tbody>
@@ -7697,7 +7697,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>content</code></td><td>string</td><td>Its words, as Markdown. A reply with pictures need not have any. At most 8000 characters.</td></tr>
+<tr><td><code>content</code></td><td>string</td><td>Its words, as Markdown. A reply with pictures need not have any. Up to 500 characters, a link counted as 23. At most 8000 characters.</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>The language it is written in, as a BCP 47 tag. At most 12 characters.</td></tr>
 <tr><td><code>uploads</code></td><td>list of <a href="#schema-FileRef">FileRef</a></td><td>Its pictures, each uploaded first for the person replying.</td></tr>
 </tbody>
@@ -7706,7 +7706,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>content</code></td><td>string</td><td>Its words, as Markdown. A reply with pictures need not have any. At most 8000 characters.</td></tr>
+<tr><td><code>content</code></td><td>string</td><td>Its words, as Markdown. A reply with pictures need not have any. Up to 500 characters, a link counted as 23. At most 8000 characters.</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>The language it is written in, as a BCP 47 tag. At most 12 characters.</td></tr>
 </tbody>
 </table>
@@ -7814,7 +7814,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>access</code></td><td>string</td><td>Who may see it (<a href="../permissions.md">permissions.md</a>). The widest the installation allows when left out. One of <code>public</code>, <code>registered</code>, <code>followers</code>, <code>leaders</code>, <code>mutuals</code>, <code>admins</code>, <code>myself</code>. <code>public</code> unless given.</td></tr>
 <tr><td><code>allow_download</code></td><td>boolean</td><td>Whether whoever can see it may download it. Left out, the post starts with what the profile it is on says.</td></tr>
 <tr><td><code>alt_text</code></td><td>string</td><td>What the one image of a form post shows.</td></tr>
-<tr><td><code>content</code></td><td>string</td><td>Its words, as Markdown, if it has any. At most 8000 characters.</td></tr>
+<tr><td><code>content</code></td><td>string</td><td>Its words, as Markdown, if it has any. Up to 500 characters, a link counted as 23. At most 8000 characters.</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>The language it is written in, as a BCP 47 tag: &#34;en&#34;, &#34;fr-CA&#34;. At most 12 characters.</td></tr>
 <tr><td><code>library_only</code></td><td>boolean</td><td>In the author&#39;s media library only: put up from inside the article editor to be shown in an article, and listed and announced nowhere. Only on the author&#39;s own profile.</td></tr>
 <tr><td><code>location_ids</code></td><td>list of integer</td><td>The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its <code>location</code>, all as <code>Place</code>s in its <code>tag</code> (roadmap row 82, part 3b). Up to five; what is not a location is passed over. At most 5 of them.</td></tr>
@@ -8080,7 +8080,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>content</code></td><td>string</td><td>Its words, as Markdown. At most 8000 characters.</td></tr>
+<tr><td><code>content</code></td><td>string</td><td>Its words, as Markdown. Up to 500 characters, a link counted as 23. At most 8000 characters.</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>The language it is written in, as a BCP 47 tag. At most 12 characters.</td></tr>
 <tr><td><code>title</code></td><td>string</td><td>Its title, if it has one. At most 100 characters.</td></tr>
 </tbody>
@@ -8416,7 +8416,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tbody>
 <tr><td><code>access</code></td><td>string</td><td>Who may see it (<a href="../permissions.md">permissions.md</a>). One of <code>public</code>, <code>registered</code>, <code>followers</code>, <code>leaders</code>, <code>mutuals</code>, <code>admins</code>, <code>myself</code>.</td></tr>
 <tr><td><code>allow_download</code></td><td>boolean</td><td>Whether whoever can see it may download it. Left out, the post starts with what the profile it is on says.</td></tr>
-<tr><td><code>content</code></td><td>string</td><td>Its words, as Markdown. At most 8000 characters.</td></tr>
+<tr><td><code>content</code></td><td>string</td><td>Its words, as Markdown. Up to 500 characters, a link counted as 23. At most 8000 characters.</td></tr>
 <tr><td><code>content_type</code> <span class="required">always</span></td><td>string</td><td>What kind of file it is: <code>video/mp4</code>, <code>video/quicktime</code>, <code>video/webm</code>, <code>image/gif</code> or <code>image/png</code>. At most 100 characters.</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>The language it is written in, as a BCP 47 tag. At most 12 characters.</td></tr>
 <tr><td><code>library_only</code></td><td>boolean</td><td>In the author&#39;s media library only: put up from inside the article editor to be shown in an article, and listed and announced nowhere. Only on the author&#39;s own profile, and never a reply.</td></tr>
@@ -12595,7 +12595,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>metadata</code> <span class="required">always</span></td><td>map of anything or null</td><td>What the web app reads of the installation: <code>nodeName</code>, <code>nodeDescription</code>, <code>logoUrl</code>, <code>registrationMode</code>, <code>approvalRequired</code>, <code>invitationsAccepted</code>, <code>invitesFrom</code>, <code>groupsFrom</code>, <code>eventsFrom</code>, <code>websitesFrom</code>, <code>locationsFrom</code>, <code>minContentAccess</code>, <code>readAccess</code>, <code>networks</code>, <code>photoMaxFiles</code>, <code>siteRules</code>, <code>spamRemovalMaxDays</code>, <code>accountGraceDays</code>, <code>videoUploads</code>, <code>videoMaxBytes</code>, <code>videoMaxSeconds</code>, <code>animationMaxBytes</code>, <code>animationMaxSeconds</code>, <code>audioMaxBytes</code>, <code>audioMaxSeconds</code>, <code>termsOfServiceUrl</code>, <code>privacyPolicyUrl</code>, and the support contacts <code>supportEmail</code>, <code>supportPhone</code> and <code>supportWebsite</code>.</td></tr>
+<tr><td><code>metadata</code> <span class="required">always</span></td><td>map of anything or null</td><td>What the web app reads of the installation: <code>nodeName</code>, <code>nodeDescription</code>, <code>logoUrl</code>, <code>registrationMode</code>, <code>approvalRequired</code>, <code>invitationsAccepted</code>, <code>invitesFrom</code>, <code>groupsFrom</code>, <code>eventsFrom</code>, <code>websitesFrom</code>, <code>locationsFrom</code>, <code>minContentAccess</code>, <code>readAccess</code>, <code>networks</code>, <code>photoMaxFiles</code>, <code>siteRules</code>, <code>spamRemovalMaxDays</code>, <code>accountGraceDays</code>, <code>videoUploads</code>, <code>videoMaxBytes</code>, <code>videoMaxSeconds</code>, <code>animationMaxBytes</code>, <code>animationMaxSeconds</code>, <code>audioMaxBytes</code>, <code>audioMaxSeconds</code>, <code>postMaxLength</code>, <code>postLinkLength</code>, <code>termsOfServiceUrl</code>, <code>privacyPolicyUrl</code>, and the support contacts <code>supportEmail</code>, <code>supportPhone</code> and <code>supportWebsite</code>.</td></tr>
 <tr><td><code>openRegistrations</code> <span class="required">always</span></td><td>boolean</td><td>Whether anybody may sign up without being invited or approved.</td></tr>
 <tr><td><code>protocols</code> <span class="required">always</span></td><td>list of string or null</td><td>What it speaks with other servers: <code>activitypub</code>, when it federates.</td></tr>
 <tr><td><code>services</code> <span class="required">always</span></td><td><a href="#schema-auth.nodeInfoServices">auth.nodeInfoServices</a></td><td>What it bridges to: nothing.</td></tr>
@@ -13585,7 +13585,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>content</code> <span class="required">always</span></td><td>string</td><td>Its words, as Markdown. A part with pictures need not have any.</td></tr>
+<tr><td><code>content</code> <span class="required">always</span></td><td>string</td><td>Its words, as Markdown. A part with pictures need not have any. Up to 500 characters, a link counted as 23.</td></tr>
 <tr><td><code>language</code> <span class="required">always</span></td><td>string</td><td>The language it is written in, as a BCP 47 tag.</td></tr>
 <tr><td><code>link_preview_url</code> <span class="required">always</span></td><td>string</td><td>The link in it to show a card for. Not on a part with pictures.</td></tr>
 <tr><td><code>uploads</code> <span class="required">always</span></td><td>list of <a href="#schema-FileRef">FileRef</a> or null</td><td>Its pictures, as a photo post&#39;s: each uploaded first through POST /photos/:owner_id/uploads, for the profile the part is on, which is the thread&#39;s for the first part and the writer&#39;s for the rest.</td></tr>

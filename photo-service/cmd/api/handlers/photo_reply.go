@@ -33,8 +33,9 @@ type PhotoReplyRequest struct {
 	// The id of the post or the reply it answers. Read by the handler from
 	// the path itself.
 	ParentID int64 `param:"id"`
-	// Its words, as Markdown. A reply with pictures need not have any.
-	Content string `json:"content" form:"content" validate:"omitempty,max=8000"`
+	// Its words, as Markdown. A reply with pictures need not have any. Up to 500
+	// characters, a link counted as 23.
+	Content string `json:"content" form:"content" validate:"omitempty,max=8000,post_length"`
 	// The language it is written in, as a BCP 47 tag.
 	Language string `json:"language" form:"language" validate:"omitempty,max=12"`
 	// Its pictures, each uploaded first for the person replying.

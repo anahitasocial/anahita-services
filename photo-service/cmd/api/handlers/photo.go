@@ -243,8 +243,8 @@ type PhotoAddRequest struct {
 	OwnerID int64 `param:"owner_id" validate:"required,numeric"`
 	// Its title, if it has one.
 	Title string `form:"title" validate:"omitempty,max=100"`
-	// Its words, as Markdown, if it has any.
-	Content string `form:"content" validate:"omitempty,max=8000"`
+	// Its words, as Markdown, if it has any. Up to 500 characters, a link counted as 23.
+	Content string `form:"content" validate:"omitempty,max=8000,post_length"`
 	// Who may see it (permissions.md). The widest the installation allows
 	// when left out.
 	Access string `form:"access" validate:"omitempty,oneof=public registered followers leaders mutuals admins myself"`
@@ -287,8 +287,8 @@ type PhotoEditRequest struct {
 	ID int64 `param:"id" validate:"required,numeric"`
 	// Its title, if it has one.
 	Title string `form:"title" validate:"omitempty,max=100"`
-	// Its words, as Markdown, if it has any.
-	Content string `form:"content" validate:"omitempty,max=8000"`
+	// Its words, as Markdown, if it has any. Up to 500 characters, a link counted as 23.
+	Content string `form:"content" validate:"omitempty,max=8000,post_length"`
 	// The language it is written in, as a BCP 47 tag.
 	Language string `form:"language" validate:"omitempty,max=12"`
 }

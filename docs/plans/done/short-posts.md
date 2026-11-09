@@ -1,7 +1,9 @@
 # Short posts of 500 characters (roadmap row 144)
 
 Asked for by the user on 2026-11-08: "I think it's time that we lower our
-char limit for notes and replies." Planned the same day. Not built.
+char limit for notes and replies." Planned the same day.
+
+**Status:** done 2026-11-08.
 
 ## Contents
 
@@ -78,6 +80,22 @@ Settled with the user on 2026-11-08:
    where a post stays here or goes to the fediverse.
 
 Estimate: 1 to 2 sessions.
+
+**Done 2026-11-08,** as planned, with these besides, at the user's word
+the same day:
+
+1. **No refusal code of its own:** a post too long is refused with 400, as
+   anything not well formed is; the web app never sends one.
+2. **Bluesky is a warning, not a limit:** the count is against 500
+   wherever a post goes; where it goes to Bluesky, the count turns to the
+   warning's colour past 300, and the line beside it says Bluesky shows the
+   first 300 with a link to the rest.
+3. **Counted down as Bluesky's app does:** what is left, then a ring that
+   fills (`CharacterCount` in the web app's `Composer/ThreadParts.jsx`),
+   red and below zero past 500, where Next and Post stop and "Split into a
+   thread" is offered.
+4. Tried on dev: 501 characters refused, 474 and a link of 324 taken, an
+   edit to 501 refused; the count at 120, 354 and 531 at both sizes.
 
 ## Checking
 

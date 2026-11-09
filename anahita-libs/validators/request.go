@@ -1,6 +1,7 @@
 package validators
 
 import (
+	"anahita-libs/posts"
 	"anahita-libs/requests"
 	"net/http"
 	"regexp"
@@ -21,6 +22,10 @@ func NewRequestValidator(v *validator.Validate) *RequestValidator {
 	v.RegisterValidation("hashtag", validateHashtagAlias)
 	v.RegisterValidation("actor_add_permission_access", validateActorAddPermissionAccess)
 	v.RegisterValidation("person_add_permission_access", validatePersonAddPermissionAccess)
+	// A short post's words: 500, a link counted as 23 (roadmap row 144).
+	v.RegisterValidation("post_length", func(fl validator.FieldLevel) bool {
+		return posts.Fits(fl.Field().String())
+	})
 
 	return &RequestValidator{
 		Validator: v,
