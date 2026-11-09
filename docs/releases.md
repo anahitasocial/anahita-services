@@ -18,13 +18,18 @@ it changes only when its operator changes it: [Images](deploying.md#images).
 A Birth release is of both repositories: anahita-web is tagged with the
 same version as anahita-services, on the same day. The latest tagged
 anahita-web works with the latest tagged anahita-services, and a site runs
-the two with the same number. Their `main` branches go together the same
+the two with the same number, or a web app a maintenance release ahead. Their `main` branches go together the same
 way: the web app's `main` may call routes that only the services' `main`
 has.
 
-A fix to the web app alone is released by tagging both. The services' images
-that did not change are tagged again, not built
-([What is rebuilt](#what-is-rebuilt)).
+A fix to the web app alone may be a maintenance release of anahita-web
+alone, a patch that works with the services' release of the same minor
+(the user, 2026-11-08): anahita-web v1.2.1 with anahita-services v1.2.0.
+Its changelog names the services' release it goes with. The next release
+of both is tagged after the newest of either, so the services may skip a
+number, their changelog saying so: from v1.2.0 to v1.2.2, say. A fix that
+needs the services as well is a release of both, the services' images that
+did not change tagged again, not built ([What is rebuilt](#what-is-rebuilt)).
 
 ## Version numbers
 
