@@ -34,7 +34,7 @@ func (f *fakeRefusedAccounts) Add(account *federation.RefusedAccount) (*federati
 }
 
 func (f *fakeRefusedAccounts) Read(int64) (*federation.RefusedAccount, error) { return nil, nil }
-func (f *fakeRefusedAccounts) Delete(int64) error                            { return nil }
+func (f *fakeRefusedAccounts) Delete(int64) error                             { return nil }
 
 // THE RULE THIS GUARDS: an account on Bluesky refused by its DID is asked
 // for no more, is removed with what is here of it, and cannot be looked up

@@ -105,6 +105,10 @@ func main() {
 		Limiter:   sessions.NewSession(config),
 		CDN:       config.CDNURL,
 		Settle:    3 * time.Second,
+		// An account's server, for a post's video (roadmap row 120).
+		PDS: handlers.CachedPDS(func(ctx context.Context, did string) (string, error) {
+			return client.PDSOf(ctx, config.DirectoryURL, did)
+		}),
 		Changed: func() {
 			select {
 			case changed <- struct{}{}:

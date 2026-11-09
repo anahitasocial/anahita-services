@@ -62,3 +62,40 @@ func AnimationMaxBytes() int64 {
 func AnimationMaxSeconds() int {
 	return min(int(positive(EnvAnimationMaxSeconds, DefaultAnimationMaxSeconds)), MaxSeconds())
 }
+
+// Videos and sounds from other networks, copied here when first played
+// (roadmap rows 120 and 137, elsewhere.go):
+//
+//	REMOTE_MEDIA_MAX_BYTES    the largest file from elsewhere copied. 100 MB
+//	                          unless said.
+//	REMOTE_MEDIA_MAX_SECONDS  the longest one. An hour unless said.
+//	REMOTE_VIDEO_DAYS         how many days a copy is kept after it was last
+//	                          played. 7 unless said; 0 for never removed.
+const (
+	EnvRemoteMaxBytes   = "REMOTE_MEDIA_MAX_BYTES"
+	EnvRemoteMaxSeconds = "REMOTE_MEDIA_MAX_SECONDS"
+	EnvRemoteDays       = "REMOTE_VIDEO_DAYS"
+
+	DefaultRemoteMaxBytes   = 100 * 1024 * 1024
+	DefaultRemoteMaxSeconds = 3600
+	DefaultRemoteDays       = 7
+)
+
+func RemoteMaxBytes() int64 { return positive(EnvRemoteMaxBytes, DefaultRemoteMaxBytes) }
+func RemoteMaxSeconds() int {
+	return int(positive(EnvRemoteMaxSeconds, DefaultRemoteMaxSeconds))
+}
+
+// RemoteDays is how long a copy from elsewhere is kept unplayed; 0 keeps it
+// for ever.
+func RemoteDays() int {
+	raw := strings.TrimSpace(os.Getenv(EnvRemoteDays))
+	if raw == "" {
+		return DefaultRemoteDays
+	}
+	days, err := strconv.Atoi(raw)
+	if err != nil || days < 0 {
+		return DefaultRemoteDays
+	}
+	return days
+}

@@ -32,6 +32,8 @@ type Encoder interface {
 	Probe(ctx context.Context, path string, maxSeconds, animationSeconds int) (*encode.Info, string, error)
 	Encode(ctx context.Context, container, in, out string, target encode.Target, maxSeconds int) error
 	Poster(ctx context.Context, container, in, out string, info *encode.Info) error
+	// Remux copies a file that already plays as it is (encode.Playable).
+	Remux(ctx context.Context, container, in, out string, maxSeconds int) error
 }
 
 // FFmpeg is the Encoder that runs ffmpeg.
@@ -43,6 +45,10 @@ func (FFmpeg) Probe(ctx context.Context, path string, maxSeconds, animationSecon
 
 func (FFmpeg) Encode(ctx context.Context, container, in, out string, target encode.Target, maxSeconds int) error {
 	return encode.Encode(ctx, container, in, out, target, maxSeconds)
+}
+
+func (FFmpeg) Remux(ctx context.Context, container, in, out string, maxSeconds int) error {
+	return encode.Remux(ctx, container, in, out, maxSeconds)
 }
 
 func (FFmpeg) Poster(ctx context.Context, container, in, out string, info *encode.Info) error {
@@ -91,14 +97,33 @@ type Worker struct {
 	// How long all the work on one video may take.
 	Timeout time.Duration
 	Client  *http.Client
+
+	// Videos from other networks, copied the first time they are played
+	// (elsewhere.go): the copies asked for, the posts they go into, the
+	// client that reaches only public addresses, what it calls itself, the
+	// limits a file from elsewhere is held to, how many days a copy is kept
+	// unplayed, and the servers this site refuses.
+	Elsewhere        repositories.ElsewhereInterface
+	Nodes            ElsewhereNodes
+	RemoteClient     *http.Client
+	UserAgent        string
+	RemoteMaxBytes   int64
+	RemoteMaxSeconds int
+	RemoteDays       int
+	Refused          func(host string) bool
 }
 
 // Once looks for one upload that is waiting and does it. It says whether
 // there was one.
 func (w *Worker) Once() (bool, error) {
 	upload, err := w.Uploads.Claim()
-	if err != nil || upload == nil {
+	if err != nil {
 		return false, err
+	}
+	// Nothing posted here waiting: a video from elsewhere somebody pressed
+	// play on.
+	if upload == nil {
+		return w.OnceElsewhere()
 	}
 
 	log.Printf("video %s: taken, attempt %d", upload.ID, upload.Attempts)
@@ -505,6 +530,11 @@ func (w *Worker) Tidy() {
 
 	if err := w.Uploads.Forget(time.Now().UTC().Add(-30 * 24 * time.Hour)); err != nil {
 		log.Printf("tidy: %v", err)
+	}
+
+	// Copies of videos from elsewhere nobody has played for a while.
+	if removed := w.TidyElsewhere(w.RemoteDays, time.Now().UTC()); removed > 0 {
+		log.Printf("tidy: %d copies of videos from elsewhere removed", removed)
 	}
 }
 

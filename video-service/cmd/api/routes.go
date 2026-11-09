@@ -147,6 +147,25 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		SendsNothing(http.StatusFound, "the file is at the address in Location").
 		Refuses(http.StatusNotFound, "there is no such post or file that the viewer may see")
 
+	// A video from another network, copied here the first time somebody
+	// plays it (roadmap row 120). Before the routes under /:id.
+	videos.POST("/elsewhere/:id", r.handler.Video.AskElsewhere, r.authorize).
+		Summary("Ask for a video from another network").
+		Describe("Of a post from Bluesky or the fediverse that says it carries one (`media_elsewhere`). It is copied here by the worker, one file up to 720, and played from this site's storage, never from its own server; asked again, the copy is said to be played. Ask with GET until it is ready, when `video` is what plays. Thirty in ten minutes.").
+		Viewer(apidoc.SignedIn).
+		Takes(&handlers.ElsewhereRequest{}).
+		Sends(http.StatusOK, handlers.ElsewhereStatus{}).
+		Sends(http.StatusTooManyRequests, responses.Refusal{}, "`too_many_videos`").
+		Refuses(http.StatusNotFound, "there is no such post that the viewer may see, or it carries no video from elsewhere")
+	videos.GET("/elsewhere/:id", r.handler.Video.ReadElsewhere, r.authorize).
+		Summary("How a video from another network stands").
+		Describe("waiting or working while it is copied; ready, with `video`; failed, with why, when the post is to lead to its page instead; removed when there is no copy, and it is to be asked for again.").
+		Viewer(apidoc.SignedIn).
+		Takes(&handlers.ElsewhereRequest{}).
+		Unbound().
+		Sends(http.StatusOK, handlers.ElsewhereStatus{}).
+		Refuses(http.StatusNotFound, "there is no such post that the viewer may see, or it carries no video from elsewhere")
+
 	videos.PATCH("/:id/access", r.handler.Video.EditAccess, r.authorize).
 		Summary("Change who may see it").
 		Viewer(apidoc.SignedIn).

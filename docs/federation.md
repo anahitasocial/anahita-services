@@ -752,9 +752,13 @@ written, what is stored of it is removed.
   Nothing here puts a picture behind a warning yet.
 - **What a post was first kept as, it stays:** a note that later gains a
   picture is still a note.
-- **Only pictures.** Video and sound that come with a post are not kept:
-  the post ends with a line leading to its page, `▶ the server's name`, and
-  one that is only a video is kept as that line.
+- **Pictures, and a video when it is played.** A video's preview (`icon`)
+  is kept as the post's picture when it has none of its own; the video is
+  copied here the first time somebody plays it, and played from here
+  ([Videos from other networks](videos.md#videos-from-other-networks)). The
+  post ends with a line leading to its page, `▶ the server's name`, for
+  whatever reads it as words. A sound is led to as that line, until audio
+  (roadmap row 137).
 
 **A custom emoji** in a post, or in somebody's name or what they say of
 themselves, is a word between colons with a picture listed beside it. The
@@ -1355,8 +1359,9 @@ only their latest. `0` turns any of the three off.
    hundred posts and two hundred people at a time, the longest left alone
    first.
 
-Not built: the same for videos, which are not brought in from elsewhere
-yet (`docs/plans/remote-content-limits.md`).
+A video from elsewhere is copied only when played, and its copy removed
+`REMOTE_VIDEO_DAYS` after it was last played
+([Videos from other networks](videos.md#videos-from-other-networks)).
 
 ## Bluesky
 
@@ -1486,8 +1491,9 @@ It is kept the way a post from the fediverse is:
 5. **A video is not kept; its poster is.** The still picture Bluesky's
    video service makes of it (`video.bsky.app/watch/…/thumbnail.jpg`) is
    kept as the post's picture, with the video's alt text, and the post ends
-   with a line leading to its page, `▶ bsky.app`. The web app draws the two
-   as one: the poster with a play button, leading there. A post marked as
+   with a line leading to its page, `▶ bsky.app`. The video itself is
+   copied here from its author's own server the first time somebody plays
+   it ([Videos from other networks](videos.md#videos-from-other-networks)). A post marked as
    not to be shown plainly keeps no picture, and only the line.
 
 When somebody is first followed, their twenty most recent posts are read,

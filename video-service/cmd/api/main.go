@@ -2,6 +2,7 @@ package main
 
 import (
 	"anahita-libs/data"
+	"anahita-libs/federation"
 	"anahita-libs/sessions"
 
 	"fmt"
@@ -17,6 +18,7 @@ import (
 	"video/cmd/api/handlers"
 	"video/cmd/api/permissions"
 	"video/config"
+	"video/data/repositories"
 
 	"github.com/go-playground/validator/v10"
 	_ "github.com/go-sql-driver/mysql"
@@ -72,6 +74,9 @@ func main() {
 		Perms:   permissions.NewPermissions(),
 		Limiter: sessions.NewSession(config),
 		Srv:     services.NewServices(config, db),
+		// Videos from other networks, copied here when first played.
+		Elsewhere: repositories.NewElsewhere(db),
+		Refused:   federation.NewBlocks(db).IsBlocked,
 	}
 	h := handlers.NewHandlers(hEnv)
 

@@ -19,12 +19,13 @@ Its routes are in the API reference: [video-service](api/index.html#video-servic
 7. [Sizes](#sizes)
 8. [GIFs and animated PNGs](#gifs-and-animated-pngs)
 9. [Downloading](#downloading)
-10. [Endpoints](#endpoints)
-11. [Settings](#settings)
-12. [Storage](#storage)
-13. [Running it, and not running it](#running-it-and-not-running-it)
-14. [Where the code is](#where-the-code-is)
-15. [What is not built](#what-is-not-built)
+10. [Videos from other networks](#videos-from-other-networks)
+11. [Endpoints](#endpoints)
+12. [Settings](#settings)
+13. [Storage](#storage)
+14. [Running it, and not running it](#running-it-and-not-running-it)
+15. [Where the code is](#where-the-code-is)
+16. [What is not built](#what-is-not-built)
 
 ## The parts
 
@@ -222,6 +223,43 @@ As for a photo, and by the same rules: see
   `?size=720` another. What is downloaded is what the worker made: the
   upload itself was deleted.
 
+## Videos from other networks
+
+A post from Bluesky or the fediverse that carries a video is kept with its
+poster as its picture, and says where the video is (`media_elsewhere` in
+its meta: its kind, the file's address, its page and its site), roadmap
+row 120 ([Audio and video from everywhere](plans/audio-and-video.md)). The
+video is **copied here the first time somebody presses play,** and played
+from this site's storage, **never from its own server,** which would tell
+that server who watched.
+
+1. **Pressing play,** somebody signed in asks for it
+   (`POST /videos/elsewhere/:id`); the web app says "Getting the video…"
+   and asks after it (`GET`) every two seconds. Somebody signed out is led
+   to its page there.
+2. **The worker** fetches it, from public addresses only and not from a
+   server this site refuses, at most `REMOTE_MEDIA_MAX_BYTES` and
+   `REMOTE_MEDIA_MAX_SECONDS`, and keeps **one file,** at 720 or its own
+   height when smaller. An MP4 that already plays everywhere (H.264 in
+   4:2:0, AAC or no sound, 720 or less) is kept as it is, made to start at
+   once, not encoded again; any other is encoded once. A Bluesky video is
+   read from its author's own server (`getBlob`), as it was posted. Tried
+   on dev with a two-minute video of 48 MB at 1440 by 2560: copied, made
+   720 tall and playing in ten seconds, 9.8 MB kept.
+3. **The copy goes into the post** as a video posted here is (`video` in
+   the API), and plays the same way; the post's picture is its poster.
+4. **Kept for `REMOTE_VIDEO_DAYS`** after it was last played, seven unless
+   said, then removed, and copied again when played again.
+5. **When it cannot be had** (gone from its server, too large or too long,
+   not a video, on a server refused here), the post says so and leads to
+   its page. A file too large or too long is not tried again; one gone or
+   failed for something here is, when play is pressed again.
+6. **A post marked as not to be shown plainly** keeps none of it, until
+   content warnings (roadmap row 122) can put it behind one.
+
+The queue is table `media_elsewhere`, one row for each post, its own from
+the uploads'. The worker takes what was posted here first.
+
 ## Endpoints
 
 | Method and path | Who | What |
@@ -239,6 +277,8 @@ As for a photo, and by the same rules: see
 | `PATCH /videos/:id/access`, `/comment-status`, `/reply-access`, `/quote-policy`; `PUT`/`DELETE /videos/:id/pin` | as for any post | As for any post |
 | `PATCH /videos/:id/download` | whoever may edit it | Whether it may be downloaded |
 | `GET /videos/:id/download` | whoever may see it, where it is allowed | Redirect to the file, to be saved |
+| `POST /videos/elsewhere/:id` | signed in, who may see the post | Have a video from another network copied here, or say it is played again: `{ status, reason, video }`. Thirty in ten minutes |
+| `GET /videos/elsewhere/:id` | signed in, who may see the post | How it stands: `waiting`, `working`, `ready` with `video`, `failed` with why, or `removed` |
 
 An upload belongs to whoever began it. Anybody else is told there is none.
 
@@ -263,6 +303,9 @@ Kubernetes.
 | `VIDEO_DAILY_UPLOADS` | How many videos one person may send in 24 hours. `20` unless said |
 | `ANIMATION_MAX_BYTES` | The largest GIF or animated PNG taken. 25 MB (`26214400`) unless said, and never more than `VIDEO_MAX_BYTES` |
 | `ANIMATION_MAX_SECONDS` | The longest one. `30` unless said, and never more than `VIDEO_MAX_SECONDS` |
+| `REMOTE_MEDIA_MAX_BYTES` | The largest file from another network copied here. 100 MB unless said |
+| `REMOTE_MEDIA_MAX_SECONDS` | The longest. `3600`, an hour, unless said |
+| `REMOTE_VIDEO_DAYS` | How many days a copy from another network is kept after it was last played. `7` unless said; `0` keeps them for good |
 | `VIDEO_WORK_DIR` | Worker only: where a video is kept while it is worked on. `/work` in the image. Needs room for the largest upload and everything made of it |
 
 NodeInfo's `metadata` has `videoUploads`, `videoMaxBytes`,
@@ -298,6 +341,7 @@ it.
 | --- | --- | --- | --- |
 | `assets/v1/video-service/uploads/<person>/<upload>/source` | What was uploaded, kept as `application/octet-stream` whatever it is | The browser, in parts | The worker. **Never a viewer**: no address is signed for one |
 | `assets/v1/video-service/videos/<profile>/<upload>/` | Each size and the poster | The worker | Viewers, as `video/mp4` or `image/jpeg` by its name, whatever it was stored as |
+| `assets/v1/video-service/videos/<profile>/elsewhere-<post>/720.mp4` | The copy of a video from another network | The worker | Viewers, as above, until `REMOTE_VIDEO_DAYS` after it was last played |
 
 A lifecycle rule on the bucket that aborts unfinished multipart uploads
 after a few days is worth having: the worker aborts the ones it knows of,
@@ -326,7 +370,8 @@ once; each needs processor and working space of its own.
 | What a file is, how long it runs, and the sizes made | `video-service/encode/encode.go` (`Container`, `ParseProbe`, `Plan`, `PlanAnimation`), tested in `encode_test.go` and `encode_ffmpeg_test.go` |
 | The uploads | `video-service/data/repositories/uploads.go`, table `video_uploads`, tested in `uploads_integration_test.go` |
 | Where large files may be written and read | `file-grpc-service/data/services/uploads.go` (`UploadsPrefix`, `WorkerPrefix`) |
-| Settings | `video-service/config/config.go` |
+| Videos from other networks | `video-service/cmd/api/handlers/elsewhere.go`, `video-service/worker/elsewhere.go` (tested in `elsewhere_test.go`), `video-service/data/repositories/elsewhere.go`, table `media_elsewhere`; what a post says of one, `anahita-libs/videos/elsewhere.go`; kept when a post arrives by `atproto-service/cmd/api/handlers/elsewhere.go` and `activitypub-service/cmd/api/handlers/inbox.go` |
+| Settings | `video-service/config/config.go`, `anahita-libs/videos/settings.go` |
 | The two images | `dockerfiles/video-service.dockerfile`, `dockerfiles/video-worker.dockerfile` |
 
 ## What is not built
@@ -334,8 +379,7 @@ once; each needs processor and working space of its own.
 1. Telling the uploader, by a notification, that a video is ready or has
    failed. The composer asks.
 2. Changing size while playing (HLS), captions, and a choice of poster.
-3. Videos from other networks: a video posted here goes to other servers
-   and Bluesky (see [Federation](federation.md)), but one posted there is not
-   brought in.
+3. Sound from other networks, and audio posts: roadmap row 137, with
+   [Audio and video from everywhere](plans/audio-and-video.md).
 4. Animated WebP, until ffmpeg reads one; and keeping what is see-through in
    a GIF (WebM with transparency, or keeping the picture as it was).

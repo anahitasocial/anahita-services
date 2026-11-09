@@ -76,7 +76,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <ul>
 <li><a href="#text-service">Notes, articles and topics</a> <span class="count">46</span></li>
 <li><a href="#photo-service">Photo posts</a> <span class="count">16</span></li>
-<li><a href="#video-service">Video posts</a> <span class="count">19</span></li>
+<li><a href="#video-service">Video posts</a> <span class="count">21</span></li>
 <li><a href="#like-service">Likes</a> <span class="count">3</span></li>
 <li><a href="#link-preview-service">Link previews</a> <span class="count">4</span></li>
 <li><a href="#hashtag-service">Hashtags</a> <span class="count">10</span></li>
@@ -96,7 +96,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 </ul>
 <p class="group">Reference</p>
 <ul>
-<li><a href="#schemas">Shapes</a> <span class="count">173</span></li>
+<li><a href="#schemas">Shapes</a> <span class="count">175</span></li>
 </ul>
 </nav>
 <main>
@@ -7873,6 +7873,54 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <p class="group">Posts</p>
 <h2>Video posts <code>video-service</code></h2>
 <p>Posts of a video, a GIF or an animated PNG, sent straight to storage in parts and made ready by a worker in several sizes; and replies with one (<a href="../videos.md">videos.md</a>). Optional: off until the installation turns video on.</p>
+<details class="route" id="getVideosElsewhereById" data-search="get /videos/elsewhere/{id} how a video from another network stands waiting or working while it is copied; ready, with `video`; failed, with why, when the post is to lead to its page instead; removed when there is no copy, and it is to be asked for again.
+
+who may call it: somebody signed in.">
+<summary><span class="method get">GET</span> <code class="path">/videos/elsewhere/{id}</code> <span class="summary">How a video from another network stands</span></summary>
+<div class="description"><p>waiting or working while it is copied; ready, with <code>video</code>; failed, with why, when the post is to lead to its page instead; removed when there is no copy, and it is to be asked for again.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td></td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-video.ElsewhereStatus">video.ElsewhereStatus</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">404</td><td>there is no such post that the viewer may see, or it carries no video from elsewhere</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>video/cmd/api/handlers.(*videoHandler).ReadElsewhere</code></p>
+</details>
+<details class="route" id="postVideosElsewhereById" data-search="post /videos/elsewhere/{id} ask for a video from another network of a post from bluesky or the fediverse that says it carries one (`media_elsewhere`). it is copied here by the worker, one file up to 720, and played from this site&#39;s storage, never from its own server; asked again, the copy is said to be played. ask with get until it is ready, when `video` is what plays. thirty in ten minutes.
+
+who may call it: somebody signed in.">
+<summary><span class="method post">POST</span> <code class="path">/videos/elsewhere/{id}</code> <span class="summary">Ask for a video from another network</span></summary>
+<div class="description"><p>Of a post from Bluesky or the fediverse that says it carries one (<code>media_elsewhere</code>). It is copied here by the worker, one file up to 720, and played from this site&#39;s storage, never from its own server; asked again, the copy is said to be played. Ask with GET until it is ready, when <code>video</code> is what plays. Thirty in ten minutes.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td></td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-video.ElsewhereStatus">video.ElsewhereStatus</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">404</td><td>there is no such post that the viewer may see, or it carries no video from elsewhere</td></tr>
+<tr><td class="status s4">429</td><td><code>too_many_videos</code><div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>video/cmd/api/handlers.(*videoHandler).AskElsewhere</code></p>
+</details>
 <details class="route" id="getVideosUploads" data-search="get /videos/uploads the viewer&#39;s uploads those being sent or waiting for the worker, and those that failed in the last day, the latest first.
 
 who may call it: somebody signed in.">
@@ -11025,6 +11073,18 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
+<div class="route schema" id="schema-Elsewhere" data-search="elsewhere kind page site">
+<h3>Elsewhere</h3>
+<p>A video or a sound a post from another network carries, not kept here until somebody plays it (roadmap rows 120 and 137): what it is, and the page it is on there. Played by asking <code>POST /videos/elsewhere/:id</code>.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>kind</code> <span class="required">always</span></td><td>string</td><td><code>video</code> or <code>audio</code>.</td></tr>
+<tr><td><code>page</code> <span class="required">always</span></td><td>string</td><td>The post&#39;s page on its own site, led to when it cannot be had.</td></tr>
+<tr><td><code>site</code> <span class="required">always</span></td><td>string</td><td>The name of that site: <code>bsky.app</code>.</td></tr>
+</tbody>
+</table>
+</div>
 <div class="route schema" id="schema-Event" data-search="event address cancelled_at capacity ends_at going_count has_address has_online_url host is_full maybe_count online_url open_to_host_followers starts_at state timezone_name viewer_rsvp">
 <h3>Event</h3>
 <p>What only an event has, on the actor it is.</p>
@@ -11147,7 +11207,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-MediumNode" data-search="mediumnode access alias allow_download author authorized citation_count comment_count comment_status content cover_urls created_at deleted draft editor enabled files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer is_subscribed_by_viewer language library_only likes_count link_preview link_previews media_removed mimetype origin_domain owner parent_id pinned portrait_urls quote quote_count quote_id quote_policy reply_access repost_count root root_id title type updated_at uri video view_count">
+<div class="route schema" id="schema-MediumNode" data-search="mediumnode access alias allow_download author authorized citation_count comment_count comment_status content cover_urls created_at deleted draft editor enabled files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer is_subscribed_by_viewer language library_only likes_count link_preview link_previews media_elsewhere media_removed mimetype origin_domain owner parent_id pinned portrait_urls quote quote_count quote_id quote_policy reply_access repost_count root root_id title type updated_at uri video view_count">
 <h3>MediumNode</h3>
 <p>A post or a reply, read on its own or answered with after a change.</p>
 <table>
@@ -11180,6 +11240,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>likes_count</code> <span class="required">always</span></td><td>integer</td><td>How many like it.</td></tr>
 <tr><td><code>link_preview</code></td><td><a href="#schema-LinkPreview">LinkPreview</a></td><td>On a note that carries one: the preview of a link in it.</td></tr>
 <tr><td><code>link_previews</code></td><td>list of <a href="#schema-LinkPreview">LinkPreview</a></td><td>The cards of the pages it shows within its text, an article&#39;s or a topic&#39;s: an address on a line of its own each.</td></tr>
+<tr><td><code>media_elsewhere</code></td><td><a href="#schema-Elsewhere">Elsewhere</a></td><td>On a post from another network: the video or sound it carries, kept there until somebody here plays it (roadmap rows 120 and 137).</td></tr>
 <tr><td><code>media_removed</code></td><td><a href="#schema-MediaRemoved">MediaRemoved</a></td><td>On a photo post from another server whose pictures are no longer stored here.</td></tr>
 <tr><td><code>mimetype</code></td><td>string</td><td>The kind of file it holds, where it holds one.</td></tr>
 <tr><td><code>origin_domain</code></td><td>string</td><td>The server it came from, when it came from another.</td></tr>
@@ -11199,12 +11260,12 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td>What kind of post it is: <code>node.medium.text-service.note.v1</code> for a note, and so on.</td></tr>
 <tr><td><code>updated_at</code></td><td>time</td><td>When it was last changed.</td></tr>
 <tr><td><code>uri</code></td><td>string</td><td>What it is called on the server it came from, and that server, when it came from another. Left out of everything made here.</td></tr>
-<tr><td><code>video</code></td><td><a href="#schema-Video">Video</a></td><td>What a video post plays.</td></tr>
+<tr><td><code>video</code></td><td><a href="#schema-Video">Video</a></td><td>What a video post plays, or a post from elsewhere once its video was copied here.</td></tr>
 <tr><td><code>view_count</code> <span class="required">always</span></td><td>integer</td><td>How many times it has been read.</td></tr>
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-MediumNodeItem" data-search="mediumnodeitem access alias author authorized comment_count content cover_urls created_at deleted files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer is_subscribed_by_viewer language likes_count link_preview link_previews media_removed mimetype origin_domain owner parent_id portrait_urls quote quote_count quote_id repost_count root_id title type uri video">
+<div class="route schema" id="schema-MediumNodeItem" data-search="mediumnodeitem access alias author authorized comment_count content cover_urls created_at deleted files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer is_subscribed_by_viewer language likes_count link_preview link_previews media_elsewhere media_removed mimetype origin_domain owner parent_id portrait_urls quote quote_count quote_id repost_count root_id title type uri video">
 <h3>MediumNodeItem</h3>
 <p>A post or a reply in a list.</p>
 <table>
@@ -11230,6 +11291,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>likes_count</code> <span class="required">always</span></td><td>integer</td><td>How many like it.</td></tr>
 <tr><td><code>link_preview</code></td><td><a href="#schema-LinkPreview">LinkPreview</a></td><td>On a note that carries one: the preview of a link in it.</td></tr>
 <tr><td><code>link_previews</code></td><td>list of <a href="#schema-LinkPreview">LinkPreview</a></td><td>The cards of the pages it shows within its text, an article&#39;s or a topic&#39;s: an address on a line of its own each.</td></tr>
+<tr><td><code>media_elsewhere</code></td><td><a href="#schema-Elsewhere">Elsewhere</a></td><td>On a post from another network: the video or sound it carries, kept there until somebody here plays it (roadmap rows 120 and 137).</td></tr>
 <tr><td><code>media_removed</code></td><td><a href="#schema-MediaRemoved">MediaRemoved</a></td><td>On a photo post from another server whose pictures are no longer stored here.</td></tr>
 <tr><td><code>mimetype</code></td><td>string</td><td>The kind of file it holds, where it holds one.</td></tr>
 <tr><td><code>origin_domain</code></td><td>string</td><td>The server it came from, when it came from another.</td></tr>
@@ -11244,7 +11306,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>title</code></td><td>string</td><td>Its title, where it has one.</td></tr>
 <tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td>What kind of post it is: <code>node.medium.text-service.note.v1</code> for a note, and so on.</td></tr>
 <tr><td><code>uri</code></td><td>string</td><td>What it is called on the server it came from, and that server, when it came from another. Left out of everything made here.</td></tr>
-<tr><td><code>video</code></td><td><a href="#schema-Video">Video</a></td><td>What a video post plays.</td></tr>
+<tr><td><code>video</code></td><td><a href="#schema-Video">Video</a></td><td>What a video post plays, or a post from elsewhere once its video was copied here.</td></tr>
 </tbody>
 </table>
 </div>
@@ -13507,6 +13569,18 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>content</code> <span class="required">always</span></td><td>string</td><td></td></tr>
 <tr><td><code>language</code> <span class="required">always</span></td><td>string</td><td></td></tr>
 <tr><td><code>link_preview_url</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-video.ElsewhereStatus" data-search="video.elsewherestatus reason status video">
+<h3>video.ElsewhereStatus</h3>
+<p>How a video from elsewhere stands.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>reason</code></td><td>string</td><td>Why it failed: too_large, too_long, not_a_video, gone, refused, or failed for something here, which asking again tries again.</td></tr>
+<tr><td><code>status</code> <span class="required">always</span></td><td>string</td><td>waiting or working while it is copied; ready, with the video to play; failed, with why, when it is not to be had and the post is to lead to its page instead.</td></tr>
+<tr><td><code>video</code></td><td><a href="#schema-Video">Video</a></td><td>When it is ready: what plays, as a video post&#39;s video.</td></tr>
 </tbody>
 </table>
 </div>

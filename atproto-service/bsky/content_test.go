@@ -194,3 +194,19 @@ func TestAVideoShowsAsItsPoster(t *testing.T) {
 		t.Errorf("an unreadable video gave %+v", bad)
 	}
 }
+
+// A post's video is named by its file, and read from the author's own
+// server, as it was posted (roadmap row 120).
+func TestAVideoIsReadFromItsAuthorsServer(t *testing.T) {
+	cid := "bafkreigh2akiscaildcqabsyg3dfr6chu3fgpregiymsck7e7aqa4s52zy"
+	got := post(t, `{"text":"x","embed":{"$type":"app.bsky.embed.video","video":{"ref":{"$link":"`+cid+`"},"mimeType":"video/mp4"}}}`).VideoCID()
+	if got != cid {
+		t.Errorf("video: %q", got)
+	}
+	if post(t, `{"text":"x"}`).VideoCID() != "" {
+		t.Errorf("a post with no video named one")
+	}
+	if want := "https://pds.example/xrpc/com.atproto.sync.getBlob?did=did%3Aplc%3Aaaaa&cid=" + cid; BlobURL("https://pds.example", "did:plc:aaaa", cid) != want {
+		t.Errorf("blob at %s", BlobURL("https://pds.example", "did:plc:aaaa", cid))
+	}
+}

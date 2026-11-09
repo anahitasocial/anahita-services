@@ -67,6 +67,29 @@
         ],
         "type": "object"
       },
+      "Elsewhere": {
+        "description": "Elsewhere is a video or a sound a post from another network carries, not kept here until somebody plays it (roadmap rows 120 and 137): what it is, and the page it is on there. Played by asking `POST /videos/elsewhere/:id`.",
+        "properties": {
+          "kind": {
+            "description": "`video` or `audio`.",
+            "type": "string"
+          },
+          "page": {
+            "description": "The post's page on its own site, led to when it cannot be had.",
+            "type": "string"
+          },
+          "site": {
+            "description": "The name of that site: `bsky.app`.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "page",
+          "site"
+        ],
+        "type": "object"
+      },
       "Image": {
         "description": "Image is one size of a picture.",
         "properties": {
@@ -289,6 +312,10 @@
             },
             "type": "array"
           },
+          "media_elsewhere": {
+            "$ref": "#/components/schemas/Elsewhere",
+            "description": "On a post from another network: the video or sound it carries, kept there until somebody here plays it (roadmap rows 120 and 137)."
+          },
           "media_removed": {
             "$ref": "#/components/schemas/MediaRemoved",
             "description": "On a photo post from another server whose pictures are no longer stored here."
@@ -376,7 +403,7 @@
           },
           "video": {
             "$ref": "#/components/schemas/Video",
-            "description": "What a video post plays."
+            "description": "What a video post plays, or a post from elsewhere once its video was copied here."
           },
           "view_count": {
             "description": "How many times it has been read.",
@@ -497,6 +524,10 @@
             },
             "type": "array"
           },
+          "media_elsewhere": {
+            "$ref": "#/components/schemas/Elsewhere",
+            "description": "On a post from another network: the video or sound it carries, kept there until somebody here plays it (roadmap rows 120 and 137)."
+          },
           "media_removed": {
             "$ref": "#/components/schemas/MediaRemoved",
             "description": "On a photo post from another server whose pictures are no longer stored here."
@@ -563,7 +594,7 @@
           },
           "video": {
             "$ref": "#/components/schemas/Video",
-            "description": "What a video post plays."
+            "description": "What a video post plays, or a post from elsewhere once its video was copied here."
           }
         },
         "required": [

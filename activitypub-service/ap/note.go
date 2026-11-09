@@ -353,6 +353,47 @@ type Attachment struct {
 	URL       string `json:"url"`
 	// What it shows, for people who cannot see it.
 	Name string `json:"name"`
+	// A video's or a sound's picture, as an Image or its address: shown
+	// in its place until it plays.
+	Icon json.RawMessage `json:"icon,omitempty"`
+}
+
+// IsAudio says whether it is a sound, and IsVideo a video.
+func (a Attachment) IsAudio() bool {
+	return strings.HasPrefix(strings.ToLower(a.MediaType), "audio/") || a.Type == "Audio"
+}
+
+func (a Attachment) IsVideo() bool {
+	return !a.IsAudio() && (strings.HasPrefix(strings.ToLower(a.MediaType), "video/") || a.Type == "Video")
+}
+
+// Poster is the address of its picture, when it names one on https.
+func (a Attachment) Poster() string {
+	address := idOf(a.Icon)
+	if address == "" {
+		var image struct {
+			URL json.RawMessage `json:"url"`
+		}
+		if json.Unmarshal(a.Icon, &image) == nil {
+			address = idOf(image.URL)
+		}
+	}
+	if !strings.HasPrefix(address, "https://") || len(address) > 2000 {
+		return ""
+	}
+	return address
+}
+
+// Media is the first video or sound that came with a post, at an https
+// address, or nil (roadmap rows 120 and 137).
+func (n *ReceivedNote) Media() *Attachment {
+	for _, each := range n.attachments() {
+		if (each.IsVideo() || each.IsAudio()) && strings.HasPrefix(each.URL, "https://") && len(each.URL) <= 2000 {
+			found := each
+			return &found
+		}
+	}
+	return nil
 }
 
 // Pictures is the pictures that came with a post, in the order they came:

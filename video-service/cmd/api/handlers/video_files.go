@@ -37,7 +37,9 @@ func (h *videoHandler) File(c echo.Context) error {
 	}
 
 	medium, err := h.Srv.MediaGRPC.Read(id, viewer)
-	if err != nil || medium == nil || medium.Type != constants.NodeMediumVideoType {
+	// A video post, or a post from elsewhere whose video was copied here.
+	if err != nil || medium == nil ||
+		(medium.Type != constants.NodeMediumVideoType && videos.ElsewhereFromMeta(medium.Meta) == nil) {
 		return c.NoContent(http.StatusNotFound)
 	}
 

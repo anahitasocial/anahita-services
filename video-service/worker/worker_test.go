@@ -151,6 +151,8 @@ type fakeEncoder struct {
 	limits []int
 	// Called while the sizes are being made.
 	during func()
+	// How many files were copied as they are, not encoded.
+	remuxed int
 }
 
 func (f *fakeEncoder) Probe(ctx context.Context, path string, max, animationMax int) (*encode.Info, string, error) {
@@ -169,6 +171,12 @@ func (f *fakeEncoder) Encode(ctx context.Context, container, in, out string, tar
 		f.during()
 	}
 	return os.WriteFile(out, []byte("encoded video"), 0o644)
+}
+
+func (f *fakeEncoder) Remux(ctx context.Context, container, in, out string, max int) error {
+	f.remuxed++
+	f.limits = append(f.limits, max)
+	return os.WriteFile(out, []byte("copied video"), 0o644)
 }
 
 func (f *fakeEncoder) Poster(ctx context.Context, container, in, out string, info *encode.Info) error {

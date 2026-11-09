@@ -414,6 +414,16 @@ func (h *Handlers) store(authorID int64, note *ap.ReceivedNote, parentID int64) 
 	// With pictures it is a photo post, which is what a post with pictures
 	// is here. What it was first kept as it stays, whatever came after.
 	pictures := h.picturesToKeep(note)
+	// A video or a sound: its picture is the post's when it has none of its
+	// own, and the file is copied here when first played (roadmap row 120).
+	media := note.Media()
+	if media != nil && note.Sensitive {
+		// Kept with none of its media until content warnings (row 122).
+		media = nil
+	}
+	if media != nil && len(pictures) == 0 && media.Poster() != "" && h.keeper().CanKeepPictures() {
+		pictures = []federation.Picture{{URL: media.Poster(), Alt: media.Name}}
+	}
 	kind := constants.NodeMediumNoteEntityType
 	if known, err := h.Nodes.ReadByURI(note.ID); err == nil && known != nil && known.ID != 0 {
 		kind = known.Type
@@ -445,6 +455,19 @@ func (h *Handlers) store(authorID int64, note *ap.ReceivedNote, parentID int64) 
 	}
 	// The card of the link in it, read by this installation itself.
 	node.Meta = h.withCard(words)
+	if media != nil {
+		elsewhere := &videos.Elsewhere{
+			Kind:   videos.ElsewhereVideo,
+			Source: media.URL,
+			Page:   note.Page(),
+			Site:   hostOf(note.ID),
+			Type:   media.MediaType,
+		}
+		if media.IsAudio() {
+			elsewhere.Kind = videos.ElsewhereAudio
+		}
+		node.Meta = videos.WithElsewhere(node.Meta, elsewhere)
+	}
 
 	saved, created, err := h.Nodes.UpsertRemote(node)
 	if err != nil {

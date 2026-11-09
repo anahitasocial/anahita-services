@@ -45,8 +45,12 @@ type MediumNodeItem struct {
 	// On a photo post from another server whose pictures are no longer
 	// stored here.
 	MediaRemoved *MediaRemoved `json:"media_removed,omitempty"`
-	// What a video post plays.
+	// What a video post plays, or a post from elsewhere once its video was
+	// copied here.
 	Video *Video `json:"video,omitempty"`
+	// On a post from another network: the video or sound it carries, kept
+	// there until somebody here plays it (roadmap rows 120 and 137).
+	MediaElsewhere *Elsewhere `json:"media_elsewhere,omitempty"`
 	// On a note that quotes a post: that post, or why it is not shown.
 	Quote *QuoteEmbed `json:"quote,omitempty"`
 	// The id of the post it quotes, whether or not it is shown.
@@ -136,8 +140,12 @@ type MediumNode struct {
 	// On a photo post from another server whose pictures are no longer
 	// stored here.
 	MediaRemoved *MediaRemoved `json:"media_removed,omitempty"`
-	// What a video post plays.
+	// What a video post plays, or a post from elsewhere once its video was
+	// copied here.
 	Video *Video `json:"video,omitempty"`
+	// On a post from another network: the video or sound it carries, kept
+	// there until somebody here plays it (roadmap rows 120 and 137).
+	MediaElsewhere *Elsewhere `json:"media_elsewhere,omitempty"`
 	// On a note that quotes a post: that post, or why it is not shown.
 	Quote *QuoteEmbed `json:"quote,omitempty"`
 	// The id of the post it quotes, whether or not it is shown.
@@ -251,6 +259,7 @@ func (r *MediumNodeResponse) MapMediumNodeItem(node *entities.AnahitaNode) *Medi
 		LinkPreviews:         NewLinkPreviews(node),
 		MediaRemoved:         NewMediaRemoved(node),
 		Video:                NewVideo(node),
+		MediaElsewhere:       NewElsewhere(node),
 		Quote:                NewQuoteEmbed(node),
 		QuoteID:              node.QuoteID,
 		Deleted:              node.RootID > 0 && node.DeletedAt != nil,
@@ -315,6 +324,7 @@ func (r *MediumNodeResponse) MapMediumNode(node *entities.AnahitaNode) *MediumNo
 		LinkPreviews:         NewLinkPreviews(node),
 		MediaRemoved:         NewMediaRemoved(node),
 		Video:                NewVideo(node),
+		MediaElsewhere:       NewElsewhere(node),
 		Quote:                NewQuoteEmbed(node),
 		QuoteID:              node.QuoteID,
 		Root:                 NewRoot(node.Root),

@@ -38,7 +38,9 @@ type Video struct {
 // NewVideo reads a post's video out of its meta, or nil when it is not a
 // video post.
 func NewVideo(node *entities.AnahitaNode) *Video {
-	if node == nil || node.Type != videos.NodeType {
+	// A video post, or a post from elsewhere whose video was copied here
+	// when it was first played (roadmap row 120).
+	if node == nil || (node.Type != videos.NodeType && videos.ElsewhereFromMeta(node.Meta) == nil) {
 		return nil
 	}
 
@@ -67,4 +69,29 @@ func NewVideo(node *entities.AnahitaNode) *Video {
 	}
 
 	return out
+}
+
+// Elsewhere is a video or a sound a post from another network carries,
+// not kept here until somebody plays it (roadmap rows 120 and 137): what
+// it is, and the page it is on there. Played by asking
+// `POST /videos/elsewhere/:id`.
+type Elsewhere struct {
+	// `video` or `audio`.
+	Kind string `json:"kind"`
+	// The post's page on its own site, led to when it cannot be had.
+	Page string `json:"page"`
+	// The name of that site: `bsky.app`.
+	Site string `json:"site"`
+}
+
+// NewElsewhere is what a post says of its file from elsewhere, or nil.
+func NewElsewhere(node *entities.AnahitaNode) *Elsewhere {
+	if node == nil {
+		return nil
+	}
+	elsewhere := videos.ElsewhereFromMeta(node.Meta)
+	if elsewhere == nil {
+		return nil
+	}
+	return &Elsewhere{Kind: elsewhere.Kind, Page: elsewhere.Page, Site: elsewhere.Site}
 }

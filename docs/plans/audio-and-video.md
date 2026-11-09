@@ -7,7 +7,7 @@ posts, and the sounds that arrive from Mastodon played here. Built
 together: both are a file from elsewhere copied on demand, and both use
 video-service's worker and ffmpeg. Decided with the user on 2026-11-08:
 copied on first play, one size kept, audio a kind of post of its own, up
-to an hour. Not built.
+to an hour. Phase 1 built 2026-11-08; phases 2 and 3 not.
 
 ## Contents
 
@@ -122,6 +122,9 @@ tell that server who watched. It is copied here, once somebody wants it.
 1. **Videos from elsewhere:** the meta, the queue, the worker's copy, the
    two routes, the web app's play and wait, removal after
    `REMOTE_VIDEO_DAYS`; Bluesky and the fediverse: about two sessions.
+   **Done 2026-11-08** ([Videos from other networks](../videos.md#videos-from-other-networks)),
+   tried on dev with a Bluesky video. A sound is recorded as one already, and
+   waits for phase 3.
 2. **Audio posts:** the kind, the upload, the worker, the player, the
    composer, the profile tab, both networks out: about two sessions.
 3. **Sounds from the fediverse,** by phase 1's way, played by phase 2's

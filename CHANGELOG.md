@@ -10,6 +10,20 @@ made.
 Releases before v1.0.17 are described on GitHub, under
 [Releases](https://github.com/anahitasocial/anahita-services/releases).
 
+## Embryo
+
+### Added
+
+1. **Videos from other networks played here** (roadmap row 120): a post
+   from Bluesky or the fediverse with a video says where it is
+   (`media_elsewhere`), and the first time somebody presses play
+   (`POST /videos/elsewhere/:id`), video-service's worker copies it here as
+   one file, at 720 or smaller, kept as it is when it already plays
+   everywhere, and it plays from this site's storage, never from its own
+   server. A copy is removed `REMOTE_VIDEO_DAYS` (7) after it was last
+   played; `REMOTE_MEDIA_MAX_BYTES` (100 MB) and `REMOTE_MEDIA_MAX_SECONDS`
+   (an hour) hold what is copied. A new table, `media_elsewhere`.
+
 ## v1.1.0 Birth, 2026-11-08
 
 ### Added

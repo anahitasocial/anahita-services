@@ -68,6 +68,12 @@ type Info struct {
 	Height   int
 	Duration float64
 	HasAudio bool
+	// What the picture and the sound are encoded as ("h264", "aac") and the
+	// picture's pixel format ("yuv420p"): enough to tell a file that plays
+	// everywhere as it is (Playable).
+	VideoCodec string
+	AudioCodec string
+	PixFmt     string
 	// A GIF or an animated PNG, and how many pictures it has.
 	Animated bool
 	Frames   int
@@ -164,6 +170,8 @@ func PNGMoves(r io.Reader) (bool, error) {
 type probed struct {
 	Streams []struct {
 		CodecType   string `json:"codec_type"`
+		CodecName   string `json:"codec_name"`
+		PixFmt      string `json:"pix_fmt"`
 		Width       int    `json:"width"`
 		Height      int    `json:"height"`
 		Disposition struct {
@@ -251,6 +259,9 @@ func ParseProbe(output []byte, maxSeconds int) (*Info, error) {
 	for _, stream := range p.Streams {
 		switch stream.CodecType {
 		case "audio":
+			if !info.HasAudio {
+				info.AudioCodec = stream.CodecName
+			}
 			info.HasAudio = true
 		case "video":
 			// A cover picture in a sound file is a "video" of one frame.
@@ -259,6 +270,7 @@ func ParseProbe(output []byte, maxSeconds int) (*Info, error) {
 			}
 			found = true
 			info.Width, info.Height = stream.Width, stream.Height
+			info.VideoCodec, info.PixFmt = stream.CodecName, stream.PixFmt
 
 			turn := 0.0
 			if stream.Tags.Rotate != "" {
@@ -454,6 +466,39 @@ func Encode(ctx context.Context, container, in, out string, target Target, maxSe
 	}
 	args = append(args, "-f", "mp4", out)
 
+	_, err := run(ctx, "ffmpeg", args...)
+	return err
+}
+
+// Playable says whether a file plays in every browser as it is: an MP4 of
+// H.264 in 4:2:0, with AAC sound or none, no taller than `maxHeight`. Such
+// a file is copied as it is (Remux) rather than encoded again, which takes
+// seconds where encoding takes minutes: most videos from other networks
+// are so.
+func Playable(info *Info, container string, maxHeight int) bool {
+	return info != nil && container == "mov" && !info.Animated &&
+		info.VideoCodec == "h264" && info.PixFmt == "yuv420p" &&
+		(!info.HasAudio || info.AudioCodec == "aac") &&
+		info.Height > 0 && info.Height <= maxHeight && info.Width <= maxHeight*16/9+2
+}
+
+// Remux copies a file's picture and sound into a new MP4 as they are,
+// leaving everything else behind, made to start playing before it has all
+// arrived.
+func Remux(ctx context.Context, container, in, out string, maxSeconds int) error {
+	args := []string{"-nostdin", "-hide_banner", "-loglevel", "error", "-y"}
+	args = append(args, input(container, in)...)
+	args = append(args,
+		"-map", "0:v:0",
+		"-map", "0:a:0?",
+		"-c", "copy",
+		"-map_metadata", "-1", "-map_chapters", "-1", "-sn", "-dn",
+		"-movflags", "+faststart",
+	)
+	if maxSeconds > 0 {
+		args = append(args, "-t", strconv.Itoa(maxSeconds+1))
+	}
+	args = append(args, "-f", "mp4", out)
 	_, err := run(ctx, "ffmpeg", args...)
 	return err
 }

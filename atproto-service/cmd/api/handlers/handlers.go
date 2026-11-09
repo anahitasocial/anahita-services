@@ -69,6 +69,9 @@ type Env struct {
 	Crypt     crypt.Crypt
 	Queue     Enqueuer
 	Directory string
+	// Where an account's server is found, for reading what it posted that
+	// is not kept here when it arrives: a post's video. Set always.
+	PDS PDSFinder
 	// How long a photo post's pictures are waited for before writing it
 	// is left to be tried again: it is said to be made a moment before
 	// its pictures are listed.

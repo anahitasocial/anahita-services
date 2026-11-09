@@ -91,6 +91,29 @@
         ],
         "type": "object"
       },
+      "Elsewhere": {
+        "description": "Elsewhere is a video or a sound a post from another network carries, not kept here until somebody plays it (roadmap rows 120 and 137): what it is, and the page it is on there. Played by asking `POST /videos/elsewhere/:id`.",
+        "properties": {
+          "kind": {
+            "description": "`video` or `audio`.",
+            "type": "string"
+          },
+          "page": {
+            "description": "The post's page on its own site, led to when it cannot be had.",
+            "type": "string"
+          },
+          "site": {
+            "description": "The name of that site: `bsky.app`.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "page",
+          "site"
+        ],
+        "type": "object"
+      },
       "Image": {
         "description": "Image is one size of a picture.",
         "properties": {
@@ -313,6 +336,10 @@
             },
             "type": "array"
           },
+          "media_elsewhere": {
+            "$ref": "#/components/schemas/Elsewhere",
+            "description": "On a post from another network: the video or sound it carries, kept there until somebody here plays it (roadmap rows 120 and 137)."
+          },
           "media_removed": {
             "$ref": "#/components/schemas/MediaRemoved",
             "description": "On a photo post from another server whose pictures are no longer stored here."
@@ -400,7 +427,7 @@
           },
           "video": {
             "$ref": "#/components/schemas/Video",
-            "description": "What a video post plays."
+            "description": "What a video post plays, or a post from elsewhere once its video was copied here."
           },
           "view_count": {
             "description": "How many times it has been read.",
@@ -521,6 +548,10 @@
             },
             "type": "array"
           },
+          "media_elsewhere": {
+            "$ref": "#/components/schemas/Elsewhere",
+            "description": "On a post from another network: the video or sound it carries, kept there until somebody here plays it (roadmap rows 120 and 137)."
+          },
           "media_removed": {
             "$ref": "#/components/schemas/MediaRemoved",
             "description": "On a photo post from another server whose pictures are no longer stored here."
@@ -587,7 +618,7 @@
           },
           "video": {
             "$ref": "#/components/schemas/Video",
-            "description": "What a video post plays."
+            "description": "What a video post plays, or a post from elsewhere once its video was copied here."
           }
         },
         "required": [
@@ -1001,6 +1032,27 @@
         ],
         "type": "object"
       },
+      "video.ElsewhereStatus": {
+        "description": "ElsewhereStatus is how a video from elsewhere stands.",
+        "properties": {
+          "reason": {
+            "description": "Why it failed: too_large, too_long, not_a_video, gone, refused, or failed for something here, which asking again tries again.",
+            "type": "string"
+          },
+          "status": {
+            "description": "waiting or working while it is copied; ready, with the video to play; failed, with why, when it is not to be had and the post is to lead to its page instead.",
+            "type": "string"
+          },
+          "video": {
+            "$ref": "#/components/schemas/Video",
+            "description": "When it is ready: what plays, as a video post's video."
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "type": "object"
+      },
       "video.UploadPart": {
         "description": "UploadPart is where one part of an upload is sent.",
         "properties": {
@@ -1124,6 +1176,109 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/videos/elsewhere/{id}": {
+      "get": {
+        "description": "waiting or working while it is copied; ready, with `video`; failed, with why, when the post is to lead to its page instead; removed when there is no copy, and it is to be asked for again.\n\nWho may call it: somebody signed in.",
+        "operationId": "getVideosElsewhereById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/video.ElsewhereStatus"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "404": {
+            "description": "there is no such post that the viewer may see, or it carries no video from elsewhere"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "How a video from another network stands",
+        "tags": [
+          "video-service"
+        ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).ReadElsewhere",
+        "x-viewer": "signed_in"
+      },
+      "post": {
+        "description": "Of a post from Bluesky or the fediverse that says it carries one (`media_elsewhere`). It is copied here by the worker, one file up to 720, and played from this site's storage, never from its own server; asked again, the copy is said to be played. Ask with GET until it is ready, when `video` is what plays. Thirty in ten minutes.\n\nWho may call it: somebody signed in.",
+        "operationId": "postVideosElsewhereById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/video.ElsewhereStatus"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "404": {
+            "description": "there is no such post that the viewer may see, or it carries no video from elsewhere"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`too_many_videos`"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Ask for a video from another network",
+        "tags": [
+          "video-service"
+        ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).AskElsewhere",
+        "x-viewer": "signed_in"
+      }
+    },
     "/videos/uploads": {
       "get": {
         "description": "Those being sent or waiting for the worker, and those that failed in the last day, the latest first.\n\nWho may call it: somebody signed in.",

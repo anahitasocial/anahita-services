@@ -97,6 +97,7 @@ is gathered at the end, [for planning](#not-built).
 | Feature | Anahita | |
 | --- | --- | --- |
 | Video transcoding | yes | [Videos](videos.md) |
+| Play videos from other servers | yes | Copied here when first played, never streamed from their server ([Videos](videos.md#videos-from-other-networks)) |
 | Adaptive streaming (HLS) | no | |
 | Live streaming | no | |
 | Subtitles and captions | no | |

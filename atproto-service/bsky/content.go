@@ -173,6 +173,22 @@ func (p *Post) HasVideo() bool {
 	return media != nil && media.Type == "app.bsky.embed.video"
 }
 
+// VideoCID is the file of a post's video, or "" when it has none that
+// can be named.
+func (p *Post) VideoCID() string {
+	media := p.media()
+	if media == nil || media.Type != "app.bsky.embed.video" || media.Video == nil || !cidPattern.MatchString(media.Video.Ref.Link) {
+		return ""
+	}
+	return media.Video.Ref.Link
+}
+
+// BlobURL is where a file of an account's is read from on its own server
+// (`pds`, "https://…"): the original, as it was posted.
+func BlobURL(pds, did, cid string) string {
+	return pds + "/xrpc/com.atproto.sync.getBlob?did=" + url.QueryEscape(did) + "&cid=" + url.QueryEscape(cid)
+}
+
 // PictureOf is one picture of a post: which file it is, and what its
 // author said it shows.
 type PictureOf struct {

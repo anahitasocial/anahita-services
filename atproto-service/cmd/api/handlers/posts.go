@@ -10,6 +10,7 @@ import (
 	"anahita-libs/data/entities"
 	"anahita-libs/event"
 	"anahita-libs/federation"
+	"anahita-libs/videos"
 )
 
 // The posts of people on Bluesky.
@@ -132,6 +133,8 @@ func (h *Handlers) storePost(author *repositories.RemoteActor, rkey string, post
 	// The card of the link it carries, or of the first one in its words,
 	// read by this installation itself.
 	node.Meta = federation.CardMeta(h.Cards, words, post.Link())
+	// Where its video is, copied here when first played.
+	node.Meta = videos.WithElsewhere(node.Meta, h.videoElsewhere(post, author.DID, rkey))
 
 	saved, created, err := h.Nodes.UpsertRemote(node)
 	if err != nil {

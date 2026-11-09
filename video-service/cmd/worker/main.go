@@ -13,6 +13,9 @@ import (
 	"time"
 
 	"anahita-libs/data/services"
+	"anahita-libs/federation"
+	"anahita-libs/safehttp"
+	"anahita-libs/videos"
 	vconfig "video/config"
 	"video/data/repositories"
 	"video/worker"
@@ -65,6 +68,18 @@ func main() {
 		MaxSeconds:          config.VideoMaxSeconds,
 		AnimationMaxBytes:   config.AnimationMaxBytes,
 		AnimationMaxSeconds: config.AnimationMaxSeconds,
+
+		// Videos from other networks, copied here when first played: from
+		// public addresses only, with the limits a file from elsewhere is
+		// held to.
+		Elsewhere:        repositories.NewElsewhere(db),
+		Nodes:            services.NewGraphNodeGRPC(config),
+		RemoteClient:     safehttp.NewClient(safehttp.Options{Timeout: 10 * time.Minute, MaxRedirects: 5}),
+		UserAgent:        "Anahita video worker",
+		RemoteMaxBytes:   videos.RemoteMaxBytes(),
+		RemoteMaxSeconds: videos.RemoteMaxSeconds(),
+		RemoteDays:       videos.RemoteDays(),
+		Refused:          federation.NewBlocks(db).IsBlocked,
 	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
