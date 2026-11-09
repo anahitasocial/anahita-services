@@ -23,21 +23,23 @@ Birth releases.
 
 ## With Anahita Web
 
-A Birth release is of both repositories: anahita-web is tagged with the
-same version as anahita-services, on the same day. The latest tagged
-anahita-web works with the latest tagged anahita-services, and a site runs
-the two with the same number. Their `main` branches go together the same
-way: the web app's `main` may call routes that only the services' `main`
-has.
+The services lead; Anahita Web, and every other client (the mobile app,
+the CLI), follows (the user, 2026-11-09). A client has its own versions,
+released at its own pace: a fix to the web app is a release of the web
+app, and nothing is tagged here for it. Each client release says which
+services releases it works with, in one line at the top of its changelog
+section and its notes on GitHub: "Works with Anahita Services v1.2.3 or
+later." A client that needs something new from the services raises that
+number; when the services make a minor release, which apps must follow,
+the next client release says whether it works with it.
 
-A fix to one of them alone is released by tagging both, the same day,
-with the same version: the other's changelog says nothing changed there.
-The services' images that did not change are tagged again, not built
-([What is rebuilt](#what-is-rebuilt)). Before a release, banu.io runs the
-web app's `main`, and it is tried there first. v1.2.1 and v1.2.2 of the web
-app were each released alone (2026-11-08), which left the numbers apart;
-not done again (the user, 2026-11-09). v1.2.3 is of both: the services
-first, the web app the same day, which lined them up again.
+Their `main` branches go together: the web app's `main` may call routes
+that only the services' `main` has, and banu.io runs the web app's
+`main`, tried there before a release of it.
+
+From v1.0.0 to v1.2.3 the two were tagged with the same versions, by the
+same release, and anahita-web v1.2.1 and v1.2.2 were made apart from the
+services; from v1.2.3 on, each has its own.
 
 ## Version numbers
 
@@ -66,31 +68,25 @@ section.
 The PHP Anahita's Birth releases ran from 3.0.0 to 4.8.0, its `master`
 branch the Embryo. These services, written in Go from 2023, began again at
 **v1.0.0**, the first Birth release of Anahita Services, on 2026-10-27.
-Anahita Web, Mobile and CLI use the same names; Anahita Web is tagged
-with the services' versions from the first Birth release after 2026-11-08,
-[With Anahita Web](#with-anahita-web).
+Anahita Web, Mobile and CLI use the same names, each with its own
+versions, saying which services releases it works with
+([With Anahita Web](#with-anahita-web)).
 
 ## Making one
 
-For whoever maintains anahita-services and anahita-web, which are released
-together, with the same version:
+For whoever maintains anahita-services:
 
-1. With both on an up-to-date `main` and nothing uncommitted, make it, from
-   anahita-services, saying where anahita-web is checked out (best set once
-   in one's shell profile):
+1. On an up-to-date `main` with nothing uncommitted, make it:
 
    ~~~sh
-   ANAHITA_WEB=~/projects/anahita-web make release v1.2.0
+   make release v1.2.4
    ~~~
 
-   It looks at both first and stops, changing nothing in either, unless
-   each is on `main`, clean, level with GitHub, the version after its
-   newest tag, and its tests pass (`make test`, `yarn test`). Then, in
-   each, it raises the version (`softwareVersion` here, `package.json`
-   there), names the changelog's Embryo section after the version and the
-   day, commits that, pushes `main`, tags the commit and pushes the tag
-   (`scripts/release.sh`). An anahita-web with nothing new is tagged all
-   the same, its changelog saying so.
+   It stops, changing nothing, unless this repository is on `main`, clean,
+   level with GitHub, the version after its newest tag, and its tests pass
+   (`make test`). Then it raises `softwareVersion`, names the changelog's
+   Embryo section after the version and the day, commits that, pushes
+   `main`, tags the commit and pushes the tag (`scripts/release.sh`).
 
    Or by hand, the same steps, where one would rather see each one done
    ([By hand](#by-hand)).
@@ -105,9 +101,9 @@ together, with the same version:
    image for amd64 and arm64 as `ghcr.io/anahitasocial/<image>:v1.2.0`, and
    as `latest`. It builds only the images that changed since the Birth
    release before: [What is rebuilt](#what-is-rebuilt).
-4. On GitHub, in each repository, Releases › Draft a new release, from the
-   tag, named "v1.2.0 Birth": its changelog's section for the version, with
-   a line saying which release of the other it goes with.
+4. On GitHub, Releases › Draft a new release, from the tag, named
+   "v1.2.4 Birth": the changelog's section for the version. A client's
+   release says which services it works with in its own notes.
 5. In anahita-recipes, once the images are built: the manifests' `ref=`
    and every image in `commons/k8s/kustomization.yml` at the new version,
    renamed images by their new names, and `kubectl kustomize` to see it
@@ -116,23 +112,18 @@ together, with the same version:
 
 ### By hand
 
-What `make release` does, one step at a time, for v1.2.0 on 2026-11-08:
+What `make release` does, one step at a time, for v1.2.4:
 
-1. In both, on `main`, clean and level with GitHub, the tests pass:
-   `make test` here, `yarn test` in anahita-web.
-2. Here: `var softwareVersion = "1.2.0"` in
+1. On `main`, clean and level with GitHub, `make test` passes.
+2. `var softwareVersion = "1.2.4"` in
    `auth-service/cmd/api/handlers/node_info.go`, and `## Embryo` in
-   `CHANGELOG.md` renamed `## v1.2.0 Birth, 2026-11-08`; committed as
-   `release - v1.2.0`.
-3. In anahita-web: `"version": "1.2.0"` in `package.json`, and its
-   changelog's `## Embryo` renamed the same, or, with nothing new, a
-   section of that name saying "Nothing changed here; tagged with Anahita
-   Services."; committed the same.
-4. Each pushed, then tagged, anahita-services first:
+   `CHANGELOG.md` renamed `## v1.2.4 Birth` with the day; committed as
+   `release - v1.2.4`.
+3. Pushed, then tagged:
 
    ~~~sh
    git push origin main
-   git tag v1.2.0 && git push origin v1.2.0
+   git tag v1.2.4 && git push origin v1.2.4
    ~~~
 
    The tag goes on the commit that says the version: the image workflow

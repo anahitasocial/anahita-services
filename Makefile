@@ -701,7 +701,7 @@ $(eval $(RELEASE_VERSION):;@:)
 endif
 endif
 
-## release: makes a Birth release of anahita-services and anahita-web, as in ANAHITA_WEB=~/projects/anahita-web make release v1.2.0 (docs/releases.md)
+## release: makes a Birth release of anahita-services, as in make release v1.2.4 (docs/releases.md)
 release:
 	@scripts/release.sh $(RELEASE_VERSION)
 .PHONY: release

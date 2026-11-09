@@ -69,7 +69,7 @@ The pages, grouped by what they are about, each group in the order to read it.
    11. [Running more than one copy of a service](deploying.md#running-more-than-one-copy-of-a-service)
    12. [Trying it on your own machine](deploying.md#trying-it-on-your-own-machine)
    13. [One machine without Kubernetes](deploying.md#one-machine-without-kubernetes)
-5. [Releases](releases.md) — Embryo and Birth, what a version number says, and Anahita Web tagged with the same
+5. [Releases](releases.md) — Embryo and Birth, what a version number says, and how Anahita Web and the other clients follow the services' releases
    1. [With Anahita Web](releases.md#with-anahita-web)
    2. [Version numbers](releases.md#version-numbers)
    3. [Making one](releases.md#making-one)
