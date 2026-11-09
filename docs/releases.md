@@ -13,6 +13,14 @@ Anahita's releases have two names, as they have had since its first years:
 A site runs a Birth release. It names the version in its overlay, so that
 it changes only when its operator changes it: [Images](deploying.md#images).
 
+**Embryo on banu.io first** (the user, 2026-11-08, as in the PHP Anahita's
+days): Anahita's maintainers run the web app's Embryo, anahita-web's
+`main`, on their own site, banu.io, and tag a Birth release only once what
+it brings has been tried there and works. A site may run the web app's
+Embryo too, for what is next before it is released; otherwise it runs the
+tagged releases. The services' Embryo has no images, so banu.io runs their
+Birth releases.
+
 ## With Anahita Web
 
 A Birth release is of both repositories: anahita-web is tagged with the
