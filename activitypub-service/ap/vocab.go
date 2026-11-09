@@ -25,11 +25,14 @@ const (
 var actorContext = []any{
 	contextActivityStreams,
 	contextSecurity,
-	map[string]string{
+	map[string]any{
 		"toot":                      "http://joinmastodon.org/ns#",
 		"manuallyApprovesFollowers": "as:manuallyApprovesFollowers",
 		"discoverable":              "toot:discoverable",
 		"indexable":                 "toot:indexable",
+		// As Mastodon declares them: each an address.
+		"alsoKnownAs": map[string]string{"@id": "as:alsoKnownAs", "@type": "@id"},
+		"movedTo":     map[string]string{"@id": "as:movedTo", "@type": "@id"},
 	},
 }
 
@@ -57,6 +60,10 @@ type Actor struct {
 	// own choices.
 	Discoverable bool `json:"discoverable"`
 	Indexable    bool `json:"indexable"`
+	// The old accounts they also are, and the account they moved to
+	// (roadmap row 124, part 3).
+	AlsoKnownAs []string `json:"alsoKnownAs,omitempty"`
+	MovedTo     string   `json:"movedTo,omitempty"`
 }
 
 type Endpoints struct {

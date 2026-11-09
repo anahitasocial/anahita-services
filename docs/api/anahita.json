@@ -2598,6 +2598,13 @@
         "description": "Actor is somebody, as they are described to another server.",
         "properties": {
           "@context": {},
+          "alsoKnownAs": {
+            "description": "The old accounts they also are, and the account they moved to (roadmap row 124, part 3).",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "discoverable": {
             "description": "Whether other servers may list them, and find them in search: their own choices.",
             "type": "boolean"
@@ -2629,6 +2636,9 @@
           "manuallyApprovesFollowers": {
             "description": "Whether a follow waits to be approved.",
             "type": "boolean"
+          },
+          "movedTo": {
+            "type": "string"
           },
           "name": {
             "type": "string"
@@ -2667,6 +2677,55 @@
           "manuallyApprovesFollowers",
           "discoverable",
           "indexable"
+        ],
+        "type": "object"
+      },
+      "activitypub.Alias": {
+        "description": "Alias is one old account this one also is.",
+        "properties": {
+          "handle": {
+            "type": "string"
+          },
+          "uri": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "uri"
+        ],
+        "type": "object"
+      },
+      "activitypub.AliasRefusal": {
+        "description": "AliasRefusal is an old account that could not be found, and why.",
+        "properties": {
+          "alias": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "error",
+          "alias"
+        ],
+        "type": "object"
+      },
+      "activitypub.Aliases": {
+        "description": "Aliases are the old accounts this one also is.",
+        "properties": {
+          "also_known_as": {
+            "items": {
+              "$ref": "#/components/schemas/activitypub.Alias"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "also_known_as"
         ],
         "type": "object"
       },
@@ -2812,6 +2871,24 @@
           "follower_count",
           "created_at"
         ],
+        "type": "object"
+      },
+      "activitypub.MoveStatus": {
+        "description": "MoveStatus is whether this account moved, and when it may.",
+        "properties": {
+          "may_move_at": {
+            "description": "When it may move again: thirty days after the last move.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "moved_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "moved_to": {
+            "$ref": "#/components/schemas/activitypub.Alias"
+          }
+        },
         "type": "object"
       },
       "activitypub.Note": {
@@ -8633,6 +8710,126 @@
         "x-viewer": "admin"
       }
     },
+    "/activitypub/aliases": {
+      "get": {
+        "description": "Its `alsoKnownAs`: what another server checks before it lets somebody move from there to here.\n\nWho may call it: somebody signed in.",
+        "operationId": "getActivitypubAliases",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/activitypub.Aliases"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The old accounts the viewer's account also is",
+        "tags": [
+          "activitypub-service"
+        ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).ReadAliases",
+        "x-viewer": "signed_in"
+      },
+      "put": {
+        "description": "Each is found on its own server and kept, as a lookup is; the list takes the place of the one before. For somebody on the fediverse; not an account on this site. Their followers' servers are sent their description again.\n\nWho may call it: somebody signed in.",
+        "operationId": "putActivitypubAliases",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "also_known_as": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/activitypub.Aliases"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`also_known_as_required` or `too_many_aliases`"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/activitypub.AliasRefusal"
+                }
+              }
+            },
+            "description": "one could not be found, as for a lookup (`lookup_not_found`, `lookup_is_here` for one on this site, …), with `alias` naming it"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`not_on_fediverse` or `not_a_person`"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`lookup_failed`"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Name the old accounts the viewer's account also is",
+        "tags": [
+          "activitypub-service"
+        ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).EditAliases",
+        "x-viewer": "signed_in"
+      }
+    },
     "/activitypub/blocks": {
       "get": {
         "description": "Who may call it: a super administrator.",
@@ -8993,6 +9190,174 @@
           "activitypub-service"
         ],
         "x-handler": "activitypub/cmd/api/handlers.(*Handlers).Lookup",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/activitypub/move": {
+      "delete": {
+        "description": "The profile no longer points to the new account, its description no longer says it moved, and the account may post, like and follow again. Its followers stay with the new account; moving from there to here brings them back, which other servers allow only after this. The thirty days before another move still count from the move.\n\nWho may call it: somebody signed in.",
+        "operationId": "deleteActivitypubMove",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/activitypub.MoveStatus"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`not_moved`, `not_on_fediverse` or `not_a_person`"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Take the viewer's move back",
+        "tags": [
+          "activitypub-service"
+        ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).ComeBack",
+        "x-viewer": "signed_in"
+      },
+      "get": {
+        "description": "To which account and when, and, within thirty days of a move, when it may move again.\n\nWho may call it: somebody signed in.",
+        "operationId": "getActivitypubMove",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/activitypub.MoveStatus"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Whether the viewer's account moved",
+        "tags": [
+          "activitypub-service"
+        ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).ReadMove",
+        "x-viewer": "signed_in"
+      },
+      "post": {
+        "description": "To an account elsewhere that names this one in its `alsoKnownAs`, read afresh. Its description gains `movedTo`; its followers' servers are sent a `Move`, and its followers here follow the new account; its profile says where it went. The account can then no longer post, like, follow or tag, until it moves back. Not within thirty days of the last move.\n\nWho may call it: somebody signed in, who has just proved who they are again.",
+        "operationId": "postActivitypubMove",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "to": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/activitypub.MoveStatus"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`to_required`"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`step_up_required`: the viewer must prove who they are again first (`/reauth`)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "the account could not be found, as for a lookup; `lookup_is_here` for one on this site, which is not moved to: a username is changed instead"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`not_on_fediverse`, `not_a_person`, `moved_already`, `moved_lately` or `not_named_there`: the new account does not name this one"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`lookup_failed`"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Move the viewer's account to another",
+        "tags": [
+          "activitypub-service"
+        ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).Move",
+        "x-step-up": true,
         "x-viewer": "signed_in"
       }
     },
@@ -9478,7 +9843,7 @@
                 }
               }
             },
-            "description": "why they cannot be: `site_private`, `site_unreachable` or `profile_not_public`"
+            "description": "why they cannot be: `site_private`, `site_unreachable` or `profile_not_public`; `moved` for leaving an account that moved away, which would take the way to the new one with it"
           }
         },
         "security": [

@@ -7,7 +7,7 @@ new profile on the old server"; and moving between Anahita and Mastodon or
 servers like it. Brought forward on 2026-11-08, at the user's word ("focus
 on helping people moving in and out"), before the WordPress import, with
 the lists that Mastodon, Misskey and Pixelfed move between them. Parts 1
-and 2 are built; parts 3 and 4 are not.
+to 3 are built; part 4 is not.
 
 ## Contents
 
@@ -39,11 +39,10 @@ them on every server that does it Mastodon's way.
    ([Download your data](../data-export.md)). Nothing reads it back in.
    (`blocked.json` was empty until 2026-11-08, from the same fault as a
    person's own Blocked list.)
-2. **Others' moves are heeded** (part 2, 2026-11-08): a `Move` from
+2. **Moving is built** (parts 2 and 3, 2026-11-08): a `Move` from
    somebody followed from here has their followers follow the new account
-   ([Federation](../federation.md#somebody-who-moved)). Nobody here can
-   move yet: no `alsoKnownAs` on a profile here, no `Move` sent, no
-   `movedTo`.
+   ([Federation](../federation.md#somebody-who-moved)), and a person here
+   moves in or away ([Moving one's own account](../federation.md#moving-ones-own-account)).
 
 ## How others do it
 
@@ -224,10 +223,11 @@ last move.
 | The profile | Points to the new one (`edge.actor.moved.v1`): "Moved to" and View new profile, as for anybody who moved; its handle is still found, and its posts stay |
 | The account | Limited: its tokens carry no `media:write`, `likes:write`, `socialgraph:write` or `taxonomy:write`, so nothing is posted, liked, reposted, followed, blocked, muted or tagged from it. Signing in, settings, the download, and turning the fediverse off are left, and leaving the fediverse is refused while moved, which would undo the signpost |
 
-**Moving back** undoes it: the person names this account on the new one's
-side as theirs, and moves from there to here. Its `Move` is believed as any
-other; the signpost is taken down, the account is whole again, and the
-followers come back the same way.
+**Coming back** is two steps, as on Mastodon: Come back on the old
+account takes the move back (the signpost comes down and the account is
+whole again), and then the new account moves to it, bringing the
+followers, as anybody's move in. Other servers allow a move to an account
+only once it no longer says it moved; found in the lab with GoToSocial.
 
 A handle on this site is refused, with a line pointing to changing one's
 username; a `Move` from one account here to another here is ignored.
@@ -237,7 +237,7 @@ username; a `Move` from one account here to another here is ignored.
 | Where | What |
 | --- | --- |
 | `activitypub_accounts.also_known_as` | The old accounts this one also is, as addresses, JSON |
-| `activitypub_accounts.moved_to`, `moved_at` | The account moved to, and when |
+| `activitypub_accounts.moved_to`, `moved_at` | The account moved to, and when; auth-service reads `moved_to` to limit the tokens |
 | `edge.actor.moved.v1` | The signpost, as for anybody who moved |
 
 ### The API
@@ -248,6 +248,7 @@ username; a `Move` from one account here to another here is ignored.
 | `PUT /activitypub/aliases` `{ "also_known_as": ["ana@old.example"] }` | Names them; at most five |
 | `GET /activitypub/move` | Whether this account moved, to whom and when, and when it may move again |
 | `POST /activitypub/move` `{ "to": "ana@new.example" }` | Moves, after step-up |
+| `DELETE /activitypub/move` | Comes back |
 
 ## Part 4: bringing your posts
 
@@ -287,7 +288,8 @@ installation, and nothing there changes.
    ([Somebody who moved](../federation.md#somebody-who-moved)), tried in the
    lab with GoToSocial's own move.
 3. **Moving, out and in,** with the signpost: three to four sessions.
-   Decided 2026-11-08.
+   **Done 2026-11-08** ([Moving one's own account](../federation.md#moving-ones-own-account)),
+   tried in the lab with GoToSocial, out and in.
 4. **Bringing your posts,** from Anahita, then perhaps from Mastodon: three
    to four sessions, decided apart.
 

@@ -32,23 +32,24 @@ Bluesky account they already have. See [Bluesky](#bluesky).
 11. [Being followed from another server](#being-followed-from-another-server)
 12. [Following somebody on another server](#following-somebody-on-another-server)
 13. [Somebody who moved](#somebody-who-moved)
-14. [Posts going out](#posts-going-out)
-15. [Posts coming in](#posts-coming-in)
-16. [What can be done with what came from elsewhere](#what-can-be-done-with-what-came-from-elsewhere)
-17. [The inbox](#the-inbox)
-18. [What is sent, and when it does not arrive](#what-is-sent-and-when-it-does-not-arrive)
-19. [Signing keys and signed requests](#signing-keys-and-signed-requests)
-20. [The API](#the-api)
-21. [Leaving, and what follows a person's changes](#leaving-and-what-follows-a-persons-changes)
-22. [Replies](#replies)
-23. [Likes and reposts](#likes-and-reposts)
-24. [Servers that are refused](#servers-that-are-refused)
-25. [Accounts that are refused](#accounts-that-are-refused)
-26. [Pictures that are removed](#pictures-that-are-removed)
-27. [Posts and people that are removed](#posts-and-people-that-are-removed)
-28. [Bluesky](#bluesky)
-29. [Where the code is](#where-the-code-is)
-30. [Further reading](#further-reading)
+14. [Moving one's own account](#moving-ones-own-account)
+15. [Posts going out](#posts-going-out)
+16. [Posts coming in](#posts-coming-in)
+17. [What can be done with what came from elsewhere](#what-can-be-done-with-what-came-from-elsewhere)
+18. [The inbox](#the-inbox)
+19. [What is sent, and when it does not arrive](#what-is-sent-and-when-it-does-not-arrive)
+20. [Signing keys and signed requests](#signing-keys-and-signed-requests)
+21. [The API](#the-api)
+22. [Leaving, and what follows a person's changes](#leaving-and-what-follows-a-persons-changes)
+23. [Replies](#replies)
+24. [Likes and reposts](#likes-and-reposts)
+25. [Servers that are refused](#servers-that-are-refused)
+26. [Accounts that are refused](#accounts-that-are-refused)
+27. [Pictures that are removed](#pictures-that-are-removed)
+28. [Posts and people that are removed](#posts-and-people-that-are-removed)
+29. [Bluesky](#bluesky)
+30. [Where the code is](#where-the-code-is)
+31. [Further reading](#further-reading)
 
 ## What it is
 
@@ -570,11 +571,48 @@ somebody nobody here has kept does nothing.
 
 What is moved is moved once, so a `Move` heard again finds nothing left to
 do. A follow left on a profile that moved, by a restart in the middle of
-moving, is found by the sweep (below) and moved then. Somebody moving to a
-profile on this installation is not yet heeded: that is moving in
-([Moving](plans/moving.md#part-3-moving-yourself), part 3).
+moving, is found by the sweep (below) and moved then. A move to a person on this installation is heeded when that person names
+the old account among their own: moving in
+([Moving one's own account](#moving-ones-own-account)).
 
 Tried in [the lab](federation-lab.md), with GoToSocial's own move.
+
+## Moving one's own account
+
+A person here moves their account in from elsewhere, or away to elsewhere,
+as Mastodon's people do (roadmap row 124, part 3;
+[Moving](plans/moving.md#part-3-moving-yourself)). Both are under Settings ›
+Fediverse, for somebody on the fediverse. Not to another account on this
+site: changing one's username does what that would.
+
+**Moving in.** The person names the old accounts this one also is, at most
+five, each found on its own server and kept (`PUT /activitypub/aliases`).
+They are this profile's `alsoKnownAs`, which the old server reads before it
+lets the move start there. Its `Move` then arrives and is heeded as above:
+the followers here of the old account follow this one, and their own
+servers move the rest.
+
+**Moving away,** after proving who one is again (step-up), to an account
+elsewhere that names this one in its `alsoKnownAs`, read afresh
+(`POST /activitypub/move`); not within thirty days of the last move.
+
+| What | Done |
+| --- | --- |
+| The account | `activitypub_accounts.moved_to` and `moved_at` |
+| Its description | Gains `movedTo`; its followers' servers are sent it (`Update`) |
+| Its followers elsewhere | Their servers are sent a `Move`, once each, and move them |
+| Its followers here | Follow the new account, or ask to, and are told; blocks and mutes of it carry over, as for anybody who moved |
+| Its profile | Points to the new one (`edge.actor.moved.v1`): "Moved to", with View new profile; its handle is still found, and its posts stay |
+| Its tokens | Minted without `media:write`, `likes:write`, `socialgraph:write` and `taxonomy:write` ([OAuth](oauth.md#scopes)): nothing is posted, liked, followed, blocked, muted or tagged from it. Signing in, settings and the download are left |
+| Leaving the fediverse | Refused, `moved`: other servers would be told the account is gone, and the way to the new one with it |
+
+**Coming back** (`DELETE /activitypub/move`): the signpost comes down, the
+description no longer says it moved, and the account is whole again. The
+followers stay with the new account; the person names the new account here
+as one of their own, and moves from there to here to bring them back.
+Other servers allow a move to an account only once it no longer says it
+moved, as Mastodon's "cancel redirect" is the first step back; GoToSocial
+also allows no second move within seven days.
 
 ## Posts going out
 
@@ -1044,6 +1082,8 @@ Signed in, for the person themselves:
 | `PUT /activitypub/settings` `{ "enabled": true }` | Turns it on or off |
 | `PUT /activitypub/settings` `{ "discoverable": false, "indexable": false }` | Whether other servers may list them, and find them in search; either alone. See [Listed and found](#listed-and-found) |
 | `GET /activitypub/known-profiles` | Administrators: who from other networks is kept here, for the list in the Fediverse settings |
+| `GET /activitypub/aliases`, `PUT /activitypub/aliases` `{ "also_known_as": ["ana@old.example"] }` | The old accounts the viewer's also is, for moving in ([Moving one's own account](#moving-ones-own-account)) |
+| `GET /activitypub/move`, `POST /activitypub/move` `{ "to": "ana@new.example" }`, `DELETE /activitypub/move` | Whether the viewer's account moved; moving it away, after step-up; coming back |
 | `GET /activitypub/lookup?q=@alice@mastodon.example` | Finds somebody on another server, by handle or by the address of their profile, and keeps them |
 
 ~~~json
@@ -1654,6 +1694,7 @@ app.
 | Posts going out | `cmd/api/handlers/notes.go`, `ap/note.go`, listening for `node.medium.*`, table `activitypub_objects` |
 | Posts coming in | `cmd/api/handlers/inbox.go`: `received`, `withdrawn` |
 | Somebody who moved | `cmd/api/handlers/moving.go`; `alsoKnownAs` read in `remote/actor.go` |
+| Moving one's own account | `cmd/api/handlers/moving_yourself.go`; the tokens of a moved account: `auth-service/data/services/jwt.go` (`withheldIfMoved`), `anahita-libs/constants/oauth_scopes.go` (`OAuthScopesWithheldWhenMoved`) |
 | Leaving, and profile changes | `cmd/api/handlers/leaving.go`; from the other side, `inbox.go`: `forget`, `refreshed`; the graph's `DeleteRemoteActor` |
 | Servers that are refused | `cmd/api/handlers/blocks.go`, `data/repositories/blocks.go`, table `federation_domain_blocks` |
 | What NodeInfo says is spoken | `auth-service/cmd/api/handlers/node_info.go`: `federationProtocols` (`FEDERATION_PROTOCOLS`) |

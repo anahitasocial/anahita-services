@@ -64,6 +64,7 @@ func (h *Handlers) actorDescribed(person *entities.AnahitaNode, publicKey string
 	actor := ap.NewActor(h.addresses, person, publicKey)
 	if account, err := h.Accounts.Read(person.ID); err == nil && account != nil {
 		actor.Discoverable, actor.Indexable = account.Discoverable, account.Indexable
+		actor.AlsoKnownAs, actor.MovedTo = account.AlsoKnownAs, account.MovedTo
 	}
 	return actor
 }

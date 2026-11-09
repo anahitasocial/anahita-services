@@ -136,6 +136,14 @@ func (h *Handlers) EditSettings(c echo.Context) error {
 		}
 	}
 
+	// Not while moved away: other servers would be told the account is
+	// gone, and the way to the new one with it (moving_yourself.go).
+	if !*req.Enabled && settings.Enabled {
+		if account, err := h.Accounts.Read(personID); err == nil && account != nil && account.MovedTo != "" {
+			return refuse(c, http.StatusConflict, "moved")
+		}
+	}
+
 	// Off, having been on: every server that knows them is told to forget
 	// them, and what crossed between servers is undone here.
 	if !*req.Enabled && settings.Enabled {

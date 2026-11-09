@@ -61,6 +61,17 @@ Releases before v1.0.17 are described on GitHub, under
    profile points to the new (`edge.actor.moved.v1`, `moved_to` on the
    profile). The sweep moves any follow left behind.
 
+7. **Moving one's own account** (roadmap row 124, part 3), in and out, as
+   Mastodon's people do. In: `PUT /activitypub/aliases` names the old
+   accounts this one also is (`alsoKnownAs`), and their `Move` here is
+   heeded. Out: `POST /activitypub/move`, after step-up, to an account that
+   names this one; its description says `movedTo`, its followers' servers
+   are sent a `Move`, its followers here follow the new account, and its
+   tokens are minted without `media:write`, `likes:write`,
+   `socialgraph:write` and `taxonomy:write`. `DELETE /activitypub/move`
+   comes back. Three columns in `activitypub_accounts`: `also_known_as`,
+   `moved_to`, `moved_at`.
+
 ### Changed
 
 1. **The overlays pull Anahita's images from GitHub's registry,**

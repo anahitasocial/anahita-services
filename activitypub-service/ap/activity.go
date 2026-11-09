@@ -62,6 +62,21 @@ type Sent struct {
 	Object  any    `json:"object"`
 }
 
+// Moved is a Move: `actor` here moved to `target`.
+type Moved struct {
+	Context any    `json:"@context"`
+	ID      string `json:"id"`
+	Type    string `json:"type"`
+	Actor   string `json:"actor"`
+	Object  string `json:"object"`
+	Target  string `json:"target"`
+}
+
+// NewMove says somebody here moved their account to another.
+func NewMove(id, actor, target string) *Moved {
+	return &Moved{Context: contextActivityStreams, ID: id, Type: "Move", Actor: actor, Object: actor, Target: target}
+}
+
 // FollowRef is a follow as it is quoted back to whoever asked for it.
 type FollowRef struct {
 	ID     string `json:"id"`

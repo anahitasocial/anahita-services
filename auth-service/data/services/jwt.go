@@ -5,6 +5,8 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"log"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -86,6 +88,12 @@ func (s *OAuthService) MintAccessToken(ctx context.Context, claims accessTokenCl
 	kid, err := s.signer.ActiveKeyID(ctx)
 	if err != nil {
 		return "", fmt.Errorf("get active signing key: %w", err)
+	}
+
+	// Somebody who moved their account away posts, likes and follows
+	// nothing more from it (roadmap row 124, part 3).
+	if claims.PersonPK != 0 {
+		claims.Scopes = s.withheldIfMoved(claims.PersonPK, claims.Scopes)
 	}
 
 	now := time.Now()
@@ -336,4 +344,29 @@ func claimFloat(claims jwt.MapClaims, key string) (float64, bool) {
 		return f, true
 	}
 	return 0, false
+}
+
+// withheldIfMoved is a token's scopes for a person, less those that post,
+// like and follow when their account moved away. A failure to ask leaves
+// them as they are: a moved account that briefly could still post is a
+// smaller harm than everybody signed out.
+func (s *OAuthService) withheldIfMoved(personID int64, scopes string) string {
+	if s.Repos == nil || s.Repos.Moved == nil {
+		return scopes
+	}
+	moved, err := s.Repos.Moved.HasMoved(personID)
+	if err != nil {
+		log.Println("tokens: whether they moved:", err)
+		return scopes
+	}
+	if !moved {
+		return scopes
+	}
+	kept := make([]string, 0)
+	for _, scope := range strings.Fields(scopes) {
+		if !slices.Contains(libs_constants.OAuthScopesWithheldWhenMoved, scope) {
+			kept = append(kept, scope)
+		}
+	}
+	return strings.Join(kept, " ")
 }

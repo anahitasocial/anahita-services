@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"slices"
+	"strings"
 	"time"
 
 	"activitypub/ap"
@@ -78,6 +79,18 @@ func (h *Handlers) moved(ctx context.Context, from *remote.Actor, activity *ap.A
 	}
 	log.Printf("moving: %s moved to %s", old.Alias, newer.Alias)
 
+	// To a person here: moving in, or moving back to an account that moved
+	// away, whose signpost comes down and which is whole again.
+	if !newer.IsRemote() {
+		if account, err := h.Accounts.Read(newer.ID); err == nil && account != nil && account.MovedTo == from.ID {
+			if err := h.Accounts.SetMoved(newer.ID, ""); err != nil {
+				return err
+			}
+			log.Printf("moving: %s moved back from %s", newer.Alias, old.Alias)
+			h.later(func() { h.describedAgain(context.Background(), newer, "back:"+from.ID) })
+		}
+	}
+
 	h.later(func() { h.carryOver(old, newer) })
 	return nil
 }
@@ -85,6 +98,11 @@ func (h *Handlers) moved(ctx context.Context, from *remote.Actor, activity *ap.A
 // believedMove reads the account moved to from its own server and keeps it,
 // when it names the old one as another of its own.
 func (h *Handlers) believedMove(ctx context.Context, oldURI, newURI string) (*entities.AnahitaNode, error) {
+	// Somebody here, who names the old account among their own (moving
+	// in, or back).
+	if h.Site.IsOurs(newURI) {
+		return h.believedMoveHere(oldURI, newURI)
+	}
 	if h.Blocks != nil && h.Blocks.IsBlocked(hostOf(newURI)) {
 		return nil, errAccountRefused
 	}
@@ -102,6 +120,27 @@ func (h *Handlers) believedMove(ctx context.Context, oldURI, newURI string) (*en
 		return nil, errMoveNoAlias
 	}
 	return h.keep(actor)
+}
+
+// believedMoveHere is the person here an address is, when they name the old
+// account as another of their own and are on the fediverse.
+func (h *Handlers) believedMoveHere(oldURI, newURI string) (*entities.AnahitaNode, error) {
+	_, uuid, ok := strings.Cut(newURI, "/ap/users/")
+	if !ok || uuid == "" || strings.Contains(uuid, "/") || h.addresses.Actor(uuid) != newURI {
+		return nil, errMoveNotTheirs
+	}
+	person, err := h.Nodes.ReadByUUID(uuid)
+	if err != nil || person == nil || person.ID == 0 || !person.IsPerson() {
+		return nil, errMoveNotTheirs
+	}
+	account, err := h.Accounts.Read(person.ID)
+	if err != nil || account == nil || !account.Enabled {
+		return nil, errMoveNotTheirs
+	}
+	if !slices.Contains(account.AlsoKnownAs, oldURI) {
+		return nil, errMoveNoAlias
+	}
+	return person, nil
 }
 
 // pointTo has the old profile point to the new one, in place of wherever it

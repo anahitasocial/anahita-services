@@ -17,6 +17,7 @@ import (
 	"anahita-libs/permissions"
 	"anahita-libs/policy"
 	"anahita-libs/ratelimit"
+	"anahita-libs/sessions"
 	"anahita-libs/site"
 
 	"github.com/labstack/echo/v4"
@@ -86,6 +87,9 @@ type Env struct {
 	Edges      services.GraphEdgeGRPCInterface
 	BlockEdges services.SocialgraphBlockGRPCInterface
 	MuteEdges  services.SocialgraphMuteGRPCInterface
+	// Where a person's proof of who they are, just given, is found
+	// (step-up): asked before they move their account away.
+	Session sessions.KeyValueInterface
 	// What is waiting to be sent to other servers, and what sends it.
 	Queue  Enqueuer
 	Poster Poster

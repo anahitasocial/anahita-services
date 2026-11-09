@@ -42,6 +42,17 @@ const (
 	OAuthScopeOAuthWrite         = "oauth:write"
 )
 
+// OAuthScopesWithheldWhenMoved are not in the tokens of somebody who moved
+// their account away (anahita-web roadmap row 124, part 3): from the old
+// account nothing is posted, liked, reposted, followed, blocked, muted or
+// tagged, until it moves back. Signing in, settings and the download stay.
+var OAuthScopesWithheldWhenMoved = []string{
+	OAuthScopeMediaWrite,
+	OAuthScopeLikesWrite,
+	OAuthScopeSocialgraphWrite,
+	OAuthScopeTaxonomyWrite,
+}
+
 // OAuthScopeDefinition describes a single scope: who can grant it, who
 // can see it on the consent screen, and the human-readable label shown
 // to users.

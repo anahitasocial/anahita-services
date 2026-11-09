@@ -66,6 +66,8 @@ type Repositories struct {
 	OAuthSigningKeys    OAuthSigningKeysInterface
 	Users               UsersInterface
 	WebAuthnCredentials WebAuthnCredentialsInterface
+	// Whether somebody moved their account away: their tokens are limited.
+	Moved MovedInterface
 }
 
 // NewRepositories returns a new instance of the repositories
@@ -84,5 +86,6 @@ func NewRepositories(dbPool *sql.DB) *Repositories {
 		OAuthSigningKeys:    NewOAuthSigningKeys(db),
 		Users:               NewUsers(db),
 		WebAuthnCredentials: NewWebAuthnCredentials(db),
+		Moved:               NewMoved(db),
 	}
 }

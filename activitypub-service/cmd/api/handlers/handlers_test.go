@@ -77,6 +77,29 @@ type fakeAccounts struct {
 	// What a person chose about being listed and found: [discoverable,
 	// indexable]. On until they choose.
 	listing map[int64][2]bool
+	// The old accounts each also is, and where each moved, and when.
+	aliases map[int64][]string
+	moved   map[int64]string
+	movedAt map[int64]time.Time
+}
+
+func (f *fakeAccounts) SetAliases(id int64, addresses []string) error {
+	if f.aliases == nil {
+		f.aliases = map[int64][]string{}
+	}
+	f.aliases[id] = addresses
+	return nil
+}
+
+func (f *fakeAccounts) SetMoved(id int64, to string) error {
+	if f.moved == nil {
+		f.moved, f.movedAt = map[int64]string{}, map[int64]time.Time{}
+	}
+	f.moved[id] = to
+	if to != "" {
+		f.movedAt[id] = time.Now()
+	}
+	return nil
 }
 
 func (f *fakeAccounts) Told(id int64, at time.Time) error {
@@ -92,6 +115,7 @@ func (f *fakeAccounts) Read(id int64) (*repositories.Account, error) {
 	if chosen, ok := f.listing[id]; ok {
 		account.Discoverable, account.Indexable = chosen[0], chosen[1]
 	}
+	account.AlsoKnownAs, account.MovedTo, account.MovedAt = f.aliases[id], f.moved[id], f.movedAt[id]
 	return account, nil
 }
 

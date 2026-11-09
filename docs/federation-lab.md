@@ -250,6 +250,15 @@ and is told, and the log says `moving: naomi@gts.test to nagata@gts.test`
 with what was carried over. GoToSocial says nagata is not aliased for a
 while after the alias is set, and an account moves only once.
 
+The other ways round, with a person here on the fediverse
+([Moving one's own account](federation.md#moving-ones-own-account)): in
+Settings › Fediverse they name `naomi@gts.test` under Moving here, and
+naomi moves to `https://api.anahita.test/ap/users/<their uuid>`; or nagata
+names that address as an alias, and they move to `nagata@gts.test` under
+Moving away. GoToSocial moves nobody to an account that says it moved, and
+allows no second move within seven days of the last, so coming back cannot
+be tried in the same week.
+
 ## Stopping and emptying it
 
 ~~~sh

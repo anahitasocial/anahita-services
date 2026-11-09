@@ -49,6 +49,14 @@ The current catalog: `openid`, `profile`, `email`, `offline_access`,
 `notifications:read`, `notifications:write`, `taxonomy:write`,
 `account:read`, `account:write`, `oauth:read`, `oauth:write`.
 
+**A moved account's tokens** are minted without `media:write`,
+`likes:write`, `socialgraph:write` and `taxonomy:write`
+(`OAuthScopesWithheldWhenMoved`), whatever was asked for: somebody who
+moved their account away posts, likes, follows and tags nothing more from
+it, until they come back. auth-service reads it from
+`activitypub_accounts.moved_to` each time it mints one, so it holds within
+a token's fifteen minutes ([Federation](federation.md#moving-ones-own-account)).
+
 There is no scope for replies. A reply is a post, written under `media:write`.
 `comments:write` was removed with comments: a client registered with it has to
 be registered again without it, and the seeded clients are in

@@ -86,7 +86,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 </ul>
 <p class="group">Fediverse and Bluesky</p>
 <ul>
-<li><a href="#activitypub-service">The fediverse</a> <span class="count">25</span></li>
+<li><a href="#activitypub-service">The fediverse</a> <span class="count">30</span></li>
 <li><a href="#atproto-service">Bluesky</a> <span class="count">7</span></li>
 <li><a href="#syndication-service">Websites</a> <span class="count">5</span></li>
 </ul>
@@ -96,7 +96,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 </ul>
 <p class="group">Reference</p>
 <ul>
-<li><a href="#schemas">Shapes</a> <span class="count">169</span></li>
+<li><a href="#schemas">Shapes</a> <span class="count">173</span></li>
 </ul>
 </nav>
 <main>
@@ -9664,6 +9664,47 @@ who may call it: anyone, signed in or not.">
 </table>
 <p class="handler">Answered by <code>activitypub/cmd/api/handlers.(*Handlers).WebFinger</code></p>
 </details>
+<details class="route" id="getActivitypubAliases" data-search="get /activitypub/aliases the old accounts the viewer&#39;s account also is its `alsoknownas`: what another server checks before it lets somebody move from there to here.
+
+who may call it: somebody signed in.">
+<summary><span class="method get">GET</span> <code class="path">/activitypub/aliases</code> <span class="summary">The old accounts the viewer&#39;s account also is</span></summary>
+<div class="description"><p>Its <code>alsoKnownAs</code>: what another server checks before it lets somebody move from there to here.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-activitypub.Aliases">activitypub.Aliases</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>activitypub/cmd/api/handlers.(*Handlers).ReadAliases</code></p>
+</details>
+<details class="route" id="putActivitypubAliases" data-search="put /activitypub/aliases name the old accounts the viewer&#39;s account also is each is found on its own server and kept, as a lookup is; the list takes the place of the one before. for somebody on the fediverse; not an account on this site. their followers&#39; servers are sent their description again.
+
+who may call it: somebody signed in.">
+<summary><span class="method put">PUT</span> <code class="path">/activitypub/aliases</code> <span class="summary">Name the old accounts the viewer&#39;s account also is</span></summary>
+<div class="description"><p>Each is found on its own server and kept, as a lookup is; the list takes the place of the one before. For somebody on the fediverse; not an account on this site. Their followers&#39; servers are sent their description again.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>also_known_as</code></td><td>list of string</td><td></td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-activitypub.Aliases">activitypub.Aliases</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>also_known_as_required</code> or <code>too_many_aliases</code><div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">404</td><td>one could not be found, as for a lookup (<code>lookup_not_found</code>, <code>lookup_is_here</code> for one on this site, …), with <code>alias</code> naming it<div class="body"><a href="#schema-activitypub.AliasRefusal">activitypub.AliasRefusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">409</td><td><code>not_on_fediverse</code> or <code>not_a_person</code><div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s5">502</td><td><code>lookup_failed</code><div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>activitypub/cmd/api/handlers.(*Handlers).EditAliases</code></p>
+</details>
 <details class="route" id="getActivitypubBlocks" data-search="get /activitypub/blocks the servers refused who may call it: a super administrator.">
 <summary><span class="method get">GET</span> <code class="path">/activitypub/blocks</code> <span class="summary">The servers refused</span></summary>
 <p class="who"><strong>Who:</strong> a super administrator</p>
@@ -9783,6 +9824,64 @@ who may call it: somebody signed in.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>activitypub/cmd/api/handlers.(*Handlers).Lookup</code></p>
+</details>
+<details class="route" id="getActivitypubMove" data-search="get /activitypub/move whether the viewer&#39;s account moved to which account and when, and, within thirty days of a move, when it may move again.
+
+who may call it: somebody signed in.">
+<summary><span class="method get">GET</span> <code class="path">/activitypub/move</code> <span class="summary">Whether the viewer&#39;s account moved</span></summary>
+<div class="description"><p>To which account and when, and, within thirty days of a move, when it may move again.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-activitypub.MoveStatus">activitypub.MoveStatus</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>activitypub/cmd/api/handlers.(*Handlers).ReadMove</code></p>
+</details>
+<details class="route" id="postActivitypubMove" data-search="post /activitypub/move move the viewer&#39;s account to another to an account elsewhere that names this one in its `alsoknownas`, read afresh. its description gains `movedto`; its followers&#39; servers are sent a `move`, and its followers here follow the new account; its profile says where it went. the account can then no longer post, like, follow or tag, until it moves back. not within thirty days of the last move.
+
+who may call it: somebody signed in, who has just proved who they are again.">
+<summary><span class="method post">POST</span> <code class="path">/activitypub/move</code> <span class="summary">Move the viewer&#39;s account to another</span></summary>
+<div class="description"><p>To an account elsewhere that names this one in its <code>alsoKnownAs</code>, read afresh. Its description gains <code>movedTo</code>; its followers&#39; servers are sent a <code>Move</code>, and its followers here follow the new account; its profile says where it went. The account can then no longer post, like, follow or tag, until it moves back. Not within thirty days of the last move.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in, who has just proved who they are again</p>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>to</code></td><td>string</td><td></td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-activitypub.MoveStatus">activitypub.MoveStatus</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>to_required</code><div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td><code>step_up_required</code>: the viewer must prove who they are again first (<code>/reauth</code>)<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">404</td><td>the account could not be found, as for a lookup; <code>lookup_is_here</code> for one on this site, which is not moved to: a username is changed instead<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">409</td><td><code>not_on_fediverse</code>, <code>not_a_person</code>, <code>moved_already</code>, <code>moved_lately</code> or <code>not_named_there</code>: the new account does not name this one<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s5">502</td><td><code>lookup_failed</code><div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>activitypub/cmd/api/handlers.(*Handlers).Move</code></p>
+</details>
+<details class="route" id="deleteActivitypubMove" data-search="delete /activitypub/move take the viewer&#39;s move back the profile no longer points to the new account, its description no longer says it moved, and the account may post, like and follow again. its followers stay with the new account; moving from there to here brings them back, which other servers allow only after this. the thirty days before another move still count from the move.
+
+who may call it: somebody signed in.">
+<summary><span class="method delete">DELETE</span> <code class="path">/activitypub/move</code> <span class="summary">Take the viewer&#39;s move back</span></summary>
+<div class="description"><p>The profile no longer points to the new account, its description no longer says it moved, and the account may post, like and follow again. Its followers stay with the new account; moving from there to here brings them back, which other servers allow only after this. The thirty days before another move still count from the move.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-activitypub.MoveStatus">activitypub.MoveStatus</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">409</td><td><code>not_moved</code>, <code>not_on_fediverse</code> or <code>not_a_person</code><div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>activitypub/cmd/api/handlers.(*Handlers).ComeBack</code></p>
 </details>
 <details class="route" id="postActivitypubPeopleByIdRefresh" data-search="post /activitypub/people/{id}/refresh read somebody on another server again when what was kept of them is more than an hour old: whether they approve their followers, their name, their words, their pictures. asked by the web app when their profile is opened; `refreshed` says whether to read the profile again. a failure there leaves what was kept, and says nothing.
 
@@ -9955,7 +10054,7 @@ who may call it: somebody signed in.">
 <tr><td class="status s4">400</td><td><code>enabled_required</code>: nothing to change; <code>person_unreadable</code><div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td>somebody else&#39;s, and the viewer is not an administrator of the website asked about</td></tr>
-<tr><td class="status s4">409</td><td>why they cannot be: <code>site_private</code>, <code>site_unreachable</code> or <code>profile_not_public</code><div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">409</td><td>why they cannot be: <code>site_private</code>, <code>site_unreachable</code> or <code>profile_not_public</code>; <code>moved</code> for leaving an account that moved away, which would take the way to the new one with it<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>activitypub/cmd/api/handlers.(*Handlers).EditSettings</code></p>
@@ -11656,13 +11755,14 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-activitypub.Actor" data-search="activitypub.actor @context discoverable endpoints followers following icon id image inbox indexable manuallyapprovesfollowers name outbox preferredusername publickey published summary type url">
+<div class="route schema" id="schema-activitypub.Actor" data-search="activitypub.actor @context alsoknownas discoverable endpoints followers following icon id image inbox indexable manuallyapprovesfollowers movedto name outbox preferredusername publickey published summary type url">
 <h3>activitypub.Actor</h3>
 <p>Somebody, as they are described to another server.</p>
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
 <tr><td><code>@context</code></td><td>anything</td><td></td></tr>
+<tr><td><code>alsoKnownAs</code></td><td>list of string</td><td>The old accounts they also are, and the account they moved to (roadmap row 124, part 3).</td></tr>
 <tr><td><code>discoverable</code> <span class="required">always</span></td><td>boolean</td><td>Whether other servers may list them, and find them in search: their own choices.</td></tr>
 <tr><td><code>endpoints</code></td><td><a href="#schema-activitypub.Endpoints">activitypub.Endpoints</a></td><td></td></tr>
 <tr><td><code>followers</code> <span class="required">always</span></td><td>string</td><td></td></tr>
@@ -11673,6 +11773,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>inbox</code> <span class="required">always</span></td><td>string</td><td></td></tr>
 <tr><td><code>indexable</code> <span class="required">always</span></td><td>boolean</td><td></td></tr>
 <tr><td><code>manuallyApprovesFollowers</code> <span class="required">always</span></td><td>boolean</td><td>Whether a follow waits to be approved.</td></tr>
+<tr><td><code>movedTo</code></td><td>string</td><td></td></tr>
 <tr><td><code>name</code></td><td>string</td><td></td></tr>
 <tr><td><code>outbox</code> <span class="required">always</span></td><td>string</td><td></td></tr>
 <tr><td><code>preferredUsername</code> <span class="required">always</span></td><td>string</td><td></td></tr>
@@ -11681,6 +11782,38 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>summary</code></td><td>string</td><td></td></tr>
 <tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td></td></tr>
 <tr><td><code>url</code></td><td>string</td><td></td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-activitypub.Alias" data-search="activitypub.alias handle uri">
+<h3>activitypub.Alias</h3>
+<p>One old account this one also is.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>handle</code></td><td>string</td><td></td></tr>
+<tr><td><code>uri</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-activitypub.AliasRefusal" data-search="activitypub.aliasrefusal alias error">
+<h3>activitypub.AliasRefusal</h3>
+<p>An old account that could not be found, and why.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>alias</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+<tr><td><code>error</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-activitypub.Aliases" data-search="activitypub.aliases also_known_as">
+<h3>activitypub.Aliases</h3>
+<p>Aliases are the old accounts this one also is.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>also_known_as</code> <span class="required">always</span></td><td>list of <a href="#schema-activitypub.Alias">activitypub.Alias</a> or null</td><td></td></tr>
 </tbody>
 </table>
 </div>
@@ -11754,6 +11887,18 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>network</code> <span class="required">always</span></td><td>string</td><td><code>activitypub</code> or <code>atproto</code>.</td></tr>
 <tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td>What kind of profile it is, as any node says.</td></tr>
 <tr><td><code>uri</code> <span class="required">always</span></td><td>string</td><td>Where they are: their actor&#39;s address, or <code>at://</code> and their DID.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-activitypub.MoveStatus" data-search="activitypub.movestatus may_move_at moved_at moved_to">
+<h3>activitypub.MoveStatus</h3>
+<p>Whether this account moved, and when it may.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>may_move_at</code></td><td>time</td><td>When it may move again: thirty days after the last move.</td></tr>
+<tr><td><code>moved_at</code></td><td>time</td><td></td></tr>
+<tr><td><code>moved_to</code></td><td><a href="#schema-activitypub.Alias">activitypub.Alias</a></td><td></td></tr>
 </tbody>
 </table>
 </div>

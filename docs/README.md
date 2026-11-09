@@ -349,21 +349,22 @@ five, under Profiles.
    10. [Being followed from another server](federation.md#being-followed-from-another-server)
    11. [Following somebody on another server](federation.md#following-somebody-on-another-server)
    12. [Somebody who moved](federation.md#somebody-who-moved)
-   13. [Posts going out](federation.md#posts-going-out)
-   14. [Posts coming in](federation.md#posts-coming-in)
-   15. [What can be done with what came from elsewhere](federation.md#what-can-be-done-with-what-came-from-elsewhere)
-   16. [The inbox](federation.md#the-inbox)
-   17. [What is sent, and when it does not arrive](federation.md#what-is-sent-and-when-it-does-not-arrive)
-   18. [Signing keys and signed requests](federation.md#signing-keys-and-signed-requests)
-   19. [The API](federation.md#the-api)
-   20. [Leaving, and what follows a person's changes](federation.md#leaving-and-what-follows-a-persons-changes)
-   21. [Servers that are refused](federation.md#servers-that-are-refused)
-   22. [Replies](federation.md#replies)
-   23. [Likes and reposts](federation.md#likes-and-reposts)
-   24. [Pictures that are removed](federation.md#pictures-that-are-removed)
-   25. [Posts and people that are removed](federation.md#posts-and-people-that-are-removed)
-   26. [Bluesky](federation.md#bluesky)
-   27. [Where the code is](federation.md#where-the-code-is)
+   13. [Moving one's own account](federation.md#moving-ones-own-account)
+   14. [Posts going out](federation.md#posts-going-out)
+   15. [Posts coming in](federation.md#posts-coming-in)
+   16. [What can be done with what came from elsewhere](federation.md#what-can-be-done-with-what-came-from-elsewhere)
+   17. [The inbox](federation.md#the-inbox)
+   18. [What is sent, and when it does not arrive](federation.md#what-is-sent-and-when-it-does-not-arrive)
+   19. [Signing keys and signed requests](federation.md#signing-keys-and-signed-requests)
+   20. [The API](federation.md#the-api)
+   21. [Leaving, and what follows a person's changes](federation.md#leaving-and-what-follows-a-persons-changes)
+   22. [Servers that are refused](federation.md#servers-that-are-refused)
+   23. [Replies](federation.md#replies)
+   24. [Likes and reposts](federation.md#likes-and-reposts)
+   25. [Pictures that are removed](federation.md#pictures-that-are-removed)
+   26. [Posts and people that are removed](federation.md#posts-and-people-that-are-removed)
+   27. [Bluesky](federation.md#bluesky)
+   28. [Where the code is](federation.md#where-the-code-is)
 2. [Websites](websites.md) — a website's feed as a profile to follow: connecting a site, proving its domain, its feed read and posted as notes, replies as the website, and on the fediverse
    1. [Who does what](websites.md#who-does-what)
    2. [Connecting a website](websites.md#connecting-a-website)
@@ -469,7 +470,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [A second profile posting to a Bluesky account](plans/bluesky-posting-only.md) | 92 | planned 2026-10-28: a profile the same person looks after (a blog, a group) connects their Bluesky account to send its posts there, posting only: nothing from Bluesky is kept as it, and the account stays the first profile's |
 | [Content warnings](plans/content-warnings.md) | 122 | planned 2026-11-03, Made with AI added 2026-11-07: six kinds, an author marks a post and each reader chooses Show, Warn or Hide; both networks in and out; moderators add one from a report |
 | [Direct messages, and being found on the fediverse](plans/direct-messages.md) | 123 | planned 2026-11-03: listed on FediDB, FediDB's 128 questions answered in features.md, then messages here and with the fediverse as private mentions, with consent first |
-| [Moving: who you follow, your followers, and your posts](plans/moving.md) | 124 | parts 1 and 2 done 2026-11-08 (lists in and out; following somebody who moved), part 3 next; brought forward 2026-11-08, with blocks, mutes and saved posts, from a download or a single CSV; planned 2026-11-03: following out and in as Mastodon's CSV, heeding others' moves, moving oneself between Anahitas and with Mastodon with a signpost left behind, then posts between Anahitas |
+| [Moving: who you follow, your followers, and your posts](plans/moving.md) | 124 | parts 1 to 3 done 2026-11-08 (lists in and out; following somebody who moved; moving one's own account), part 4, posts, later; brought forward 2026-11-08, with blocks, mutes and saved posts, from a download or a single CSV; planned 2026-11-03: following out and in as Mastodon's CSV, heeding others' moves, moving oneself between Anahitas and with Mastodon with a signpost left behind, then posts between Anahitas |
 | [Muting profiles](plans/done/muting.md) | 133 | done 2026-11-08: a mute hides somebody's posts, reposts and replies from the person who muted, everywhere but their own profile, and their notifications by a tick; for a day, a week, a month or until unmuted; nobody told, nothing sent; Mute in a person's menu and on what they posted, Settings › Privacy › Muted |
 | [Asking to follow on the fediverse](plans/done/remote-follow-requests.md) | 130 | done 2026-11-07: following a profile elsewhere that approves its followers is a request, "Request to follow" then "Requested", until their server accepts; tried against mastodon.world |
 | [Content Credentials](plans/content-credentials.md) | 131 | planned 2026-11-07: C2PA manifests checked on upload by a small `credentials-service` with the C2PA project's own library; a mark where one checks out, nothing where there is none |

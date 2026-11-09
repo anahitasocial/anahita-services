@@ -1201,6 +1201,12 @@ CREATE TABLE IF NOT EXISTS activitypub_accounts (
     -- Whether other servers may list them, and find them in search.
     `discoverable` tinyint(1) NOT NULL DEFAULT 1,
     `indexable` tinyint(1) NOT NULL DEFAULT 1,
+    -- The old accounts this one also is, as addresses: a JSON list, or NULL
+    -- for none. What another server checks before a move to here.
+    `also_known_as` text DEFAULT NULL,
+    -- The account this one moved to, and when; NULL until it moves.
+    `moved_to` varchar(512) DEFAULT NULL,
+    `moved_at` datetime DEFAULT NULL,
     -- Their own updated_at when their followers' servers were last sent
     -- their description.
     `told_updated_at` datetime DEFAULT NULL,

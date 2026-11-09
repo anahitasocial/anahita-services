@@ -80,6 +80,8 @@ func main() {
 	jwks := an_mw.NewJWKSClient(config.GetOAuthJWKSURL())
 	authorize := an_mw.Authorize(config, jwks)
 	setViewer := an_mw.SetViewer(config, jwks)
+	// Counts for the rate limits, and the proofs of step-up.
+	session := sessions.NewSession(config)
 
 	env := &handlers.Env{
 		Site:     addresses,
@@ -105,7 +107,8 @@ func main() {
 		BlockEdges:  services.NewSocialgraphBlockGRPC(config),
 		MuteEdges:   services.NewSocialgraphMuteGRPC(config),
 		Crypt:       secrets,
-		Limiter:     sessions.NewSession(config),
+		Limiter:     session,
+		Session:     session,
 	}
 	h := handlers.NewHandlers(env)
 

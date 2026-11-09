@@ -170,10 +170,14 @@ func (h *personHandler) Read(c echo.Context) error {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
-	// Somebody from another server who moved their account: where to.
-	// Read with their profile alone, not in lists.
-	if person.IsRemote() {
-		person.MovedTo = h.movedTo(person.ID, viewer)
+	// Somebody who moved their account, from another server or from
+	// here: where to. Read with their profile alone, not in lists. A
+	// profile here that moved away posts nothing more (roadmap row 124,
+	// part 3): nobody is offered a composer on it.
+	person.MovedTo = h.movedTo(person.ID, viewer)
+	if person.MovedTo != nil && person.Authorized != nil {
+		person.Authorized.Composers = []string{}
+		person.Authorized.Audiences = []string{}
 	}
 
 	batchPresignPaths(h.Env, []*entities.AnahitaNode{&person.AnahitaNode})
@@ -656,8 +660,8 @@ func (h *personHandler) DeletionCounts(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-// movedTo is the profile somebody from another server moved to, as the
-// viewer may see it (roadmap row 124, part 2), or nil.
+// movedTo is the profile somebody moved to, as the viewer may see it
+// (roadmap row 124, parts 2 and 3), or nil.
 func (h *personHandler) movedTo(oldID int64, viewer *entities.Viewer) *entities.AnahitaNode {
 	req := services.NewGraphEdgeRequest().BatchReadByFilters
 	req.NodeAID = oldID

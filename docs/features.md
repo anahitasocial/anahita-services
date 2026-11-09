@@ -29,8 +29,8 @@ is gathered at the end, [for planning](#not-built).
 
 | Feature | Anahita | |
 | --- | --- | --- |
-| Move to another server with followers | planned | [Moving](plans/moving.md) |
-| Accept followers moving in | planned | [Moving](plans/moving.md) |
+| Move to another server with followers | yes | After step-up; the old profile is a signpost and posts nothing more ([Federation](federation.md#moving-ones-own-account)) |
+| Accept followers moving in | yes | By naming the old account in Settings › Fediverse ([Federation](federation.md#moving-ones-own-account)) |
 | Follow somebody who moved | yes | Who follows them here follows their new account; blocks and mutes carry over too ([Federation](federation.md#somebody-who-moved)) |
 | Export your data | yes | [Download your data](data-export.md) |
 | Import follows, blocks and mutes | yes | And saved posts: from another Anahita's download, or Mastodon's or Misskey's files ([Bring your lists in](imports.md)); follows from one's own Bluesky account too ([Federation](federation.md)) |
@@ -215,17 +215,15 @@ Every **no** and **planned** above, gathered for planning.
 
 **Planned,** each with its plan:
 
-1. Moving to another server with followers, and followers moving in:
-   [Moving](plans/moving.md)
-2. Content warnings and sensitive media:
+1. Content warnings and sensitive media:
    [Content warnings](plans/content-warnings.md)
-3. Direct messages: [Direct messages](plans/direct-messages.md)
-4. Translating posts: [Translation](plans/translation.md)
-5. Albums or collections: [Collections](plans/collections.md)
-6. Verified profile links: [Verified domains](plans/verified-domains.md)
-7. Importing server blocklists:
+2. Direct messages: [Direct messages](plans/direct-messages.md)
+3. Translating posts: [Translation](plans/translation.md)
+4. Albums or collections: [Collections](plans/collections.md)
+5. Verified profile links: [Verified domains](plans/verified-domains.md)
+6. Importing server blocklists:
    [Refusing servers from a file](plans/domain-block-import.md)
-8. An official mobile app, Anahita Mobile
+7. An official mobile app, Anahita Mobile
 
 **Decided against, or put off, with why:**
 
