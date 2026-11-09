@@ -102,7 +102,7 @@ microservices architecture.")
 | --- | --- | --- | --- | --- |
 | **php-migration** | | Moving a site from Anahita PHP: row 92, made simple from what was done for banu.io. The move alone: the new site is made first with `commons`, and the old one moved into it (the user, 2026-11-08). Archive the old site and prove the archive; copy the files to a new bucket; `upgrade.sql`; check; the old site retired. One `make` target a step, each one that changes anything shown first with nothing changed (`tidy`, then `tidy-apply`, as banu.io does). Examples of thinning a site, from banu.io's `migration/` (the user, 2026-11-08): inactive accounts purged but a list kept; old posts by kind and date; posts whose author is gone; photos moved to another profile with their files; groups purged; then the file sweep. Each counts first and keeps a copy of what it removes | Each step tried on a copy | First |
 | **commons** | Mastodon and Pixelfed, but more | Everything: notes, photos, video, articles, groups, events, federation on both networks. What `generic` is now | | First |
-| **coffeehouse** | Mastodon, Bluesky | Notes and photos; articles, topics, events and websites off; short limits on video | Needs row 139's switches | First, once 139 is built |
+| **coffeehouse** | Mastodon, Bluesky | Notes and photos alone: articles, topics, events and websites off; no videos, GIFs or sound, so neither `video-service` nor `video-worker` runs (the user, 2026-11-09) | Needs row 139's switches | First, once 139 is built |
 | **journal** | WordPress, Medium | Articles first: a home of article cards with their covers, notes beside them | RSS feeds; newsletters by email | Later |
 | **theatre** | YouTube, PeerTube | Video first: a grid of thumbnails, larger uploads, the video worker given more | Adaptive streaming (HLS); captions; playlists | Later |
 | **gathering** | Meetup, Luma | What is on, first; groups as the organisers | A calendar to subscribe to (iCal). No tickets: nothing is sold | Later |
@@ -114,6 +114,9 @@ commons/                each recipe a directory; copy one, and it is a site
   README.md             who it is for, what it decides, the three things to
                         decide before the first person joins, and the steps
                         from an empty server to the first person signed in
+  images/what-runs.svg  what it runs and what it leaves out, drawn: shown in
+                        the README under What it chooses (the user,
+                        2026-11-09)
   Makefile              every task one word; `make` lists them
   scripts/              init.sh and server.sh, what make init and make
                         server run
