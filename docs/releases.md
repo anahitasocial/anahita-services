@@ -78,6 +78,9 @@ together, with the same version:
    day, commits that, pushes `main`, tags the commit and pushes the tag
    (`scripts/release.sh`). An anahita-web with nothing new is tagged all
    the same, its changelog saying so.
+
+   Or by hand, the same steps, where one would rather see each one done
+   ([By hand](#by-hand)).
 2. `softwareVersion` is what the site tells the fediverse it runs. It is in
    the code and not taken from the tag, since an image that did not change
    is tagged again rather than built ([What is rebuilt](#what-is-rebuilt)),
@@ -97,6 +100,33 @@ together, with the same version:
    renamed images by their new names, and `kubectl kustomize` to see it
    builds. Pinned, not `latest`: a site changes version only when its
    operator does, and reads the Upgrading notes at a new minor.
+
+### By hand
+
+What `make release` does, one step at a time, for v1.2.0 on 2026-11-08:
+
+1. In both, on `main`, clean and level with GitHub, the tests pass:
+   `make test` here, `yarn test` in anahita-web.
+2. Here: `var softwareVersion = "1.2.0"` in
+   `auth-service/cmd/api/handlers/node_info.go`, and `## Embryo` in
+   `CHANGELOG.md` renamed `## v1.2.0 Birth, 2026-11-08`; committed as
+   `release - v1.2.0`.
+3. In anahita-web: `"version": "1.2.0"` in `package.json`, and its
+   changelog's `## Embryo` renamed the same, or, with nothing new, a
+   section of that name saying "Nothing changed here; tagged with Anahita
+   Services."; committed the same.
+4. Each pushed, then tagged, anahita-services first:
+
+   ~~~sh
+   git push origin main
+   git tag v1.2.0 && git push origin v1.2.0
+   ~~~
+
+   The tag goes on the commit that says the version: the image workflow
+   refuses one whose `softwareVersion` says another. A tag is never moved
+   once pushed.
+
+Then steps 2 to 5 above.
 
 Upgrading a site to it: [Upgrading](deploying.md#upgrading).
 
