@@ -41,6 +41,13 @@ spec:
                   name: anahita-config
                   key: VIDEO_UPLOADS
                   optional: true
+            # Whether profiles have audio posts, where they have video.
+            - name: AUDIO_UPLOADS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: AUDIO_UPLOADS
+                  optional: true
             - name: ENV
               valueFrom:
                 configMapKeyRef:

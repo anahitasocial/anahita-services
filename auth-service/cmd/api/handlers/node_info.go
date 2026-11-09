@@ -159,7 +159,7 @@ type NodeInfoDocument struct {
 	OpenRegistrations bool `json:"openRegistrations"`
 	// How much it is used.
 	Usage nodeInfoUsage `json:"usage"`
-	// What the web app reads of the installation: `nodeName`, `nodeDescription`, `logoUrl`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `websitesFrom`, `locationsFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `siteRules`, `spamRemovalMaxDays`, `accountGraceDays`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `audioMaxBytes`, `audioMaxSeconds`, `postMaxLength`, `postLinkLength`, `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.
+	// What the web app reads of the installation: `nodeName`, `nodeDescription`, `logoUrl`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `websitesFrom`, `locationsFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `siteRules`, `spamRemovalMaxDays`, `accountGraceDays`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `audioMaxBytes`, `audioMaxSeconds`, `audioUploads`, `audioRecording`, `postMaxLength`, `postLinkLength`, `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.
 	Metadata map[string]any `json:"metadata"`
 }
 
@@ -335,6 +335,10 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 			// may be.
 			"audioMaxBytes":   videos.AudioMaxBytes(),
 			"audioMaxSeconds": videos.AudioMaxSeconds(),
+			// Whether audio posts may be made, and whether the web app
+			// offers to record one (AUDIO_UPLOADS, AUDIO_RECORDING).
+			"audioUploads":   videos.AudioUploadsOn(),
+			"audioRecording": videos.AudioRecordingOn(),
 			// How long a short post may be (roadmap row 144), a link
 			// counted as 23 however long, as Mastodon counts it.
 			"postMaxLength":  posts.MaxLength,

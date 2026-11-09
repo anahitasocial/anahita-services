@@ -97,7 +97,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Takes(&handlers.UploadStartRequest{}).
 		Sends(http.StatusCreated, handlers.UploadResponse{}).
 		Sends(http.StatusBadRequest, responses.Refusal{}, "`language_invalid`, `reply_access_invalid` or `quote_policy_invalid`; or not well formed, without a body").
-		Sends(http.StatusForbidden, responses.Refusal{}, "`uploads_off`: this installation takes no video; or the viewer may not post or reply here, without a body").
+		Sends(http.StatusForbidden, responses.Refusal{}, "`uploads_off`: this installation takes no video; `audio_off`: it takes no sound (`AUDIO_UPLOADS`); or the viewer may not post or reply here, without a body").
 		Refuses(http.StatusNotFound, "there is no such profile, or nothing it answers that the viewer may see").
 		Refuses(http.StatusGone, "it answers a reply that was removed").
 		Sends(http.StatusRequestEntityTooLarge, handlers.UploadTooLarge{}).

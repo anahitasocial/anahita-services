@@ -178,6 +178,10 @@ func (h *videoHandler) UploadStart(c echo.Context) error {
 	// A sound is an audio post (roadmap row 137), made by the same worker.
 	kind := videos.KindVideo
 	if slices.Contains(constants.AudioTypes, contentType) {
+		// Sound is the installation's to allow (AUDIO_UPLOADS).
+		if !videos.AudioUploadsOn() {
+			return refuseUpload(c, http.StatusForbidden, "audio_off")
+		}
 		kind = videos.KindAudio
 	} else if !slices.Contains(constants.UploadTypes, contentType) {
 		return refuseUpload(c, http.StatusUnsupportedMediaType, constants.FailedNotAVideo)

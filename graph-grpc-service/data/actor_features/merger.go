@@ -32,6 +32,18 @@ func ApplyFeatures(node *graphpb.Node, loader *FeatureLoader, defaults []*entiti
 		merged = kept
 	}
 
+	// Sound the same (AUDIO_UPLOADS): where it is off, video-service's
+	// feature keeps its videos and loses its audio posts, their composer and
+	// who may add them.
+	if !videos.AudioUploadsOn() {
+		for i, feature := range merged {
+			if feature.Service == videos.Service {
+				withoutAudio(feature)
+				merged[i] = feature
+			}
+		}
+	}
+
 	// Convert to protobuf features
 	node.Features = make([]*graphpb.NodeFeature, len(merged))
 	for i, f := range merged {
@@ -69,4 +81,26 @@ func toProtoPermissions(perms []entities.AnahitaNodeAddPermission) []*graphpb.No
 		}
 	}
 	return result
+}
+
+// withoutAudio takes a feature's audio posts out of it.
+func withoutAudio(feature *entities.AnahitaNodeFeature) {
+	not := func(list []string) []string {
+		var kept []string
+		for _, each := range list {
+			if each != videos.KindAudio {
+				kept = append(kept, each)
+			}
+		}
+		return kept
+	}
+	feature.NodeTypes = not(feature.NodeTypes)
+	feature.Composers = not(feature.Composers)
+	var permissions []entities.AnahitaNodeAddPermission
+	for _, each := range feature.AddPermissions {
+		if each.Entity != videos.KindAudio {
+			permissions = append(permissions, each)
+		}
+	}
+	feature.AddPermissions = permissions
 }

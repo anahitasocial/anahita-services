@@ -182,6 +182,10 @@ services:
       # Video: whether it may be posted, and the limits, for the web app.
       # See docs/videos.md.
       VIDEO_UPLOADS: ${VIDEO_UPLOADS:-}
+      AUDIO_UPLOADS: ${AUDIO_UPLOADS:-}
+      AUDIO_RECORDING: ${AUDIO_RECORDING:-}
+      AUDIO_MAX_BYTES: ${AUDIO_MAX_BYTES:-}
+      AUDIO_MAX_SECONDS: ${AUDIO_MAX_SECONDS:-}
       VIDEO_MAX_BYTES: ${VIDEO_MAX_BYTES:-}
       VIDEO_MAX_SECONDS: ${VIDEO_MAX_SECONDS:-}
       # How many invitations one person may have OUTSTANDING at once. A slot
@@ -943,6 +947,10 @@ services:
       # Whether videos may be posted, and the largest and the longest
       # taken. See docs/videos.md.
       VIDEO_UPLOADS: ${VIDEO_UPLOADS:-}
+      AUDIO_UPLOADS: ${AUDIO_UPLOADS:-}
+      AUDIO_RECORDING: ${AUDIO_RECORDING:-}
+      AUDIO_MAX_BYTES: ${AUDIO_MAX_BYTES:-}
+      AUDIO_MAX_SECONDS: ${AUDIO_MAX_SECONDS:-}
       VIDEO_MAX_BYTES: ${VIDEO_MAX_BYTES:-}
       VIDEO_MAX_SECONDS: ${VIDEO_MAX_SECONDS:-}
       VIDEO_DAILY_UPLOADS: ${VIDEO_DAILY_UPLOADS:-}
@@ -1275,6 +1283,10 @@ services:
     environment:
       # Whether profiles have video at all. See docs/videos.md.
       VIDEO_UPLOADS: ${VIDEO_UPLOADS:-}
+      AUDIO_UPLOADS: ${AUDIO_UPLOADS:-}
+      AUDIO_RECORDING: ${AUDIO_RECORDING:-}
+      AUDIO_MAX_BYTES: ${AUDIO_MAX_BYTES:-}
+      AUDIO_MAX_SECONDS: ${AUDIO_MAX_SECONDS:-}
       ENV: ${ENV}
       # How long a deleted profile can be brought back: 30 days unless said.
       ACCOUNT_GRACE_DAYS: ${ACCOUNT_GRACE_DAYS:-}

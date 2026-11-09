@@ -230,12 +230,16 @@ As for a photo, and by the same rules: see
 A sound is a post of its own kind, `node.medium.video-service.audio.v1`,
 made and kept by video-service, which has the worker and ffmpeg (roadmap
 row 137, [Audio and video from everywhere](plans/audio-and-video.md)). It
-is posted where videos may be (`VIDEO_UPLOADS`): the same two containers
+is posted where videos may be (`VIDEO_UPLOADS`), unless `AUDIO_UPLOADS` is
+`off`, and recorded in the composer only where `AUDIO_RECORDING` is `on`:
+the same two containers
 make it.
 
 1. **Sent as a video is,** in parts straight to storage, through the same
-   routes. What the browser says the file is decides: MP3, M4A and AAC,
-   Ogg and Opus, WAV, FLAC and WebM sound make an audio post; the upload
+   routes, chosen as a file or recorded in the web app's composer, which
+   records M4A or WebM as the browser does. What the browser says the file
+   is decides: MP3, M4A and AAC, Ogg and Opus, WAV, FLAC and WebM sound make
+   an audio post; the upload
    keeps its kind (`video_uploads.kind`). Held to `AUDIO_MAX_BYTES` and
    `AUDIO_MAX_SECONDS` (500 MB and an hour unless said), and to
    `VIDEO_DAILY_UPLOADS` with videos.
@@ -338,6 +342,8 @@ Kubernetes.
 | `VIDEO_DAILY_UPLOADS` | How many videos one person may send in 24 hours. `20` unless said |
 | `ANIMATION_MAX_BYTES` | The largest GIF or animated PNG taken. 25 MB (`26214400`) unless said, and never more than `VIDEO_MAX_BYTES` |
 | `ANIMATION_MAX_SECONDS` | The longest one. `30` unless said, and never more than `VIDEO_MAX_SECONDS` |
+| `AUDIO_UPLOADS` | `off` where no sound may be posted, chosen or recorded; on unless said, where videos may be. Off, no profile has audio posts (no Audio button, no Audio tab), `video-service` refuses a sound (`audio_off`), and those posted already go on being shown. Read by `graph-grpc-service`, `video-service` and `auth-service` |
+| `AUDIO_RECORDING` | `on` where the web app may offer to record a sound with the microphone; off unless said, and never where `AUDIO_UPLOADS` is off. Recording people, and posting what one has no right to, are a site's to allow (the user, 2026-11-08): read the [terms](https://github.com/anahitasocial/anahita-web/blob/main/src/statics/legal/tos.md) first. A recording arrives as a file, as one chosen does, so this says what is offered, not what is taken. Read by `auth-service`, which says it in NodeInfo |
 | `AUDIO_MAX_BYTES` | The largest file taken to make an audio post. 500 MB unless said |
 | `AUDIO_MAX_SECONDS` | The longest audio post. `3600`, an hour, unless said |
 | `REMOTE_MEDIA_MAX_BYTES` | The largest file from another network copied here. 100 MB unless said |

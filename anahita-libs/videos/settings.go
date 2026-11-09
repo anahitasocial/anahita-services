@@ -114,6 +114,31 @@ const (
 	DefaultAudioMaxBytes   = 500 * 1024 * 1024
 )
 
+// Whether sound may be posted at all, and recorded in the web app's
+// composer, the installation's to say (the user, 2026-11-08: recording
+// people, and posting what one has no right to, are a site's to allow).
+//
+//	AUDIO_UPLOADS    audio posts, chosen or recorded: on unless "off", and
+//	                 only where videos may be posted.
+//	AUDIO_RECORDING  the composer's microphone: off unless "on", and only
+//	                 where audio posts may be. A sound recorded arrives as
+//	                 a file, as one chosen does: this says what the web app
+//	                 offers, not what is taken.
+const (
+	EnvAudioUploads   = "AUDIO_UPLOADS"
+	EnvAudioRecording = "AUDIO_RECORDING"
+)
+
+// AudioUploadsOn says whether audio posts may be made here.
+func AudioUploadsOn() bool {
+	return UploadsOn() && !strings.EqualFold(strings.TrimSpace(os.Getenv(EnvAudioUploads)), "off")
+}
+
+// AudioRecordingOn says whether the web app offers to record a sound.
+func AudioRecordingOn() bool {
+	return AudioUploadsOn() && strings.EqualFold(strings.TrimSpace(os.Getenv(EnvAudioRecording)), "on")
+}
+
 func AudioMaxSeconds() int {
 	return int(positive(EnvAudioMaxSeconds, DefaultAudioMaxSeconds))
 }

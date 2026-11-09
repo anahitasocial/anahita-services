@@ -10,6 +10,23 @@ made.
 Releases before v1.0.17 are described on GitHub, under
 [Releases](https://github.com/anahitasocial/anahita-services/releases).
 
+## Embryo
+
+### Added
+
+1. **Two switches for sound:** `AUDIO_UPLOADS`, `off` for no audio posts
+   at all, chosen or recorded (on unless said, where videos may be), and
+   `AUDIO_RECORDING`, `on` for the web app to offer recording a sound with
+   the microphone (off unless said). NodeInfo says both, `audioUploads` and
+   `audioRecording`. Recording people, and posting what one has no right
+   to, are a site's to allow.
+
+### Fixed
+
+1. **`AUDIO_MAX_BYTES` and `AUDIO_MAX_SECONDS` reach the services,** in
+   Kubernetes and docker-compose: they were documented and never passed,
+   so the defaults always held.
+
 ## v1.2.0 Birth, 2026-11-08
 
 ### Added

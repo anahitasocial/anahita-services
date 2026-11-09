@@ -101,6 +101,25 @@ spec:
                   name: anahita-config
                   key: VIDEO_UPLOADS
                   optional: true
+            # Whether sound may be posted, and the largest and longest taken.
+            - name: AUDIO_UPLOADS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: AUDIO_UPLOADS
+                  optional: true
+            - name: AUDIO_MAX_BYTES
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: AUDIO_MAX_BYTES
+                  optional: true
+            - name: AUDIO_MAX_SECONDS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: AUDIO_MAX_SECONDS
+                  optional: true
             - name: VIDEO_MAX_BYTES
               valueFrom:
                 configMapKeyRef:

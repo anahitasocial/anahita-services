@@ -3046,7 +3046,7 @@
                 }
               }
             },
-            "description": "`uploads_off`: this installation takes no video; or the viewer may not post or reply here, without a body"
+            "description": "`uploads_off`: this installation takes no video; `audio_off`: it takes no sound (`AUDIO_UPLOADS`); or the viewer may not post or reply here, without a body"
           },
           "404": {
             "description": "there is no such profile, or nothing it answers that the viewer may see"
