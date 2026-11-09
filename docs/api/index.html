@@ -6853,7 +6853,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>parts</code> <span class="required">always</span></td><td>list of <a href="#schema-text.ThreadPart">text.ThreadPart</a></td><td>The notes of the thread, first to last: up to ten. At least 1 of them. At most 10 of them.</td></tr>
+<tr><td><code>parts</code> <span class="required">always</span></td><td>list of <a href="#schema-Part">Part</a></td><td>The notes of the thread, first to last: up to ten. At least 1 of them. At most 10 of them.</td></tr>
 <tr><td><code>warning</code></td><td>string</td><td>Its content warning, as on a reply, given to every part. At most 16 characters.</td></tr>
 <tr><td><code>warning_text</code></td><td>string</td><td> At most 400 characters.</td></tr>
 </tbody>
@@ -6948,7 +6948,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>access</code></td><td>string</td><td>As on NoteAddRequest, for the first part: the rest are replies, seen by whoever may see it. One of <code>public</code>, <code>registered</code>, <code>followers</code>, <code>leaders</code>, <code>mutuals</code>, <code>admins</code>, <code>myself</code>.</td></tr>
 <tr><td><code>allow_download</code></td><td>boolean</td><td>Whether the first part&#39;s pictures may be downloaded, when it has any, as on a photo post. Not saying leaves it to the profile.</td></tr>
 <tr><td><code>location_ids</code></td><td>list of integer</td><td> At most 5 of them.</td></tr>
-<tr><td><code>parts</code> <span class="required">always</span></td><td>list of <a href="#schema-text.ThreadPart">text.ThreadPart</a></td><td>The notes of the thread, first to last: up to ten. At least 1 of them. At most 10 of them.</td></tr>
+<tr><td><code>parts</code> <span class="required">always</span></td><td>list of <a href="#schema-Part">Part</a></td><td>The notes of the thread, first to last: up to ten. At least 1 of them. At most 10 of them.</td></tr>
 <tr><td><code>quote_id</code></td><td>integer</td><td></td></tr>
 <tr><td><code>quote_policy</code></td><td>string</td><td> At most 16 characters.</td></tr>
 <tr><td><code>reply_access</code></td><td>string</td><td> At most 64 characters.</td></tr>
@@ -8591,11 +8591,11 @@ who may call it: anyone, signed in or not.">
 </table>
 <p class="handler">Answered by <code>video/cmd/api/handlers.(*videoHandler).Browse</code></p>
 </details>
-<details class="route" id="postVideosByOwnerIdUploads" data-search="post /videos/{owner_id}/uploads begin a video post everything about the post is settled here, as when any post is made, and the file is then sent straight to storage in parts (`post /videos/uploads/{id}/parts`). with `parent_id`, a reply with a video, on its author&#39;s own profile.
+<details class="route" id="postVideosByOwnerIdUploads" data-search="post /videos/{owner_id}/uploads begin a video post everything about the post is settled here, as when any post is made, and the file is then sent straight to storage in parts (`post /videos/uploads/{id}/parts`). with `parent_id`, a reply with a video, on its author&#39;s own profile. in a thread written in one go (roadmap row 143), `thread_after` is the notes after it, made once its post is, and `after_upload` the viewer&#39;s earlier upload in the same thread, which this one waits for and answers the notes after.
 
 who may call it: somebody signed in, with a token that carries `media:write`.">
 <summary><span class="method post">POST</span> <code class="path">/videos/{owner_id}/uploads</code> <span class="summary">Begin a video post</span></summary>
-<div class="description"><p>Everything about the post is settled here, as when any post is made, and the file is then sent straight to storage in parts (<code>POST /videos/uploads/{id}/parts</code>). With <code>parent_id</code>, a reply with a video, on its author&#39;s own profile.</p></div>
+<div class="description"><p>Everything about the post is settled here, as when any post is made, and the file is then sent straight to storage in parts (<code>POST /videos/uploads/{id}/parts</code>). With <code>parent_id</code>, a reply with a video, on its author&#39;s own profile. In a thread written in one go (roadmap row 143), <code>thread_after</code> is the notes after it, made once its post is, and <code>after_upload</code> the viewer&#39;s earlier upload in the same thread, which this one waits for and answers the notes after.</p></div>
 <p class="who"><strong>Who:</strong> somebody signed in, with <code>media:write</code></p>
 <h4>Takes</h4>
 <table>
@@ -8604,7 +8604,28 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>owner_id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile the post will be on.</td></tr>
 </tbody>
 </table>
-<h4>Takes, as <code>application/json</code> or <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>access</code></td><td>string</td><td>Who may see it (<a href="../permissions.md">permissions.md</a>). One of <code>public</code>, <code>registered</code>, <code>followers</code>, <code>leaders</code>, <code>mutuals</code>, <code>admins</code>, <code>myself</code>.</td></tr>
+<tr><td><code>after_upload</code></td><td>string</td><td>In a thread written in one go (roadmap row 143): the viewer&#39;s own upload, earlier in the same thread, whose post and the notes after it this one answers. It is a reply, as with parent_id, and is made only once that one&#39;s are; if that one fails or is given up, so is this. At most 36 characters.</td></tr>
+<tr><td><code>allow_download</code></td><td>boolean</td><td>Whether whoever can see it may download it. Left out, the post starts with what the profile it is on says.</td></tr>
+<tr><td><code>content</code></td><td>string</td><td>Its words, as Markdown. Up to 500 characters, a link counted as 23. At most 8000 characters.</td></tr>
+<tr><td><code>content_type</code> <span class="required">always</span></td><td>string</td><td>What kind of file it is: <code>video/mp4</code>, <code>video/quicktime</code>, <code>video/webm</code>, <code>image/gif</code> or <code>image/png</code>. At most 100 characters.</td></tr>
+<tr><td><code>language</code></td><td>string</td><td>The language it is written in, as a BCP 47 tag. At most 12 characters.</td></tr>
+<tr><td><code>library_only</code></td><td>boolean</td><td>In the author&#39;s media library only: put up from inside the article editor to be shown in an article, and listed and announced nowhere. Only on the author&#39;s own profile, and never a reply.</td></tr>
+<tr><td><code>parent_id</code></td><td>integer</td><td>What it answers, when it is a reply: then it is on its author&#39;s own profile, and what it is open to, who may answer it and quoting are its thread&#39;s, so those above are not read. At least 1.</td></tr>
+<tr><td><code>quote_policy</code></td><td>string</td><td>Who may quote it: <code>anyone</code>, <code>followers</code> or <code>nobody</code>. At most 16 characters.</td></tr>
+<tr><td><code>reply_access</code></td><td>string</td><td>Who may reply: <code>anyone</code>, <code>nobody</code>, or any of <code>followers</code>, <code>following</code> and <code>mentioned</code> joined by commas. At most 64 characters.</td></tr>
+<tr><td><code>size</code> <span class="required">always</span></td><td>integer</td><td>How large the file is, in bytes. At least 1.</td></tr>
+<tr><td><code>thread_after</code></td><td>list of <a href="#schema-Part">Part</a></td><td>The notes after this one in its thread, up to the next GIF, video or sound: made, each a reply to the one before, once this one&#39;s post is. Each as a thread&#39;s part (POST /notes/:owner_id/thread), its pictures uploaded for the writer. Up to nine. At most 9 of them.</td></tr>
+<tr><td><code>title</code></td><td>string</td><td>Its title, if it has one: neither a post nor a reply needs one. At most 100 characters.</td></tr>
+<tr><td><code>warning</code></td><td>string</td><td>Its content warning: <code>adult</code>, <code>suggestive</code>, <code>graphic</code>, <code>nudity</code> or <code>other</code>, with the words of an <code>other</code> warning, up to 100 characters. Left out, none. A reply may have one too. At most 16 characters.</td></tr>
+<tr><td><code>warning_text</code></td><td>string</td><td> At most 400 characters.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
@@ -8631,6 +8652,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td><code>uploads_off</code>: this installation takes no video; <code>audio_off</code>: it takes no sound (<code>AUDIO_UPLOADS</code>); or the viewer may not post or reply here, without a body<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">404</td><td>there is no such profile, or nothing it answers that the viewer may see</td></tr>
+<tr><td class="status s4">409</td><td><code>thread_stopped</code>: the upload it would follow failed or was given up<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">410</td><td>it answers a reply that was removed</td></tr>
 <tr><td class="status s4">413</td><td>Request Entity Too Large<div class="body"><a href="#schema-video.UploadTooLarge">video.UploadTooLarge</a> <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">415</td><td><code>not_a_video</code><div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
@@ -11727,6 +11749,19 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
+<div class="route schema" id="schema-Part" data-search="part content language link_preview_url uploads">
+<h3>Part</h3>
+<p>One note of a thread: what it says, in what language, and the link in it to show a card for, as on a note; or, with pictures, a photo post in the thread (roadmap row 143), which needs no words.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>content</code> <span class="required">always</span></td><td>string</td><td>Its words, as Markdown. A part with pictures need not have any. Up to 500 characters, a link counted as 23.</td></tr>
+<tr><td><code>language</code> <span class="required">always</span></td><td>string</td><td>The language it is written in, as a BCP 47 tag.</td></tr>
+<tr><td><code>link_preview_url</code> <span class="required">always</span></td><td>string</td><td>The link in it to show a card for. Not on a part with pictures.</td></tr>
+<tr><td><code>uploads</code> <span class="required">always</span></td><td>list of <a href="#schema-FileRef">FileRef</a> or null</td><td>Its pictures, as a photo post&#39;s: each uploaded first through POST /photos/:owner_id/uploads, for the profile the part is on, which is the thread&#39;s for the first part and the writer&#39;s for the rest.</td></tr>
+</tbody>
+</table>
+</div>
 <div class="route schema" id="schema-PersonEditAddPermission" data-search="personeditaddpermission access entity">
 <h3>PersonEditAddPermission</h3>
 <table>
@@ -13788,19 +13823,6 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
 <tr><td><code>parts</code> <span class="required">always</span></td><td>list of <a href="#schema-MediumNode">MediumNode</a> or null</td><td></td></tr>
-</tbody>
-</table>
-</div>
-<div class="route schema" id="schema-text.ThreadPart" data-search="text.threadpart content language link_preview_url uploads">
-<h3>text.ThreadPart</h3>
-<p>One note of a thread: what it says, in what language, and the link in it to show a card for, as on a note; or, with pictures, a photo post in the thread (roadmap row 143), which needs no words.</p>
-<table>
-<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
-<tbody>
-<tr><td><code>content</code> <span class="required">always</span></td><td>string</td><td>Its words, as Markdown. A part with pictures need not have any. Up to 500 characters, a link counted as 23.</td></tr>
-<tr><td><code>language</code> <span class="required">always</span></td><td>string</td><td>The language it is written in, as a BCP 47 tag.</td></tr>
-<tr><td><code>link_preview_url</code> <span class="required">always</span></td><td>string</td><td>The link in it to show a card for. Not on a part with pictures.</td></tr>
-<tr><td><code>uploads</code> <span class="required">always</span></td><td>list of <a href="#schema-FileRef">FileRef</a> or null</td><td>Its pictures, as a photo post&#39;s: each uploaded first through POST /photos/:owner_id/uploads, for the profile the part is on, which is the thread&#39;s for the first part and the writer&#39;s for the rest.</td></tr>
 </tbody>
 </table>
 </div>

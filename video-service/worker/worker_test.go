@@ -31,6 +31,20 @@ type fakeUploads struct {
 	upload   *repositories.Upload
 	claimed  bool
 	released int
+	// What was let go after it in a thread, and how often threads were
+	// stopped behind a failure.
+	followedOn int64
+	stopped    int
+}
+
+func (f *fakeUploads) FollowOn(id string, parentID int64) error {
+	f.followedOn = parentID
+	return nil
+}
+
+func (f *fakeUploads) StopThreads(reason string) (int64, error) {
+	f.stopped++
+	return 0, nil
 }
 
 func (f *fakeUploads) Claim() (*repositories.Upload, error) {
@@ -549,5 +563,108 @@ func TestASoundBecomesAnAudioPost(t *testing.T) {
 	}
 	if f.encoder.limits[0] != 3600 {
 		t.Errorf("held to %v seconds", f.encoder.limits)
+	}
+}
+
+// threadMedia is the graph for a thread's notes after a video.
+type threadMedia struct {
+	services.MediaGRPCInterface
+	parentID int64
+	parts    []*entities.AnahitaNode
+	uploads  []*entities.PhotoUpload
+	fail     error
+}
+
+func (m *threadMedia) AddThread(parentID int64, parts []*entities.AnahitaNode, viewer *entities.Viewer, locationIDs []int64, files map[int]services.ThreadPartFiles) ([]*entities.AnahitaNode, error) {
+	if m.fail != nil {
+		return nil, m.fail
+	}
+	m.parentID, m.parts = parentID, parts
+	made := make([]*entities.AnahitaNode, len(parts))
+	for i, part := range parts {
+		copied := *part
+		copied.ID = int64(100 + i)
+		made[i] = &copied
+	}
+	return made, nil
+}
+
+func (m *threadMedia) ReadPhotoUploads(ids []int64) ([]*entities.PhotoUpload, error) {
+	return m.uploads, nil
+}
+
+func TestTheNotesAfterAVideoAreMadeWithIt(t *testing.T) {
+	f := newFixture(t)
+	f.uploads.upload.Warning = "other"
+	f.uploads.upload.WarningText = "Spoilers"
+	f.uploads.upload.ThreadAfter = `[{"content":"two","language":"en"},{"content":"three"}]`
+	media := &threadMedia{}
+	f.worker.Threads.Media = media
+
+	if worked, err := f.worker.Once(); err != nil || !worked {
+		t.Fatalf("worked %v %v", worked, err)
+	}
+	if f.uploads.upload.Status != videos.StatusReady {
+		t.Fatalf("the upload ended as %+v", f.uploads.upload)
+	}
+	// Each a reply to the one before, the first to the video's post, by
+	// its writer on their own profile, with the thread's warning.
+	if media.parentID != 77 || len(media.parts) != 2 {
+		t.Fatalf("made under %d: %d notes", media.parentID, len(media.parts))
+	}
+	for _, part := range media.parts {
+		if part.CreatedBy != 5 || part.OwnerID != 5 || part.Type != an_const.NodeMediumNoteEntityType ||
+			part.Warning != "other" || part.WarningText != "Spoilers" {
+			t.Errorf("a note made as %+v", part)
+		}
+	}
+	if media.parts[0].Body != "two" || media.parts[0].Language != "en" || media.parts[1].Body != "three" {
+		t.Errorf("the notes say %q %q", media.parts[0].Body, media.parts[1].Body)
+	}
+	// The upload after them answers the last.
+	if f.uploads.followedOn != 101 {
+		t.Errorf("the next upload answers %d", f.uploads.followedOn)
+	}
+}
+
+func TestAVideoAloneLetsTheNextGoAfterItself(t *testing.T) {
+	f := newFixture(t)
+	if worked, err := f.worker.Once(); err != nil || !worked {
+		t.Fatalf("worked %v %v", worked, err)
+	}
+	if f.uploads.followedOn != 77 {
+		t.Errorf("the next upload answers %d", f.uploads.followedOn)
+	}
+}
+
+func TestNotesThatMayNotBeMadeStopTheThread(t *testing.T) {
+	f := newFixture(t)
+	// A picture that is not there to be the writer's.
+	f.uploads.upload.ThreadAfter = `[{"uploads":[{"upload_id":4}]}]`
+	f.worker.Threads.Media = &threadMedia{}
+	f.worker.Threads.Actors = nil
+
+	if worked, err := f.worker.Once(); err != nil || !worked {
+		t.Fatalf("worked %v %v", worked, err)
+	}
+	if f.uploads.upload.Status != videos.StatusFailed || f.uploads.upload.Error != constants.FailedThreadNotes {
+		t.Fatalf("the upload ended as %s %q", f.uploads.upload.Status, f.uploads.upload.Error)
+	}
+	// Its post taken back, and the thread stopped behind it.
+	if len(f.posts.deleted) != 1 || f.posts.deleted[0] != 77 || f.uploads.stopped == 0 {
+		t.Errorf("deleted %v, threads stopped %d times", f.posts.deleted, f.uploads.stopped)
+	}
+}
+
+func TestNotesNotMadeForNowAreTriedAgain(t *testing.T) {
+	f := newFixture(t)
+	f.uploads.upload.ThreadAfter = `[{"content":"two"}]`
+	f.worker.Threads.Media = &threadMedia{fail: errors.New("the graph is away")}
+
+	if worked, err := f.worker.Once(); err != nil || !worked {
+		t.Fatalf("worked %v %v", worked, err)
+	}
+	if f.uploads.upload.Status != videos.StatusProcessing || f.uploads.released != 1 || len(f.posts.deleted) != 1 {
+		t.Errorf("ended as %s, released %d, deleted %v", f.uploads.upload.Status, f.uploads.released, f.posts.deleted)
 	}
 }

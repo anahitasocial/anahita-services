@@ -1838,6 +1838,40 @@
         ],
         "type": "object"
       },
+      "Part": {
+        "description": "Part is one note of a thread: what it says, in what language, and the link in it to show a card for, as on a note; or, with pictures, a photo post in the thread (roadmap row 143), which needs no words.",
+        "properties": {
+          "content": {
+            "description": "Its words, as Markdown. A part with pictures need not have any. Up to 500 characters, a link counted as 23.",
+            "type": "string"
+          },
+          "language": {
+            "description": "The language it is written in, as a BCP 47 tag.",
+            "type": "string"
+          },
+          "link_preview_url": {
+            "description": "The link in it to show a card for. Not on a part with pictures.",
+            "type": "string"
+          },
+          "uploads": {
+            "description": "Its pictures, as a photo post's: each uploaded first through POST /photos/:owner_id/uploads, for the profile the part is on, which is the thread's for the first part and the writer's for the rest.",
+            "items": {
+              "$ref": "#/components/schemas/FileRef"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "content",
+          "language",
+          "link_preview_url",
+          "uploads"
+        ],
+        "type": "object"
+      },
       "PersonEditAddPermission": {
         "properties": {
           "access": {
@@ -7330,40 +7364,6 @@
         },
         "required": [
           "parts"
-        ],
-        "type": "object"
-      },
-      "text.ThreadPart": {
-        "description": "ThreadPart is one note of a thread: what it says, in what language, and the link in it to show a card for, as on a note; or, with pictures, a photo post in the thread (roadmap row 143), which needs no words.",
-        "properties": {
-          "content": {
-            "description": "Its words, as Markdown. A part with pictures need not have any. Up to 500 characters, a link counted as 23.",
-            "type": "string"
-          },
-          "language": {
-            "description": "The language it is written in, as a BCP 47 tag.",
-            "type": "string"
-          },
-          "link_preview_url": {
-            "description": "The link in it to show a card for. Not on a part with pictures.",
-            "type": "string"
-          },
-          "uploads": {
-            "description": "Its pictures, as a photo post's: each uploaded first through POST /photos/:owner_id/uploads, for the profile the part is on, which is the thread's for the first part and the writer's for the rest.",
-            "items": {
-              "$ref": "#/components/schemas/FileRef"
-            },
-            "type": [
-              "array",
-              "null"
-            ]
-          }
-        },
-        "required": [
-          "content",
-          "language",
-          "link_preview_url",
-          "uploads"
         ],
         "type": "object"
       },
@@ -24270,7 +24270,7 @@
                   "parts": {
                     "description": "The notes of the thread, first to last: up to ten.",
                     "items": {
-                      "$ref": "#/components/schemas/text.ThreadPart"
+                      "$ref": "#/components/schemas/Part"
                     },
                     "maxItems": 10,
                     "minItems": 1,
@@ -24588,7 +24588,7 @@
                   "parts": {
                     "description": "The notes of the thread, first to last: up to ten.",
                     "items": {
-                      "$ref": "#/components/schemas/text.ThreadPart"
+                      "$ref": "#/components/schemas/Part"
                     },
                     "maxItems": 10,
                     "minItems": 1,
@@ -38787,7 +38787,7 @@
     },
     "/videos/{owner_id}/uploads": {
       "post": {
-        "description": "Everything about the post is settled here, as when any post is made, and the file is then sent straight to storage in parts (`POST /videos/uploads/{id}/parts`). With `parent_id`, a reply with a video, on its author's own profile.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "description": "Everything about the post is settled here, as when any post is made, and the file is then sent straight to storage in parts (`POST /videos/uploads/{id}/parts`). With `parent_id`, a reply with a video, on its author's own profile. In a thread written in one go (roadmap row 143), `thread_after` is the notes after it, made once its post is, and `after_upload` the viewer's earlier upload in the same thread, which this one waits for and answers the notes after.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
         "operationId": "postVideosByOwnerIdUploads",
         "parameters": [
           {
@@ -38817,6 +38817,11 @@
                       "admins",
                       "myself"
                     ],
+                    "type": "string"
+                  },
+                  "after_upload": {
+                    "description": "In a thread written in one go (roadmap row 143): the viewer's own upload, earlier in the same thread, whose post and the notes after it this one answers. It is a reply, as with parent_id, and is made only once that one's are; if that one fails or is given up, so is this.",
+                    "maxLength": 36,
                     "type": "string"
                   },
                   "allow_download": {
@@ -38864,6 +38869,14 @@
                     "format": "int64",
                     "minimum": 1,
                     "type": "integer"
+                  },
+                  "thread_after": {
+                    "description": "The notes after this one in its thread, up to the next GIF, video or sound: made, each a reply to the one before, once this one's post is. Each as a thread's part (POST /notes/:owner_id/thread), its pictures uploaded for the writer. Up to nine.",
+                    "items": {
+                      "$ref": "#/components/schemas/Part"
+                    },
+                    "maxItems": 9,
+                    "type": "array"
                   },
                   "title": {
                     "description": "Its title, if it has one: neither a post nor a reply needs one.",
@@ -39094,6 +39107,16 @@
           },
           "404": {
             "description": "there is no such profile, or nothing it answers that the viewer may see"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`thread_stopped`: the upload it would follow failed or was given up"
           },
           "410": {
             "description": "it answers a reply that was removed"

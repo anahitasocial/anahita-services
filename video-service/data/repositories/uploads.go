@@ -33,7 +33,13 @@ type Upload struct {
 	WarningText string
 	LibraryOnly bool
 	// What it answers when it is a reply; 0 for a post.
-	ParentID        int64
+	ParentID int64
+	// In a thread written in one go (roadmap row 143): the upload whose post
+	// this one waits to answer the thread after, "" for none; it is not
+	// made until ParentID is set, by the worker that made that one. And the
+	// notes after this one, up to the next upload, as JSON (threads.Rest).
+	AfterUploadID   string
+	ThreadAfter     string
 	Status          string
 	SourceKey       string
 	StorageUploadID string
@@ -66,6 +72,8 @@ const uploadColumns = `
     warning_text,
     library_only,
     COALESCE(parent_id, 0),
+    COALESCE(after_upload_id, ''),
+    thread_after,
     status,
     source_key,
     storage_upload_id,
@@ -94,6 +102,8 @@ INSERT INTO video_uploads (
     warning_text,
     library_only,
     parent_id,
+    after_upload_id,
+    thread_after,
     status,
     source_key,
     storage_upload_id,
@@ -101,7 +111,7 @@ INSERT INTO video_uploads (
     created_at,
     updated_at
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULLIF(?, 0), ?, ?, ?, ?, ?, ?)`
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULLIF(?, 0), NULLIF(?, ''), ?, ?, ?, ?, ?, ?, ?)`
 
 const uploadRead = `
 SELECT` + uploadColumns + `
@@ -174,6 +184,9 @@ FROM video_uploads
 WHERE status = 'processing'
   AND attempts < ?
   AND (claimed_at IS NULL OR claimed_at < ?)
+  -- One that waits in a thread for the upload before it, until that one's
+  -- post and the notes after it are made.
+  AND (after_upload_id IS NULL OR parent_id IS NOT NULL)
 ORDER BY updated_at
 LIMIT 1
 FOR UPDATE SKIP LOCKED`
@@ -192,6 +205,28 @@ WHERE status = 'processing'
   AND attempts >= ?
   AND (claimed_at IS NULL OR claimed_at < ?)
 LIMIT 20`
+
+// The upload that waits for this one in a thread is let go: it answers
+// the last note made after this one's post.
+const uploadsFollowOn = `
+UPDATE video_uploads
+SET parent_id = ?,
+    updated_at = ?
+WHERE after_upload_id = ?
+  AND status IN ('uploading', 'processing')`
+
+// An upload whose thread stopped before it, because the upload it waits
+// for failed or was given up, stops too.
+const uploadsThreadsStopped = `
+UPDATE video_uploads AS waiting
+JOIN video_uploads AS before_it ON waiting.after_upload_id = before_it.id
+SET waiting.status = 'failed',
+    waiting.error = ?,
+    waiting.claimed_at = NULL,
+    waiting.updated_at = ?
+WHERE waiting.status IN ('uploading', 'processing')
+  AND (before_it.status IN ('failed', 'cancelled')
+       OR (before_it.status = 'ready' AND waiting.parent_id IS NULL))`
 
 const uploadsAbandoned = `
 SELECT` + uploadColumns + `
@@ -221,6 +256,12 @@ type UploadsInterface interface {
 	ToReady(id string, nodeID int64) error
 	ToFailed(id, reason string) error
 	Release(id string) error
+	// FollowOn lets go the upload that waits for this one in a thread, to
+	// answer parentID.
+	FollowOn(id string, parentID int64) error
+	// StopThreads fails every upload whose thread stopped before it, and
+	// says how many.
+	StopThreads(reason string) (int64, error)
 	// Claim takes the next video waiting, or returns nil when none is.
 	Claim() (*Upload, error)
 	WornOut() ([]string, error)
@@ -259,7 +300,7 @@ func (r *UploadsRepo) Add(upload *Upload) error {
 	_, err := r.db.ExecContext(ctx, uploadAdd,
 		upload.ID, upload.PersonID, upload.OwnerID, upload.Kind, upload.Name, upload.Body,
 		upload.Access, upload.Language, upload.ReplyAccess, upload.QuotePolicy,
-		upload.AllowDownload, upload.Warning, upload.WarningText, upload.LibraryOnly, upload.ParentID, upload.Status, upload.SourceKey, upload.StorageUploadID, upload.DeclaredBytes,
+		upload.AllowDownload, upload.Warning, upload.WarningText, upload.LibraryOnly, upload.ParentID, upload.AfterUploadID, upload.ThreadAfter, upload.Status, upload.SourceKey, upload.StorageUploadID, upload.DeclaredBytes,
 		now, now)
 	return err
 }
@@ -272,7 +313,7 @@ func scanUpload(row scanner) (*Upload, error) {
 	u := &Upload{}
 	err := row.Scan(
 		&u.ID, &u.PersonID, &u.OwnerID, &u.Kind, &u.Name, &u.Body, &u.Access, &u.Language,
-		&u.ReplyAccess, &u.QuotePolicy, &u.AllowDownload, &u.Warning, &u.WarningText, &u.LibraryOnly, &u.ParentID, &u.Status, &u.SourceKey, &u.StorageUploadID,
+		&u.ReplyAccess, &u.QuotePolicy, &u.AllowDownload, &u.Warning, &u.WarningText, &u.LibraryOnly, &u.ParentID, &u.AfterUploadID, &u.ThreadAfter, &u.Status, &u.SourceKey, &u.StorageUploadID,
 		&u.DeclaredBytes, &u.SizeBytes, &u.NodeID, &u.Error, &u.Attempts,
 		&u.CreatedAt, &u.UpdatedAt)
 	if err != nil {
@@ -429,4 +470,31 @@ func (r *UploadsRepo) Forget(before time.Time) error {
 
 	_, err := r.db.ExecContext(ctx, uploadsForget, before)
 	return err
+}
+
+func (r *UploadsRepo) FollowOn(id string, parentID int64) error {
+	ctx, cancel := r.ctx()
+	defer cancel()
+	_, err := r.db.ExecContext(ctx, uploadsFollowOn, parentID, r.now(), id)
+	return err
+}
+
+// StopThreads runs until nothing is left to stop, a thread of several
+// uploads stopping one upload a round.
+func (r *UploadsRepo) StopThreads(reason string) (int64, error) {
+	var all int64
+	for round := 0; round < 20; round++ {
+		ctx, cancel := r.ctx()
+		res, err := r.db.ExecContext(ctx, uploadsThreadsStopped, reason, r.now())
+		cancel()
+		if err != nil {
+			return all, err
+		}
+		n, _ := res.RowsAffected()
+		all += n
+		if n == 0 {
+			break
+		}
+	}
+	return all, nil
 }

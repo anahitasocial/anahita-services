@@ -91,7 +91,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Sends(http.StatusConflict, responses.Refusal{}, "`finished`: it is a post already")
 	videos.POST("/:owner_id/uploads", r.handler.Video.UploadStart, r.authorize).
 		Summary("Begin a video post").
-		Describe("Everything about the post is settled here, as when any post is made, and the file is then sent straight to storage in parts (`POST /videos/uploads/{id}/parts`). With `parent_id`, a reply with a video, on its author's own profile.").
+		Describe("Everything about the post is settled here, as when any post is made, and the file is then sent straight to storage in parts (`POST /videos/uploads/{id}/parts`). With `parent_id`, a reply with a video, on its author's own profile. In a thread written in one go (roadmap row 143), `thread_after` is the notes after it, made once its post is, and `after_upload` the viewer's earlier upload in the same thread, which this one waits for and answers the notes after.").
 		Viewer(apidoc.SignedIn).
 		Scope(write).
 		Takes(&handlers.UploadStartRequest{}).
@@ -100,6 +100,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Sends(http.StatusForbidden, responses.Refusal{}, "`uploads_off`: this installation takes no video; `audio_off`: it takes no sound (`AUDIO_UPLOADS`); or the viewer may not post or reply here, without a body").
 		Refuses(http.StatusNotFound, "there is no such profile, or nothing it answers that the viewer may see").
 		Refuses(http.StatusGone, "it answers a reply that was removed").
+		Sends(http.StatusConflict, responses.Refusal{}, "`thread_stopped`: the upload it would follow failed or was given up").
 		Sends(http.StatusRequestEntityTooLarge, handlers.UploadTooLarge{}).
 		Sends(http.StatusUnsupportedMediaType, responses.Refusal{}, "`not_a_video`").
 		Sends(http.StatusUnprocessableEntity, responses.AudienceRefusal{}).

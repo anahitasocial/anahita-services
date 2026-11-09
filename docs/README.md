@@ -273,18 +273,19 @@ five, under Profiles.
    3. [What the worker does](videos.md#what-the-worker-does)
    4. [What a file has to be](videos.md#what-a-file-has-to-be)
    5. [The post](videos.md#the-post)
-   6. [Playing it](videos.md#playing-it)
-   7. [Sizes](videos.md#sizes)
-   8. [GIFs and animated PNGs](videos.md#gifs-and-animated-pngs)
-   9. [Downloading](videos.md#downloading)
-   10. [Audio posts](videos.md#audio-posts)
-   11. [Videos from other networks](videos.md#videos-from-other-networks)
-   12. [Endpoints](videos.md#endpoints)
-   13. [Settings](videos.md#settings)
-   14. [Storage](videos.md#storage)
-   15. [Running it, and not running it](videos.md#running-it-and-not-running-it)
-   16. [Where the code is](videos.md#where-the-code-is)
-   17. [What is not built](videos.md#what-is-not-built)
+   6. [In a thread](videos.md#in-a-thread)
+   7. [Playing it](videos.md#playing-it)
+   8. [Sizes](videos.md#sizes)
+   9. [GIFs and animated PNGs](videos.md#gifs-and-animated-pngs)
+   10. [Downloading](videos.md#downloading)
+   11. [Audio posts](videos.md#audio-posts)
+   12. [Videos from other networks](videos.md#videos-from-other-networks)
+   13. [Endpoints](videos.md#endpoints)
+   14. [Settings](videos.md#settings)
+   15. [Storage](videos.md#storage)
+   16. [Running it, and not running it](videos.md#running-it-and-not-running-it)
+   17. [Where the code is](videos.md#where-the-code-is)
+   18. [What is not built](videos.md#what-is-not-built)
 3. [Link previews](link-previews.md) — the card a note carries for a link: fetching a page safely, the picture, and how long a preview is kept
    1. [Two halves](link-previews.md#two-halves)
    2. [Fetching a page safely](link-previews.md#fetching-a-page-safely)
@@ -480,7 +481,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [A second profile posting to a Bluesky account](plans/bluesky-posting-only.md) | 92 | planned 2026-10-28: a profile the same person looks after (a blog, a group) connects their Bluesky account to send its posts there, posting only: nothing from Bluesky is kept as it, and the account stays the first profile's |
 | [Audio and video from everywhere](plans/audio-and-video.md) | 120, 137 | phases 1 and 2 done 2026-11-08 (videos from Bluesky and the fediverse played here; audio posts), phase 3 next; planned 2026-11-08: videos and sounds from Bluesky and the fediverse copied here on first play, one size, kept for `REMOTE_VIDEO_DAYS`; audio posts, a kind of their own, up to an hour, out to the fediverse as `Audio` |
 | [WebP, HEIC and AVIF photos](plans/photo-formats.md) | 135 | planned 2026-11-08: taken in and kept as JPEG, WebP by Go, HEIC and AVIF by `heif-convert` in photo-service's image |
-| [Pictures, GIFs, videos and sounds in a thread's notes](plans/thread-media.md) | 143 | phase 1 done 2026-11-08 (photos in any note, set in the thread's own transaction); phase 2, GIFs, videos and sounds, next |
+| [Pictures, GIFs, videos and sounds in a thread's notes](plans/done/thread-media.md) | 143 | done 2026-11-09: photos in any note, set in the thread's own transaction (2026-11-08); a GIF, a video or a sound in any note, the notes after it kept with its upload and made by the worker once it is ready |
 | [Short posts of 500 characters](plans/done/short-posts.md) | 144 | done 2026-11-08: 500 for every short post, articles, topics and events keeping 8,000; a link counted as 23, and shortened for Bluesky; a count like Bluesky's |
 | [Content warnings](plans/content-warnings.md) | 122 | planned 2026-11-03, Made with AI added 2026-11-07: six kinds, an author marks a post and each reader chooses Show, Warn or Hide; both networks in and out; moderators add one from a report |
 | [Direct messages, and being found on the fediverse](plans/direct-messages.md) | 123 | planned 2026-11-03: listed on FediDB, FediDB's 128 questions answered in features.md, then messages here and with the fediverse as private mentions, with consent first |

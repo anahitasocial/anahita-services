@@ -17,6 +17,7 @@ import (
 	an_const "anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
+	"anahita-libs/threads"
 	"anahita-libs/videos"
 
 	"video/constants"
@@ -100,6 +101,9 @@ type Worker struct {
 	Owners    Owners
 	// Asked before a reply is made. Nil where replies are not made.
 	Replies Replies
+	// What the notes after a video in a thread are made and checked with
+	// (roadmap row 143).
+	Threads threads.Readers
 	Encoder Encoder
 	// Where files are kept while they are worked on.
 	Dir string
@@ -204,6 +208,20 @@ func (w *Worker) process(upload *repositories.Upload) {
 		return
 	}
 
+	// In a thread written in one go: the notes after it, which waited for
+	// it, and then the upload after them, let go to answer the last.
+	last, err := w.rest(upload, node, viewer)
+	if err != nil {
+		if err := w.Posts.Delete(node.ID, viewer); err != nil {
+			log.Printf("video %s: post %d could not be taken back: %v", upload.ID, node.ID, err)
+		}
+		w.failed(upload, keys, err)
+		return
+	}
+	if err := w.Uploads.FollowOn(upload.ID, last); err != nil {
+		log.Printf("video %s: the rest of its thread was not let go: %v", upload.ID, err)
+	}
+
 	if err := w.Uploads.ToReady(upload.ID, node.ID); err != nil {
 		// Given up in the moment the post was being made: taken back, with
 		// its files.
@@ -265,6 +283,8 @@ func (w *Worker) failed(upload *repositories.Upload, keys []string, err error) {
 		reason = constants.FailedStill
 	case errors.Is(err, errClosed):
 		reason = constants.FailedClosed
+	case errors.Is(err, errThreadNotes):
+		reason = constants.FailedThreadNotes
 	case errors.Is(err, encode.ErrTooLong):
 		reason = constants.FailedTooLong
 	case errors.Is(err, errTooLarge):
@@ -281,9 +301,60 @@ func (w *Worker) failed(upload *repositories.Upload, keys []string, err error) {
 		log.Printf("video %s: %v", upload.ID, err)
 	}
 	w.remove([]string{upload.SourceKey})
+	w.stopThreads()
+}
+
+// stopThreads fails the uploads waiting in a thread behind one that failed
+// or was given up: the thread stops there, and its writer is told.
+func (w *Worker) stopThreads() {
+	if n, err := w.Uploads.StopThreads(constants.FailedThreadStopped); err != nil {
+		log.Printf("video threads: %v", err)
+	} else if n > 0 {
+		log.Printf("video threads: %d uploads stopped behind one that did not go", n)
+	}
 }
 
 var errTooLarge = errors.New("the file is larger than is allowed")
+
+// errThreadNotes is a thread whose notes after the video may not be made:
+// a picture in them that is not the writer's, or is gone.
+var errThreadNotes = errors.New("the notes after it in its thread may not be made")
+
+// rest makes the notes after a video in a thread (roadmap row 143), each a
+// reply to the one before, the first to the video's post, as text-service
+// makes a thread's; and answers the last made, or the post itself when
+// there are none. Their link cards are not made: those are text-service's.
+func (w *Worker) rest(upload *repositories.Upload, node *entities.AnahitaNode, viewer *entities.Viewer) (int64, error) {
+	all := threads.Rest(upload.ThreadAfter)
+	if len(all) == 0 {
+		return node.ID, nil
+	}
+	if w.Threads.Media == nil {
+		return 0, errors.New("nothing to make a thread's notes with")
+	}
+
+	parts := make([]*entities.AnahitaNode, 0, len(all))
+	for _, each := range all {
+		part, ok := threads.Next(node, each, viewer.ID)
+		if !ok {
+			return 0, errThreadNotes
+		}
+		parts = append(parts, part)
+	}
+	files, refused, err := threads.Pictures(w.Threads, parts, all, nil, viewer)
+	if err != nil {
+		return 0, err
+	}
+	if refused != "" {
+		return 0, fmt.Errorf("%w: %s", errThreadNotes, refused)
+	}
+
+	made, err := w.Threads.Media.AddThread(node.ID, parts, viewer, nil, files)
+	if err != nil || len(made) != len(parts) {
+		return 0, fmt.Errorf("the notes after it were not made: %v", err)
+	}
+	return made[len(made)-1].ID, nil
+}
 
 // errClosed is a reply that may no longer be made: its thread closed to its
 // author, or what it answers went, while the video was being made.
@@ -619,6 +690,10 @@ func (w *Worker) Tidy() {
 			log.Printf("video %s: tried %d times, given up", id, upload.Attempts)
 		}
 	}
+
+	// Threads stopped behind an upload given up or failed above, or by
+	// its uploader (roadmap row 143).
+	w.stopThreads()
 
 	if err := w.Uploads.Forget(time.Now().UTC().Add(-30 * 24 * time.Hour)); err != nil {
 		log.Printf("tidy: %v", err)

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"anahita-libs/constants"
+	"anahita-libs/videos"
 
 	"github.com/DATA-DOG/go-sqlmock"
 )
@@ -22,7 +23,10 @@ func TestAThreadIsTheWritersEarliestChain(t *testing.T) {
 	// Note 1: replies 10 (to 1), 11 (to 1, later), 12 (to 10), 13 (to 12).
 	// Note 2: one reply, 20. Note 3: none.
 	mock.ExpectQuery(`WITH RECURSIVE chain`).
-		WithArgs(int64(1), int64(2), int64(3), constants.NodeMediumNoteEntityType, constants.NodeMediumNoteEntityType, ThreadDepthMax).
+		WithArgs(int64(1), int64(2), int64(3),
+			constants.NodeMediumNoteEntityType, constants.NodeMediumPhotoEntityType, videos.NodeType, videos.AudioNodeType,
+			constants.NodeMediumNoteEntityType, constants.NodeMediumPhotoEntityType, videos.NodeType, videos.AudioNodeType,
+			ThreadDepthMax).
 		WillReturnRows(sqlmock.NewRows([]string{"root_id", "id", "parent_id"}).
 			AddRow(1, 10, 1).
 			AddRow(1, 11, 1).
@@ -47,5 +51,18 @@ func TestAThreadIsTheWritersEarliestChain(t *testing.T) {
 	}
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Error(err)
+	}
+}
+
+// Pictures, GIFs, videos and sounds are in a thread too (roadmap row 143):
+// a chain is of every kind of post, and begins at any.
+func TestEveryKindOfPostIsInAThread(t *testing.T) {
+	for _, kind := range []string{constants.NodeMediumNoteEntityType, constants.NodeMediumPhotoEntityType, videos.NodeType, videos.AudioNodeType} {
+		if !IsThreadPostType(kind) {
+			t.Errorf("%s is not in a thread", kind)
+		}
+	}
+	if IsThreadPostType("node.medium.text-service.article.v1") {
+		t.Error("an article is in a thread")
 	}
 }

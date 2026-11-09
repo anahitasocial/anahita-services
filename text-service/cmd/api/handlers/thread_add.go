@@ -4,17 +4,15 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
 
-	an_constants "anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	"anahita-libs/photos"
 	"anahita-libs/responses"
+	"anahita-libs/threads"
 
 	an_handlers "anahita-libs/handlers"
 
-	"text/constants"
 	"text/requests"
 
 	"github.com/labstack/echo/v4"
@@ -26,36 +24,8 @@ import (
 // whoever writes the thread. The graph makes them in one transaction
 // (Medium.AddThread).
 
-// ThreadPart is one note of a thread: what it says, in what language, and
-// the link in it to show a card for, as on a note; or, with pictures, a
-// photo post in the thread (roadmap row 143), which needs no words.
-type ThreadPart struct {
-	// Its words, as Markdown. A part with pictures need not have any. Up to 500
-	// characters, a link counted as 23.
-	Content string `json:"content" validate:"omitempty,max=8000,post_length"`
-	// The language it is written in, as a BCP 47 tag.
-	Language string `json:"language" validate:"omitempty,max=12"`
-	// The link in it to show a card for. Not on a part with pictures.
-	LinkPreviewURL string `json:"link_preview_url" validate:"omitempty,max=2000"`
-	// Its pictures, as a photo post's: each uploaded first through
-	// POST /photos/:owner_id/uploads, for the profile the part is on, which
-	// is the thread's for the first part and the writer's for the rest.
-	Uploads []photos.FileRef `json:"uploads" validate:"omitempty,max=20"`
-}
-
-// hasPictures is whether a part is a photo post.
-func (p ThreadPart) hasPictures() bool {
-	return len(p.Uploads) > 0
-}
-
-// linkPreviewURL is the link to show a card for: none on a part with
-// pictures, which show in its place.
-func (p ThreadPart) linkPreviewURL() string {
-	if p.hasPictures() {
-		return ""
-	}
-	return p.LinkPreviewURL
-}
+// ThreadPart is one note of a thread (anahita-libs/threads).
+type ThreadPart = threads.Part
 
 // NoteThreadAddRequest is a thread that begins a post: what a post takes,
 // for its first part, and the parts, in order.
@@ -112,7 +82,7 @@ func (h *noteHandler) AddThread(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	if !eachSaysSomething(req.Parts) {
+	if !threads.EachSaysSomething(req.Parts) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
@@ -126,10 +96,10 @@ func (h *noteHandler) AddThread(c echo.Context) error {
 		ReplyAccess:    req.ReplyAccess,
 		QuotePolicy:    req.QuotePolicy,
 		QuoteID:        req.QuoteID,
-		LinkPreviewURL: req.Parts[0].linkPreviewURL(),
+		LinkPreviewURL: req.Parts[0].CardURL(),
 		Warning:        req.Warning,
 		WarningText:    req.WarningText,
-	}, viewer, req.Parts[0].hasPictures())
+	}, viewer, req.Parts[0].HasPictures())
 	if refuse != nil {
 		return refuse()
 	}
@@ -156,7 +126,7 @@ func (h *noteHandler) AddReplyThread(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	if !eachSaysSomething(req.Parts) {
+	if !threads.EachSaysSomething(req.Parts) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
@@ -165,7 +135,7 @@ func (h *noteHandler) AddReplyThread(c echo.Context) error {
 		ParentID:       parentID,
 		Content:        req.Parts[0].Content,
 		Language:       req.Parts[0].Language,
-		LinkPreviewURL: req.Parts[0].linkPreviewURL(),
+		LinkPreviewURL: req.Parts[0].CardURL(),
 		Warning:        req.Warning,
 		WarningText:    req.WarningText,
 	}, viewer)
@@ -174,16 +144,6 @@ func (h *noteHandler) AddReplyThread(c echo.Context) error {
 	}
 
 	return h.addThread(c, parentID, first, req.Parts, nil, nil, viewer)
-}
-
-// eachSaysSomething is whether every part has words or pictures.
-func eachSaysSomething(parts []ThreadPart) bool {
-	for _, each := range parts {
-		if strings.TrimSpace(each.Content) == "" && !each.hasPictures() {
-			return false
-		}
-	}
-	return true
 }
 
 // addThread makes the first part and the rest in one go, and answers with
@@ -232,113 +192,30 @@ func (h *noteHandler) addThread(c echo.Context, parentID int64, first *entities.
 	return c.JSON(http.StatusCreated, answer)
 }
 
-// nextPart is a part after the first: a reply to the one before, written
-// by whoever writes the thread. It belongs to them, as any reply does; or,
-// in a website's thread written as the website, to the website, as the
-// first part does.
+// nextPart is a part after the first (threads.Next), with the card for
+// the link in it, as on a note.
 func (h *noteHandler) nextPart(c echo.Context, first *entities.AnahitaNode, each ThreadPart, viewer *entities.Viewer) (*entities.AnahitaNode, func() error) {
-	part := entities.NewAnahitaNode()
-	part.Type = constants.NodeMediumNoteType
-	part.Service = constants.TextService
-	part.Body = each.Content
-	if language, valid := an_handlers.RequestLanguage(each.Language); !valid {
+	part, ok := threads.Next(first, each, viewer.ID)
+	if !ok {
 		return nil, func() error { return an_handlers.RefuseLanguage(c) }
-	} else if language != "" {
-		part.Language = language
 	}
-	part.Enabled = true
-	part.CommentStatus = true
-	// The thread's warning is every part's: what it holds goes on.
-	part.Warning = first.Warning
-	part.WarningText = first.WarningText
-	part.ModifiedBy = viewer.ID
-	if first.OwnerType == an_constants.NodeActorWebsiteEntityType {
-		part.OwnerID = first.OwnerID
-		part.OwnerType = first.OwnerType
-		part.CreatedBy = first.OwnerID
-		part.Meta = an_handlers.WithWrittenBy(part.Meta, viewer.ID)
-	} else {
-		part.OwnerID = viewer.ID
-		part.OwnerType = an_constants.NodeActorPersonEntityType
-		part.CreatedBy = viewer.ID
-	}
-	part.Meta = h.withLinkPreview(part.Meta, each.linkPreviewURL(), part.Body, false)
+	part.Meta = h.withLinkPreview(part.Meta, each.CardURL(), part.Body, false)
 	return part, nil
 }
 
-// partPictures makes each part with pictures a photo post, its pictures
-// checked by the rules a photo post's are (anahita-libs/photos): uploaded by
-// the writer, for the profile the part is on, none twice in the thread.
-// What it answers is each one's images, by its place, for the graph to set
-// with the thread, in one go.
+// partPictures makes each part with pictures a photo post, by
+// threads.Pictures, and answers a refusal as a photo post's is.
 func (h *noteHandler) partPictures(c echo.Context, parts []*entities.AnahitaNode, all []ThreadPart, allowDownload *bool, viewer *entities.Viewer) (map[int]services.ThreadPartFiles, func() error) {
-	var refs []photos.FileRef
-	for _, each := range all {
-		refs = append(refs, each.Uploads...)
-	}
-	if len(refs) == 0 {
-		return nil, nil
-	}
-	refuse := func(code string) func() error {
-		return func() error {
-			status, body := photos.Refusal(code)
-			return c.JSON(status, body)
-		}
-	}
-
-	// An upload is stored once, and can be one picture of one post.
-	seen := map[int64]bool{}
-	for _, id := range photos.UploadIDs(refs) {
-		if seen[id] {
-			return nil, refuse(photos.ErrFileRepeated)
-		}
-		seen[id] = true
-	}
-
-	uploads, err := h.Srv.MediaGRPC.ReadPhotoUploads(photos.UploadIDs(refs))
+	files, refused, err := threads.Pictures(threads.Readers{Media: h.Srv.MediaGRPC, Actors: h.Srv.ActorsGRPC}, parts, all, allowDownload, viewer)
 	if err != nil {
 		log.Println(err)
 		return nil, func() error { return c.NoContent(http.StatusInternalServerError) }
 	}
-
-	// Whether the pictures may be downloaded: as the writer says for the
-	// first part, and as the profile each is on says otherwise, read once
-	// for the parts after it.
-	var author *entities.AnahitaNode
-	files := map[int]services.ThreadPartFiles{}
-	for position, each := range all {
-		if !each.hasPictures() {
-			continue
+	if refused != "" {
+		return nil, func() error {
+			status, body := photos.Refusal(refused)
+			return c.JSON(status, body)
 		}
-		part := parts[position]
-		plan, refused := photos.PlanFiles(nil, uploads, each.Uploads, viewer.ID, part.OwnerID)
-		if refused != "" {
-			return nil, refuse(refused)
-		}
-
-		owner := part.Owner
-		if owner == nil || owner.ID != part.OwnerID {
-			if author == nil || author.ID != part.OwnerID {
-				if author, err = h.Srv.ActorsGRPC.Read(part.OwnerID, viewer); err != nil {
-					log.Println(err)
-					return nil, func() error { return c.NoContent(http.StatusNotFound) }
-				}
-			}
-			owner = author
-		}
-
-		part.Type = an_constants.NodeMediumPhotoEntityType
-		part.Service = an_constants.PhotoServiceName
-		said := (*bool)(nil)
-		if position == 0 {
-			said = allowDownload
-		}
-		part.AllowDownload = an_handlers.DefaultAllowDownload(said, owner)
-		// The post names its first image itself, for everything that
-		// shows one.
-		part.Filename = plan.Files[0].Filename
-		part.Mimetype = plan.Files[0].Mimetype
-		files[position] = services.ThreadPartFiles{Files: plan.Files, UploadIDs: plan.UploadIDs}
 	}
 	return files, nil
 }

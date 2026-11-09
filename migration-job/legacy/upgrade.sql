@@ -1496,6 +1496,11 @@ CREATE TABLE IF NOT EXISTS video_uploads (
     `library_only` tinyint(1) NOT NULL DEFAULT 0,
     -- What the video answers, when it is a reply. NULL for a post.
     `parent_id` bigint unsigned NULL DEFAULT NULL,
+    -- In a thread written in one go (roadmap row 143): the upload whose
+    -- post this one answers the thread after, NULL for none, and the notes
+    -- after this one, up to the next upload, as JSON, '' for none.
+    `after_upload_id` char(36) NULL DEFAULT NULL,
+    `thread_after` mediumtext NOT NULL DEFAULT (''),
     -- 'uploading' while the browser sends it, 'processing' once it is all
     -- there and waiting for or with a worker, then 'ready', 'failed', or
     -- 'cancelled' for one given up on.
@@ -1519,7 +1524,8 @@ CREATE TABLE IF NOT EXISTS video_uploads (
     `updated_at` datetime NOT NULL,
     PRIMARY KEY (`id`),
     KEY `idx_video_uploads_status` (`status`, `updated_at`),
-    KEY `idx_video_uploads_person` (`person_id`, `created_at`)
+    KEY `idx_video_uploads_person` (`person_id`, `created_at`),
+    KEY `idx_video_uploads_after` (`after_upload_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- A video or a sound from another network, copied here the first time

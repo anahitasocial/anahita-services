@@ -4,8 +4,8 @@ Asked for by the user on 2026-11-08, from Threads' composer, where each
 note of a thread can carry pictures, a GIF, a video or a sound. Planned the
 same day.
 
-**Status:** phase 1 done 2026-11-08: photos in any note. Phase 2, GIFs,
-videos and sounds, next.
+**Status:** done. Phase 1 on 2026-11-08: photos in any note. Phase 2 on
+2026-11-09: GIFs, videos and sounds.
 
 ## Contents
 
@@ -117,6 +117,36 @@ Estimate: 2 sessions.
 3. The composer: GIF, Video and Audio beside Photo on each note.
 
 Estimate: 2 sessions.
+
+**Done 2026-11-09,** in one session, as planned, so:
+
+1. **Where the rest waits:** with the file's upload, on the server, so that
+   the writer may leave the page once the files are sent, as with a video
+   reply. `POST /videos/:owner_id/uploads` takes `thread_after`, the notes
+   after it up to the next file, checked as a thread's are when it begins,
+   and `after_upload`, the writer's upload before it in the same thread
+   (`video_uploads.thread_after` and `after_upload_id`, migration
+   `20261122000018_thread_media`).
+2. **The worker** makes the file's post, then the notes after it in one go
+   (`Medium.AddThread`, `anahita-libs/threads`), then lets the next upload
+   go to answer the last of them (`FollowOn`). An upload that waits is not
+   taken until then.
+3. **A file that fails** stops the thread there: the uploads after it fail
+   as `thread_stopped` (`StopThreads`, after each failure and in the hourly
+   tidy). Notes after a file that cannot be made, a picture in them gone,
+   fail the file too, as `thread_notes`, its post taken back. The app says
+   why the first failed.
+4. **The app** sends a thread's files one after another, with the + button's
+   progress counted over them all, and follows the last. The notes before
+   the first file are made at once, as a thread.
+5. **A thread's chain** in a list is counted through photos, videos and
+   sounds too, not notes alone, which a photo had ended since phase 1.
+6. **Not done:** a link card in the notes after a file, which only
+   text-service makes; their links are links.
+7. Tried in headless Chrome: a post of four (words, a video, words, a
+   video) and a reply of three (words, a video, words), made in order and
+   counted as threads; a broken first video, which stopped the thread with
+   its reason said. Deleted afterwards.
 
 ## Checking
 

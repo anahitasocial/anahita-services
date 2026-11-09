@@ -3,8 +3,8 @@ package handlers
 import (
 	"log"
 
-	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"graph/data/repositories"
 	"graph/requests"
 )
 
@@ -16,7 +16,7 @@ import (
 func markThreads(env *Env, nodes []*entities.AnahitaNode) {
 	var ids []int64
 	for _, node := range nodes {
-		if node != nil && node.Type == constants.NodeMediumNoteEntityType && node.ParentID == 0 && !node.IsRemote() {
+		if node != nil && repositories.IsThreadPostType(node.Type) && node.ParentID == 0 && !node.IsRemote() {
 			ids = append(ids, node.ID)
 		}
 	}

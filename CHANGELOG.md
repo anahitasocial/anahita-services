@@ -21,6 +21,17 @@ Releases before v1.0.17 are described on GitHub, under
    post as `warning`. A link pasted elsewhere shows nothing of such a post,
    and a person's download keeps it ([Content warnings](docs/content-warnings.md)).
    Migration `20261122000017_content_warnings`.
+2. **A GIF, a video or a sound in a thread's notes** (roadmap row 143):
+   `POST /videos/:owner_id/uploads` takes `thread_after`, the notes after
+   it, and `after_upload`, the upload before it in the same thread; the
+   worker makes the notes once the file is ready, and a file that fails
+   stops the thread there (`thread_stopped`, `thread_notes`). Migration
+   `20261122000018_thread_media`.
+
+### Fixed
+
+1. **A thread's chain in a list** is counted through photo, video and audio
+   posts too: a photo in a thread's note ended it.
 
 ## v1.2.3 Birth, 2026-11-09
 

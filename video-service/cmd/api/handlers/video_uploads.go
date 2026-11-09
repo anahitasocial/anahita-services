@@ -1,7 +1,10 @@
 package handlers
 
 import (
+	"anahita-libs/photos"
 	"anahita-libs/responses"
+	"anahita-libs/threads"
+	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
@@ -67,6 +70,16 @@ type UploadStartRequest struct {
 	// profile, and what it is open to, who may answer it and quoting are
 	// its thread's, so those above are not read.
 	ParentID int64 `json:"parent_id" form:"parent_id" validate:"omitempty,min=1"`
+	// In a thread written in one go (roadmap row 143): the viewer's own
+	// upload, earlier in the same thread, whose post and the notes after it
+	// this one answers. It is a reply, as with parent_id, and is made only
+	// once that one's are; if that one fails or is given up, so is this.
+	AfterUpload string `json:"after_upload" validate:"omitempty,max=36"`
+	// The notes after this one in its thread, up to the next GIF, video or
+	// sound: made, each a reply to the one before, once this one's post is.
+	// Each as a thread's part (POST /notes/:owner_id/thread), its pictures
+	// uploaded for the writer. Up to nine.
+	ThreadAfter []threads.Part `json:"thread_after" validate:"omitempty,max=9,dive"`
 	// How large the file is, in bytes.
 	//
 	// What the browser says it is sending. The worker decides what it is.
@@ -235,10 +248,59 @@ func (h *videoHandler) UploadStart(c echo.Context) error {
 		}
 	}
 
+	// After an earlier upload of the same thread: the viewer's own, and not
+	// yet finished with, or failed.
+	inThread := req.AfterUpload != ""
+	if inThread {
+		if req.ParentID > 0 || req.OwnerID != viewer.ID {
+			return c.NoContent(http.StatusBadRequest)
+		}
+		before, err := h.Srv.Uploads.Read(req.AfterUpload)
+		if err != nil || before == nil || before.PersonID != viewer.ID {
+			return c.NoContent(http.StatusNotFound)
+		}
+		if before.Status != videos.StatusUploading && before.Status != videos.StatusProcessing {
+			return refuseUpload(c, http.StatusConflict, constants.FailedThreadStopped)
+		}
+	}
+
 	owner, err := h.Srv.ActorsGRPC.Read(req.OwnerID, viewer)
 	if err != nil || owner == nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
+	}
+
+	// The notes after it, checked now as a thread's are, so that nothing is
+	// sent that could not be made: each says something, in a language, and
+	// its pictures are the writer's.
+	threadAfter := ""
+	if len(req.ThreadAfter) > 0 {
+		if !threads.EachSaysSomething(req.ThreadAfter) {
+			return c.NoContent(http.StatusBadRequest)
+		}
+		first := &entities.AnahitaNode{OwnerID: owner.ID, OwnerType: owner.Type}
+		parts := make([]*entities.AnahitaNode, 0, len(req.ThreadAfter))
+		for _, each := range req.ThreadAfter {
+			part, ok := threads.Next(first, each, viewer.ID)
+			if !ok {
+				return handlers.RefuseLanguage(c)
+			}
+			parts = append(parts, part)
+		}
+		_, refused, err := threads.Pictures(threads.Readers{Media: h.Srv.MediaGRPC, Actors: h.Srv.ActorsGRPC}, parts, req.ThreadAfter, nil, viewer)
+		if err != nil {
+			log.Println(err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		if refused != "" {
+			status, body := photos.Refusal(refused)
+			return c.JSON(status, body)
+		}
+		raw, err := json.Marshal(req.ThreadAfter)
+		if err != nil {
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		threadAfter = string(raw)
 	}
 
 	medium := placeholderVideo(owner, viewer, kind)
@@ -260,10 +322,10 @@ func (h *videoHandler) UploadStart(c echo.Context) error {
 		return handlers.RefuseWarning(c)
 	}
 
-	if parent != nil {
+	if parent != nil || inThread {
 		// Its thread's: none of its own.
 		medium.Access, replyAccess, quotePolicy = "", "", ""
-		if language == "" {
+		if language == "" && parent != nil {
 			language = parent.Language
 		}
 	} else {
@@ -292,7 +354,7 @@ func (h *videoHandler) UploadStart(c echo.Context) error {
 	}
 	// A library is one's own: on one's own profile, and a post, not a
 	// reply.
-	if req.LibraryOnly && (owner.ID != viewer.ID || req.ParentID > 0) {
+	if req.LibraryOnly && (owner.ID != viewer.ID || req.ParentID > 0 || inThread || threadAfter != "") {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
@@ -317,6 +379,8 @@ func (h *videoHandler) UploadStart(c echo.Context) error {
 		LibraryOnly:   req.LibraryOnly,
 		DeclaredBytes: req.Size,
 		ParentID:      req.ParentID,
+		AfterUploadID: req.AfterUpload,
+		ThreadAfter:   threadAfter,
 	}
 	upload.SourceKey = videos.SourceKey(viewer.ID, upload.ID)
 

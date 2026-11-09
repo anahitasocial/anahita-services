@@ -15,18 +15,19 @@ Its routes are in the API reference: [video-service](api/index.html#video-servic
 3. [What the worker does](#what-the-worker-does)
 4. [What a file has to be](#what-a-file-has-to-be)
 5. [The post](#the-post)
-6. [Playing it](#playing-it)
-7. [Sizes](#sizes)
-8. [GIFs and animated PNGs](#gifs-and-animated-pngs)
-9. [Downloading](#downloading)
-10. [Audio posts](#audio-posts)
-11. [Videos from other networks](#videos-from-other-networks)
-12. [Endpoints](#endpoints)
-13. [Settings](#settings)
-14. [Storage](#storage)
-15. [Running it, and not running it](#running-it-and-not-running-it)
-16. [Where the code is](#where-the-code-is)
-17. [What is not built](#what-is-not-built)
+6. [In a thread](#in-a-thread)
+7. [Playing it](#playing-it)
+8. [Sizes](#sizes)
+9. [GIFs and animated PNGs](#gifs-and-animated-pngs)
+10. [Downloading](#downloading)
+11. [Audio posts](#audio-posts)
+12. [Videos from other networks](#videos-from-other-networks)
+13. [Endpoints](#endpoints)
+14. [Settings](#settings)
+15. [Storage](#storage)
+16. [Running it, and not running it](#running-it-and-not-running-it)
+17. [Where the code is](#where-the-code-is)
+18. [What is not built](#what-is-not-built)
 
 ## The parts
 
@@ -146,6 +147,32 @@ the web shell describes a public one at `/videos/<id>`.
 
 Deleting the post deletes its files. So does purging the account that
 posted it.
+
+## In a thread
+
+A thread written in one go (roadmap row 143) can have a GIF, a video or a
+sound in any note. Its notes before the first file are made at once
+(`POST /notes/…/thread`); each file is an upload, and the notes after it
+wait with it until it is ready:
+
+1. **`thread_after`** on `POST /videos/:owner_id/uploads`: the notes after
+   this one up to the next file, as a thread's parts, up to nine, checked
+   when the upload begins (each says something; its pictures are the
+   writer's). Kept in `video_uploads.thread_after`.
+2. **`after_upload`**: the writer's own upload before this one in the same
+   thread. This one is a reply, on the writer's own profile, and is not
+   taken by a worker until that one's post and notes are made, when it is
+   let go to answer the last of them (`video_uploads.after_upload_id`).
+3. **The worker** makes the post, then its notes in one go, each a reply
+   to the one before, with the thread's content warning; their links are
+   not made into cards, which only text-service makes. The upload is ready
+   once all are made.
+4. **A failure stops the thread there.** An upload whose upload before it
+   failed or was given up fails as `thread_stopped`; notes that cannot be
+   made (a picture in them gone) fail the file too, as `thread_notes`, and
+   its post is taken back. Notes and files before it stay.
+
+The writer may leave the page once every file is sent, as with any video.
 
 ## Playing it
 
@@ -303,7 +330,7 @@ the uploads'. The worker takes what was posted here first.
 
 | Method and path | Who | What |
 | --- | --- | --- |
-| `POST /videos/:owner_id/uploads` | signed in, may post there | Begin an upload. With `parent_id`, a reply with a video or a GIF: `owner_id` is the uploader's own, no title is needed, and audience, reply rule and quoting are the thread's. The thread is asked before anything is sent, and the worker asks it again before making the reply; a thread closed meanwhile fails the upload as `closed` |
+| `POST /videos/:owner_id/uploads` | signed in, may post there | Begin an upload. With `parent_id`, a reply with a video or a GIF: `owner_id` is the uploader's own, no title is needed, and audience, reply rule and quoting are the thread's. The thread is asked before anything is sent, and the worker asks it again before making the reply; a thread closed meanwhile fails the upload as `closed`. With `thread_after` and `after_upload`, a file in a thread's note ([In a thread](#in-a-thread)) |
 | `POST /videos/uploads/:id/parts` | the uploader | Addresses for some of its parts |
 | `POST /videos/uploads/:id/complete` | the uploader | All sent: hand it to the worker |
 | `GET /videos/uploads/:id` | the uploader | How it is getting on |

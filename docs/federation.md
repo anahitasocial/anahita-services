@@ -873,7 +873,9 @@ before is read from the writer's own server (`com.atproto.repo.getRecord`)
 rather than the AppView, which may not have seen it yet; a part written
 before the one it answers is tried again shortly, and not given up on. A
 part with pictures (roadmap row 143) is a photo post, and goes out as any
-reply with pictures does.
+reply with pictures does. A part with a GIF, a video or a sound is made when
+its file is ready, and the parts after it then, each going out as it is
+made, in order ([Videos](videos.md#in-a-thread)).
 
 It is sent with `inReplyTo` set to what it answers, by the address that
 has between servers, to its author's followers and to whoever wrote what

@@ -47,4 +47,11 @@ const (
 	// A reply whose thread closed to its author, or whose post went, while
 	// the video was being made.
 	FailedClosed = "closed"
+	// In a thread written in one go (roadmap row 143): the notes after it
+	// could not be made (a picture in them was not the writer's, or is
+	// gone), so neither was it.
+	FailedThreadNotes = "thread_notes"
+	// The upload before it in its thread failed or was given up, so the
+	// thread stopped there.
+	FailedThreadStopped = "thread_stopped"
 )

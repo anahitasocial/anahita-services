@@ -15,6 +15,7 @@ import (
 	"anahita-libs/data/services"
 	"anahita-libs/federation"
 	"anahita-libs/safehttp"
+	"anahita-libs/threads"
 	"anahita-libs/videos"
 	vconfig "video/config"
 	"video/data/repositories"
@@ -61,6 +62,10 @@ func main() {
 			Actors:      services.NewActorsGRPC(config),
 			Socialgraph: services.NewSocialgraphGRPC(config),
 		}},
+		Threads: threads.Readers{
+			Media:  services.NewMediaGRPC(config),
+			Actors: services.NewActorsGRPC(config),
+		},
 		Encoder:             worker.FFmpeg{},
 		Dir:                 os.Getenv("VIDEO_WORK_DIR"),
 		Heights:             heights,
