@@ -59,18 +59,25 @@ with the services' versions from the first Birth release after 2026-11-08,
 
 ## Making one
 
-For whoever maintains anahita-services and anahita-web:
+For whoever maintains anahita-services and anahita-web, which are released
+together, with the same version:
 
-1. On an up-to-date `main` with nothing uncommitted, make it:
+1. With both on an up-to-date `main` and nothing uncommitted, make it, from
+   anahita-services, saying where anahita-web is checked out (best set once
+   in one's shell profile):
 
    ~~~sh
-   make release v1.0.0
+   ANAHITA_WEB=~/projects/anahita-web make release v1.2.0
    ~~~
 
-   It stops, changing nothing, unless the version is after the newest tag
-   and `make test` passes. Then it raises the version NodeInfo says,
-   `softwareVersion` in `auth-service/cmd/api/handlers/node_info.go`, commits
-   that, pushes `main`, tags that commit and pushes the tag.
+   It looks at both first and stops, changing nothing in either, unless
+   each is on `main`, clean, level with GitHub, the version after its
+   newest tag, and its tests pass (`make test`, `yarn test`). Then, in
+   each, it raises the version (`softwareVersion` here, `package.json`
+   there), names the changelog's Embryo section after the version and the
+   day, commits that, pushes `main`, tags the commit and pushes the tag
+   (`scripts/release.sh`). An anahita-web with nothing new is tagged all
+   the same, its changelog saying so.
 2. `softwareVersion` is what the site tells the fediverse it runs. It is in
    the code and not taken from the tag, since an image that did not change
    is tagged again rather than built ([What is rebuilt](#what-is-rebuilt)),
@@ -79,21 +86,13 @@ For whoever maintains anahita-services and anahita-web:
    `softwareVersion` says another version stops before any image is built,
    and says so.
 3. The tag starts `.github/workflows/images.yml`, which publishes every
-   image for amd64 and arm64 as `ghcr.io/anahitasocial/<image>:v1.0.0`, and
+   image for amd64 and arm64 as `ghcr.io/anahitasocial/<image>:v1.2.0`, and
    as `latest`. It builds only the images that changed since the Birth
    release before: [What is rebuilt](#what-is-rebuilt).
-4. On GitHub, Releases › Draft a new release, from the tag, named
-   "v1.0.0 Birth": what it adds, changes and fixes, and what to do when
-   upgrading. That is the Embryo section of [CHANGELOG.md](../CHANGELOG.md),
-   whose heading then becomes the version and the date, in the same commit
-   as `softwareVersion`.
-5. In anahita-web, the same day, on an up-to-date `main` whose `yarn test`
-   passes: set `version` in `package.json` to the same number, without the
-   `v`, and turn the Embryo heading of its `CHANGELOG.md` into the version
-   and the date; commit that, tag the commit with the same `v1.0.0`, and
-   push `main` and the tag. Its release on GitHub is named the same,
-   "v1.0.0 Birth".
-6. In anahita-recipes, once the images are built: the manifests' `ref=`
+4. On GitHub, in each repository, Releases › Draft a new release, from the
+   tag, named "v1.2.0 Birth": its changelog's section for the version, with
+   a line saying which release of the other it goes with.
+5. In anahita-recipes, once the images are built: the manifests' `ref=`
    and every image in `commons/k8s/kustomization.yml` at the new version,
    renamed images by their new names, and `kubectl kustomize` to see it
    builds. Pinned, not `latest`: a site changes version only when its
