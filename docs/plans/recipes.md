@@ -103,9 +103,9 @@ microservices architecture.")
 | **php-migration** | | Moving a site from Anahita PHP: row 92, made simple from what was done for banu.io. The move alone: the new site is made first with `commons`, and the old one moved into it (the user, 2026-11-08). Archive the old site and prove the archive; copy the files to a new bucket; `upgrade.sql`; check; the old site retired. One `make` target a step, each one that changes anything shown first with nothing changed (`tidy`, then `tidy-apply`, as banu.io does). Examples of thinning a site, from banu.io's `migration/` (the user, 2026-11-08): inactive accounts purged but a list kept; old posts by kind and date; posts whose author is gone; photos moved to another profile with their files; groups purged; then the file sweep. Each counts first and keeps a copy of what it removes | Each step tried on a copy | First |
 | **commons** | Mastodon and Pixelfed, but more | Everything: notes, photos, video, articles, groups, events, federation on both networks. What `generic` is now | | First |
 | **coffeehouse** | Mastodon, Bluesky | Notes and photos alone: articles, topics, events and websites off; no videos, GIFs or sound, so neither `video-service` nor `video-worker` runs (the user, 2026-11-09) | Needed row 139's first part, built 2026-11-09 ([What a site offers](../instance-features.md)) | Written 2026-11-09 |
-| **journal** | WordPress, Medium | Articles first: a home of article cards with their covers, notes beside them | RSS feeds; newsletters by email | Later |
-| **theatre** | YouTube, PeerTube | Video first: a grid of thumbnails, larger uploads, the video worker given more | Adaptive streaming (HLS); captions; playlists | Later |
-| **gathering** | Meetup, Luma | What is on, first; groups as the organisers | A calendar to subscribe to (iCal). No tickets: nothing is sold | Later |
+| **journal** | WordPress, Medium | Articles first: a home of article cards with their covers, notes beside them | RSS feeds; newsletters by email | Written 2026-11-09 with what is built, its home page and these gaps to come |
+| **theatre** | YouTube, PeerTube | Video first: a grid of thumbnails, larger uploads, the video worker given more | Adaptive streaming (HLS); captions; playlists | Written 2026-11-09 with what is built, its home page and these gaps to come |
+| **gathering** | Meetup, Luma | What is on, first; groups as the organisers | A calendar to subscribe to (iCal). No tickets: nothing is sold | Written 2026-11-09 with what is built, its home page and these gaps to come |
 
 ## What a site is made of
 
@@ -183,7 +183,7 @@ docs/providers.md       where a recipe runs, tried and untried
    of a PHP site's data: about two sessions.
 3. **`coffeehouse`,** after row 139: half a session. **Written 2026-11-09,** with its `instance.json`, `not-run.yml` and diagram.
 4. **A Recipes page on anahita.io:** half a session.
-5. **`journal`, `theatre`, `gathering`:** each with its gaps weighed first.
+5. **`journal`, `theatre`, `gathering`:** each with its gaps weighed first. **Written 2026-11-09** with what is built (the user, 2026-11-09: "Let's do it"): each offers its kinds and runs only what it needs, and its README says what is still to come, its home page (the rest of row 139) and the gaps above.
 6. **Recipes for organisations, through 2027** (the user, 2026-11-08):
    schools, newsrooms, libraries, research groups and non-profits, each
    built on a purpose recipe, with its own configuration, privacy defaults
@@ -207,4 +207,4 @@ docs/providers.md       where a recipe runs, tried and untried
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-11 by kind of organisation; written again 2026-11-07 by purpose; each recipe a directory that stands alone, named, and three providers chosen, 2026-11-08 |
-| Implementation | 2026-11-08: phase 1, `commons`, and phase 2, `php-migration`, written in anahita-recipes, with `check.sh` run on every push; not tried end to end, which is left to the people who use them. `php-migration` may find few sites to move: Anahita PHP may have none left but anahita.io ; 2026-11-09: phase 3, `coffeehouse`, written, on Anahita Services v1.2.6 |
+| Implementation | 2026-11-08: phase 1, `commons`, and phase 2, `php-migration`, written in anahita-recipes, with `check.sh` run on every push; not tried end to end, which is left to the people who use them. `php-migration` may find few sites to move: Anahita PHP may have none left but anahita.io ; 2026-11-09: phases 3 and 5, `coffeehouse`, `journal`, `theatre` and `gathering`, written, on Anahita Services v1.2.6 |
