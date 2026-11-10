@@ -10,6 +10,16 @@ made.
 Releases before v1.0.17 are described on GitHub, under
 [Releases](https://github.com/anahitasocial/anahita-services/releases).
 
+## Embryo
+
+### Fixed
+
+1. **A profile elsewhere that approves its followers showed + Follow:**
+   saving its profile and cover photos wrote its profile again without
+   that, so it was kept as open, and following it seemed not to ask. Its
+   lock is kept now; a profile already kept is set right the next time it
+   is opened, once what was kept is an hour old.
+
 ## v1.2.6 Birth, 2026-11-09
 
 ### Added

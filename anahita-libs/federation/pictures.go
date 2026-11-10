@@ -215,9 +215,7 @@ func (k *Keeper) copyPicture(nodeID int64, address string, which picture) {
 	}
 
 	// Named on the node only now, when every size is there to be shown.
-	update := entities.NewAnahitaNode()
-	update.Type, update.URI, update.OriginDomain = node.Type, node.URI, node.OriginDomain
-	update.Name, update.Alias, update.Body, update.WebsiteURL = node.Name, node.Alias, node.Body, node.WebsiteURL
+	update := profileAsKept(node)
 	which.rename(update, filename)
 	if _, _, err := k.Nodes.UpsertRemote(update); err != nil {
 		log.Printf("the picture of %s was stored and not named: %v", node.Alias, err)
@@ -233,6 +231,19 @@ func (k *Keeper) copyPicture(nodeID int64, address string, which picture) {
 }
 
 // DeleteActorPictures removes what is stored of somebody's pictures, both of them.
+// profileAsKept is a profile from elsewhere as the graph keeps it, to save
+// it again with a picture named: everything an upsert writes, so that
+// nothing is written back as empty. Whether they approve their followers
+// among it: left out, it was saved as no, and a profile that asks to be
+// asked showed + Follow (roadmap row 130).
+func profileAsKept(node *entities.AnahitaNode) *entities.AnahitaNode {
+	update := entities.NewAnahitaNode()
+	update.Type, update.URI, update.OriginDomain = node.Type, node.URI, node.OriginDomain
+	update.Name, update.Alias, update.Body, update.WebsiteURL = node.Name, node.Alias, node.Body, node.WebsiteURL
+	update.AllowFollowRequest = node.AllowFollowRequest
+	return update
+}
+
 func (k *Keeper) DeleteActorPictures(node *entities.AnahitaNode) {
 	if node == nil {
 		return
