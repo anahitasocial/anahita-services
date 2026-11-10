@@ -10,7 +10,7 @@ made.
 Releases before v1.0.17 are described on GitHub, under
 [Releases](https://github.com/anahitasocial/anahita-services/releases).
 
-## Embryo
+## v1.2.6 Birth, 2026-11-09
 
 ### Added
 

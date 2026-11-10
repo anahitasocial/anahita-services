@@ -83,7 +83,7 @@ const (
 // The k8s manifests pin image TAGS, which are a third thing again: they
 // name what has actually been pushed to a registry, so they follow a
 // release rather than an edit here.
-var softwareVersion = "1.2.5"
+var softwareVersion = "1.2.6"
 
 type nodeInfoHandler struct {
 	*Env
