@@ -2,6 +2,7 @@ package handlers
 
 import (
 	an_constants "anahita-libs/constants"
+	"anahita-libs/data/services"
 	"anahita-libs/policy"
 	"anahita-libs/posts"
 	"anahita-libs/videos"
@@ -159,7 +160,7 @@ type NodeInfoDocument struct {
 	OpenRegistrations bool `json:"openRegistrations"`
 	// How much it is used.
 	Usage nodeInfoUsage `json:"usage"`
-	// What the web app reads of the installation: `nodeName`, `nodeDescription`, `logoUrl`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `websitesFrom`, `locationsFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `siteRules`, `spamRemovalMaxDays`, `accountGraceDays`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `audioMaxBytes`, `audioMaxSeconds`, `audioUploads`, `audioRecording`, `postMaxLength`, `postLinkLength`, `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.
+	// What the web app reads of the installation: `nodeName`, `nodeDescription`, `logoUrl`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `websitesFrom`, `locationsFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `siteRules`, `spamRemovalMaxDays`, `accountGraceDays`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `audioMaxBytes`, `audioMaxSeconds`, `audioUploads`, `audioRecording`, `postMaxLength`, `postLinkLength`, `offers` (what the instance offers: `profiles` and `posts`), `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.
 	Metadata map[string]any `json:"metadata"`
 }
 
@@ -190,7 +191,18 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 		usage = &repositories.InstanceUsage{}
 	}
 
-	return c.JSON(http.StatusOK, NodeInfoDocument{
+	// What the instance offers (instance.json, roadmap row 139), asked of
+	// the graph. Best-effort as usage is: unanswered, nothing is said, and
+	// the web app takes everything to be offered.
+	var offered *services.Offered
+	if h.Srv != nil && h.Srv.GraphGRPC != nil {
+		if offered, err = h.Srv.GraphGRPC.ReadInstance(); err != nil {
+			log.Println("nodeinfo: could not ask what the instance offers:", err)
+			offered = nil
+		}
+	}
+
+	document := NodeInfoDocument{
 		Version: "2.1",
 		Software: nodeInfoSoftware{
 			Name:       softwareName,
@@ -324,7 +336,7 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 			// largest and longest taken, so the web app offers the upload
 			// only where it will be accepted and can refuse a file that is
 			// too big before any of it is sent. video-service enforces them.
-			"videoUploads":    videos.UploadsOn(),
+			"videoUploads":    videos.UploadsOn() && offered.OffersPost("video"),
 			"videoMaxBytes":   videos.MaxBytes(),
 			"videoMaxSeconds": videos.MaxSeconds(),
 			// The same for a GIF or an animated PNG, which is posted as a
@@ -337,7 +349,7 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 			"audioMaxSeconds": videos.AudioMaxSeconds(),
 			// Whether audio posts may be made, and whether the web app
 			// offers to record one (AUDIO_UPLOADS, AUDIO_RECORDING).
-			"audioUploads":   videos.AudioUploadsOn(),
+			"audioUploads":   videos.AudioUploadsOn() && offered.OffersPost("audio"),
 			"audioRecording": videos.AudioRecordingOn(),
 			// How long a short post may be (roadmap row 144), a link
 			// counted as 23 however long, as Mastodon counts it.
@@ -362,7 +374,17 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 			"supportPhone":   h.Config.GetSupportPhone(),
 			"supportWebsite": h.Config.GetSupportWebsite(),
 		},
-	})
+	}
+	// The kinds of profile that may be made and of post that may be
+	// written, by their short names; left out where the graph did not say,
+	// and the web app then offers everything.
+	if offered != nil {
+		document.Metadata["offers"] = map[string]any{
+			"profiles": offered.Profiles,
+			"posts":    offered.Posts,
+		}
+	}
+	return c.JSON(http.StatusOK, document)
 }
 
 // The protocols an installation can be said to speak.

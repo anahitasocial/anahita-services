@@ -144,6 +144,17 @@ message TrendingResponse {
     map<int64, uint64> profiles = 2;
 }
 
+// What the instance offers (roadmap row 139): the kinds of profile that
+// may be made and of post that may be written, from instance.json
+// (docs/instance-features.md). Asked by the services that make them, and by
+// auth-service for NodeInfo.
+message ReadInstanceRequest {}
+
+message ReadInstanceResponse {
+    repeated string profiles = 1;
+    repeated string posts = 2;
+}
+
 service GraphService {
     rpc BrowseNeighbours(BrowseNeighboursRequest) returns (BrowseNeighboursResponse);
     rpc BrowseConnectionNodes(BrowseConnectionNodesRequest) returns (BrowseConnectionNodesResponse);
@@ -152,4 +163,5 @@ service GraphService {
     rpc Traverse (TraverseRequest) returns (TraverseResponse);
     rpc ReadShortestPath(ReadShortestPathRequest) returns (ReadShortestPathResponse);
     rpc Trending(TrendingRequest) returns (TrendingResponse);
+    rpc ReadInstance(ReadInstanceRequest) returns (ReadInstanceResponse);
 }

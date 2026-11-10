@@ -2,6 +2,7 @@ package features
 
 import (
 	"encoding/json"
+	"log"
 
 	"anahita-libs/data/entities"
 	"anahita-libs/proto/graphpb"
@@ -18,31 +19,7 @@ func ApplyFeatures(node *graphpb.Node, loader *FeatureLoader, defaults []*entiti
 	}
 
 	merged := loader.Merge(defaults, overrides)
-
-	// Video is the installation's to switch on (VIDEO_UPLOADS). Where it is
-	// not, no profile has the feature: no composer, no tab, and nothing a
-	// profile's own settings can turn back on.
-	if !videos.UploadsOn() {
-		kept := merged[:0]
-		for _, feature := range merged {
-			if feature.Service != videos.Service {
-				kept = append(kept, feature)
-			}
-		}
-		merged = kept
-	}
-
-	// Sound the same (AUDIO_UPLOADS): where it is off, video-service's
-	// feature keeps its videos and loses its audio posts, their composer and
-	// who may add them.
-	if !videos.AudioUploadsOn() {
-		for i, feature := range merged {
-			if feature.Service == videos.Service {
-				withoutAudio(feature)
-				merged[i] = feature
-			}
-		}
-	}
+	merged = loader.ForSite(merged)
 
 	// Convert to protobuf features
 	node.Features = make([]*graphpb.NodeFeature, len(merged))
@@ -103,4 +80,46 @@ func withoutAudio(feature *entities.AnahitaNodeFeature) {
 		}
 	}
 	feature.AddPermissions = permissions
+}
+
+// ForSite takes out of a profile's merged features what the installation
+// does not offer: video where VIDEO_UPLOADS is not on, sound where
+// AUDIO_UPLOADS is off, and what instance.json leaves out.
+func (fl *FeatureLoader) ForSite(merged []*entities.AnahitaNodeFeature) []*entities.AnahitaNodeFeature {
+	// Video is the installation's to switch on (VIDEO_UPLOADS). Where it is
+	// not, no profile has the feature: no composer, no tab, and nothing a
+	// profile's own settings can turn back on.
+	if !videos.UploadsOn() {
+		kept := merged[:0]
+		for _, feature := range merged {
+			if feature.Service != videos.Service {
+				kept = append(kept, feature)
+			}
+		}
+		merged = kept
+	}
+
+	// Sound the same (AUDIO_UPLOADS): where it is off, video-service's
+	// feature keeps its videos and loses its audio posts, their composer and
+	// who may add them.
+	if !videos.AudioUploadsOn() {
+		for i, feature := range merged {
+			if feature.Service == videos.Service {
+				withoutAudio(feature)
+				merged[i] = feature
+			}
+		}
+	}
+
+	// What the instance offers (instance.json, roadmap row 139): every
+	// profile has only that, whatever its kind's file or its own choices
+	// say, as with video above. A file that cannot be read is said in the
+	// log and offers everything, as no file does: a mistake in it does not
+	// leave every profile with nothing.
+	instance, err := fl.Instance()
+	if err != nil {
+		log.Printf("instance.json: %v; everything is offered", err)
+	}
+	merged = instance.Cut(merged)
+	return merged
 }

@@ -6,6 +6,7 @@ import (
 	"anahita-libs/proto/graphpb"
 	"context"
 	"log"
+	"slices"
 	"time"
 )
 
@@ -37,6 +38,8 @@ type GraphGRPCInterface interface {
 	Trending(req *GraphTrendingRequest) ([]*entities.AnahitaNode, error)
 	// TrendingItems is Trending with how many profiles used each.
 	TrendingItems(req *GraphTrendingRequest) ([]*TrendingItem, error)
+	// ReadInstance is what the instance offers (roadmap row 139).
+	ReadInstance() (*Offered, error)
 }
 
 // NewGraphGRPC creates a new graph service
@@ -348,4 +351,37 @@ func (srv *GraphGRPC) TrendingItems(req *GraphTrendingRequest) ([]*TrendingItem,
 		items = append(items, &TrendingItem{Node: node, Profiles: r.GetProfiles()[node.ID]})
 	}
 	return items, nil
+}
+
+// Offered is what the instance offers (roadmap row 139,
+// docs/instance-features.md): the kinds of profile that may be made, and of
+// post that may be written, by their short names ("group", "article"). Nil
+// is everything, as where the graph cannot be asked.
+type Offered struct {
+	Profiles []string
+	Posts    []string
+}
+
+// OffersProfile is whether a kind of profile may be made: a person always.
+func (o *Offered) OffersProfile(kind string) bool {
+	return o == nil || kind == "person" || slices.Contains(o.Profiles, kind)
+}
+
+// OffersPost is whether a kind of post may be written.
+func (o *Offered) OffersPost(kind string) bool {
+	return o == nil || slices.Contains(o.Posts, kind)
+}
+
+// ReadInstance implements GraphGRPCInterface. With no graph to ask, nil:
+// everything.
+func (srv *GraphGRPC) ReadInstance() (*Offered, error) {
+	client, err := srv.getClient()
+	if err != nil || client == nil {
+		return nil, err
+	}
+	r, err := client.ReadInstance(context.Background(), &graphpb.ReadInstanceRequest{})
+	if err != nil {
+		return nil, err
+	}
+	return &Offered{Profiles: r.GetProfiles(), Posts: r.GetPosts()}, nil
 }

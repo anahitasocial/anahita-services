@@ -11,6 +11,7 @@ func NewServices(config *config.Config) *Services {
 		MailGRPC:        services.NewMailGRPC(config),
 		ActorAdminsGRPC: services.NewActorAdminsGRPC(config),
 		ActorsGRPC:      services.NewActorsGRPC(config),
+		GraphGRPC:       services.NewGraphGRPC(config),
 	}
 }
 
@@ -34,4 +35,8 @@ type Services struct {
 	// at all: the notification goes out precisely when the group has just been
 	// marked deleted.
 	ActorsGRPC services.ActorsGRPCInterface
+
+	// GraphGRPC answers what the instance offers (roadmap row 139), for
+	// NodeInfo.
+	GraphGRPC services.GraphGRPCInterface
 }

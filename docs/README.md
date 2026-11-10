@@ -140,6 +140,12 @@ The pages, grouped by what they are about, each group in the order to read it.
    7. [The sweeper](account-lifecycle.md#the-sweeper)
    8. [Groups left without an administrator](account-lifecycle.md#groups-left-without-an-administrator)
    9. [Where the code is](account-lifecycle.md#where-the-code-is)
+7. [What a site offers](instance-features.md) — instance.json: the kinds of profile and of post a site offers, and what it leaves out
+   1. [The file](instance-features.md#the-file)
+   2. [What follows from it](instance-features.md#what-follows-from-it)
+   3. [Video and sound](instance-features.md#video-and-sound)
+   4. [Giving a site its own](instance-features.md#giving-a-site-its-own)
+   5. [Where the code is](instance-features.md#where-the-code-is)
 
 ### Profiles
 
@@ -483,6 +489,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [WebP, HEIC and AVIF photos](plans/done/photo-formats.md) | 135 | done 2026-11-09; planned 2026-11-08: taken in and kept as JPEG, WebP by Go, HEIC and AVIF by `heif-convert` in photo-service's image |
 | [Pictures, GIFs, videos and sounds in a thread's notes](plans/done/thread-media.md) | 143 | done 2026-11-09: photos in any note, set in the thread's own transaction (2026-11-08); a GIF, a video or a sound in any note, the notes after it kept with its upload and made by the worker once it is ready |
 | [Short posts of 500 characters](plans/done/short-posts.md) | 144 | done 2026-11-08: 500 for every short post, articles, topics and events keeping 8,000; a link counted as 23, and shortened for Bluesky; a count like Bluesky's |
+| [What a site offers](plans/instance-features.md) | 139 | its first part built 2026-11-09: instance.json, the kinds of profile and post a site offers; lists' layouts and the tutorials later |
 | [Content warnings](plans/content-warnings.md) | 122 | planned 2026-11-03, Made with AI added 2026-11-07: six kinds, an author marks a post and each reader chooses Show, Warn or Hide; both networks in and out; moderators add one from a report |
 | [Direct messages, and being found on the fediverse](plans/direct-messages.md) | 123 | planned 2026-11-03: listed on FediDB, FediDB's 128 questions answered in features.md, then messages here and with the fediverse as private mentions, with consent first |
 | [Moving: who you follow, your followers, and your posts](plans/moving.md) | 124 | parts 1 to 3 done 2026-11-08 (lists in and out; following somebody who moved; moving one's own account), part 4, posts, later; brought forward 2026-11-08, with blocks, mutes and saved posts, from a download or a single CSV; planned 2026-11-03: following out and in as Mastodon's CSV, heeding others' moves, moving oneself between Anahitas and with Mastodon with a signpost left behind, then posts between Anahitas |

@@ -871,6 +871,7 @@ The defaults live in `graph-grpc-defaults/actor_features/`:
 | `group.json` | Groups, layered over `default.json` |
 | `event.json` | Events, layered over `default.json` |
 | `website.json` | Websites, layered over `default.json` |
+| `instance.json` | Not in the image: what the whole site offers, which every profile is cut to after the others are layered ([What a site offers](instance-features.md)) |
 
 Each service lists its `add_permissions` as an entity and a level:
 

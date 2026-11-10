@@ -214,6 +214,12 @@ func (h *eventHandler) Add(c echo.Context) error {
 		viewer = getViewer(c)
 	)
 
+	// Not where the instance does not offer events (instance.json, roadmap
+	// row 139).
+	if !an_handlers.ProfileOffered(h.Srv.GraphGRPC, "event") {
+		return an_handlers.RefuseOff(c, "event")
+	}
+
 	if err := c.Bind(req); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusBadRequest)

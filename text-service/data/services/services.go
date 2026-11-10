@@ -10,6 +10,7 @@ func NewServices(config *config.Config) *Services {
 		ActorsGRPC:      services.NewActorsGRPC(config),
 		FilesGRPC:       services.NewFilesGRPC(config),
 		MediaGRPC:       services.NewMediaGRPC(config),
+		GraphGRPC:       services.NewGraphGRPC(config),
 		SocialgraphGRPC: services.NewSocialgraphGRPC(config),
 		GraphNodeGRPC:   services.NewGraphNodeGRPC(config),
 		GraphEdgeGRPC:   services.NewGraphEdgeGRPC(config),
@@ -27,4 +28,6 @@ type Services struct {
 	// The edges from an article or a topic to the posts it shows within
 	// its text (handlers/embeds.go).
 	GraphEdgeGRPC services.GraphEdgeGRPCInterface
+	// What the instance offers (roadmap row 139).
+	GraphGRPC services.GraphGRPCInterface
 }

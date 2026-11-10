@@ -174,6 +174,12 @@ func (h *topicHandler) Add(c echo.Context) error {
 		viewer = getViewer(c)
 	)
 
+	// Not where the instance does not offer them (instance.json, roadmap
+	// row 139).
+	if !an_handlers.PostOffered(h.Srv.GraphGRPC, "topic") {
+		return an_handlers.RefuseOff(c, "topic")
+	}
+
 	if err := c.Bind(req); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusBadRequest)

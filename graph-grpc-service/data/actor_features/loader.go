@@ -33,6 +33,9 @@ type FeatureLoader struct {
 	Directory         string
 	cache             map[string][]*entities.AnahitaNodeFeature
 	commonPermissions map[string][]entities.AnahitaNodeAddPermission
+	// instance.json, read once (instance.go).
+	instance     *Instance
+	instanceRead bool
 }
 
 func NewFeatureLoader(dir string) *FeatureLoader {

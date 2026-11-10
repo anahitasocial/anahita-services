@@ -447,7 +447,9 @@ Service addresses (`MAIL_SERVICE_ADDR`, `FILE_SERVICE_ADDR`,
 `ACTOR_FEATURES_PATH`, `SEARCH_RANKING_PATH`) are set in
 `docker-compose.yml` itself and need no entry in `.env`. They default to
 `/app/defaults`, `/app/defaults/actor_features` and
-`/app/defaults/search_ranking.json`, where the images keep their copies;
+`/app/defaults/search_ranking.json`, where the images keep their copies
+(what the site offers is a file in the second, `instance.json`: [What a
+site offers](instance-features.md));
 docker-compose points them at the working tree so an edit shows without a
 rebuild. The last is the weights search orders "Most relevant" by; see
 [Search](search.md#tuning-it).

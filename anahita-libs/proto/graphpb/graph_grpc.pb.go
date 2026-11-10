@@ -26,6 +26,7 @@ const (
 	GraphService_Traverse_FullMethodName              = "/graph.GraphService/Traverse"
 	GraphService_ReadShortestPath_FullMethodName      = "/graph.GraphService/ReadShortestPath"
 	GraphService_Trending_FullMethodName              = "/graph.GraphService/Trending"
+	GraphService_ReadInstance_FullMethodName          = "/graph.GraphService/ReadInstance"
 )
 
 // GraphServiceClient is the client API for GraphService service.
@@ -39,6 +40,7 @@ type GraphServiceClient interface {
 	Traverse(ctx context.Context, in *TraverseRequest, opts ...grpc.CallOption) (*TraverseResponse, error)
 	ReadShortestPath(ctx context.Context, in *ReadShortestPathRequest, opts ...grpc.CallOption) (*ReadShortestPathResponse, error)
 	Trending(ctx context.Context, in *TrendingRequest, opts ...grpc.CallOption) (*TrendingResponse, error)
+	ReadInstance(ctx context.Context, in *ReadInstanceRequest, opts ...grpc.CallOption) (*ReadInstanceResponse, error)
 }
 
 type graphServiceClient struct {
@@ -119,6 +121,16 @@ func (c *graphServiceClient) Trending(ctx context.Context, in *TrendingRequest, 
 	return out, nil
 }
 
+func (c *graphServiceClient) ReadInstance(ctx context.Context, in *ReadInstanceRequest, opts ...grpc.CallOption) (*ReadInstanceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReadInstanceResponse)
+	err := c.cc.Invoke(ctx, GraphService_ReadInstance_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GraphServiceServer is the server API for GraphService service.
 // All implementations must embed UnimplementedGraphServiceServer
 // for forward compatibility.
@@ -130,6 +142,7 @@ type GraphServiceServer interface {
 	Traverse(context.Context, *TraverseRequest) (*TraverseResponse, error)
 	ReadShortestPath(context.Context, *ReadShortestPathRequest) (*ReadShortestPathResponse, error)
 	Trending(context.Context, *TrendingRequest) (*TrendingResponse, error)
+	ReadInstance(context.Context, *ReadInstanceRequest) (*ReadInstanceResponse, error)
 	mustEmbedUnimplementedGraphServiceServer()
 }
 
@@ -160,6 +173,9 @@ func (UnimplementedGraphServiceServer) ReadShortestPath(context.Context, *ReadSh
 }
 func (UnimplementedGraphServiceServer) Trending(context.Context, *TrendingRequest) (*TrendingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Trending not implemented")
+}
+func (UnimplementedGraphServiceServer) ReadInstance(context.Context, *ReadInstanceRequest) (*ReadInstanceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadInstance not implemented")
 }
 func (UnimplementedGraphServiceServer) mustEmbedUnimplementedGraphServiceServer() {}
 func (UnimplementedGraphServiceServer) testEmbeddedByValue()                      {}
@@ -308,6 +324,24 @@ func _GraphService_Trending_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GraphService_ReadInstance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReadInstanceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GraphServiceServer).ReadInstance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GraphService_ReadInstance_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GraphServiceServer).ReadInstance(ctx, req.(*ReadInstanceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GraphService_ServiceDesc is the grpc.ServiceDesc for GraphService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -342,6 +376,10 @@ var GraphService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Trending",
 			Handler:    _GraphService_Trending_Handler,
+		},
+		{
+			MethodName: "ReadInstance",
+			Handler:    _GraphService_ReadInstance_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

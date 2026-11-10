@@ -1193,6 +1193,98 @@ func (x *TrendingResponse) GetProfiles() map[int64]uint64 {
 	return nil
 }
 
+// What the instance offers (roadmap row 139): the kinds of profile that
+// may be made and of post that may be written, from instance.json
+// (docs/instance-features.md). Asked by the services that make them, and by
+// auth-service for NodeInfo.
+type ReadInstanceRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReadInstanceRequest) Reset() {
+	*x = ReadInstanceRequest{}
+	mi := &file_proto_graphpb_graph_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReadInstanceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReadInstanceRequest) ProtoMessage() {}
+
+func (x *ReadInstanceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_graphpb_graph_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReadInstanceRequest.ProtoReflect.Descriptor instead.
+func (*ReadInstanceRequest) Descriptor() ([]byte, []int) {
+	return file_proto_graphpb_graph_proto_rawDescGZIP(), []int{14}
+}
+
+type ReadInstanceResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Profiles      []string               `protobuf:"bytes,1,rep,name=profiles,proto3" json:"profiles,omitempty"`
+	Posts         []string               `protobuf:"bytes,2,rep,name=posts,proto3" json:"posts,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReadInstanceResponse) Reset() {
+	*x = ReadInstanceResponse{}
+	mi := &file_proto_graphpb_graph_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReadInstanceResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReadInstanceResponse) ProtoMessage() {}
+
+func (x *ReadInstanceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_graphpb_graph_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReadInstanceResponse.ProtoReflect.Descriptor instead.
+func (*ReadInstanceResponse) Descriptor() ([]byte, []int) {
+	return file_proto_graphpb_graph_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *ReadInstanceResponse) GetProfiles() []string {
+	if x != nil {
+		return x.Profiles
+	}
+	return nil
+}
+
+func (x *ReadInstanceResponse) GetPosts() []string {
+	if x != nil {
+		return x.Posts
+	}
+	return nil
+}
+
 var File_proto_graphpb_graph_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_graph_proto_rawDesc = "" +
@@ -1312,7 +1404,11 @@ const file_proto_graphpb_graph_proto_rawDesc = "" +
 	"\bprofiles\x18\x02 \x03(\v2%.graph.TrendingResponse.ProfilesEntryR\bprofiles\x1a;\n" +
 	"\rProfilesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\x03R\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\x04R\x05value:\x028\x012\xd2\x04\n" +
+	"\x05value\x18\x02 \x01(\x04R\x05value:\x028\x01\"\x15\n" +
+	"\x13ReadInstanceRequest\"H\n" +
+	"\x14ReadInstanceResponse\x12\x1a\n" +
+	"\bprofiles\x18\x01 \x03(\tR\bprofiles\x12\x14\n" +
+	"\x05posts\x18\x02 \x03(\tR\x05posts2\x9b\x05\n" +
 	"\fGraphService\x12S\n" +
 	"\x10BrowseNeighbours\x12\x1e.graph.BrowseNeighboursRequest\x1a\x1f.graph.BrowseNeighboursResponse\x12b\n" +
 	"\x15BrowseConnectionNodes\x12#.graph.BrowseConnectionNodesRequest\x1a$.graph.BrowseConnectionNodesResponse\x12b\n" +
@@ -1320,7 +1416,8 @@ const file_proto_graphpb_graph_proto_rawDesc = "" +
 	"\x11ReadNeighbourhood\x12\x1f.graph.ReadNeighbourhoodRequest\x1a .graph.ReadNeighbourhoodResponse\x12;\n" +
 	"\bTraverse\x12\x16.graph.TraverseRequest\x1a\x17.graph.TraverseResponse\x12S\n" +
 	"\x10ReadShortestPath\x12\x1e.graph.ReadShortestPathRequest\x1a\x1f.graph.ReadShortestPathResponse\x12;\n" +
-	"\bTrending\x12\x16.graph.TrendingRequest\x1a\x17.graph.TrendingResponseB\n" +
+	"\bTrending\x12\x16.graph.TrendingRequest\x1a\x17.graph.TrendingResponse\x12G\n" +
+	"\fReadInstance\x12\x1a.graph.ReadInstanceRequest\x1a\x1b.graph.ReadInstanceResponseB\n" +
 	"Z\b/graphpbb\x06proto3"
 
 var (
@@ -1335,7 +1432,7 @@ func file_proto_graphpb_graph_proto_rawDescGZIP() []byte {
 	return file_proto_graphpb_graph_proto_rawDescData
 }
 
-var file_proto_graphpb_graph_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
+var file_proto_graphpb_graph_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_proto_graphpb_graph_proto_goTypes = []any{
 	(*BrowseNeighboursRequest)(nil),       // 0: graph.BrowseNeighboursRequest
 	(*BrowseNeighboursResponse)(nil),      // 1: graph.BrowseNeighboursResponse
@@ -1351,33 +1448,35 @@ var file_proto_graphpb_graph_proto_goTypes = []any{
 	(*ReadShortestPathResponse)(nil),      // 11: graph.ReadShortestPathResponse
 	(*TrendingRequest)(nil),               // 12: graph.TrendingRequest
 	(*TrendingResponse)(nil),              // 13: graph.TrendingResponse
-	nil,                                   // 14: graph.TrendingResponse.ProfilesEntry
-	(*Viewer)(nil),                        // 15: graph.Viewer
-	(*Node)(nil),                          // 16: graph.Node
-	(*Edge)(nil),                          // 17: graph.Edge
-	(*timestamppb.Timestamp)(nil),         // 18: google.protobuf.Timestamp
+	(*ReadInstanceRequest)(nil),           // 14: graph.ReadInstanceRequest
+	(*ReadInstanceResponse)(nil),          // 15: graph.ReadInstanceResponse
+	nil,                                   // 16: graph.TrendingResponse.ProfilesEntry
+	(*Viewer)(nil),                        // 17: graph.Viewer
+	(*Node)(nil),                          // 18: graph.Node
+	(*Edge)(nil),                          // 19: graph.Edge
+	(*timestamppb.Timestamp)(nil),         // 20: google.protobuf.Timestamp
 }
 var file_proto_graphpb_graph_proto_depIdxs = []int32{
-	15, // 0: graph.BrowseNeighboursRequest.viewer:type_name -> graph.Viewer
-	16, // 1: graph.BrowseNeighboursResponse.nodes:type_name -> graph.Node
-	15, // 2: graph.BrowseConnectionNodesRequest.viewer:type_name -> graph.Viewer
-	16, // 3: graph.BrowseConnectionNodesResponse.nodes:type_name -> graph.Node
-	15, // 4: graph.BrowseOrderedByDegreeRequest.viewer:type_name -> graph.Viewer
-	16, // 5: graph.BrowseOrderedByDegreeResponse.nodes:type_name -> graph.Node
-	15, // 6: graph.ReadNeighbourhoodRequest.viewer:type_name -> graph.Viewer
-	16, // 7: graph.ReadNeighbourhoodResponse.center:type_name -> graph.Node
-	16, // 8: graph.ReadNeighbourhoodResponse.neighbours:type_name -> graph.Node
-	17, // 9: graph.ReadNeighbourhoodResponse.edges:type_name -> graph.Edge
-	18, // 10: graph.ReadNeighbourhoodResponse.created_at:type_name -> google.protobuf.Timestamp
-	16, // 11: graph.TraverseResponse.nodes:type_name -> graph.Node
-	17, // 12: graph.TraverseResponse.edges:type_name -> graph.Edge
-	18, // 13: graph.TraverseResponse.created_at:type_name -> google.protobuf.Timestamp
-	16, // 14: graph.ReadShortestPathResponse.nodes:type_name -> graph.Node
-	17, // 15: graph.ReadShortestPathResponse.edges:type_name -> graph.Edge
-	18, // 16: graph.ReadShortestPathResponse.created_at:type_name -> google.protobuf.Timestamp
-	15, // 17: graph.TrendingRequest.viewer:type_name -> graph.Viewer
-	16, // 18: graph.TrendingResponse.nodes:type_name -> graph.Node
-	14, // 19: graph.TrendingResponse.profiles:type_name -> graph.TrendingResponse.ProfilesEntry
+	17, // 0: graph.BrowseNeighboursRequest.viewer:type_name -> graph.Viewer
+	18, // 1: graph.BrowseNeighboursResponse.nodes:type_name -> graph.Node
+	17, // 2: graph.BrowseConnectionNodesRequest.viewer:type_name -> graph.Viewer
+	18, // 3: graph.BrowseConnectionNodesResponse.nodes:type_name -> graph.Node
+	17, // 4: graph.BrowseOrderedByDegreeRequest.viewer:type_name -> graph.Viewer
+	18, // 5: graph.BrowseOrderedByDegreeResponse.nodes:type_name -> graph.Node
+	17, // 6: graph.ReadNeighbourhoodRequest.viewer:type_name -> graph.Viewer
+	18, // 7: graph.ReadNeighbourhoodResponse.center:type_name -> graph.Node
+	18, // 8: graph.ReadNeighbourhoodResponse.neighbours:type_name -> graph.Node
+	19, // 9: graph.ReadNeighbourhoodResponse.edges:type_name -> graph.Edge
+	20, // 10: graph.ReadNeighbourhoodResponse.created_at:type_name -> google.protobuf.Timestamp
+	18, // 11: graph.TraverseResponse.nodes:type_name -> graph.Node
+	19, // 12: graph.TraverseResponse.edges:type_name -> graph.Edge
+	20, // 13: graph.TraverseResponse.created_at:type_name -> google.protobuf.Timestamp
+	18, // 14: graph.ReadShortestPathResponse.nodes:type_name -> graph.Node
+	19, // 15: graph.ReadShortestPathResponse.edges:type_name -> graph.Edge
+	20, // 16: graph.ReadShortestPathResponse.created_at:type_name -> google.protobuf.Timestamp
+	17, // 17: graph.TrendingRequest.viewer:type_name -> graph.Viewer
+	18, // 18: graph.TrendingResponse.nodes:type_name -> graph.Node
+	16, // 19: graph.TrendingResponse.profiles:type_name -> graph.TrendingResponse.ProfilesEntry
 	0,  // 20: graph.GraphService.BrowseNeighbours:input_type -> graph.BrowseNeighboursRequest
 	2,  // 21: graph.GraphService.BrowseConnectionNodes:input_type -> graph.BrowseConnectionNodesRequest
 	4,  // 22: graph.GraphService.BrowseOrderedByDegree:input_type -> graph.BrowseOrderedByDegreeRequest
@@ -1385,15 +1484,17 @@ var file_proto_graphpb_graph_proto_depIdxs = []int32{
 	8,  // 24: graph.GraphService.Traverse:input_type -> graph.TraverseRequest
 	10, // 25: graph.GraphService.ReadShortestPath:input_type -> graph.ReadShortestPathRequest
 	12, // 26: graph.GraphService.Trending:input_type -> graph.TrendingRequest
-	1,  // 27: graph.GraphService.BrowseNeighbours:output_type -> graph.BrowseNeighboursResponse
-	3,  // 28: graph.GraphService.BrowseConnectionNodes:output_type -> graph.BrowseConnectionNodesResponse
-	5,  // 29: graph.GraphService.BrowseOrderedByDegree:output_type -> graph.BrowseOrderedByDegreeResponse
-	7,  // 30: graph.GraphService.ReadNeighbourhood:output_type -> graph.ReadNeighbourhoodResponse
-	9,  // 31: graph.GraphService.Traverse:output_type -> graph.TraverseResponse
-	11, // 32: graph.GraphService.ReadShortestPath:output_type -> graph.ReadShortestPathResponse
-	13, // 33: graph.GraphService.Trending:output_type -> graph.TrendingResponse
-	27, // [27:34] is the sub-list for method output_type
-	20, // [20:27] is the sub-list for method input_type
+	14, // 27: graph.GraphService.ReadInstance:input_type -> graph.ReadInstanceRequest
+	1,  // 28: graph.GraphService.BrowseNeighbours:output_type -> graph.BrowseNeighboursResponse
+	3,  // 29: graph.GraphService.BrowseConnectionNodes:output_type -> graph.BrowseConnectionNodesResponse
+	5,  // 30: graph.GraphService.BrowseOrderedByDegree:output_type -> graph.BrowseOrderedByDegreeResponse
+	7,  // 31: graph.GraphService.ReadNeighbourhood:output_type -> graph.ReadNeighbourhoodResponse
+	9,  // 32: graph.GraphService.Traverse:output_type -> graph.TraverseResponse
+	11, // 33: graph.GraphService.ReadShortestPath:output_type -> graph.ReadShortestPathResponse
+	13, // 34: graph.GraphService.Trending:output_type -> graph.TrendingResponse
+	15, // 35: graph.GraphService.ReadInstance:output_type -> graph.ReadInstanceResponse
+	28, // [28:36] is the sub-list for method output_type
+	20, // [20:28] is the sub-list for method input_type
 	20, // [20:20] is the sub-list for extension type_name
 	20, // [20:20] is the sub-list for extension extendee
 	0,  // [0:20] is the sub-list for field type_name
@@ -1413,7 +1514,7 @@ func file_proto_graphpb_graph_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_graphpb_graph_proto_rawDesc), len(file_proto_graphpb_graph_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   15,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

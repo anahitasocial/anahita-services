@@ -15,6 +15,7 @@ func NewServices(config *config.Config, db *sql.DB) *Services {
 		Transfers:       services.NewFileTransfersGRPC(config),
 		GraphNodeGRPC:   services.NewGraphNodeGRPC(config),
 		MediaGRPC:       services.NewMediaGRPC(config),
+		GraphGRPC:       services.NewGraphGRPC(config),
 		SocialgraphGRPC: services.NewSocialgraphGRPC(config),
 		Uploads:         repositories.NewUploads(db),
 	}
@@ -31,4 +32,6 @@ type Services struct {
 	SocialgraphGRPC services.SocialgraphGRPCInterface
 	// The uploads: videos on their way to being posts.
 	Uploads repositories.UploadsInterface
+	// What the instance offers (roadmap row 139).
+	GraphGRPC services.GraphGRPCInterface
 }

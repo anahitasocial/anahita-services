@@ -52,6 +52,9 @@ func (h *mediumHandler) AddThread(ctx context.Context, req *graphpb.MediumThread
 		if err := v.ValidateAdd(part); err != nil {
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		}
+		if err := refuseUnoffered(h.env.Config.GetActorFeaturesPath(), part); err != nil {
+			return nil, err
+		}
 		parts = append(parts, part)
 	}
 

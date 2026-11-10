@@ -14,6 +14,7 @@ func NewServices(config *config.Config, db *sql.DB) *Services {
 		ActorsGRPC:            services.NewActorsGRPC(config),
 		ActorAdminsGRPC:       services.NewActorAdminsGRPC(config),
 		SocialgraphFollowGRPC: services.NewSocialgraphFollowGRPC(config),
+		GraphGRPC:             services.NewGraphGRPC(config),
 		Domains:               repositories.NewDomains(db),
 		Websites:              repositories.NewWebsites(db),
 		Items:                 repositories.NewItems(db),
@@ -27,6 +28,9 @@ type Services struct {
 	ActorsGRPC            services.ActorsGRPCInterface
 	ActorAdminsGRPC       services.ActorAdminsGRPCInterface
 	SocialgraphFollowGRPC services.SocialgraphFollowGRPCInterface
+	// What the instance offers (roadmap row 139): a website is not made
+	// where it does not offer websites.
+	GraphGRPC services.GraphGRPCInterface
 	// What this service keeps: the domains people prove, each website's feed,
 	// and the items seen in it.
 	Domains  repositories.DomainsInterface

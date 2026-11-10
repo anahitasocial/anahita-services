@@ -319,6 +319,9 @@ func (h *mediumHandler) Add(ctx context.Context, req *graphpb.MediumAddRequest) 
 	viewer.Email = req.Viewer.Email
 
 	node := newMediumFromRequest(req.Medium)
+	if err := refuseUnoffered(h.env.Config.GetActorFeaturesPath(), node); err != nil {
+		return nil, err
+	}
 
 	// A reply. Where it sits in its thread is worked out here from what it
 	// answers, and never taken from the request: the root is what decides

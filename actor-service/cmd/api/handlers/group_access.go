@@ -108,6 +108,14 @@ func (h *groupHandler) getActorAccessContext(actor *entities.AnahitaNode, viewer
 	return ctx, nil
 }
 
+// kind is the kind this handler serves, as instance.json names it.
+func (h *groupHandler) kind() string {
+	if h.nodeType == an_constants.NodeActorEventEntityType {
+		return "event"
+	}
+	return "group"
+}
+
 // createLevel is the least role that may make an actor of the kind this
 // handler serves: GROUPS_FROM for a group, EVENTS_FROM for an event.
 func (h *groupHandler) createLevel() string {

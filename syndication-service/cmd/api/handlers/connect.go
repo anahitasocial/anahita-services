@@ -17,6 +17,7 @@ import (
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	"anahita-libs/domains"
+	an_handlers "anahita-libs/handlers"
 	"anahita-libs/ratelimit"
 
 	"github.com/labstack/echo/v4"
@@ -119,6 +120,11 @@ type refusal struct {
 // POST /websites/_connect
 func (h *connectHandler) Start(c echo.Context) error {
 	viewer := getViewer(c)
+	// Not where the instance does not offer websites (instance.json,
+	// roadmap row 139).
+	if !an_handlers.ProfileOffered(h.Srv.GraphGRPC, "website") {
+		return an_handlers.RefuseOff(c, "website")
+	}
 	if status := h.mayConnect(viewer); status != 0 {
 		return c.NoContent(status)
 	}
@@ -247,6 +253,11 @@ func (h *connectHandler) Check(c echo.Context) error {
 // POST /websites/_connect/:id
 func (h *connectHandler) Make(c echo.Context) error {
 	viewer := getViewer(c)
+	// Not where the instance does not offer websites (instance.json,
+	// roadmap row 139).
+	if !an_handlers.ProfileOffered(h.Srv.GraphGRPC, "website") {
+		return an_handlers.RefuseOff(c, "website")
+	}
 	if status := h.mayConnect(viewer); status != 0 {
 		return c.NoContent(status)
 	}

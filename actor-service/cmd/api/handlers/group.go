@@ -256,6 +256,12 @@ func (h *groupHandler) Add(c echo.Context) error {
 		viewer = getViewer(c)
 	)
 
+	// A kind the instance does not offer is not made (instance.json,
+	// roadmap row 139), whoever asks.
+	if kind := h.kind(); !an_handlers.ProfileOffered(h.Srv.GraphGRPC, kind) {
+		return an_handlers.RefuseOff(c, kind)
+	}
+
 	if err = c.Bind(req); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusBadRequest)

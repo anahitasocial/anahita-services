@@ -12,6 +12,7 @@ func NewServices(config *config.Config) *Services {
 		Transfers:       services.NewFileTransfersGRPC(config),
 		GraphNodeGRPC:   services.NewGraphNodeGRPC(config),
 		MediaGRPC:       services.NewMediaGRPC(config),
+		GraphGRPC:       services.NewGraphGRPC(config),
 		SocialgraphGRPC: services.NewSocialgraphGRPC(config),
 	}
 }
@@ -26,4 +27,6 @@ type Services struct {
 	GraphNodeGRPC   services.GraphNodeGRPCInterface
 	MediaGRPC       services.MediaGRPCInterface
 	SocialgraphGRPC services.SocialgraphGRPCInterface
+	// What the instance offers (roadmap row 139).
+	GraphGRPC services.GraphGRPCInterface
 }

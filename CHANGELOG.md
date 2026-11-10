@@ -10,6 +10,19 @@ made.
 Releases before v1.0.17 are described on GitHub, under
 [Releases](https://github.com/anahitasocial/anahita-services/releases).
 
+## Embryo
+
+### Added
+
+1. **What a site offers** (roadmap row 139, its first part): an optional
+   `instance.json` beside the actor feature files says which kinds of
+   profile (`group`, `event`, `website`) and of post (`note`, `article`,
+   `topic`, `photo`, `video`, `audio`) the site offers. Every profile has
+   only those; the services refuse the rest with 403 `{"error": "off"}`,
+   and graph-grpc-service will not save one; NodeInfo says what is offered
+   in `metadata.offers`; the graph's gRPC service answers `ReadInstance`.
+   No file is everything, as before ([What a site offers](docs/instance-features.md)).
+
 ## v1.2.5 Birth, 2026-11-09
 
 ### Added

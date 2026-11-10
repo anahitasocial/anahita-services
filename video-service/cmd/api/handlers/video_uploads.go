@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	an_handlers "anahita-libs/handlers"
 	"anahita-libs/photos"
 	"anahita-libs/responses"
 	"anahita-libs/threads"
@@ -203,6 +204,11 @@ func (h *videoHandler) UploadStart(c echo.Context) error {
 		kind = videos.KindAudio
 	} else if !slices.Contains(constants.UploadTypes, contentType) {
 		return refuseUpload(c, http.StatusUnsupportedMediaType, constants.FailedNotAVideo)
+	}
+	// Nor where the instance does not offer the kind (instance.json,
+	// roadmap row 139).
+	if !an_handlers.PostOffered(h.Srv.GraphGRPC, kind) {
+		return refuseUpload(c, http.StatusForbidden, an_handlers.ErrOff)
 	}
 	// A GIF or an animated PNG is held to less than a video, a sound to its
 	// own. What it says it is is checked by the worker, which holds it to
