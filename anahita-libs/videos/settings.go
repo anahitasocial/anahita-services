@@ -40,6 +40,18 @@ func positive(key string, fallback int64) int64 {
 	return value
 }
 
+// seconds is a length of time, in seconds, from the environment: read as 32
+// bits, which every int holds, so nothing is cut short on the way (code
+// scanning, go/incorrect-integer-conversion). Over 68 years is no length a
+// site means, and is taken as unsaid, as anything not a positive number is.
+func seconds(key string, fallback int) int {
+	value, err := strconv.ParseInt(strings.TrimSpace(os.Getenv(key)), 10, 32)
+	if err != nil || value <= 0 {
+		return fallback
+	}
+	return int(value)
+}
+
 // UploadsOn says whether people may post videos here.
 func UploadsOn() bool {
 	return strings.EqualFold(strings.TrimSpace(os.Getenv(EnvUploads)), "on")
@@ -50,7 +62,7 @@ func MaxBytes() int64 {
 }
 
 func MaxSeconds() int {
-	return int(positive(EnvMaxSeconds, DefaultMaxSeconds))
+	return seconds(EnvMaxSeconds, DefaultMaxSeconds)
 }
 
 // AnimationMaxBytes is the largest moving picture taken: a GIF of two
@@ -60,7 +72,7 @@ func AnimationMaxBytes() int64 {
 }
 
 func AnimationMaxSeconds() int {
-	return min(int(positive(EnvAnimationMaxSeconds, DefaultAnimationMaxSeconds)), MaxSeconds())
+	return min(seconds(EnvAnimationMaxSeconds, DefaultAnimationMaxSeconds), MaxSeconds())
 }
 
 // Videos and sounds from other networks, copied here when first played
@@ -83,7 +95,7 @@ const (
 
 func RemoteMaxBytes() int64 { return positive(EnvRemoteMaxBytes, DefaultRemoteMaxBytes) }
 func RemoteMaxSeconds() int {
-	return int(positive(EnvRemoteMaxSeconds, DefaultRemoteMaxSeconds))
+	return seconds(EnvRemoteMaxSeconds, DefaultRemoteMaxSeconds)
 }
 
 // RemoteDays is how long a copy from elsewhere is kept unplayed; 0 keeps it
@@ -140,6 +152,6 @@ func AudioRecordingOn() bool {
 }
 
 func AudioMaxSeconds() int {
-	return int(positive(EnvAudioMaxSeconds, DefaultAudioMaxSeconds))
+	return seconds(EnvAudioMaxSeconds, DefaultAudioMaxSeconds)
 }
 func AudioMaxBytes() int64 { return positive(EnvAudioMaxBytes, DefaultAudioMaxBytes) }
