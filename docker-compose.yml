@@ -1122,6 +1122,19 @@ services:
         ipv4_address: 172.20.1.31
 
 # mail-service - handles email notifications
+  # Where development mail goes: every message, caught here and read at
+  # http://localhost:8025, never sent anywhere (roadmap row 154). SMTP on
+  # 1025, inside the network only, without TLS or a password; the web page
+  # on this machine alone.
+  mailpit:
+    image: axllent/mailpit:v1.33.1
+    restart: always
+    ports:
+      - "127.0.0.1:8025:8025"
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.54
+
   mail-grpc-service:
     build:
       context: .
@@ -1148,7 +1161,9 @@ services:
       # Only for the default logo, which auth-service serves.
       OAUTH_ISSUER: ${OAUTH_ISSUER}
       # SMTP is the only transport. Any provider works — point these at
-      # Mailgun's relay, SES, Postmark, an internal MTA, or a local sink.
+      # a relay such as SES's or Postmark's, an internal MTA, or a local
+      # sink; in development, the mailpit service above (SMTP_HOST=mailpit,
+      # SMTP_PORT=1025, no user or password).
       SMTP_HOST: ${SMTP_HOST}
       SMTP_PORT: ${SMTP_PORT}
       # Optional: leave both empty for a relay that accepts unauthenticated

@@ -14,7 +14,11 @@ Releases before v1.0.17 are described on GitHub, under
 
 ### Added
 
-1. **Removing a follower who is on another server tells their server**
+1. **Mailpit in the development stack:** every message is caught and read
+   at http://localhost:8025, nothing sent anywhere. Point `.env` at it
+   (`SMTP_HOST="mailpit"`, `SMTP_PORT="1025"`, no user or password); see
+   Getting started, Mail in development.
+2. **Removing a follower who is on another server tells their server**
    (roadmap row 150), with a `Reject` of their follow, so that it stops
    delivering one's posts to them. It is not a block, and they may follow
    again.

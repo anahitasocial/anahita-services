@@ -9,13 +9,14 @@ Running the whole stack locally with Docker Compose.
 1. [Requirements](#requirements)
 2. [Configure](#configure)
 3. [Starting](#starting)
-4. [First run](#first-run)
-5. [A site to work with](#a-site-to-work-with)
-6. [Reachable from outside](#reachable-from-outside)
-7. [Developing](#developing)
-8. [Tests](#tests)
-9. [Other targets](#other-targets)
-10. [With an AI agent](#with-an-ai-agent)
+4. [Mail in development](#mail-in-development)
+5. [First run](#first-run)
+6. [A site to work with](#a-site-to-work-with)
+7. [Reachable from outside](#reachable-from-outside)
+8. [Developing](#developing)
+9. [Tests](#tests)
+10. [Other targets](#other-targets)
+11. [With an AI agent](#with-an-ai-agent)
 
 ## Requirements
 
@@ -81,6 +82,26 @@ to each other over mutual TLS, and `make up` and `make up_build` first create
 the development certificates in `./grpc-certs` (`scripts/grpc-certs-init.sh`).
 Without them the services stop at start-up and say so. See
 [Internal calls](configuration.md#internal-calls).
+
+## Mail in development
+
+The development stack sends no mail anywhere. Every message, sign-in codes
+included, is caught by the `mailpit` service and read at
+<http://localhost:8025>, whoever it was addressed to. `.env` points the
+mail service at it:
+
+~~~sh
+SMTP_HOST="mailpit"
+SMTP_PORT="1025"
+SMTP_USER=""
+SMTP_PASSWORD=""
+SMTP_SECURE="false"
+~~~
+
+With no user, the mail service does not sign in to the SMTP server, and
+Mailpit offers no TLS, so none is used: both are fine inside the stack's
+own network. A real installation uses a real relay
+([Configuration](configuration.md#mail)).
 
 ## First run
 
