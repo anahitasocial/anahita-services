@@ -10,6 +10,17 @@ made.
 Releases before v1.0.17 are described on GitHub, under
 [Releases](https://github.com/anahitasocial/anahita-services/releases).
 
+## Embryo
+
+### Fixed
+
+1. **Search finds a photo post by the alt text of any of its pictures,**
+   the second, third or fourth as well as the first; a whole word there
+   counts as one in the post's words.
+2. **A photo post with several pictures** found by search, on a hashtag's
+   or a location's page, or among liked posts, is answered with all of
+   them, as in a feed, not its first picture alone.
+
 ## v1.2.9 Birth, 2026-11-15
 
 ### Fixed

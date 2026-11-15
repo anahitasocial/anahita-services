@@ -229,3 +229,49 @@ func TestMostRelevantAsTheSearcherChooses(t *testing.T) {
 		t.Errorf("recent first keeps the match first: %v", got)
 	}
 }
+
+// THE RULE THIS GUARDS: what an image shows is a post's words too. A photo
+// post is found by the alt text of any of its images, the second as well
+// as the first, and a whole word there counts as one in its body.
+func TestSearchFindsAltTextOfEveryImage(t *testing.T) {
+	db := accessTestDB(t)
+	const (
+		person  = "'node.actor.person-service.person.v1','person-service'"
+		photo   = "'node.medium.photo-service.photo.v1','photo-service'"
+		aPerson = "'node.actor.person-service.person.v1'"
+	)
+	for _, stmt := range []string{
+		`DELETE FROM edges`,
+		`DELETE FROM nodes`,
+		`DELETE FROM photo_files`,
+		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,created_at,updated_at) VALUES
+		 (1,` + person + `,'Naomi','naomi','public',1,NOW(),NOW())`,
+		`INSERT INTO nodes (id,type,service,body,access,enabled,owner_id,owner_type,created_by,created_at,updated_at) VALUES
+		 (30,` + photo + `,'Saturday on Ceres','public',1,1,` + aPerson + `,1,NOW(),NOW()),
+		 (31,` + photo + `,'Nothing to see','public',1,1,` + aPerson + `,1,NOW(),NOW())`,
+		`INSERT INTO photo_files (node_id,position,filename,alt_text) VALUES
+		 (30,0,'a.jpg','A window over the docks'),
+		 (30,1,'b.jpg','An espresso cup on a steel table'),
+		 (31,0,'c.jpg','Espressos lined up')`,
+	} {
+		if _, err := db.Exec(stmt); err != nil {
+			t.Fatalf("seed: %v\n%s", err, stmt)
+		}
+	}
+
+	repo := NewSearchRepo(db).(*SearchRepo)
+	repo.ranking = ranking.NewSource(filepath.Join(t.TempDir(), "none.json"))
+	nodes, err := repo.Browse(&graphpb.SearchBrowseRequest{
+		Scope: "all", Keywords: "espresso", Ordering: "relevant", Limit: 50,
+	}, feedViewer(0))
+	if err != nil {
+		t.Fatalf("browse: %v", err)
+	}
+	ids := make([]int64, 0, len(nodes))
+	for _, node := range nodes {
+		ids = append(ids, node.ID)
+	}
+	if !before(ids, 30, 31) {
+		t.Errorf("espresso: want 30 (the word, in its second image) before 31 (inside a word), got %v", ids)
+	}
+}

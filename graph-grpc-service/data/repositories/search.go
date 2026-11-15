@@ -82,8 +82,9 @@ func handleOf(keywords string) string {
 }
 
 // wordsMatch is the condition that a node has what was searched for: in
-// its name, its handle or its body, or, for a photo or a video, as the name
-// or the handle of somebody in it, their tag approved (roadmap row 103). The
+// its name, its handle or its body, in the alt text of any of its images,
+// or, for a photo or a video, as the name or the handle of somebody in it,
+// their tag approved (roadmap row 103). The
 // handle is matched without the `@` somebody typed before it, so that
 // `@rastin.example` finds rastin.example.
 func wordsMatch(keywords string) sq.Or {
@@ -91,6 +92,7 @@ func wordsMatch(keywords string) sq.Or {
 		sq.Like{"node.name": "%" + keywords + "%"},
 		sq.Like{"node.alias": "%" + handleOf(keywords) + "%"},
 		sq.Like{"node.body": "%" + keywords + "%"},
+		sq.Expr(altTextHas, "%"+keywords+"%"),
 		sq.Expr(`EXISTS (
         SELECT 1
         FROM edges AS pictured
@@ -103,8 +105,28 @@ func wordsMatch(keywords string) sq.Or {
 	}
 }
 
+// altTextHas is the condition that the alt text of one of a post's images
+// holds what was searched for, as `LIKE` or `REGEXP_LIKE` takes it: what
+// an image shows is the post's words as much as its text is, and every
+// image counts, not only the first.
+const altTextHas = `EXISTS (
+        SELECT 1
+        FROM photo_files AS pictured_file
+        WHERE pictured_file.node_id = node.id
+          AND pictured_file.alt_text LIKE ?
+    )`
+
+// altTextHasWord is altTextHas for a whole word.
+const altTextHasWord = `EXISTS (
+        SELECT 1
+        FROM photo_files AS pictured_file
+        WHERE pictured_file.node_id = node.id
+          AND REGEXP_LIKE(pictured_file.alt_text, ?, 'i')
+    )`
+
 // How well a node matches, as points for where the words are. The first
-// that holds is the one counted.
+// that holds is the one counted. Alt text counts as the body does; a
+// node found only inside a word of either takes ELSE.
 const relevantMatch = `(CASE
     WHEN LOWER(node.alias) = ? THEN ?
     WHEN LOWER(node.name) = ? THEN ?
@@ -130,6 +152,7 @@ const relevantMatch = `(CASE
           AND (LOWER(person.alias) = ? OR LOWER(person.name) = ?)
     ) THEN ?
     WHEN REGEXP_LIKE(node.body, ?, 'i') THEN ?
+    WHEN ` + altTextHasWord + ` THEN ?
     ELSE ?
 END)`
 
@@ -288,6 +311,7 @@ func relevance(keywords string, weights ranking.Weights, viewer *entities.Viewer
 		// A photo or a video with somebody in it by that name or handle,
 		// their tag approved (roadmap row 103), as good as its hashtag.
 		constants.EdgeTagPersonType, constants.TagApproved, handleOf(keywords), lower, m.Hashtag,
+		`\b`+regexp.QuoteMeta(keywords)+`\b`, m.BodyWord,
 		`\b`+regexp.QuoteMeta(keywords)+`\b`, m.BodyWord,
 		m.BodyContains,
 	)

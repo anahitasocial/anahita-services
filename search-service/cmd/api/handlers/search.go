@@ -75,6 +75,10 @@ func (h *searchHandler) Browse(c echo.Context) error {
 	}
 
 	services.BatchPresignNodes(h.Env.Srv.FilesGRPC, nodes)
+	// A photo post with several images is drawn with all of them, as in
+	// a feed, and each is signed: the cover alone is not enough.
+	services.AttachPhotoFiles(h.Env.Srv.MediaGRPC, nodes)
+	services.BatchPresignPhotoFiles(h.Env.Srv.FilesGRPC, nodes)
 
 	// The people and groups among what was found say whether the viewer
 	// follows them, and whether they follow the viewer.

@@ -7,6 +7,8 @@ import (
 
 func NewServices(config *config.Config) *Services {
 	return &Services{
+		// Every image of each photo post, not only its cover.
+		MediaGRPC:     services.NewMediaGRPC(config),
 		FilesGRPC:     services.NewFilesGRPC(config),
 		GraphNodeGRPC: services.NewGraphNodeGRPC(config),
 		SearchGRPC:    services.NewSearchGRPC(config),
@@ -19,6 +21,7 @@ func NewServices(config *config.Config) *Services {
 
 type Services struct {
 	FilesGRPC       services.FilesGRPCInterface
+	MediaGRPC       services.MediaGRPCInterface
 	GraphNodeGRPC   services.GraphNodeGRPCInterface
 	SearchGRPC      services.SearchGRPCInterface
 	SocialgraphGRPC services.SocialgraphGRPCInterface

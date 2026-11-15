@@ -77,6 +77,10 @@ func (h *inboundHandler) Browse(c echo.Context) error {
 	}
 
 	services.BatchPresignNodes(h.Env.Srv.FilesGRPC, nodes)
+	// A photo post with several images is drawn with all of them, as in
+	// a feed, and each is signed: the cover alone is not enough.
+	services.AttachPhotoFiles(h.Env.Srv.MediaGRPC, nodes)
+	services.BatchPresignPhotoFiles(h.Env.Srv.FilesGRPC, nodes)
 
 	nodeResp := &responses.NodeResponse{}
 	resp.Data = nodeResp.MapNodeItems(nodes)

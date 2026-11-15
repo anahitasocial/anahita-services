@@ -41,8 +41,8 @@ the second puts level.
    | A word in the name begins with them ("Jericho **Bea**ch") | 60 |
    | Somewhere inside the name, or inside the handle (`decaf`**`coffee`**`club`) | 50 |
    | A hashtag on the post, or, on a photo or a video, the name or the handle of somebody in it, their tag approved | 40 |
-   | A whole word in the body | 20 |
-   | Only inside a word in the body ("**coffee**house") | 10 |
+   | A whole word in the body, or in the alt text of any of a post's pictures | 20 |
+   | Only inside a word in the body or the alt text ("**coffee**house") | 10 |
 
    The first that holds is the one counted. Only the order of the points
    matters: a profile called *Coffee* comes before a post that mentions
@@ -186,9 +186,12 @@ first; the steps only change the order among results that match alike.
 ## What is found at all
 
 The order does not change what is found. A result has the words in its
-name, its handle (matched without a typed `@`), or its body, or is a photo
-or a video with somebody of that name or handle in it, and is one the
-searcher may see; see [Permissions](permissions.md).
+name, its handle (matched without a typed `@`), its body, or the alt text
+of any of its pictures, the last as well as the first, or is a photo or a
+video with somebody of that name or handle in it, and is one the searcher
+may see; see [Permissions](permissions.md). A photo post found is answered
+with all its pictures, as a feed has it, and so are a hashtag's, a
+location's and the liked posts.
 
 **Where it looks** (`scope` on `GET /search/`), each a tab in the web app:
 
