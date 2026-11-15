@@ -24,6 +24,10 @@ Releases before v1.0.17 are described on GitHub, under
    once half an hour had passed, or its address or browser had changed.
    The email is sent after a sign-in with a password, a code or a passkey,
    and only then.
+3. **A token forwarded in its last second:** auth-service took an access
+   token as valid through its whole last second, which the services
+   refuse. Its expiry is compared to the instant, and `/oauth/validate`
+   renews a session's token when it has under a minute left.
 
 ## v1.2.8 Birth, 2026-11-15
 

@@ -232,16 +232,21 @@ func (s *OAuthService) ValidateAccessToken(ctx context.Context, tokenString stri
 	if !ok {
 		return nil, errors.New("unexpected claims type")
 	}
-	now := time.Now().Unix()
+	//
+	// Compared to the instant, not to the second: a token is expired from
+	// its exp on, as the services count it. Counted in whole seconds it went
+	// on being valid here through its last second, and was forwarded to
+	// services that refused it.
+	now := time.Now()
 	exp, ok := claimFloat(claims, libs_constants.JWTClaimExp)
 	if !ok {
 		return nil, errors.New("token has no expiry")
 	}
-	if now > int64(exp) {
+	if !now.Before(time.Unix(int64(exp), 0)) {
 		return nil, errors.New("token expired")
 	}
 	if nbf, ok := claimFloat(claims, "nbf"); ok {
-		if now < int64(nbf) {
+		if now.Before(time.Unix(int64(nbf), 0)) {
 			return nil, errors.New("token not yet valid")
 		}
 	}

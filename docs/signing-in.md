@@ -176,12 +176,15 @@ the session, in Redis, behind a cookie. Every request through the gateway asks
 | Access token | 15 minutes | `AccessTokenLifetime` |
 | Refresh token | 30 days | `RefreshTokenLifetime` |
 
-When the access token has expired, `/oauth/validate` renews the pair with the
-refresh token: the old refresh token is revoked as **rotated**, and the new
-pair goes into the session. A page asks for several things at once, so one of
-its requests renews and the others wait for it, up to two seconds, and take
-up the new access token. A session is ended only when its refresh token is
-over: spent, revoked, expired, unknown, or its account refused.
+When the access token has under a minute left, or has expired,
+`/oauth/validate` renews the pair with the refresh token, so that a token
+forwarded to a service does not run out on its way there. If an early renewal
+fails, the current token, still valid, goes on. Renewing: the old refresh
+token is revoked as **rotated**, and the new pair goes into the session. A
+page asks for several things at once, so one of its requests renews and the
+others wait for it, up to two seconds, and take up the new access token. A
+session is ended only when its refresh token is over: spent, revoked, expired,
+unknown, or its account refused.
 
 What the session holds, in its cookie or in Redis, is sealed with
 `SECURE_COOKIE_KEY` by AES-GCM: it cannot be read, and one changed by so much
@@ -220,7 +223,7 @@ sent none either.
 
 | What | Where |
 | --- | --- |
-| Staying signed in: renewing, rotation, copies of a refresh token | `auth-service/cmd/api/handlers/oauth_session.go` (`ReadValidate`, `refreshSessionTokens`, `awaitRenewal`), `auth-service/data/services/oauth_token.go` (`RefreshTokenPair`, `rotationContext`), table `oauth_refresh_tokens` (`rotated`) |
+| Staying signed in: renewing, rotation, copies of a refresh token | `auth-service/cmd/api/handlers/oauth_session.go` (`ReadValidate`, `validateRefreshAhead`, `refreshSessionTokens`, `awaitRenewal`), `auth-service/data/services/oauth_token.go` (`RefreshTokenPair`, `rotationContext`), table `oauth_refresh_tokens` (`rotated`) |
 | The "New sign-in" email | `auth-service/cmd/api/handlers/oauth_fresh_signin.go` (`markFreshSignIn`, `consumeFreshSignIn`), `oauth_token.go` (`recordAuthLogAfterIssuance`, `loginEmailDue`) |
 | Sealing what a session holds | `anahita-libs/crypt/encryption.go`, `anahita-libs/sessions/cookie.go` and `redis.go` (`Read`); setting `SECURE_COOKIE_KEY` |
 | Checking a token's expiry | `anahita-libs/middleware/oauth.go` (`authenticateOAuth`), `auth-service/data/services/jwt.go` (`ValidateAccessToken`) |

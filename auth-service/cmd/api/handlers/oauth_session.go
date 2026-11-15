@@ -20,6 +20,7 @@ import (
 	libs_constants "anahita-libs/constants"
 	"anahita-libs/sessions"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
 
@@ -164,8 +165,8 @@ func (h *oauthHandler) ReadValidate(c echo.Context) error {
 		return c.NoContent(http.StatusOK)
 	}
 
-	if _, err := h.OAuth.ValidateAccessToken(ctx, tokens.AccessToken); err == nil {
-		c.Response().Header().Set("X-OAuth-Token", tokens.AccessToken)
+	if token, err := h.OAuth.ValidateAccessToken(ctx, tokens.AccessToken); err == nil {
+		c.Response().Header().Set("X-OAuth-Token", h.validateRefreshAhead(c, tokens, token))
 		return c.NoContent(http.StatusOK)
 	}
 
@@ -416,4 +417,40 @@ func (h *oauthHandler) readOAuthTokensSession(c echo.Context) (*storedOAuthToken
 		return nil, err
 	}
 	return tokens, nil
+}
+
+// refreshAheadMargin is how long before it runs out a session's access
+// token is renewed: a token forwarded with seconds left can run out on its
+// way through the gateway, and the service it reaches refuses it.
+const refreshAheadMargin = time.Minute
+
+// refreshDue reports whether a valid token is close enough to its expiry to
+// be renewed now. A token with no expiry is never renewed early;
+// ValidateAccessToken refuses one anyway.
+func refreshDue(token *jwt.Token, now time.Time) bool {
+	if token == nil {
+		return false
+	}
+	exp, err := token.Claims.GetExpirationTime()
+	if err != nil || exp == nil {
+		return false
+	}
+	return exp.Sub(now) < refreshAheadMargin
+}
+
+// validateRefreshAhead is the token validate forwards for a session whose
+// access token is still valid: a new one when it has under a minute left,
+// and the current one otherwise, or when the early renewal fails. The
+// session is never ended here: what is current still works, and the
+// renewal after it runs out says whether the session is over.
+func (h *oauthHandler) validateRefreshAhead(c echo.Context, tokens *storedOAuthTokens, token *jwt.Token) string {
+	if !refreshDue(token, time.Now()) {
+		return tokens.AccessToken
+	}
+	renewed, err := h.refreshSessionTokens(c, tokens)
+	if err != nil {
+		log.Println("validate: early refresh failed, the current token goes on:", err)
+		return tokens.AccessToken
+	}
+	return renewed
 }

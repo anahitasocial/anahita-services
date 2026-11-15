@@ -1,7 +1,8 @@
 # Sign-in emails and refresh rotation
 
-Written 2026-11-10; cleaned up 2026-11-15. **First thing the next time we
-work on Anahita.**
+Written 2026-11-10; cleaned up 2026-11-15. **Done 2026-11-15,** each fix
+with its tests, and tried on the dev stack: a sign-in with a password
+emailed once, a silent re-authorization from another browser not at all.
 
 Three faults in auth-service, found on another deployment of the same code,
 where a person was sent six "New sign-in" emails in an afternoon. Anahita's
@@ -12,7 +13,7 @@ Status: ✅ done · 🔄 in flight · ⬜ open · ⏸️ blocked · ❓ decision
 
 ---
 
-## 1. ⬜ A cancelled refresh burns the refresh token
+## 1. ✅ A cancelled refresh burns the refresh token
 
 The most important of the three, because nothing else in Anahita masks it.
 
@@ -34,7 +35,7 @@ same way.
 `context.WithTimeout(context.WithoutCancel(ctx), 15*time.Second)`
 (`rotationContext`), with a test that a cancelled parent does not cancel it.
 
-## 2. ⬜ "New sign-in" email on silent re-authorization (mostly masked)
+## 2. ✅ "New sign-in" email on silent re-authorization (mostly masked)
 
 `auth-service/cmd/api/handlers/oauth_token.go`: `recordAuthLogAfterIssuance`
 emails after every authorization-code exchange unless
@@ -65,7 +66,7 @@ only the email. Update the comments in `oauth_token.go` L225–233 and
 `auth_log.go` L150–156 that describe a 15-minute silent re-authorization
 cycle the web app no longer drives.
 
-## 3. ⬜ Validate compares expiry in whole seconds (latent)
+## 3. ✅ Validate compares expiry in whole seconds (latent)
 
 `auth-service/data/services/jwt.go` L235–240: `now := time.Now().Unix();
 if now > int64(exp)`, so a token counts as valid through its whole last
