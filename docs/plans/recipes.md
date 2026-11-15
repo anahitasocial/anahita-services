@@ -50,8 +50,8 @@ microservices architecture.")
    copied into each, and a check says when the copies differ. This replaced
    a shared `site/` with each recipe a Kustomize component added to it.
    **Named for a place or a practice** (the user, 2026-11-08): `commons`,
-   `coffeehouse`, `journal`, `gallery`, `theatre`, `gathering`, and
-   `php-migration` for the move from Anahita PHP. Plain words that
+   `coffeehouse`, `journal`, `gallery`, `theatre`, `gathering`, `forum`,
+   and `php-migration` for the move from Anahita PHP. Plain words that
    collide with nothing in the code; `stream`, `channel` and `bridge` were
    left for that reason.
 3. **One server first.** The path a recipe documents is banu.io's: one
@@ -103,11 +103,12 @@ microservices architecture.")
 | --- | --- | --- | --- | --- |
 | **php-migration** | | Moving a site from Anahita PHP: row 92, made simple from what was done for banu.io. The move alone: the new site is made first with `commons`, and the old one moved into it (the user, 2026-11-08). Archive the old site and prove the archive; copy the files to a new bucket; `upgrade.sql`; check; the old site retired. One `make` target a step, each one that changes anything shown first with nothing changed (`tidy`, then `tidy-apply`, as banu.io does). Examples of thinning a site, from banu.io's `migration/` (the user, 2026-11-08): inactive accounts purged but a list kept; old posts by kind and date; posts whose author is gone; photos moved to another profile with their files; groups purged; then the file sweep. Each counts first and keeps a copy of what it removes | Each step tried on a copy | First |
 | **commons** | Mastodon and Pixelfed, but more | Everything: notes, photos, video, articles, groups, events, federation on both networks. What `generic` is now | | First |
-| **coffeehouse** | Mastodon, Bluesky | People and their notes alone (the user, 2026-11-09): groups, events, websites, articles, topics and photo posts off; no videos, GIFs or sound, so neither `video-service` nor `video-worker` runs | Needed row 139's first part, built 2026-11-09 ([What a site offers](../instance-features.md)) | Written 2026-11-09 |
+| **coffeehouse** | Mastodon, Bluesky | People and their notes alone (the user, 2026-11-09), and their photos from 2026-11-15 (the user: photo sharing is part of microblogging): groups, events, websites, articles and topics off; no videos, GIFs or sound, so neither `video-service` nor `video-worker` runs | Needed row 139's first part, built 2026-11-09 ([What a site offers](../instance-features.md)) | Written 2026-11-09 |
 | **journal** | WordPress, Medium | Articles first: a home of article cards with their covers, notes beside them | RSS feeds; newsletters by email | Written 2026-11-09 with what is built, its home page and these gaps to come |
 | **gallery** | Pixelfed, Instagram | People and their photos, and the replies under them (the user, 2026-11-14; replies alone, without notes, from v1.2.8, 2026-11-15): notes, articles, topics, groups, events and websites off; no videos, GIFs or sound | A grid of photos as its home | Written 2026-11-14 with what is built, its home page to come |
-| **theatre** | YouTube, PeerTube | Video first: a grid of thumbnails, larger uploads, the video worker given more; replies under videos, and no notes, from v1.2.8 (the user, 2026-11-15) | Adaptive streaming (HLS); captions; playlists | Written 2026-11-09 with what is built, its home page and these gaps to come |
+| **theatre** | YouTube, PeerTube | Video first: a grid of thumbnails, larger uploads, the video worker given more; replies under videos, and no notes, from v1.2.8 (the user, 2026-11-15); no photo posts, so photo-service is not run | Adaptive streaming (HLS); captions; playlists | Written 2026-11-09 with what is built, its home page and these gaps to come |
 | **gathering** | Meetup, Luma | What is on, first; groups as the organisers | A calendar to subscribe to (iCal). No tickets: nothing is sold | Written 2026-11-09 with what is built, its home page and these gaps to come |
+| **forum** | Discourse, NodeBB | People and groups; topics, and the replies under them (the user, 2026-11-15): groups as boards, made by administrators (`GROUPS_FROM`); notes, articles, photo posts, events and websites off; no videos, GIFs or sound; neither photo-service nor video-service runs | The topics, latest reply first, as its home | Written 2026-11-15 on v1.2.9, its home page to come |
 
 ## What a site is made of
 
@@ -185,7 +186,7 @@ docs/providers.md       where a recipe runs, tried and untried
    of a PHP site's data: about two sessions.
 3. **`coffeehouse`,** after row 139: half a session. **Written 2026-11-09,** with its `instance.json`, `not-run.yml` and diagram.
 4. **A Recipes page on anahita.io:** half a session.
-5. **`journal`, `theatre`, `gathering`, then `gallery`:** each with its gaps weighed first. **Written 2026-11-09**, `gallery` on 2026-11-14, with what is built (the user, 2026-11-09: "Let's do it"): each offers its kinds and runs only what it needs, and its README says what is still to come, its home page (the rest of row 139) and the gaps above.
+5. **`journal`, `theatre`, `gathering`, then `gallery` and `forum`:** each with its gaps weighed first. **Written 2026-11-09**, `gallery` on 2026-11-14 and `forum` on 2026-11-15, with what is built (the user, 2026-11-09: "Let's do it"): each offers its kinds and runs only what it needs, and its README says what is still to come, its home page (the rest of row 139) and the gaps above.
 6. **Recipes for organisations, through 2027** (the user, 2026-11-08):
    schools, newsrooms, libraries, research groups and non-profits, each
    built on a purpose recipe, with its own configuration, privacy defaults
@@ -209,4 +210,4 @@ docs/providers.md       where a recipe runs, tried and untried
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-11 by kind of organisation; written again 2026-11-07 by purpose; each recipe a directory that stands alone, named, and three providers chosen, 2026-11-08 |
-| Implementation | 2026-11-08: phase 1, `commons`, and phase 2, `php-migration`, written in anahita-recipes, with `check.sh` run on every push; not tried end to end, which is left to the people who use them. `php-migration` may find few sites to move: Anahita PHP may have none left but anahita.io ; 2026-11-09: phases 3 and 5, `coffeehouse`, `journal`, `theatre` and `gathering`, written, on Anahita Services v1.2.6; 2026-11-14: `gallery`, photo sharing, written on v1.2.7, and every recipe's diagram drawn again in colour |
+| Implementation | 2026-11-08: phase 1, `commons`, and phase 2, `php-migration`, written in anahita-recipes, with `check.sh` run on every push; not tried end to end, which is left to the people who use them. `php-migration` may find few sites to move: Anahita PHP may have none left but anahita.io ; 2026-11-09: phases 3 and 5, `coffeehouse`, `journal`, `theatre` and `gathering`, written, on Anahita Services v1.2.6; 2026-11-14: `gallery`, photo sharing, written on v1.2.7, and every recipe's diagram drawn again in colour; 2026-11-15: `forum`, on v1.2.9 |
