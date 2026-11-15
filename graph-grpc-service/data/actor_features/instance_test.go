@@ -169,3 +169,36 @@ func TestABrokenInstanceFileOffersEverything(t *testing.T) {
 		t.Errorf("no directory is no file: %v", err)
 	}
 }
+
+// A site of photos alone, with replies under them: its people have no
+// composer of text, and it says it offers photos alone.
+func TestAGalleryOffersPhotosAndRepliesAlone(t *testing.T) {
+	dir := sitesFeatures(t, `[
+  { "service": "actor-service", "node_types": ["person"] },
+  { "service": "text-service",  "node_types": ["reply"] },
+  { "service": "photo-service", "node_types": ["photo"] },
+  { "service": "video-service", "enabled": false }
+]`)
+	person := personOf(t, dir, "")
+	text := featureOf(person, "text-service")
+	if text == nil {
+		t.Fatal("text-service was taken away: replies need it")
+	}
+	if len(text.NodeTypes) != 0 || len(text.Composers) != 0 {
+		t.Errorf("text-service offers %v, composers %v; want none", text.NodeTypes, text.Composers)
+	}
+	_, posts, err := NewFeatureLoader(dir).Offered()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !slices.Equal(posts, []string{"photo"}) {
+		t.Errorf("offers posts %v, want [photo]", posts)
+	}
+	instance, err := LoadInstance(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !instance.Offers("text-service", ReplyKind) || instance.Offers("text-service", "note") {
+		t.Error("want replies and no notes")
+	}
+}

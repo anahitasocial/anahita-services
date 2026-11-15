@@ -10,6 +10,22 @@ made.
 Releases before v1.0.17 are described on GitHub, under
 [Releases](https://github.com/anahitasocial/anahita-services/releases).
 
+## Embryo
+
+### Added
+
+1. **Replies without notes:** `reply` is a kind of post in
+   `instance.json`, offered where it is listed or where `note` is. A site
+   of photos alone lists `{"service": "text-service", "node_types":
+   ["reply"]}`: replies under its photos, and no notes of their own
+   ([What a site offers](docs/instance-features.md)). Files that list
+   `note` keep their replies; nothing to change.
+
+### Fixed
+
+1. **A thread of notes where notes are off** was refused with a 500; it is
+   refused with 403 `{"error": "off"}`, as a note is.
+
 ## v1.2.7 Birth, 2026-11-09
 
 ### Fixed

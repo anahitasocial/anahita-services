@@ -319,7 +319,7 @@ func (h *mediumHandler) Add(ctx context.Context, req *graphpb.MediumAddRequest) 
 	viewer.Email = req.Viewer.Email
 
 	node := newMediumFromRequest(req.Medium)
-	if err := refuseUnoffered(h.env.Config.GetActorFeaturesPath(), node); err != nil {
+	if err := refuseUnoffered(h.env.Config.GetActorFeaturesPath(), node, req.Medium.ParentId > 0); err != nil {
 		return nil, err
 	}
 

@@ -117,3 +117,5 @@ Moving them into the file alone is for a later minor release.
 ## Status
 
 Plan written on 2026-11-09, and its first two phases, the services and the web app, built the same night; the coffeehouse recipe follows.
+
+2026-11-15: `reply` a kind of its own (the user: a gallery or a theatre needs no notes, only the replies under its posts), offered where it is listed or where `note` is; tried on the dev stack as a gallery, through the API and the web app.

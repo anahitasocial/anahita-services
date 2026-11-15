@@ -26,6 +26,14 @@ const (
 	personKind      = "person"
 )
 
+// A reply is saved as a note with a parent, and is offered as a kind of
+// its own: ReplyKind, in text-service's list.
+const (
+	repliesService = "text-service"
+	noteKind       = "note"
+	ReplyKind      = "reply"
+)
+
 // Instance is what instance.json says. Nil is everything: no file, as
 // before it was read.
 type Instance struct {
@@ -80,7 +88,11 @@ func (in *Instance) OffersService(service string) bool {
 }
 
 // Offers is whether a kind of a service is offered: the service is, and
-// its kinds are not listed or the kind is among them.
+// its kinds are not listed or the kind is among them. A reply is a kind of
+// text-service's of its own, offered where it is listed or where notes are,
+// since replies were notes before it was a kind: a site of photos alone
+// lists "reply" to keep the conversation under them (the user,
+// 2026-11-15).
 func (in *Instance) Offers(service, kind string) bool {
 	if in == nil {
 		return true
@@ -89,7 +101,10 @@ func (in *Instance) Offers(service, kind string) bool {
 		return false
 	}
 	listed, ok := in.services[service]
-	return !ok || len(listed.NodeTypes) == 0 || slices.Contains(listed.NodeTypes, kind)
+	if !ok || len(listed.NodeTypes) == 0 || slices.Contains(listed.NodeTypes, kind) {
+		return true
+	}
+	return service == repliesService && kind == ReplyKind && slices.Contains(listed.NodeTypes, noteKind)
 }
 
 // OffersProfile is whether a kind of profile may be made: a person always.

@@ -49,6 +49,18 @@ offered: it is an account. The kinds of post are `note`, `article` and
 `topic` (text-service), `photo` (photo-service), and `video` and `audio`
 (video-service).
 
+**Replies** are a kind of text-service's too, `reply`: a reply is saved as
+a note that answers a post, and is offered where `reply` is listed or
+`note` is, as before it was a kind. A site of photos alone keeps the
+conversation under them and takes no notes of its own:
+
+```json
+{ "service": "text-service", "node_types": ["reply"] }
+```
+
+text-service still runs there, for the replies. Its people have no
+composer of words, and NodeInfo offers no `note`.
+
 A file that cannot be read is said in graph-grpc-service's log, and offers
 everything, as no file does.
 
@@ -60,9 +72,11 @@ everything, as no file does.
    neither shown nor taken.
 2. **The services refuse what is off,** with 403 `{"error": "off"}`:
    actor-service a group or an event, syndication-service a website,
-   text-service a note, an article or a topic, photo-service a photo, and
-   video-service a video or a sound. graph-grpc-service refuses to save a
-   post of a kind that is off, whichever service asks, as a last check.
+   text-service a note, an article, a topic or a thread of notes,
+   photo-service a photo, and video-service a video or a sound.
+   graph-grpc-service refuses to save a post of a kind that is off,
+   whichever service asks, as a last check, and a reply where neither
+   `reply` nor `note` is offered.
    `GROUPS_FROM`, `EVENTS_FROM` and `WEBSITES_FROM` still say who may make
    one where it is offered.
 3. **What is already there stays,** readable at its address: a site that

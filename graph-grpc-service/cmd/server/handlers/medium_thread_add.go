@@ -52,7 +52,9 @@ func (h *mediumHandler) AddThread(ctx context.Context, req *graphpb.MediumThread
 		if err := v.ValidateAdd(part); err != nil {
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		}
-		if err := refuseUnoffered(h.env.Config.GetActorFeaturesPath(), part); err != nil {
+		// Every part of a thread that answers a post is a reply; a thread
+		// that begins a post is as its first part.
+		if err := refuseUnoffered(h.env.Config.GetActorFeaturesPath(), part, req.ParentId > 0); err != nil {
 			return nil, err
 		}
 		parts = append(parts, part)

@@ -3,6 +3,7 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"slices"
 	"strconv"
 
 	"anahita-libs/data/entities"
@@ -84,6 +85,16 @@ func (h *noteHandler) AddThread(c echo.Context) error {
 
 	if !threads.EachSaysSomething(req.Parts) {
 		return c.NoContent(http.StatusBadRequest)
+	}
+
+	// Each part is a post of its own kind, a photo post where it has
+	// pictures and a note where not: none where the instance does not offer
+	// it (instance.json, roadmap row 139). A site of photos alone takes no
+	// thread of words.
+	for _, kind := range threadKinds(req.Parts) {
+		if !an_handlers.PostOffered(h.Srv.GraphGRPC, kind) {
+			return an_handlers.RefuseOff(c, kind)
+		}
 	}
 
 	// The first part is checked as a post is: as a photo post, when it has
@@ -218,4 +229,20 @@ func (h *noteHandler) partPictures(c echo.Context, parts []*entities.AnahitaNode
 		}
 	}
 	return files, nil
+}
+
+// threadKinds is each kind of post a thread's parts are, once each: "photo"
+// for a part with pictures, "note" for one without.
+func threadKinds(parts []ThreadPart) []string {
+	var kinds []string
+	for _, part := range parts {
+		kind := "note"
+		if part.HasPictures() {
+			kind = "photo"
+		}
+		if !slices.Contains(kinds, kind) {
+			kinds = append(kinds, kind)
+		}
+	}
+	return kinds
 }
