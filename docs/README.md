@@ -351,6 +351,7 @@ five, under Profiles.
    7. [Where the code is](search.md#where-the-code-is)
    8. [What is not built](search.md#what-is-not-built)
 
+9. [Articles and topics](long-posts.md) — long writing: up to 8,000 characters, each a post of its own, with drafts
 ### Fediverse and Bluesky
 
 1. [Federation](federation.md) — taking part in the fediverse and in Bluesky: turning it on, who is on the fediverse, what they are called and what is told about them, reading Bluesky and writing to it as a connected account, and who owns what
