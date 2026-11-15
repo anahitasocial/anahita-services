@@ -195,6 +195,27 @@ docs/providers.md       where a recipe runs, tried and untried
    site-wide privacy defaults (gap 3), and for what each needs of its own,
    licences on posts for research (anahita-web's row 70). Their names are
    settled when the phase begins.
+7. **Tried by us, not only by those who use them** (the user, 2026-11-15:
+   "if we can test them on emulators, that would be better than having to
+   rely on people's reports alone"), in three layers:
+   1. **`smoke.sh` on GitHub's runners. Done 2026-11-15:** every recipe
+      from `make init` to every service ready and offering what its
+      `instance.json` says, on every change and every Monday
+      (`.github/workflows/smoke.yml`). Its first runs found MySQL never
+      starting on kernels 6.17 and after (containerd's AppArmor profile,
+      k3s issue 13625): each recipe's `mysql.yml` now runs MySQL as its own
+      user and without that profile.
+   2. **A local Ubuntu VM, now and then.** Multipass or Lima as the server,
+      for what a runner cannot try: `make web`, mail caught by Mailpit, and
+      signing in, with local names in `/etc/hosts` and cert-manager's own
+      certificates in place of Let's Encrypt's. Later.
+   3. **A real server, now and then.** A Hetzner server for an afternoon,
+      for `deploy/hetzner/server.sh`, a domain's DNS and Let's Encrypt's
+      certificates. Later.
+8. **banu.io's MySQL, before its kernel is upgraded.** banu.io runs the
+   same MySQL; on kernel 6.17 and after it would not start again. It needs
+   what the recipes' `mysql.yml` has (`runAsUser: 999`, `fsGroup: 999`,
+   `appArmorProfile: Unconfined`), applied with a backup first. Later.
 
 ## Documentation
 
@@ -210,4 +231,4 @@ docs/providers.md       where a recipe runs, tried and untried
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-11 by kind of organisation; written again 2026-11-07 by purpose; each recipe a directory that stands alone, named, and three providers chosen, 2026-11-08 |
-| Implementation | 2026-11-08: phase 1, `commons`, and phase 2, `php-migration`, written in anahita-recipes, with `check.sh` run on every push; not tried end to end, which is left to the people who use them. `php-migration` may find few sites to move: Anahita PHP may have none left but anahita.io ; 2026-11-09: phases 3 and 5, `coffeehouse`, `journal`, `theatre` and `gathering`, written, on Anahita Services v1.2.6; 2026-11-14: `gallery`, photo sharing, written on v1.2.7, and every recipe's diagram drawn again in colour; 2026-11-15: `forum`, on v1.2.9 |
+| Implementation | 2026-11-08: phase 1, `commons`, and phase 2, `php-migration`, written in anahita-recipes, with `check.sh` run on every push; not tried end to end, which is left to the people who use them. `php-migration` may find few sites to move: Anahita PHP may have none left but anahita.io ; 2026-11-09: phases 3 and 5, `coffeehouse`, `journal`, `theatre` and `gathering`, written, on Anahita Services v1.2.6; 2026-11-14: `gallery`, photo sharing, written on v1.2.7, and every recipe's diagram drawn again in colour; 2026-11-15: `forum`, on v1.2.9; phase 7's first layer, `smoke.sh`, green on all seven recipes, and its second and third layers, and phase 8, banu.io's MySQL, for later |
