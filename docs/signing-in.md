@@ -201,11 +201,17 @@ is refused and no more (`ErrRefreshTokenRevoked`). Treating those as copies
 too set off a revocation each time one of them came back, and signed people
 out of every device every fifteen minutes (banu.io, 2026-11-02).
 
+Once the old refresh token is claimed, the renewal is finished whatever
+becomes of the request that asked for it, within 15 seconds: a request
+cancelled half way would otherwise leave the old token spent and no new
+one, and the retries would end as a copy, signing the person out of that
+client everywhere.
+
 ## Where the code is
 
 | What | Where |
 | --- | --- |
-| Staying signed in: renewing, rotation, copies of a refresh token | `auth-service/cmd/api/handlers/oauth_session.go` (`ReadValidate`, `refreshSessionTokens`, `awaitRenewal`), `auth-service/data/services/oauth_token.go` (`RefreshTokenPair`), table `oauth_refresh_tokens` (`rotated`) |
+| Staying signed in: renewing, rotation, copies of a refresh token | `auth-service/cmd/api/handlers/oauth_session.go` (`ReadValidate`, `refreshSessionTokens`, `awaitRenewal`), `auth-service/data/services/oauth_token.go` (`RefreshTokenPair`, `rotationContext`), table `oauth_refresh_tokens` (`rotated`) |
 | Sealing what a session holds | `anahita-libs/crypt/encryption.go`, `anahita-libs/sessions/cookie.go` and `redis.go` (`Read`); setting `SECURE_COOKIE_KEY` |
 | Checking a token's expiry | `anahita-libs/middleware/oauth.go` (`authenticateOAuth`), `auth-service/data/services/jwt.go` (`ValidateAccessToken`) |
 | Signing in with a password, then two-factor | `auth-service/cmd/api/handlers/oauth_login.go` (`AddCredentials`, `AddTotp`) |

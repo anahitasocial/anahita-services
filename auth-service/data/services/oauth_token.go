@@ -256,6 +256,15 @@ func (s *OAuthService) RefreshTokenPair(
 		return nil, entities.ErrRefreshTokenRaced
 	}
 
+	// The old token is spent from here: finish the rotation whatever
+	// becomes of the request. A request cancelled between the claim and the
+	// signing (a client that gave up, a proxy's timeout) would otherwise
+	// leave the old token revoked and no successor, and the client's
+	// retries would end in ErrRefreshTokenReuse, which signs the person out
+	// of that client everywhere. See rotationContext.
+	ctx, cancel := rotationContext(ctx)
+	defer cancel()
+
 	refreshPlaintextNew, persistedRefreshNew, err := s.persistRefreshToken(
 		stored.UserID,
 		client.ClientID,
@@ -299,6 +308,17 @@ func (s *OAuthService) RefreshTokenPair(
 		RefreshToken: refreshPlaintextNew,
 		Scope:        grantedScopes,
 	}, nil
+}
+
+// RotationTimeout bounds the work after a refresh token is claimed, which
+// no longer stops when the request does (rotationContext).
+const RotationTimeout = 15 * time.Second
+
+// rotationContext is the context a rotation finishes on once the old token is
+// claimed: the request's values, without its cancellation, and with a limit of
+// its own, so that a signer that never answers cannot hold it for ever.
+func rotationContext(ctx context.Context) (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.WithoutCancel(ctx), RotationTimeout)
 }
 
 // ErrRefreshAccountUnavailable is the refusal from refreshAdmitsAccount.

@@ -10,6 +10,16 @@ made.
 Releases before v1.0.17 are described on GitHub, under
 [Releases](https://github.com/anahitasocial/anahita-services/releases).
 
+## Embryo
+
+### Fixed
+
+1. **Signed out after a renewal that was cut short:** a request renewing a
+   session that was cancelled half way (a client giving up, a proxy's
+   timeout) left the old refresh token spent and no new one, and the
+   retries were taken for a stolen copy, signing the person out of that
+   app on every device. Once begun, a renewal is finished.
+
 ## v1.2.8 Birth, 2026-11-15
 
 ### Added
