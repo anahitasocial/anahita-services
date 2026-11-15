@@ -46,6 +46,17 @@ and The IT Crowd, and no others (the user, 2026-11-08). She, he and they among
 them, and some with no pronouns. Their names and places only: no logos,
 insignia or lines quoted from the shows.
 
+## When something does not work
+
+Search the web for it early, as one of the first things to try, not the
+last: the error's own words, the software and its versions, the symptom.
+Somebody else has often met it already and found why (the user,
+2026-11-15: MySQL that never started on GitHub's runners was a known
+AppArmor bug in containerd, found by one search after six runs spent
+narrowing it down). Search with the error and the software's names, never
+with anything private: no domains, keys, addresses or people of ours. Then
+check what is found against the code and the logs before acting on it.
+
 ## Rules that have each been broken once
 
 1. **A schema change is three things in one commit:** a goose migration in
