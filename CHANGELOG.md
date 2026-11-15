@@ -19,6 +19,11 @@ Releases before v1.0.17 are described on GitHub, under
    timeout) left the old refresh token spent and no new one, and the
    retries were taken for a stolen copy, signing the person out of that
    app on every device. Once begun, a renewal is finished.
+2. **"New sign-in" emails for no sign-in:** a browser given new tokens
+   because its sign-in session was still alive was emailed as a sign-in
+   once half an hour had passed, or its address or browser had changed.
+   The email is sent after a sign-in with a password, a code or a passkey,
+   and only then.
 
 ## v1.2.8 Birth, 2026-11-15
 

@@ -207,11 +207,21 @@ cancelled half way would otherwise leave the old token spent and no new
 one, and the retries would end as a copy, signing the person out of that
 client everywhere.
 
+**The "New sign-in" email.** A person is emailed when they sign in: with a
+password, a code or a passkey. A browser whose sign-in session is still
+alive is given new tokens without being asked for anything, and is not a
+sign-in, so it is sent no email. Each sign-in leaves a mark in Redis for
+ten minutes (`auth:fresh_signin:<person>`), and the exchange of the code that
+follows sends the email only if the mark is there, and removes it. The same
+browser carrying on in a session it already had, its session row reused, is
+sent none either.
+
 ## Where the code is
 
 | What | Where |
 | --- | --- |
 | Staying signed in: renewing, rotation, copies of a refresh token | `auth-service/cmd/api/handlers/oauth_session.go` (`ReadValidate`, `refreshSessionTokens`, `awaitRenewal`), `auth-service/data/services/oauth_token.go` (`RefreshTokenPair`, `rotationContext`), table `oauth_refresh_tokens` (`rotated`) |
+| The "New sign-in" email | `auth-service/cmd/api/handlers/oauth_fresh_signin.go` (`markFreshSignIn`, `consumeFreshSignIn`), `oauth_token.go` (`recordAuthLogAfterIssuance`, `loginEmailDue`) |
 | Sealing what a session holds | `anahita-libs/crypt/encryption.go`, `anahita-libs/sessions/cookie.go` and `redis.go` (`Read`); setting `SECURE_COOKIE_KEY` |
 | Checking a token's expiry | `anahita-libs/middleware/oauth.go` (`authenticateOAuth`), `auth-service/data/services/jwt.go` (`ValidateAccessToken`) |
 | Signing in with a password, then two-factor | `auth-service/cmd/api/handlers/oauth_login.go` (`AddCredentials`, `AddTotp`) |

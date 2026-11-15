@@ -68,8 +68,8 @@ func (h *oauthHandler) indexIdPSession(userID int64, sessionID string) {
 // hits /oauth/authorize again; ReadAuthorize finds their person_session
 // cookie still valid, mints a fresh authorization code without
 // prompting, and they are back in with a new token pair — and
-// recordAuthLogAfterIssuance even suppresses the notification email,
-// because a recent auth log exists for that client. Without this, a
+// recordAuthLogAfterIssuance sends no notification email, because no
+// password, code or passkey was given. Without this, a
 // password reset locks an attacker out for roughly as long as it takes
 // their SPA to retry.
 //

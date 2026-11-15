@@ -1,12 +1,9 @@
 package handlers
 
 import (
-	"database/sql"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"auth/data/entities"
 	"auth/requests"
@@ -23,19 +20,6 @@ const (
 	OAuthGrantTypeRefreshToken      = "refresh_token"
 	OAuthGrantTypeClientCredentials = "client_credentials"
 )
-
-// loginEmailSuppressionWindow controls how recently a prior auth log
-// for the same (person, client) pair will suppress a new login
-// notification email. Tuned to comfortably exceed the access token
-// TTL (15m) so that the every-15-minute silent re-auth cycle via the
-// IdP's person_session cookie does not produce a notification on each
-// loop. A genuine new sign-in from a different browser/device after
-// this window will still notify; an attacker who manages to silently
-// re-auth within the window already has the IdP session cookie, so
-// suppressing the email there is not a meaningful regression — the
-// security event of interest is the original credential-backed
-// login, which is already covered.
-const loginEmailSuppressionWindow = 30 * time.Minute
 
 // AddToken handles POST /oauth/token
 func (h *oauthHandler) AddToken(c echo.Context) error {
@@ -221,17 +205,16 @@ func (h *oauthHandler) tokenClientCredentials(
 // updates the existing auth log's OAuthRefreshTokenID pointer rather
 // than creating a new row — and doesn't touch this code path.
 //
-// EMAIL SUPPRESSION FOR SILENT RE-AUTH:
+// THE EMAIL IS FOR A SIGN-IN, NOT FOR A CODE:
 // The auth_log row is created unconditionally — every session needs
-// a record. The email, however, is gated on whether a recent prior
-// auth_log exists for the same (person, client) pair. This filters
-// out the every-15-minute silent re-auth cycle: when the access
-// token expires, the SPA hits /oauth/authorize, the IdP recognizes
-// the person_session cookie, mints a new auth code without
-// prompting for credentials, and we land back here with no actual
-// credential event having occurred. The user already received the
-// email on their original sign-in; firing one every 15 minutes for
-// what is mechanically a token-rotation event is noise, not signal.
+// a record. The email is sent only when the person has just signed in
+// with a password, a code or a passkey (consumeFreshSignIn,
+// oauth_fresh_signin.go).
+// A browser whose IdP session is still alive is given a new code at
+// /oauth/authorize without being asked for anything, and lands here
+// with no sign-in having happened; an email then would announce one
+// that did not. A reused auth log row stays quiet too: it is the same
+// browser carrying on.
 //
 // The email send runs in a goroutine so a slow/failing mail server
 // can't delay the token response. Errors are logged but never
@@ -243,10 +226,9 @@ func (h *oauthHandler) recordAuthLogAfterIssuance(
 	clientID string,
 	refreshPlaintext string,
 ) {
-	// Check for a recent prior auth log BEFORE creating the new row,
-	// otherwise the lookup would always find at least the row we
-	// just inserted.
-	suppressEmail := h.hasRecentLoginForClient(viewer.ID, clientID)
+	// Consumed first, whatever follows, so that a mark never outlives
+	// the exchange it was set for.
+	freshSignIn := h.consumeFreshSignIn(viewer.ID)
 
 	refreshHash := h.OAuth.HashToken(refreshPlaintext)
 	rt, err := h.Repos.OAuthRefreshTokens.ReadByTokenHash(refreshHash)
@@ -268,33 +250,18 @@ func (h *oauthHandler) recordAuthLogAfterIssuance(
 		log.Println("auth log: add after token issuance failed:", err)
 		return
 	}
-	// Two independent reasons to stay quiet, and they are worth telling apart
-	// in the log. A reused row is not a sign-in at all; a new row inside the
-	// window IS a sign-in that is merely too soon after the last one. Reporting
-	// both as "silent re-auth" sends whoever is debugging a missing
-	// notification looking at the wrong mechanism.
-	suppressReason := ""
-	if suppressEmail {
-		suppressReason = fmt.Sprintf(
-			"another sign-in for this client within the last %s", loginEmailSuppressionWindow)
-	}
-
 	if reused {
-		// Same browser re-authenticating silently. The row moved to the
-		// new refresh token; nothing about this is a sign-in event, so
-		// the notification is suppressed regardless of the time window.
 		log.Println("auth log: reused auth log", authLog.ID, "for viewer", viewer.ID, "client", clientID)
-		suppressEmail = true
-		suppressReason = "silent re-auth reused an existing session row"
 	} else {
 		log.Println("auth log: recorded new auth log", authLog.ID, "for viewer", viewer.ID, "client", clientID)
 	}
+	sendEmail, suppressReason := loginEmailDue(freshSignIn, reused)
 
 	if err := authLogHandler.DeleteRedundantSessions(c, user); err != nil {
 		log.Println("auth log: cleanup of redundant sessions failed:", err)
 	}
 
-	if suppressEmail {
+	if !sendEmail {
 		log.Printf("auth log: suppressing login notification for viewer %d client %s — %s",
 			viewer.ID, clientID, suppressReason)
 		return
@@ -317,25 +284,18 @@ func (h *oauthHandler) recordAuthLogAfterIssuance(
 	}()
 }
 
-// hasRecentLoginForClient reports whether an auth_log row already
-// exists for this (person, client) pair within
-// loginEmailSuppressionWindow of now. Used to suppress redundant
-// login-notification emails on silent re-auth.
-//
-// sql.ErrNoRows is the expected case for a first-ever login from
-// this client and returns false (do send the email).
-//
-// Any other error is treated as "no recent login" (i.e. fail open —
-// send the email) because the cost of an extra email is lower than
-// the cost of suppressing a legitimate new-sign-in notification due
-// to a transient DB hiccup.
-func (h *oauthHandler) hasRecentLoginForClient(userID int64, clientID string) bool {
-	latest, err := h.Repos.AuthLogs.ReadLatestByCreatedByAndClient(userID, clientID)
-	if err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
-			log.Println("auth log: latest lookup for suppression check failed (failing open):", err)
-		}
-		return false
+// loginEmailDue is whether a code exchange sends the "New sign-in" email,
+// and why not when it does not. Two reasons to stay quiet, told apart in
+// the log so that whoever is looking for a missing notification looks at
+// the right one: no password, code or passkey was given (a browser whose IdP
+// session is alive was handed a new code), or the auth log row was reused
+// (the same browser carrying on, even after a sign-in).
+func loginEmailDue(freshSignIn, reused bool) (bool, string) {
+	if reused {
+		return false, "silent re-auth reused an existing session row"
 	}
-	return time.Since(latest.CreatedAt) < loginEmailSuppressionWindow
+	if !freshSignIn {
+		return false, "no sign-in with a password, a code or a passkey just now: a silent re-authorization"
+	}
+	return true, ""
 }

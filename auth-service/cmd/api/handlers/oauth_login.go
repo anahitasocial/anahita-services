@@ -373,6 +373,11 @@ func (h *oauthHandler) writeViewerSession(c echo.Context, user *entities.User) e
 
 	h.indexIdPSession(user.ID, sessionID)
 
+	// For the "New sign-in" email: the code exchange that follows sends
+	// it only after this, whichever way the person signed in
+	// (oauth_fresh_signin.go).
+	h.markFreshSignIn(user.ID)
+
 	h.touchLastVisit(user)
 
 	return nil

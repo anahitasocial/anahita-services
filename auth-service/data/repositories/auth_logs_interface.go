@@ -30,12 +30,6 @@ type AuthLogsInterface interface {
 	// browser instead of inserting a duplicate every 15 minutes.
 	ReadLatestByAgent(createdBy int64, clientID, device, os, name, ip string) (*entities.AuthLog, error)
 
-	// ReadLatestByCreatedByAndClient returns the most recent auth log
-	// for the given (created_by, client_id) pair, or sql.ErrNoRows if
-	// none exists. Used to suppress duplicate login-notification
-	// emails on silent re-auth via the IdP's person_session cookie.
-	ReadLatestByCreatedByAndClient(createdBy int64, clientID string) (*entities.AuthLog, error)
-
 	// Add inserts a new authLog into the database
 	Add(authLog *entities.AuthLog) (*entities.AuthLog, error)
 

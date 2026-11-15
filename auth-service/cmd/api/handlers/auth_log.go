@@ -148,12 +148,12 @@ func (h *authLogHandler) buildAndPersist(c echo.Context, refreshTokenID int64, c
 //
 // The second return value reports whether an existing row was reused.
 //
-// Why this exists: the authorization_code branch runs every time the
-// SPA's 15-minute access token expires and it bounces through
-// /oauth/authorize, because the person_session cookie mints a fresh
-// code without any credential event. Inserting unconditionally there
-// turns one browser into a new "session" every 15 minutes, and Trim
-// then evicts the user's genuinely distinct sessions within hours.
+// Why this exists: the authorization_code branch runs whenever a
+// browser goes back through /oauth/authorize with its IdP session
+// still alive, which mints a fresh code without any credential event.
+// Inserting unconditionally there turns one browser into a new
+// "session" each time, and Trim then evicts the person's genuinely
+// distinct sessions.
 //
 // A reused row keeps its original created_at: "signed in at 06:14" is
 // the useful fact, not the timestamp of the latest token rotation.
