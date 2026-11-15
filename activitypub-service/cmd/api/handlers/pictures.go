@@ -8,14 +8,13 @@ import (
 )
 
 // A post that arrives with pictures is kept as a photo post, its pictures
-// copied here. What its author marked as sensitive is kept without them:
-// there is nothing here yet that puts a picture behind a warning, and
-// showing it plainly is not this installation's to decide.
+// copied here. What its author marked as sensitive keeps them too, behind
+// its warning, as a post written here does (roadmap row 122).
 
-// picturesToKeep is the pictures of a post that are kept, or none: for a
-// post marked sensitive, or where there is nothing to keep pictures with.
+// picturesToKeep is the pictures of a post that are kept, or none where
+// there is nothing to keep pictures with.
 func (h *Handlers) picturesToKeep(note *ap.ReceivedNote) []federation.Picture {
-	if !h.keeper().CanKeepPictures() || note.Sensitive {
+	if !h.keeper().CanKeepPictures() {
 		return nil
 	}
 	var pictures []federation.Picture

@@ -485,6 +485,10 @@ func (r *nodesRepo) addRemote(ctx context.Context, node *entities.AnahitaNode) (
 		columns["owner_type"] = node.OwnerType
 		columns["created_by"] = nullableID(node.OwnerID)
 		columns["modified_by"] = nullableID(node.OwnerID)
+		// Its content warning, as its author's server says it (roadmap
+		// row 122): read for each network by the service that keeps it.
+		columns["warning"] = node.Warning
+		columns["warning_text"] = node.WarningText
 	}
 	// A reply is seen by whoever may see the root of its thread, and says
 	// nothing of its own about who may: as a reply written here.
@@ -536,6 +540,12 @@ func (r *nodesRepo) editRemote(ctx context.Context, id int64, node *entities.Ana
 	// can be changed there at any time (roadmap row 130).
 	if IsRemoteActorType(node.Type) {
 		columns["allow_follow_request"] = node.AllowFollowRequest
+	}
+	// A warning added or taken off there is followed here; one a moderator
+	// here gave it stays, whatever its author's server says.
+	if !IsRemoteActorType(node.Type) {
+		columns["warning"] = sq.Expr("IF(warning_by_moderator, warning, ?)", node.Warning)
+		columns["warning_text"] = sq.Expr("IF(warning_by_moderator, warning_text, ?)", node.WarningText)
 	}
 
 	query, args, err := sq.Update("nodes").SetMap(columns).

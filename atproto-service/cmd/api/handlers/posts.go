@@ -80,11 +80,10 @@ func withVideoLink(body string, post *bsky.Post, did, rkey string) string {
 func (h *Handlers) storePost(author *repositories.RemoteActor, rkey string, post *bsky.Post, parentID int64) (*entities.AnahitaNode, error) {
 	uri := bsky.PostURI(author.DID, rkey)
 
-	// What its author marked as not to be shown plainly is kept without
-	// its pictures: there is nothing here yet that puts a picture behind
-	// a warning.
+	// What its author marked as not to be shown plainly keeps its
+	// pictures, behind its warning (roadmap row 122).
 	var pictures []federation.Picture
-	if h.Keeper != nil && h.Keeper.CanKeepPictures() && !post.IsSensitive() {
+	if h.Keeper != nil && h.Keeper.CanKeepPictures() {
 		for _, each := range post.Pictures() {
 			if len(pictures) == federation.PostPicturesMax() {
 				break
@@ -129,6 +128,7 @@ func (h *Handlers) storePost(author *repositories.RemoteActor, rkey string, post
 	node.ParentID = parentID
 	node.Body = body
 	node.Language = post.Language()
+	node.Warning = post.Warning()
 	node.CreatedAt = post.Created(h.now())
 	// The card of the link it carries, or of the first one in its words,
 	// read by this installation itself.

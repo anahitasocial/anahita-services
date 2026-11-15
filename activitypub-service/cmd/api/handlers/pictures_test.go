@@ -105,14 +105,24 @@ func TestAPostWithAVideoLeadsToIt(t *testing.T) {
 }
 
 func TestPicturesThatAreNotKept(t *testing.T) {
-	// Marked as not for everybody: its words are kept, and no picture.
+	// Marked as not for everybody: kept with its pictures, behind its
+	// warning, as a post written here is (roadmap row 122).
 	w, _ := settledWorld()
 	pictures := &fakePictures{content: aPicture(t)}
 	w.h.Pictures, w.h.Files, w.h.PhotoFiles = pictures, &fakeFiles{stored: map[string]int{}}, &fakePhotoFiles{kept: map[int64][]*entities.PhotoFile{}}
 
 	w.fromAlice(received(alicesNote, "<p>Careful</p>", withPictures(`,"sensitive":true`)))
-	if kept := w.keptAt(alicesNote); kept == nil || kept.Type != constants.NodeMediumNoteEntityType || len(pictures.asked) != 0 {
+	kept := w.keptAt(alicesNote)
+	if kept == nil || kept.Type != constants.NodeMediumPhotoEntityType || len(pictures.asked) == 0 ||
+		kept.Warning != entities.WarningOther || kept.WarningText != entities.WarningSensitive {
 		t.Errorf("a sensitive post: %+v, asked %v", kept, pictures.asked)
+	}
+
+	// Its author's words before it are its warning.
+	warned := "https://mastodon.example/users/alice/statuses/7"
+	w.fromAlice(received(warned, "<p>The ending</p>", `,"sensitive":true,"summary":"Spoilers"`))
+	if kept := w.keptAt(warned); kept == nil || kept.Warning != entities.WarningOther || kept.WarningText != "Spoilers" {
+		t.Errorf("a post with a warning in words: %+v", kept)
 	}
 
 	// Pictures and no words: still a post.

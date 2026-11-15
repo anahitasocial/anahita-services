@@ -97,3 +97,54 @@ func WarningSaid(kind, text string) string {
 	}
 	return warningWords[kind]
 }
+
+// Warnings from elsewhere (docs/plans/content-warnings.md, Federation, In).
+
+// WarningSensitive is the words of a post from the fediverse marked
+// sensitive with none of its own: what Mastodon shows on it.
+const WarningSensitive = "Sensitive"
+
+// labelWarnings is Bluesky's self-labels as kinds here, in the order a post
+// with several takes the first: the strongest first. gore is an older name
+// of graphic-media.
+var labelWarnings = []struct{ label, kind string }{
+	{"porn", WarningAdult},
+	{"graphic-media", WarningGraphic},
+	{"gore", WarningGraphic},
+	{"sexual", WarningSuggestive},
+	{"nudity", WarningNudity},
+}
+
+// WarningFromLabels is the kind a post from Bluesky is given by its
+// author's self-labels, or "" for none of the four.
+func WarningFromLabels(labels []string) string {
+	has := map[string]bool{}
+	for _, label := range labels {
+		has[label] = true
+	}
+	for _, each := range labelWarnings {
+		if has[each.label] {
+			return each.kind
+		}
+	}
+	return ""
+}
+
+// WarningFromFediverse is the warning a post from the fediverse is given:
+// its summary, the words its author put before it, as an Other in those
+// words, cut to WarningTextMax characters; marked sensitive with no words,
+// an Other that says Sensitive; neither, none. Only a Note's summary is a
+// warning: an Article's is its opening.
+func WarningFromFediverse(sensitive bool, summary string) (string, string) {
+	words := strings.Join(strings.Fields(summary), " ")
+	if words != "" {
+		if runes := []rune(words); len(runes) > WarningTextMax {
+			words = strings.TrimSpace(string(runes[:WarningTextMax-1])) + "…"
+		}
+		return WarningOther, words
+	}
+	if sensitive {
+		return WarningOther, WarningSensitive
+	}
+	return "", ""
+}

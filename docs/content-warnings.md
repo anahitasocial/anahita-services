@@ -140,8 +140,20 @@ A warning given or changed after a post was sent goes to the fediverse as
 an `Update`. Bluesky has no changing a post: there, a post keeps the
 warning it was sent with.
 
-Warnings from other servers are not read yet: a post from elsewhere marked
-sensitive is still kept without its pictures ([Federation](federation.md)).
+**From other servers** (built on 2026-11-15), a post comes with its
+warning, and its pictures, GIF, video or sound are kept behind it, as a
+post written here is:
+
+| Network | What it sends | Kept here as |
+| --- | --- | --- |
+| The fediverse | A Note's `summary`, the words its author put before it | Other, in those words, cut to 100 characters |
+| The fediverse | `sensitive: true` with no `summary` | Other, "Sensitive" |
+| The fediverse | An Article's `summary` | Nothing: an article's summary is its opening |
+| Bluesky | `porn`, `graphic-media` (or the older `gore`), `sexual`, `nudity` | Adult, Graphic, Suggestive, Nudity; with several, the first in that order |
+
+A warning added or taken off by an edit there is followed here, unless a
+moderator here gave the post its warning, which stays. A post kept before
+this was built keeps what it was kept with until it is next changed there.
 
 ## Where the code is
 
@@ -163,12 +175,9 @@ sensitive is still kept without its pictures ([Federation](federation.md)).
 
 The rest of the plan, each a phase of it:
 
-1. **Each reader's choices** of Show, Warn or Hide for each kind, in a
-   Content tab of their settings.
-2. **Warnings from elsewhere:** `sensitive` and `summary` read from the
-   fediverse, self-labels from Bluesky, and their pictures kept and
-   blurred, not left out as they are now ([Federation](federation.md)).
-3. **The administrators' warning:** a report reason, the case's action, the
-   post's menu, and a notification to the author.
-4. **Made with AI**, a sixth kind, chosen for an author when the file says
-   so.
+- **Each reader's choices** of Show, Warn or Hide for each kind, in a
+  Content tab of their settings.
+- **The administrators' warning:** a report reason, the case's action, the
+  post's menu, and a notification to the author.
+- **Made with AI**, a sixth kind, chosen for an author when the file says
+  so.

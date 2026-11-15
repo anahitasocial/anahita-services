@@ -1,6 +1,8 @@
 package bsky
 
 import (
+	"anahita-libs/data/entities"
+
 	"encoding/json"
 	"html"
 	"net/url"
@@ -115,24 +117,24 @@ func (p *Post) Answers() string {
 	return reply.Parent.URI
 }
 
-// What an author says of their own post that makes its pictures ones not
-// to be shown plainly.
-var sensitiveLabels = map[string]bool{
-	"porn": true, "sexual": true, "nudity": true, "graphic-media": true, "gore": true,
+// Warning is the content warning a post from Bluesky is kept with
+// (roadmap row 122): the kind of its author's strongest self-label, or ""
+// for none of the four.
+func (p *Post) Warning() string {
+	if p.Labels == nil {
+		return ""
+	}
+	labels := make([]string, 0, len(p.Labels.Values))
+	for _, label := range p.Labels.Values {
+		labels = append(labels, label.Val)
+	}
+	return entities.WarningFromLabels(labels)
 }
 
 // IsSensitive says whether its author marked a post as one to be warned
 // of.
 func (p *Post) IsSensitive() bool {
-	if p.Labels == nil {
-		return false
-	}
-	for _, label := range p.Labels.Values {
-		if sensitiveLabels[label.Val] {
-			return true
-		}
-	}
-	return false
+	return p.Warning() != ""
 }
 
 // Language is the first language its author said a post is in, or "".

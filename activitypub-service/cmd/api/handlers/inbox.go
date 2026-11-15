@@ -417,10 +417,6 @@ func (h *Handlers) store(authorID int64, note *ap.ReceivedNote, parentID int64) 
 	// A video or a sound: its picture is the post's when it has none of its
 	// own, and the file is copied here when first played (roadmap row 120).
 	media := note.Media()
-	if media != nil && note.Sensitive {
-		// Kept with none of its media until content warnings (row 122).
-		media = nil
-	}
 	if media != nil && len(pictures) == 0 && media.Poster() != "" && h.keeper().CanKeepPictures() {
 		pictures = []federation.Picture{{URL: media.Poster(), Alt: media.Name}}
 	}
@@ -445,6 +441,8 @@ func (h *Handlers) store(authorID int64, note *ap.ReceivedNote, parentID int64) 
 		node.Body = federation.WithVideoLink(words, note.Page(), hostOf(note.ID))
 	}
 	node.Language = note.Language()
+	// Its content warning, with its pictures and its media kept behind it.
+	node.Warning, node.WarningText = note.Warning()
 	if published, err := time.Parse(time.RFC3339, note.Published); err == nil {
 		node.CreatedAt = published
 	}

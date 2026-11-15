@@ -292,9 +292,10 @@ func (k *Keeper) DeleteFiles(paths []string) {
 // and nothing else and written out again at this installation's own sizes,
 // as an upload is, so nothing a file carries besides its picture is kept.
 //
-// What its author marked as sensitive is kept without its pictures: there
-// is nothing here yet that puts a picture behind a warning, and showing it
-// plainly is not this installation's to decide.
+// What its author marked as sensitive keeps its pictures, behind the
+// warning it is kept with (roadmap row 122): each network's service reads
+// the warning (entities.WarningFromFediverse, WarningFromLabels), and the
+// web app draws the pictures under it, as for a post written here.
 
 const (
 	// The limits an uploaded photo is held to (photo-service/constants).

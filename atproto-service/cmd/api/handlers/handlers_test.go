@@ -666,14 +666,15 @@ func TestAPostWithPicturesIsAPhotoPost(t *testing.T) {
 		t.Errorf("a post of pictures alone was not kept: %v", err)
 	}
 
-	// What its author marked as not to be shown plainly is kept for its
-	// words, without its pictures.
+	// What its author marked as not to be shown plainly keeps its
+	// pictures, behind the warning of its label (roadmap row 122).
 	w.pictures.asked = nil
 	marked := `{"text":"Warned of",` + pictures + `,"labels":{"values":[{"val":"graphic-media"}]}}`
 	if err := w.h.keepPost(alice, "3l3marked", aPost(t, marked)); err != nil {
 		t.Fatal(err)
 	}
-	if kept := w.keptAt(bsky.PostURI(aliceDID, "3l3marked")); kept == nil || kept.Type != constants.NodeMediumNoteEntityType || len(w.pictures.asked) != 0 {
+	kept = w.keptAt(bsky.PostURI(aliceDID, "3l3marked"))
+	if kept == nil || kept.Type != constants.NodeMediumPhotoEntityType || len(w.pictures.asked) == 0 || kept.Warning != entities.WarningGraphic {
 		t.Errorf("kept as %+v, pictures asked %v", kept, w.pictures.asked)
 	}
 

@@ -203,7 +203,10 @@ with a signature that checks out, which is roadmap row 131
    a link pasted elsewhere showing nothing of the post.
 2. **The reader's choices:** the Content tab and its preferences.
 3. **Federation** in and out, pictures from elsewhere kept and blurred.
-   **Out built on 2026-11-09;** in is left.
+   **Out built on 2026-11-09; in on 2026-11-15:** a Note's `summary` or
+   `sensitive` and Bluesky's self-labels read (`WarningFromFediverse`,
+   `WarningFromLabels`), the pictures, video and sound kept behind them,
+   an edit's warning followed unless a moderator gave it.
 4. **Moderators:** the report reason, the case's action, the post's menu,
    the notification.
 5. **Made with AI:** the sixth kind, the signs read from a file on upload,

@@ -87,7 +87,7 @@ is gathered at the end, [for planning](#not-built).
 | More than four attachments per post | yes | Up to 20, set by the operator |
 | Image descriptions (alt text) | yes | |
 | Image focal point | no | |
-| Sensitive media | partly | Pictures blurred behind a post's warning, here and as sent to both networks; from other servers they are still left out ([Content warnings](content-warnings.md)) |
+| Sensitive media | yes | Pictures blurred behind a post's warning, here, as sent to both networks, and as received from them ([Content warnings](content-warnings.md)); each reader's own choices are planned |
 | Removes location data from photos | yes | Every image is written out again without its metadata |
 | Albums or collections | planned | [Collections](plans/collections.md) |
 | Photo filters | no | |

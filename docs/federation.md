@@ -763,8 +763,9 @@ not waited for, so a post is there a moment before its pictures are.
 Told of again, its pictures are not fetched again; taken away where it was
 written, what is stored of it is removed.
 
-- **A post its author marked as sensitive is kept without its pictures.**
-  Nothing here puts a picture behind a warning yet.
+- **A post its author marked as sensitive keeps its pictures,** behind
+  the warning it is kept with: a Note's `summary` in its author's words,
+  or "Sensitive" ([Content warnings](content-warnings.md#on-the-fediverse-and-bluesky)).
 - **What a post was first kept as, it stays:** a note that later gains a
   picture is still a note.
 - **Pictures, and a video when it is played.** A video's preview (`icon`)

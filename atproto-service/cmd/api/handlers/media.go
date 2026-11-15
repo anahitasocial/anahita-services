@@ -93,13 +93,13 @@ func (h *Handlers) restorePictures(ctx context.Context, post *entities.AnahitaNo
 	}
 
 	var pictures []federation.Picture
-	if !record.IsSensitive() {
-		for _, each := range record.Pictures() {
-			if len(pictures) == federation.PostPicturesMax() {
-				break
-			}
-			pictures = append(pictures, federation.Picture{URL: each.URL(h.CDN, did), Alt: each.Alt})
+	// A post marked sensitive keeps its pictures too, behind its warning
+	// (roadmap row 122).
+	for _, each := range record.Pictures() {
+		if len(pictures) == federation.PostPicturesMax() {
+			break
 		}
+		pictures = append(pictures, federation.Picture{URL: each.URL(h.CDN, did), Alt: each.Alt})
 	}
 	restored, err := h.Keeper.RestorePictures(post, pictures)
 	if err != nil {

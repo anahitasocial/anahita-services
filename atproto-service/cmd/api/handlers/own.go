@@ -102,7 +102,7 @@ func (h *Handlers) ownPosted(account *repositories.Account, rkey string, post *b
 	}
 
 	var pictures []federation.Picture
-	if h.Keeper != nil && h.Keeper.CanKeepPictures() && !post.IsSensitive() {
+	if h.Keeper != nil && h.Keeper.CanKeepPictures() {
 		for _, each := range post.Pictures() {
 			if len(pictures) == federation.PostPicturesMax() {
 				break
@@ -137,6 +137,7 @@ func (h *Handlers) ownPosted(account *repositories.Account, rkey string, post *b
 	}
 	node.Body = body
 	node.Language = post.Language()
+	node.Warning = post.Warning()
 	node.OwnerID, node.OwnerType, node.Owner = person.ID, person.Type, person
 	node.CreatedBy, node.ModifiedBy = person.ID, person.ID
 	node.Enabled = true

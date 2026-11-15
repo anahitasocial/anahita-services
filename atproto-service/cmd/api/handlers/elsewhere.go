@@ -57,12 +57,11 @@ func CachedPDS(find PDSFinder) PDSFinder {
 	}
 }
 
-// videoElsewhere is where a post's video is, or nil: none, marked as not
-// to be shown plainly (kept with none of its media until content warnings,
-// row 122), or its author's server not found.
+// videoElsewhere is where a post's video is, or nil: none, or its author's
+// server not found. One marked sensitive is kept, behind its warning.
 func (h *Handlers) videoElsewhere(post *bsky.Post, did, rkey string) *videos.Elsewhere {
 	cid := post.VideoCID()
-	if cid == "" || post.IsSensitive() || h.PDS == nil {
+	if cid == "" || h.PDS == nil {
 		return nil
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

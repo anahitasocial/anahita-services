@@ -384,6 +384,20 @@ type ReceivedNote struct {
 	Attachment json.RawMessage `json:"attachment"`
 	// Marked by its author as something not everybody wants to see.
 	Sensitive bool `json:"sensitive"`
+	// On a Note, the words its author put before it, which Mastodon shows
+	// to be clicked past: its content warning. On an Article, its opening.
+	Summary string `json:"summary"`
+}
+
+// Warning is the content warning a post from elsewhere is kept with
+// (roadmap row 122): its summary, on a Note, as an Other in those words;
+// marked sensitive with none, Sensitive; neither, none.
+func (n *ReceivedNote) Warning() (string, string) {
+	summary := ""
+	if n.Type != "Article" {
+		summary = n.Summary
+	}
+	return entities.WarningFromFediverse(n.Sensitive, summary)
 }
 
 // Attachment is something that came with a post.
