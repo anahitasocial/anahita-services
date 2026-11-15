@@ -12,6 +12,13 @@ Releases before v1.0.17 are described on GitHub, under
 
 ## Embryo
 
+### Added
+
+1. **Removing a follower who is on another server tells their server**
+   (roadmap row 150), with a `Reject` of their follow, so that it stops
+   delivering one's posts to them. It is not a block, and they may follow
+   again.
+
 ### Fixed
 
 1. **Search finds a photo post by the alt text of any of its pictures,**

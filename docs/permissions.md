@@ -395,7 +395,7 @@ socialgraph-service asks them.
 | --- | --- |
 | Follow a profile | Yourself, a profile you can see, and that has not blocked you; not somebody elsewhere who approves their followers, who is asked |
 | Unfollow | Always yours to do, whether or not you can still see the profile |
-| Remove a follower | Whoever looks after the profile: the person, a group's administrators, a site administrator |
+| Remove a follower | Whoever looks after the profile: the person, a group's administrators, a site administrator. Not a block: the follower is not told, and may follow again ([Federation](federation.md#being-followed-from-another-server) for a follower elsewhere) |
 | Ask to follow | Yourself, of a profile that lets people ask, or somebody elsewhere who approves their followers, that has not blocked you, when you do not follow it already |
 | Accept a request | Whoever looks after the profile that was asked |
 | Ignore a request, or take it back | Whoever looks after the profile, or whoever asked |

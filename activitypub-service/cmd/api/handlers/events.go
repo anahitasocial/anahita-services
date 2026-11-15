@@ -273,8 +273,11 @@ func (h *Handlers) localUnasked(ctx context.Context, sourceID, targetID int64) e
 // elsewhere: the other server is told, by quoting the follow back.
 func (h *Handlers) localUnfollowed(ctx context.Context, sourceID, targetID int64) error {
 	source, target, kept, err := h.across(sourceID, targetID)
-	if err != nil || source == nil {
+	if err != nil {
 		return err
+	}
+	if source == nil {
+		return h.followerRemoved(ctx, sourceID, targetID)
 	}
 
 	follow, err := h.Follows.Read(source.ID, target.ID, repositories.FollowOut)
@@ -290,6 +293,38 @@ func (h *Handlers) localUnfollowed(ctx context.Context, sourceID, targetID int64
 	actor := h.addresses.Actor(source.UUID)
 	return h.send(ctx, source.ID, kept.Inbox,
 		ap.NewUndoFollow(h.addresses.Activity(newUUID()), actor, kept.URI, follow.ActivityID), "undo:"+follow.ActivityID)
+}
+
+// followerRemoved is somebody here having removed a follower who is
+// elsewhere (roadmap row 150): their server is sent a Reject of the follow
+// it asked for, which Mastodon takes as the follow ended, so that it stops
+// delivering the person's posts to them. They are not blocked, and may
+// follow again. A follow they took back themselves is forgotten by the
+// inbox before its edge goes, so nothing is found here and nothing is sent.
+func (h *Handlers) followerRemoved(ctx context.Context, sourceID, targetID int64) error {
+	follower, err := h.Nodes.Read(sourceID)
+	if err != nil || follower == nil || follower.Type != constants.NodeActorActivityPubPersonEntityType {
+		return err
+	}
+	person, err := h.Nodes.Read(targetID)
+	if err != nil || person == nil || person.IsRemote() {
+		return err
+	}
+	follow, err := h.Follows.Read(person.ID, follower.ID, repositories.FollowIn)
+	if err != nil || follow == nil {
+		return err
+	}
+	kept, err := h.Actors.ReadByNode(follower.ID)
+	if err != nil || kept == nil {
+		return err
+	}
+	if err := h.Follows.Delete(person.ID, follower.ID, repositories.FollowIn); err != nil {
+		return err
+	}
+
+	actor := h.addresses.Actor(person.UUID)
+	return h.send(ctx, person.ID, kept.Inbox,
+		ap.NewReject(h.addresses.Activity(newUUID()), actor, kept.URI, follow.ActivityID), "reject:"+follow.ActivityID)
 }
 
 // blockID is the name of the Block somebody here sends somebody elsewhere:

@@ -365,3 +365,32 @@ func TestTheRecentPostsOfSomebodyNewlyFollowed(t *testing.T) {
 		}
 	}
 }
+
+// THE RULE THIS GUARDS (roadmap row 150): somebody here who removes a
+// follower who is elsewhere tells that follower's server, with a Reject of
+// the follow it asked for, so that it stops delivering to them; and a
+// follower who unfollows by themselves is not answered with one.
+func TestRemovingAFollowerElsewhereRejectsTheirFollow(t *testing.T) {
+	w, alice := settledWorld()
+
+	_ = w.h.HandleEvent(&event.EventPayload{Name: "edge.follow.socialgraph.deleted.v1", ObjectID: alice.NodeID, TargetID: anaID})
+
+	if len(w.queue.sent) != 1 {
+		t.Fatalf("queued %d, want one Reject", len(w.queue.sent))
+	}
+	sent := w.queue.sent[0]
+	object, _ := sent.payload["object"].(map[string]any)
+	if sent.payload["type"] != "Reject" || sent.payload["actor"] != anaActor || sent.actorID != anaID || object["id"] != "in-1" {
+		t.Errorf("sent %+v", sent)
+	}
+	if follow, _ := w.follows.Read(anaID, alice.NodeID, repositories.FollowIn); follow != nil {
+		t.Errorf("the follow in is still kept: %+v", follow)
+	}
+
+	// Heard again, as when the follower took it back themselves and the
+	// inbox forgot it first: nothing more is sent.
+	_ = w.h.HandleEvent(&event.EventPayload{Name: "edge.follow.socialgraph.deleted.v1", ObjectID: alice.NodeID, TargetID: anaID})
+	if len(w.queue.sent) != 1 {
+		t.Errorf("queued %d after the follow was forgotten, want still one", len(w.queue.sent))
+	}
+}

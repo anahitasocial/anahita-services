@@ -484,6 +484,14 @@ profile that is not open to everybody, and such a profile does not
 federate. So a person's description always says a follow does not wait.
 
 Taking a follow back (`Undo` of the `Follow`) removes it, or the request.
+
+**Removing a follower who is elsewhere** (roadmap row 150) sends their
+server a `Reject` of the `Follow` it asked for, which Mastodon takes as the
+follow ended: it stops delivering the person's posts to them. It is not a
+block, and they are not told; they may follow again. A follow they took
+back themselves is forgotten before its edge goes, so it is not answered
+with a `Reject`. A follower on Bluesky is removed here alone: their follow
+is a record in their own repository, which nothing here can take away.
 Only whoever followed can take their own follow back.
 
 What the other server calls each follow is kept in `activitypub_follows`,

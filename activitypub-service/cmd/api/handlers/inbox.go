@@ -689,6 +689,13 @@ func (h *Handlers) unfollowed(from *remote.Actor, follow *ap.Activity) error {
 	viewer := entities.NewViewer()
 	viewer.ID = follower.ID
 
+	// What was kept of the follow goes first: the edge's going is heard on
+	// the bus, and with nothing kept it is not taken for the person here
+	// removing their follower, who would send a Reject (followerRemoved).
+	if err := h.Follows.Delete(person.ID, follower.ID, repositories.FollowIn); err != nil {
+		return err
+	}
+
 	// The follow, and the request to, whichever there is.
 	for _, request := range []bool{false, true} {
 		remove := services.NewSocialgraphFollowRequest().Delete
@@ -698,7 +705,7 @@ func (h *Handlers) unfollowed(from *remote.Actor, follow *ap.Activity) error {
 		}
 	}
 
-	return h.Follows.Delete(person.ID, follower.ID, repositories.FollowIn)
+	return nil
 }
 
 // known is the node kept for somebody elsewhere, made now if this is the
