@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -15,7 +14,6 @@ import (
 
 	an_constants "anahita-libs/constants"
 	"anahita-libs/data/entities"
-	"anahita-libs/data/services"
 	"anahita-libs/domains"
 	an_handlers "anahita-libs/handlers"
 	"anahita-libs/ratelimit"
@@ -23,10 +21,11 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// Connecting a channel: "Connect your website", never "create". Three
-// calls: the site's address, to find its feed and be given a token; a check
-// that the token is where it should be; and the channel made, with a name and
-// a handle. See docs/plans/done/channel.md.
+// Connecting a channel's feed (roadmap row 147, phase 4): the channel is
+// made first, as a group is, and its admins connect a website's feed to it
+// in its settings. Three calls: the site's address, to find its feed and be
+// given a token; a check that the token is where it should be; and the feed
+// connected to the channel (channel_feed.go). See docs/plans/channels.md.
 type connectHandler struct {
 	*Env
 }
@@ -38,9 +37,10 @@ const (
 	refusedUnreadable  = "unreadable"
 	refusedFeedOffSite = "feed_not_on_domain"
 	refusedFeedTaken   = "feed_taken"
-	refusedHandleTaken = "handle_taken"
 	refusedNotProved   = "not_proved"
 	refusedPrivateFeed = "private_feed"
+	// The channel reads a feed already: one a channel.
+	refusedHasFeed = "has_feed"
 )
 
 // Finding a feed fetches somebody else's site: a few times an hour each.
@@ -57,20 +57,6 @@ type ConnectStartRequest struct {
 type ConnectIDRequest struct {
 	// The connection's id, as starting it answered.
 	ID int64 `param:"id" validate:"required,min=1"`
-}
-
-// ConnectMakeRequest is the channel, once the domain is proved.
-type ConnectMakeRequest struct {
-	// The connection's id.
-	ID int64 `param:"id" validate:"required,min=1"`
-	// The feed, as starting the connection found it.
-	FeedURL string `json:"feed_url" validate:"required,max=2000"`
-	// Its name, shown as a profile's is.
-	Name string `json:"name" validate:"required,max=64"`
-	// Its handle: `@example`. Letters, digits, `-` and `_`.
-	Alias string `json:"alias" validate:"required,username,min=3,max=30"`
-	// What it is, shown in its About card.
-	Body string `json:"body" validate:"omitempty,max=500"`
 }
 
 // Connection is a channel being connected: its feed, and the token with
@@ -92,10 +78,6 @@ type Connection struct {
 	RecordName string `json:"record_name"`
 	// Or a file at this address, holding the token.
 	FileURL string `json:"file_url"`
-	// A name and a handle to begin with: the feed's title, and the domain's
-	// first word.
-	SuggestedName  string `json:"suggested_name"`
-	SuggestedAlias string `json:"suggested_alias"`
 }
 
 // Checked says whether the token was found.
@@ -103,12 +85,6 @@ type Checked struct {
 	Proved bool `json:"proved"`
 	// `dns` or `file`: where it was found.
 	Method string `json:"method,omitempty"`
-}
-
-// Made is the channel as it was made: where to go to see it.
-type Made struct {
-	ID    int64  `json:"id"`
-	Alias string `json:"alias"`
 }
 
 type refusal struct {
@@ -190,10 +166,6 @@ func (h *connectHandler) Start(c echo.Context) error {
 	if siteURL == "" || !site.Covers(siteURL) {
 		siteURL = "https://" + site.Host + "/"
 	}
-	name := found.Title
-	if name == "" {
-		name = site.Domain
-	}
 
 	return c.JSON(http.StatusCreated, Connection{
 		ID:              id,
@@ -206,8 +178,6 @@ func (h *connectHandler) Start(c echo.Context) error {
 		Token:           token,
 		RecordName:      site.RecordName(),
 		FileURL:         site.FileURL(),
-		SuggestedName:   clipRunes(name, 64),
-		SuggestedAlias:  SuggestedAlias(site.Domain),
 	})
 }
 
@@ -246,124 +216,6 @@ func (h *connectHandler) Check(c echo.Context) error {
 	return c.JSON(http.StatusOK, Checked{Proved: true, Method: method})
 }
 
-// Make makes the channel, once its domain is proved: whoever proved it is its
-// first administrator and its first follower, and what the feed holds now
-// is marked seen, not posted.
-//
-// POST /channels/_connect/:id
-func (h *connectHandler) Make(c echo.Context) error {
-	viewer := getViewer(c)
-	// Not where the instance does not offer channels (instance.json,
-	// roadmap row 139).
-	if !an_handlers.ProfileOffered(h.Srv.GraphGRPC, "channel") {
-		return an_handlers.RefuseOff(c, "channel")
-	}
-	if status := h.mayConnect(viewer); status != 0 {
-		return c.NoContent(status)
-	}
-
-	req := &ConnectMakeRequest{}
-	if err := c.Bind(req); err != nil {
-		return c.NoContent(http.StatusBadRequest)
-	}
-	req.Name = strings.TrimSpace(req.Name)
-	req.Alias = strings.TrimSpace(req.Alias)
-	if err := c.Validate(req); err != nil {
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	ctx := c.Request().Context()
-	domain, status := h.connectionOf(c, req.ID, viewer)
-	if status != 0 {
-		return c.NoContent(status)
-	}
-	if !domain.Proved() {
-		return c.JSON(http.StatusConflict, refusal{refusedNotProved})
-	}
-
-	// The feed is read again: what was sent is only an address, and what
-	// it holds now is what is marked seen.
-	site := domains.Site{Host: domain.Host, Domain: domain.Domain}
-	if !site.Covers(req.FeedURL) {
-		return c.JSON(http.StatusBadRequest, refusal{refusedFeedOffSite})
-	}
-	if feeds.IsPrivate(req.FeedURL) {
-		return c.JSON(http.StatusBadRequest, refusal{refusedPrivateFeed})
-	}
-	read, err := h.Feeds.Read(ctx, req.FeedURL, "", "")
-	switch {
-	case errors.Is(err, feeds.ErrPrivate):
-		return c.JSON(http.StatusBadRequest, refusal{refusedPrivateFeed})
-	case errors.Is(err, feeds.ErrNoFeed):
-		return c.JSON(http.StatusBadRequest, refusal{refusedNoFeed})
-	case err != nil:
-		return c.JSON(http.StatusBadRequest, refusal{refusedUnreadable})
-	}
-	if taken, err := h.Srv.Channels.FeedTaken(ctx, req.FeedURL); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
-	} else if taken {
-		return c.JSON(http.StatusConflict, refusal{refusedFeedTaken})
-	}
-
-	channel := entities.NewAnahitaNode()
-	channel.Type = an_constants.NodeActorChannelEntityType
-	channel.Service = an_constants.ActorService
-	channel.Name = req.Name
-	channel.Alias = req.Alias
-	channel.Body = req.Body
-	channel.WebsiteURL = "https://" + domain.Host + "/"
-	channel.Access = an_constants.AnahitaAccessPublic
-	channel.Enabled = true
-	channel.CreatedBy = viewer.ID
-	channel.ModifiedBy = viewer.ID
-
-	channel, err = h.Srv.ActorsGRPC.Add(channel, viewer)
-	if isDuplicateHandle(err) {
-		return c.JSON(http.StatusConflict, refusal{refusedHandleTaken})
-	}
-	if err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-
-	if status := h.lookAfter(channel, viewer); status != 0 {
-		return c.NoContent(status)
-	}
-
-	err = h.Srv.Channels.Add(ctx, &repositories.Channel{
-		NodeID:   channel.ID,
-		FeedURL:  req.FeedURL,
-		SiteURL:  channel.WebsiteURL,
-		DomainID: domain.ID,
-	})
-	if errors.Is(err, repositories.ErrFeedTaken) {
-		// Connected by somebody else a moment ago. The profile made here
-		// stays, with nothing to read, for its administrator to delete.
-		return c.JSON(http.StatusConflict, refusal{refusedFeedTaken})
-	}
-	if err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-
-	// Its newest few are posted, so that a new channel does not open empty;
-	// the rest are marked seen, so that its first followers are not sent
-	// the site's whole past (the user, 2026-10-16).
-	waiting, seen := firstPosts(read.Items)
-	if err := h.Srv.Items.AddWaiting(ctx, channel.ID, waiting); err != nil {
-		log.Println(err)
-	}
-	if err := h.Srv.Items.MarkSeen(ctx, channel.ID, seen); err != nil {
-		log.Println(err)
-	}
-	if err := h.Srv.Domains.ForProfile(ctx, domain.ID, channel.ID); err != nil {
-		log.Println(err)
-	}
-
-	return c.JSON(http.StatusCreated, Made{ID: channel.ID, Alias: channel.Alias})
-}
-
 // FirstPosts is how many of a feed's items a new channel posts: its newest.
 const FirstPosts = 10
 
@@ -381,30 +233,6 @@ func firstPosts(items []feeds.Item) (waiting, seen []repositories.ItemSeenAs) {
 		}
 	}
 	return waiting, seen
-}
-
-// lookAfter makes the viewer the channel's first administrator and its first
-// follower, as a group's maker is.
-func (h *connectHandler) lookAfter(channel *entities.AnahitaNode, viewer *entities.Viewer) int {
-	admin, err := h.Srv.ActorsGRPC.ReadOfType(viewer.ID, an_constants.NodeActorPersonEntityType, viewer)
-	if err != nil {
-		log.Println(err)
-		return http.StatusInternalServerError
-	}
-	if _, err := h.Srv.ActorAdminsGRPC.Add(channel, admin, viewer); err != nil {
-		log.Println(err)
-		return http.StatusInternalServerError
-	}
-
-	follow := services.NewSocialgraphFollowRequest().Add
-	follow.Source = admin
-	follow.Target = channel
-	follow.Viewer = viewer
-	if err := h.Srv.SocialgraphFollowGRPC.Add(follow); err != nil {
-		log.Println(err)
-		return http.StatusInternalServerError
-	}
-	return 0
 }
 
 // mayConnect is whether the viewer may connect a channel at all: signed in,
@@ -434,40 +262,4 @@ func (h *connectHandler) connectionOf(c echo.Context, id int64, viewer *entities
 		return nil, http.StatusNotFound
 	}
 	return domain, 0
-}
-
-// isDuplicateHandle says the graph refused a profile because its handle is
-// taken. gRPC flattens the driver's error to a string, so this matches the
-// unique index on handles by name, as auth-service's signup does.
-func isDuplicateHandle(err error) bool {
-	if err == nil {
-		return false
-	}
-	msg := strings.ToLower(err.Error())
-	return strings.Contains(msg, "uq_unique_alias") || strings.Contains(msg, "duplicate entry")
-}
-
-var notHandle = regexp.MustCompile(`[^a-z0-9_-]+`)
-
-// SuggestedAlias is a handle to begin with: the domain's first part, as a
-// handle may be written (`@example` for example.com), or the whole domain
-// when that part is shorter than a handle may be (`@ab-org` for ab.org).
-func SuggestedAlias(domain string) string {
-	first := strings.SplitN(domain, ".", 2)[0]
-	alias := strings.Trim(notHandle.ReplaceAllString(strings.ToLower(first), "-"), "-")
-	if len(alias) < 3 {
-		alias = strings.Trim(notHandle.ReplaceAllString(strings.ToLower(domain), "-"), "-")
-	}
-	if len(alias) > 30 {
-		alias = strings.Trim(alias[:30], "-")
-	}
-	return alias
-}
-
-func clipRunes(text string, n int) string {
-	runes := []rune(text)
-	if len(runes) <= n {
-		return text
-	}
-	return strings.TrimSpace(string(runes[:n]))
 }

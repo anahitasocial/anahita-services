@@ -113,7 +113,38 @@ type ChannelsInterface interface {
 	// ReadSoon brings the next read forward to now, as a hub's word that
 	// something was published does: at most once a minute.
 	ReadSoon(ctx context.Context, nodeID int64) error
+
+	// Of is a channel's feed as its admins are shown it in its settings;
+	// ErrNotFound when it has none.
+	Of(ctx context.Context, nodeID int64) (*Shown, error)
+	// Remove disconnects a channel's feed (roadmap row 147, phase 4): it is
+	// read no more. The notes it made stay, and so do the items seen, so
+	// that connecting the same feed again posts nothing twice.
+	Remove(ctx context.Context, nodeID int64) error
 }
+
+// Shown is a channel's feed as its admins see it.
+type Shown struct {
+	FeedURL   string
+	SiteURL   string
+	State     string
+	ReadAt    *time.Time
+	LastError string
+}
+
+const channelOf = `
+SELECT
+    feed_url,
+    site_url,
+    state,
+    read_at,
+    last_error
+FROM channel_feeds
+WHERE node_id = ?`
+
+const channelRemove = `
+DELETE FROM channel_feeds
+WHERE node_id = ?`
 
 // Why a channel was paused, in last_error.
 const (
@@ -429,5 +460,33 @@ func (r *channelsRepo) PausedFor(ctx context.Context, why string, limit int) ([]
 func (r *channelsRepo) Resume(ctx context.Context, nodeID int64) error {
 	now := r.now().UTC()
 	_, err := r.db.ExecContext(ctx, channelResume, now, now, nodeID)
+	return err
+}
+
+func (r *channelsRepo) Of(ctx context.Context, nodeID int64) (*Shown, error) {
+	shown := &Shown{}
+	var readAt sql.NullTime
+	err := r.db.QueryRowContext(ctx, channelOf, nodeID).Scan(
+		&shown.FeedURL,
+		&shown.SiteURL,
+		&shown.State,
+		&readAt,
+		&shown.LastError,
+	)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+	if readAt.Valid {
+		at := readAt.Time
+		shown.ReadAt = &at
+	}
+	return shown, nil
+}
+
+func (r *channelsRepo) Remove(ctx context.Context, nodeID int64) error {
+	_, err := r.db.ExecContext(ctx, channelRemove, nodeID)
 	return err
 }

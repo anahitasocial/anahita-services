@@ -198,6 +198,6 @@ From the check of both repositories on 2026-11-15:
 | 1 | The rename, nothing else changed: types, tables, addresses, settings, words; the migration rehearsed on a copy | ✅ 2026-11-16 |
 | 2 | Add channel without a feed; privacy, follow requests, archiving and features as a group's; `channel.json` | ✅ 2026-11-16, `channel.json`'s kinds of post left for phase 3, with posting as the channel |
 | 3 | Admins post as the channel; Written by, for its admins; a feed item told by its row | ✅ 2026-11-16: a feed's notes marked `from_feed` in their meta as their row is written (migration `20261122000022` for those before); notes, photos and videos stay on, since a profile's saved kinds are added to its defaults, never taken from them; a post's `editor` no longer sent for a channel's |
-| 4 | The feed connected and disconnected in settings | ⬜ |
+| 4 | The feed connected and disconnected in settings | ✅ 2026-11-16: `GET`, `PUT`, `DELETE /channels/_connect/feeds/:channel_id`, under `_connect` so the gateways stay as they are; `POST /channels/_connect/:id` removed; a disconnected feed's items kept, so reconnecting posts nothing twice |
 | 5 | Events hosted by a channel | ⬜ |
 | 6 | The docs of both repositories; anahita.io's pages; every recipe and its diagram; tried at both sizes; changelogs | ⬜ |

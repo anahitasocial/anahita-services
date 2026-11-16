@@ -88,7 +88,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <ul>
 <li><a href="#activitypub-service">The fediverse</a> <span class="count">30</span></li>
 <li><a href="#atproto-service">Bluesky</a> <span class="count">7</span></li>
-<li><a href="#syndication-service">Channels</a> <span class="count">5</span></li>
+<li><a href="#syndication-service">Channels</a> <span class="count">7</span></li>
 </ul>
 <p class="group">Run a site</p>
 <ul>
@@ -11113,12 +11113,12 @@ who may call it: somebody signed in.">
 <section id="syndication-service" class="service">
 <p class="group">Fediverse and Bluesky</p>
 <h2>Channels <code>syndication-service</code></h2>
-<p>Connecting a channel: its feed found, its domain proved, and a channel made of it, a profile whose posts are the feed&#39;s items (<a href="../channels.md">channels.md</a>). Who may is CHANNELS_FROM, administrators unless the installation says otherwise.</p>
-<details class="route" id="postChannelsConnect" data-search="post /channels/_connect begin connecting a channel the site&#39;s feed is found: the address itself, or the feed the page names with `&lt;link rel=&#34;alternate&#34;&gt;`. it must be on the site&#39;s domain. the answer is the token, to be put in a txt record or a file, with a name and a handle to begin with.
+<p>A channel&#39;s feed: a website&#39;s feed found, its domain proved, and the feed connected to a channel its admins look after, whose notes are then the feed&#39;s items (<a href="../channels.md">channels.md</a>). Who may connect one is CHANNELS_FROM, administrators unless the installation says otherwise.</p>
+<details class="route" id="postChannelsConnect" data-search="post /channels/_connect begin connecting a channel the site&#39;s feed is found: the address itself, or the feed the page names with `&lt;link rel=&#34;alternate&#34;&gt;`. it must be on the site&#39;s domain. the answer is the token, to be put in a txt record or a file.
 
 who may call it: somebody signed in.">
 <summary><span class="method post">POST</span> <code class="path">/channels/_connect</code> <span class="summary">Begin connecting a channel</span></summary>
-<div class="description"><p>The site&#39;s feed is found: the address itself, or the feed the page names with <code>&lt;link rel=&#34;alternate&#34;&gt;</code>. It must be on the site&#39;s domain. The answer is the token, to be put in a TXT record or a file, with a name and a handle to begin with.</p></div>
+<div class="description"><p>The site&#39;s feed is found: the address itself, or the feed the page names with <code>&lt;link rel=&#34;alternate&#34;&gt;</code>. It must be on the site&#39;s domain. The answer is the token, to be put in a TXT record or a file.</p></div>
 <p class="who"><strong>Who:</strong> somebody signed in</p>
 <h4>Takes, as <code>application/json</code></h4>
 <table>
@@ -11140,41 +11140,89 @@ who may call it: somebody signed in.">
 </table>
 <p class="handler">Answered by <code>syndication/cmd/api/handlers.(*connectHandler).Start</code></p>
 </details>
-<details class="route" id="postChannelsConnectById" data-search="post /channels/_connect/{id} make the channel once its domain is proved. whoever proved it is its first administrator and its first follower; its feed&#39;s ten newest items are posted, the rest marked seen, and what is published afterwards is posted as it comes.
+<details class="route" id="getChannelsConnectFeedsByChannelId" data-search="get /channels/_connect/feeds/{channel_id} a channel&#39;s feed the feed a channel reads, for its admins and the site&#39;s administrators.
 
 who may call it: somebody signed in.">
-<summary><span class="method post">POST</span> <code class="path">/channels/_connect/{id}</code> <span class="summary">Make the Channel</span></summary>
-<div class="description"><p>Once its domain is proved. Whoever proved it is its first administrator and its first follower; its feed&#39;s ten newest items are posted, the rest marked seen, and what is published afterwards is posted as it comes.</p></div>
+<summary><span class="method get">GET</span> <code class="path">/channels/_connect/feeds/{channel_id}</code> <span class="summary">A channel&#39;s feed</span></summary>
+<div class="description"><p>The feed a channel reads, for its admins and the site&#39;s administrators.</p></div>
 <p class="who"><strong>Who:</strong> somebody signed in</p>
 <h4>Takes</h4>
 <table>
 <thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The connection&#39;s id. At least 1.</td></tr>
+<tr><td><code>channel_id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The channel&#39;s id. At least 1.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-syndication.ChannelFeed">syndication.ChannelFeed</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>the viewer is not signed in</td></tr>
+<tr><td class="status s4">403</td><td>the viewer is not one of the channel&#39;s admins</td></tr>
+<tr><td class="status s4">404</td><td>there is no such channel, or it has no feed</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>syndication/cmd/api/handlers.(*connectHandler).ShowFeed</code></p>
+</details>
+<details class="route" id="putChannelsConnectFeedsByChannelId" data-search="put /channels/_connect/feeds/{channel_id} connect a channel&#39;s feed once the site&#39;s domain is proved (the two calls above). the channel&#39;s admins connect it; whoever proved the domain must be the one connecting. its feed&#39;s ten newest items are posted, the rest marked seen, and what is published afterwards is posted as it comes. where the channel names no website, the proved site becomes its website.
+
+who may call it: somebody signed in.">
+<summary><span class="method put">PUT</span> <code class="path">/channels/_connect/feeds/{channel_id}</code> <span class="summary">Connect a channel&#39;s feed</span></summary>
+<div class="description"><p>Once the site&#39;s domain is proved (the two calls above). The channel&#39;s admins connect it; whoever proved the domain must be the one connecting. Its feed&#39;s ten newest items are posted, the rest marked seen, and what is published afterwards is posted as it comes. Where the channel names no website, the proved site becomes its website.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>channel_id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The channel&#39;s id. At least 1.</td></tr>
 </tbody>
 </table>
 <h4>Takes, as <code>application/json</code></h4>
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>alias</code> <span class="required">always</span></td><td>string</td><td>Its handle: <code>@example</code>. Letters, digits, <code>-</code> and <code>_</code>. At least 3 characters. At most 30 characters.</td></tr>
-<tr><td><code>body</code></td><td>string</td><td>What it is, shown in its About card. At most 500 characters.</td></tr>
+<tr><td><code>connection_id</code> <span class="required">always</span></td><td>integer</td><td>The connection begun and proved, as starting it answered. At least 1.</td></tr>
 <tr><td><code>feed_url</code> <span class="required">always</span></td><td>string</td><td>The feed, as starting the connection found it. At most 2000 characters.</td></tr>
-<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>Its name, shown as a profile&#39;s is. At most 64 characters.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
 <table class="answers">
 <tbody>
-<tr><td class="status s2">201</td><td>Created<div class="body"><a href="#schema-syndication.Made">syndication.Made</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s2">201</td><td>Created<div class="body"><a href="#schema-syndication.ChannelFeed">syndication.ChannelFeed</a> <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">400</td><td><code>no_feed</code>, <code>unreadable</code>, <code>feed_not_on_domain</code> or <code>private_feed</code>, as <code>error</code></td></tr>
 <tr><td class="status s4">401</td><td>the viewer is not signed in</td></tr>
 <tr><td class="status s4">403</td><td>the viewer may not connect a channel: see CHANNELS_FROM</td></tr>
-<tr><td class="status s4">404</td><td>there is no such connection begun by the viewer</td></tr>
-<tr><td class="status s4">409</td><td><code>not_proved</code>, <code>feed_taken</code> or <code>handle_taken</code>, as <code>error</code></td></tr>
+<tr><td class="status s4">404</td><td>there is no such channel, or no such connection begun by the viewer</td></tr>
+<tr><td class="status s4">409</td><td><code>not_proved</code>, <code>feed_taken</code> or <code>has_feed</code> (one feed a channel), as <code>error</code></td></tr>
 </tbody>
 </table>
-<p class="handler">Answered by <code>syndication/cmd/api/handlers.(*connectHandler).Make</code></p>
+<p class="handler">Answered by <code>syndication/cmd/api/handlers.(*connectHandler).ConnectFeed</code></p>
+</details>
+<details class="route" id="deleteChannelsConnectFeedsByChannelId" data-search="delete /channels/_connect/feeds/{channel_id} disconnect a channel&#39;s feed the feed is read no more. the notes it made stay, as their site wrote them; connecting the same feed again posts none of them twice.
+
+who may call it: somebody signed in.">
+<summary><span class="method delete">DELETE</span> <code class="path">/channels/_connect/feeds/{channel_id}</code> <span class="summary">Disconnect a channel&#39;s feed</span></summary>
+<div class="description"><p>The feed is read no more. The notes it made stay, as their site wrote them; connecting the same feed again posts none of them twice.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>channel_id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The channel&#39;s id. At least 1.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">204</td><td>it is disconnected</td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>the viewer is not signed in</td></tr>
+<tr><td class="status s4">403</td><td>the viewer is not one of the channel&#39;s admins</td></tr>
+<tr><td class="status s4">404</td><td>there is no such channel, or it has no feed</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>syndication/cmd/api/handlers.(*connectHandler).DisconnectFeed</code></p>
 </details>
 <details class="route" id="postChannelsConnectByIdCheck" data-search="post /channels/_connect/{id}/check look for the token in the txt record at `_anahita.&lt;domain&gt;`, then in `https://&lt;host&gt;/.well-known/anahita-verification.txt`. asked as often as the one connecting likes.
 
@@ -14107,6 +14155,19 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
+<div class="route schema" id="schema-syndication.ChannelFeed" data-search="syndication.channelfeed feed_url read_at site_url state">
+<h3>syndication.ChannelFeed</h3>
+<p>A channel&#39;s feed as its admins see it.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>feed_url</code> <span class="required">always</span></td><td>string</td><td>The feed read, and the site it is of.</td></tr>
+<tr><td><code>read_at</code></td><td>time</td><td>When it was last read, if it has been.</td></tr>
+<tr><td><code>site_url</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+<tr><td><code>state</code> <span class="required">always</span></td><td>string</td><td><code>active</code>, or <code>paused</code>: its domain&#39;s proof gone for a week, or the channel switched off.</td></tr>
+</tbody>
+</table>
+</div>
 <div class="route schema" id="schema-syndication.Checked" data-search="syndication.checked method proved">
 <h3>syndication.Checked</h3>
 <p>Checked says whether the token was found.</p>
@@ -14118,7 +14179,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-syndication.Connection" data-search="syndication.connection domain feed_description feed_title feed_url file_url host id record_name site_url suggested_alias suggested_name token">
+<div class="route schema" id="schema-syndication.Connection" data-search="syndication.connection domain feed_description feed_title feed_url file_url host id record_name site_url token">
 <h3>syndication.Connection</h3>
 <p>A channel being connected: its feed, and the token with both places it may be put.</p>
 <table>
@@ -14133,20 +14194,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td>The connection&#39;s id, for checking the proof and making the channel.</td></tr>
 <tr><td><code>record_name</code> <span class="required">always</span></td><td>string</td><td>A TXT record of this name, holding the token.</td></tr>
 <tr><td><code>site_url</code> <span class="required">always</span></td><td>string</td><td>The site and its feed, as found.</td></tr>
-<tr><td><code>suggested_alias</code> <span class="required">always</span></td><td>string</td><td></td></tr>
-<tr><td><code>suggested_name</code> <span class="required">always</span></td><td>string</td><td>A name and a handle to begin with: the feed&#39;s title, and the domain&#39;s first word.</td></tr>
 <tr><td><code>token</code> <span class="required">always</span></td><td>string</td><td>What to put in either place.</td></tr>
-</tbody>
-</table>
-</div>
-<div class="route schema" id="schema-syndication.Made" data-search="syndication.made alias id">
-<h3>syndication.Made</h3>
-<p>The channel as it was made: where to go to see it.</p>
-<table>
-<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
-<tbody>
-<tr><td><code>alias</code> <span class="required">always</span></td><td>string</td><td></td></tr>
-<tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td></td></tr>
 </tbody>
 </table>
 </div>

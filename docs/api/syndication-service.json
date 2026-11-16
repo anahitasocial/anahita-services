@@ -1,6 +1,33 @@
 {
   "components": {
     "schemas": {
+      "syndication.ChannelFeed": {
+        "description": "ChannelFeed is a channel's feed as its admins see it.",
+        "properties": {
+          "feed_url": {
+            "description": "The feed read, and the site it is of.",
+            "type": "string"
+          },
+          "read_at": {
+            "description": "When it was last read, if it has been.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "site_url": {
+            "type": "string"
+          },
+          "state": {
+            "description": "`active`, or `paused`: its domain's proof gone for a week, or the channel switched off.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "feed_url",
+          "site_url",
+          "state"
+        ],
+        "type": "object"
+      },
       "syndication.Checked": {
         "description": "Checked says whether the token was found.",
         "properties": {
@@ -53,13 +80,6 @@
             "description": "The site and its feed, as found.",
             "type": "string"
           },
-          "suggested_alias": {
-            "type": "string"
-          },
-          "suggested_name": {
-            "description": "A name and a handle to begin with: the feed's title, and the domain's first word.",
-            "type": "string"
-          },
           "token": {
             "description": "What to put in either place.",
             "type": "string"
@@ -73,26 +93,7 @@
           "feed_url",
           "token",
           "record_name",
-          "file_url",
-          "suggested_name",
-          "suggested_alias"
-        ],
-        "type": "object"
-      },
-      "syndication.Made": {
-        "description": "Made is the channel as it was made: where to go to see it.",
-        "properties": {
-          "alias": {
-            "type": "string"
-          },
-          "id": {
-            "format": "int64",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "id",
-          "alias"
+          "file_url"
         ],
         "type": "object"
       }
@@ -107,7 +108,7 @@
     }
   },
   "info": {
-    "description": "Connecting a channel: its feed found, its domain proved, and a channel made of it, a profile whose posts are the feed's items (channels.md). Who may is CHANNELS_FROM, administrators unless the installation says otherwise.",
+    "description": "A channel's feed: a website's feed found, its domain proved, and the feed connected to a channel its admins look after, whose notes are then the feed's items (channels.md). Who may connect one is CHANNELS_FROM, administrators unless the installation says otherwise.",
     "license": {
       "identifier": "AGPL-3.0-only",
       "name": "GNU Affero General Public License v3.0 only"
@@ -119,7 +120,7 @@
   "paths": {
     "/channels/_connect": {
       "post": {
-        "description": "The site's feed is found: the address itself, or the feed the page names with `<link rel=\"alternate\">`. It must be on the site's domain. The answer is the token, to be put in a TXT record or a file, with a name and a handle to begin with.\n\nWho may call it: somebody signed in.",
+        "description": "The site's feed is found: the address itself, or the feed the page names with `<link rel=\"alternate\">`. It must be on the site's domain. The answer is the token, to be put in a TXT record or a file.\n\nWho may call it: somebody signed in.",
         "operationId": "postChannelsConnect",
         "requestBody": {
           "content": {
@@ -181,15 +182,112 @@
         "x-viewer": "signed_in"
       }
     },
-    "/channels/_connect/{id}": {
-      "post": {
-        "description": "Once its domain is proved. Whoever proved it is its first administrator and its first follower; its feed's ten newest items are posted, the rest marked seen, and what is published afterwards is posted as it comes.\n\nWho may call it: somebody signed in.",
-        "operationId": "postChannelsConnectById",
+    "/channels/_connect/feeds/{channel_id}": {
+      "delete": {
+        "description": "The feed is read no more. The notes it made stay, as their site wrote them; connecting the same feed again posts none of them twice.\n\nWho may call it: somebody signed in.",
+        "operationId": "deleteChannelsConnectFeedsByChannelId",
         "parameters": [
           {
-            "description": "The connection's id.",
+            "description": "The channel's id.",
             "in": "path",
-            "name": "id",
+            "name": "channel_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "it is disconnected"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "the viewer is not signed in"
+          },
+          "403": {
+            "description": "the viewer is not one of the channel's admins"
+          },
+          "404": {
+            "description": "there is no such channel, or it has no feed"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Disconnect a channel's feed",
+        "tags": [
+          "syndication-service"
+        ],
+        "x-handler": "syndication/cmd/api/handlers.(*connectHandler).DisconnectFeed",
+        "x-viewer": "signed_in"
+      },
+      "get": {
+        "description": "The feed a channel reads, for its admins and the site's administrators.\n\nWho may call it: somebody signed in.",
+        "operationId": "getChannelsConnectFeedsByChannelId",
+        "parameters": [
+          {
+            "description": "The channel's id.",
+            "in": "path",
+            "name": "channel_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/syndication.ChannelFeed"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "the viewer is not signed in"
+          },
+          "403": {
+            "description": "the viewer is not one of the channel's admins"
+          },
+          "404": {
+            "description": "there is no such channel, or it has no feed"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A channel's feed",
+        "tags": [
+          "syndication-service"
+        ],
+        "x-handler": "syndication/cmd/api/handlers.(*connectHandler).ShowFeed",
+        "x-viewer": "signed_in"
+      },
+      "put": {
+        "description": "Once the site's domain is proved (the two calls above). The channel's admins connect it; whoever proved the domain must be the one connecting. Its feed's ten newest items are posted, the rest marked seen, and what is published afterwards is posted as it comes. Where the channel names no website, the proved site becomes its website.\n\nWho may call it: somebody signed in.",
+        "operationId": "putChannelsConnectFeedsByChannelId",
+        "parameters": [
+          {
+            "description": "The channel's id.",
+            "in": "path",
+            "name": "channel_id",
             "required": true,
             "schema": {
               "format": "int64",
@@ -203,33 +301,21 @@
             "application/json": {
               "schema": {
                 "properties": {
-                  "alias": {
-                    "description": "Its handle: `@example`. Letters, digits, `-` and `_`.",
-                    "maxLength": 30,
-                    "minLength": 3,
-                    "type": "string",
-                    "x-validate": "username"
-                  },
-                  "body": {
-                    "description": "What it is, shown in its About card.",
-                    "maxLength": 500,
-                    "type": "string"
+                  "connection_id": {
+                    "description": "The connection begun and proved, as starting it answered.",
+                    "format": "int64",
+                    "minimum": 1,
+                    "type": "integer"
                   },
                   "feed_url": {
                     "description": "The feed, as starting the connection found it.",
                     "maxLength": 2000,
                     "type": "string"
-                  },
-                  "name": {
-                    "description": "Its name, shown as a profile's is.",
-                    "maxLength": 64,
-                    "type": "string"
                   }
                 },
                 "required": [
-                  "feed_url",
-                  "name",
-                  "alias"
+                  "connection_id",
+                  "feed_url"
                 ],
                 "type": "object"
               }
@@ -242,7 +328,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/syndication.Made"
+                  "$ref": "#/components/schemas/syndication.ChannelFeed"
                 }
               }
             },
@@ -258,10 +344,10 @@
             "description": "the viewer may not connect a channel: see CHANNELS_FROM"
           },
           "404": {
-            "description": "there is no such connection begun by the viewer"
+            "description": "there is no such channel, or no such connection begun by the viewer"
           },
           "409": {
-            "description": "`not_proved`, `feed_taken` or `handle_taken`, as `error`"
+            "description": "`not_proved`, `feed_taken` or `has_feed` (one feed a channel), as `error`"
           }
         },
         "security": [
@@ -269,11 +355,11 @@
             "bearer": []
           }
         ],
-        "summary": "Make the Channel",
+        "summary": "Connect a channel's feed",
         "tags": [
           "syndication-service"
         ],
-        "x-handler": "syndication/cmd/api/handlers.(*connectHandler).Make",
+        "x-handler": "syndication/cmd/api/handlers.(*connectHandler).ConnectFeed",
         "x-viewer": "signed_in"
       }
     },

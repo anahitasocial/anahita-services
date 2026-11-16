@@ -75,7 +75,28 @@ func (f *fakeDomains) ForProfile(_ context.Context, id, profileID int64) error {
 
 type fakeChannels struct {
 	repositories.ChannelsInterface
-	added []*repositories.Channel
+	added   []*repositories.Channel
+	removed []int64
+}
+
+func (f *fakeChannels) Of(_ context.Context, nodeID int64) (*repositories.Shown, error) {
+	for _, p := range f.added {
+		if p.NodeID == nodeID {
+			return &repositories.Shown{FeedURL: p.FeedURL, SiteURL: p.SiteURL, State: repositories.StateActive}, nil
+		}
+	}
+	return nil, repositories.ErrNotFound
+}
+func (f *fakeChannels) Remove(_ context.Context, nodeID int64) error {
+	kept := f.added[:0]
+	for _, p := range f.added {
+		if p.NodeID != nodeID {
+			kept = append(kept, p)
+		}
+	}
+	f.added = kept
+	f.removed = append(f.removed, nodeID)
+	return nil
 }
 
 func (f *fakeChannels) Add(_ context.Context, p *repositories.Channel) error {
@@ -107,35 +128,34 @@ func (f *fakeItems) MarkSeen(_ context.Context, _ int64, items []repositories.It
 	return nil
 }
 
-// The graph: only what connecting asks of it.
+// The graph: only what connecting asks of it. Channel 900 is there, its
+// admin person 7.
 type fakeActors struct {
 	an_services.ActorsGRPCInterface
-	taken string
-	made  *entities.AnahitaNode
+	edited *entities.AnahitaNode
 }
 
-func (f *fakeActors) Add(node *entities.AnahitaNode, _ *entities.Viewer) (*entities.AnahitaNode, error) {
-	if node.Alias == f.taken {
-		return nil, errors.New("Error 1062 (23000): Duplicate entry 'actor:" + node.Alias + "' for key 'nodes.uq_unique_alias'")
-	}
-	node.ID = 900
-	f.made = node
-	return node, nil
-}
 func (f *fakeActors) ReadOfType(id int64, nodeType string, _ *entities.Viewer) (*entities.AnahitaNode, error) {
+	if nodeType == an_constants.NodeActorChannelEntityType && id != 900 {
+		return nil, errors.New("not found")
+	}
 	node := entities.NewAnahitaNode()
 	node.ID, node.Type = id, nodeType
+	return node, nil
+}
+func (f *fakeActors) Edit(node *entities.AnahitaNode, _ *entities.Viewer) (*entities.AnahitaNode, error) {
+	f.edited = node
 	return node, nil
 }
 
 type fakeAdmins struct {
 	an_services.ActorAdminsGRPCInterface
-	added int
 }
 
-func (f *fakeAdmins) Add(actor, admin *entities.AnahitaNode, _ *entities.Viewer) (*entities.AnahitaNode, error) {
-	f.added++
-	return admin, nil
+func (f *fakeAdmins) Browse(int64) ([]*entities.AnahitaNode, error) {
+	admin := entities.NewAnahitaNode()
+	admin.ID = 7
+	return []*entities.AnahitaNode{admin}, nil
 }
 
 type fakeFollows struct {
@@ -202,12 +222,18 @@ func admin(id int64) *entities.Viewer {
 }
 
 func (f *fixture) call(handler echo.HandlerFunc, viewer *entities.Viewer, id, body string) *httptest.ResponseRecorder {
+	return f.callAt(handler, viewer, "id", id, body)
+}
+
+// callAt is call with the path's parameter named: channel_id for a
+// channel's feed.
+func (f *fixture) callAt(handler echo.HandlerFunc, viewer *entities.Viewer, param, id, body string) *httptest.ResponseRecorder {
 	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := f.e.NewContext(req, rec)
 	if id != "" {
-		c.SetParamNames("id")
+		c.SetParamNames(param)
 		c.SetParamValues(id)
 	}
 	c.Set(an_constants.ViewerContextKey, viewer)
@@ -224,7 +250,7 @@ func refusedWith(t *testing.T, rec *httptest.ResponseRecorder, status int, reaso
 	}
 }
 
-func TestAChannelIsConnectedInThreeSteps(t *testing.T) {
+func TestAChannelsFeedIsConnectedInThreeSteps(t *testing.T) {
 	f := newFixture()
 	ana := admin(7)
 
@@ -232,14 +258,13 @@ func TestAChannelIsConnectedInThreeSteps(t *testing.T) {
 	var conn Connection
 	_ = json.Unmarshal(rec.Body.Bytes(), &conn)
 	if rec.Code != http.StatusCreated || conn.Domain != "example.com" || conn.RecordName != "_anahita.example.com" ||
-		conn.FileURL != "https://www.example.com/.well-known/anahita-verification.txt" ||
-		conn.SuggestedAlias != "example" || conn.SuggestedName != "Garden notes" || !strings.HasPrefix(conn.Token, "anahita-") {
+		conn.FileURL != "https://www.example.com/.well-known/anahita-verification.txt" || !strings.HasPrefix(conn.Token, "anahita-") {
 		t.Fatalf("started: %d %+v", rec.Code, conn)
 	}
 
-	// Made before the token is anywhere: refused.
-	made := `{"feed_url": "https://example.com/feed.xml", "name": "Garden notes", "alias": "garden"}`
-	refusedWith(t, f.call(f.h.Make, ana, "1", made), http.StatusConflict, refusedNotProved)
+	// Connected before the token is anywhere: refused.
+	connect := `{"connection_id": 1, "feed_url": "https://example.com/feed.xml"}`
+	refusedWith(t, f.callAt(f.h.ConnectFeed, ana, "channel_id", "900", connect), http.StatusConflict, refusedNotProved)
 
 	rec = f.call(f.h.Check, ana, "1", "")
 	if !strings.Contains(rec.Body.String(), `"proved":false`) {
@@ -251,25 +276,53 @@ func TestAChannelIsConnectedInThreeSteps(t *testing.T) {
 		t.Errorf("checked: %s", rec.Body.String())
 	}
 
-	rec = f.call(f.h.Make, ana, "1", made)
-	if rec.Code != http.StatusCreated || !strings.Contains(rec.Body.String(), `"alias":"garden"`) {
-		t.Fatalf("made: %d %s", rec.Code, rec.Body.String())
-	}
-	p := f.actors.made
-	if p.Type != an_constants.NodeActorChannelEntityType || p.Service != an_constants.ActorService ||
-		p.Access != an_constants.AnahitaAccessPublic || p.CreatedBy != 7 || p.WebsiteURL != "https://www.example.com/" {
-		t.Errorf("the Channel: %+v", p)
-	}
-	if f.admins.added != 1 || f.follows.added != 1 {
-		t.Errorf("its maker is its administrator (%d) and follower (%d)", f.admins.added, f.follows.added)
+	rec = f.callAt(f.h.ConnectFeed, ana, "channel_id", "900", connect)
+	if rec.Code != http.StatusCreated || !strings.Contains(rec.Body.String(), `"state":"active"`) {
+		t.Fatalf("connected: %d %s", rec.Code, rec.Body.String())
 	}
 	if len(f.channels.added) != 1 || f.channels.added[0].NodeID != 900 || len(f.items.waiting) != 2 || len(f.items.seen) != 0 || f.domains.rows[1].ProfileID != 900 {
 		t.Errorf("kept: %+v, %d to post, %d seen, domain for %d", f.channels.added, len(f.items.waiting), len(f.items.seen), f.domains.rows[1].ProfileID)
 	}
+	if f.actors.edited == nil || f.actors.edited.WebsiteURL != "https://www.example.com/" {
+		t.Errorf("the site is not its website: %+v", f.actors.edited)
+	}
 
-	// Once made, the connection is done with.
-	if rec := f.call(f.h.Make, ana, "1", made); rec.Code != http.StatusNotFound {
-		t.Errorf("made twice: %d", rec.Code)
+	// One feed a channel.
+	refusedWith(t, f.callAt(f.h.ConnectFeed, ana, "channel_id", "900", connect), http.StatusConflict, refusedHasFeed)
+
+	rec = f.callAt(f.h.ShowFeed, ana, "channel_id", "900", "")
+	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), `"feed_url":"https://example.com/feed.xml"`) {
+		t.Errorf("shown: %d %s", rec.Code, rec.Body.String())
+	}
+
+	if rec := f.callAt(f.h.DisconnectFeed, ana, "channel_id", "900", ""); rec.Code != http.StatusNoContent || len(f.channels.removed) != 1 {
+		t.Errorf("disconnected: %d, %v", rec.Code, f.channels.removed)
+	}
+	if rec := f.callAt(f.h.ShowFeed, ana, "channel_id", "900", ""); rec.Code != http.StatusNotFound {
+		t.Errorf("shown once disconnected: %d", rec.Code)
+	}
+}
+
+// Only a channel's admins see, connect and disconnect its feed; a site
+// administrator may too.
+func TestOnlyAChannelsAdminsLookAfterItsFeed(t *testing.T) {
+	f := newFixture()
+	f.h.Config.ChannelsFrom = an_constants.RoleLevelRegistered
+	f.channels.added = []*repositories.Channel{{NodeID: 900, FeedURL: "https://example.com/feed.xml"}}
+
+	other := admin(8)
+	other.PersonType = an_constants.PersonTypeRegistered
+	if rec := f.callAt(f.h.ShowFeed, other, "channel_id", "900", ""); rec.Code != http.StatusForbidden {
+		t.Errorf("somebody else sees it: %d", rec.Code)
+	}
+	if rec := f.callAt(f.h.DisconnectFeed, other, "channel_id", "900", ""); rec.Code != http.StatusForbidden {
+		t.Errorf("somebody else disconnects it: %d", rec.Code)
+	}
+	if rec := f.callAt(f.h.ShowFeed, admin(9), "channel_id", "900", ""); rec.Code != http.StatusOK {
+		t.Errorf("a site administrator: %d", rec.Code)
+	}
+	if rec := f.callAt(f.h.ShowFeed, admin(7), "channel_id", "901", ""); rec.Code != http.StatusNotFound {
+		t.Errorf("no such channel: %d", rec.Code)
 	}
 }
 
@@ -297,18 +350,6 @@ func TestWhatIsRefusedOnTheWay(t *testing.T) {
 	refusedWith(t, f.call(f.h.Start, ana, "", `{"site_url": "example.com"}`), http.StatusConflict, refusedFeedTaken)
 }
 
-func TestATakenHandleIsSaidSo(t *testing.T) {
-	f := newFixture()
-	ana := admin(7)
-	f.call(f.h.Start, ana, "", `{"site_url": "example.com"}`)
-	f.checker.method = domains.MethodDNS
-	f.call(f.h.Check, ana, "1", "")
-
-	f.actors.taken = "garden"
-	rec := f.call(f.h.Make, ana, "1", `{"feed_url": "https://example.com/feed.xml", "name": "Garden", "alias": "garden"}`)
-	refusedWith(t, rec, http.StatusConflict, refusedHandleTaken)
-}
-
 func TestOnlyWhoChannelsFromNamesMayConnect(t *testing.T) {
 	f := newFixture()
 
@@ -330,19 +371,6 @@ func TestOnlyWhoChannelsFromNamesMayConnect(t *testing.T) {
 
 	if rec := f.call(f.h.Start, entities.NewViewer(), "", `{"site_url": "example.com"}`); rec.Code != http.StatusUnauthorized {
 		t.Errorf("a visitor: %d", rec.Code)
-	}
-}
-
-func TestAHandleIsSuggestedFromTheDomain(t *testing.T) {
-	for domain, want := range map[string]string{
-		"example.com":      "example",
-		"ab.org":           "ab-org",
-		"my_site.blog.net": "my_site",
-		"café.example":     "caf",
-	} {
-		if got := SuggestedAlias(domain); got != want {
-			t.Errorf("%s: %q, want %q", domain, got, want)
-		}
 	}
 }
 
