@@ -1562,3 +1562,107 @@ func TestAHiddenReplyUnderAPostNotOnBluesky(t *testing.T) {
 		t.Errorf("%d things wait to be written", len(w.queue.waiting))
 	}
 }
+
+// A post that quotes ends with a line leading to what it quotes, and,
+// carrying nothing else, a card of it with its picture (roadmap row 156).
+func TestAQuoteGoesToBlueskyWithACardOfWhatItQuotes(t *testing.T) {
+	w, _ := writingWorld(t)
+	w.connect()
+
+	photo := &entities.AnahitaNode{
+		ID: 96, Type: constants.NodeMediumPhotoEntityType, Enabled: true, OwnerID: anaID, CreatedBy: anaID,
+		Access: constants.AnahitaAccessPublic, Body: "Testing a channel",
+	}
+	sizes, _ := photo.PortraitsFor("one.png")
+	w.files.content[sizes[entities.PortraitSizeMedium].Url] = aPicture(t)
+	w.listed.kept[96] = []*entities.PhotoFile{{Filename: "one.png", Mimetype: "image/png", Width: 600, Height: 400}}
+	quote := &entities.AnahitaNode{
+		ID: 97, Type: constants.NodeMediumNoteEntityType, Enabled: true, OwnerID: anaID, CreatedBy: anaID,
+		Access: constants.AnahitaAccessPublic, Body: "It works", QuoteID: 96,
+	}
+	w.nodes.kept = append(w.nodes.kept, photo, quote)
+	w.heard("node.medium.text-service.note.added.v1", event.EventPayload{ObjectType: constants.NodeMediumNoteEntityType, ObjectID: 97})
+	if failed := w.drain(); len(failed) != 0 {
+		t.Fatal(failed)
+	}
+
+	var written string
+	for key, record := range w.writer.records {
+		if out, _ := json.Marshal(record); strings.Contains(string(out), "It works") {
+			written = key + " " + string(out)
+		}
+	}
+	for _, want := range []string{
+		`"text":"It works\n\n↪ anahita.example/photos/96"`, `"uri":"https://anahita.example/photos/96"`,
+		`"app.bsky.embed.external"`, `"title":"Testing a channel"`, `"thumb":{"$type":"blob"`,
+	} {
+		if !strings.Contains(written, want) {
+			t.Errorf("the quote as written lacks %s:\n%s", want, written)
+		}
+	}
+}
+
+// writtenWith is the record written whose text holds `words`, as JSON.
+func writtenWith(w *writing, words string) string {
+	for _, record := range w.writer.records {
+		if out, _ := json.Marshal(record); strings.Contains(string(out), words) {
+			return string(out)
+		}
+	}
+	return ""
+}
+
+// A quote of a post that is on Bluesky is a quote there: the post embedded
+// as a record, and no line (roadmap row 156). One from Bluesky, and one of
+// ours written there.
+func TestAQuoteOfAPostOnBlueskyIsAQuoteThere(t *testing.T) {
+	w, _ := writingWorld(t)
+	w.connect()
+
+	fromThere := &entities.AnahitaNode{
+		ID: 98, Type: constants.NodeMediumNoteEntityType, Enabled: true, Access: constants.AnahitaAccessPublic,
+		URI: "at://did:plc:bob/app.bsky.feed.post/bob123", Body: "From Bluesky",
+	}
+	quote := &entities.AnahitaNode{
+		ID: 99, Type: constants.NodeMediumNoteEntityType, Enabled: true, OwnerID: anaID, CreatedBy: anaID,
+		Access: constants.AnahitaAccessPublic, Body: "Quoting Bob", QuoteID: 98,
+	}
+	w.nodes.kept = append(w.nodes.kept, fromThere, quote)
+	w.heard("node.medium.text-service.note.added.v1", event.EventPayload{ObjectType: constants.NodeMediumNoteEntityType, ObjectID: 99})
+	if failed := w.drain(); len(failed) != 0 {
+		t.Fatal(failed)
+	}
+	out := writtenWith(w, "Quoting Bob")
+	for _, want := range []string{`"$type":"app.bsky.embed.record"`, `"uri":"at://did:plc:bob/app.bsky.feed.post/bob123"`, `"cid":"cid-of-bob123"`} {
+		if !strings.Contains(out, want) {
+			t.Errorf("the quote lacks %s:\n%s", want, out)
+		}
+	}
+	if strings.Contains(out, "↪") {
+		t.Errorf("a quote there has no line:\n%s", out)
+	}
+
+	// One of ours, written to Bluesky first.
+	mine := &entities.AnahitaNode{
+		ID: 9100, Type: constants.NodeMediumNoteEntityType, Enabled: true, OwnerID: anaID, CreatedBy: anaID,
+		Access: constants.AnahitaAccessPublic, Body: "Mine first",
+	}
+	w.nodes.kept = append(w.nodes.kept, mine)
+	w.heard("node.medium.text-service.note.added.v1", event.EventPayload{ObjectType: constants.NodeMediumNoteEntityType, ObjectID: 9100})
+	if failed := w.drain(); len(failed) != 0 {
+		t.Fatal(failed)
+	}
+	again := &entities.AnahitaNode{
+		ID: 9101, Type: constants.NodeMediumNoteEntityType, Enabled: true, OwnerID: anaID, CreatedBy: anaID,
+		Access: constants.AnahitaAccessPublic, Body: "Quoting mine", QuoteID: 9100,
+	}
+	w.nodes.kept = append(w.nodes.kept, again)
+	w.heard("node.medium.text-service.note.added.v1", event.EventPayload{ObjectType: constants.NodeMediumNoteEntityType, ObjectID: 9101})
+	if failed := w.drain(); len(failed) != 0 {
+		t.Fatal(failed)
+	}
+	out = writtenWith(w, "Quoting mine")
+	if !strings.Contains(out, `"$type":"app.bsky.embed.record"`) || !strings.Contains(out, `"cid":"cid-`) || strings.Contains(out, "↪") {
+		t.Errorf("a quote of ours written there:\n%s", out)
+	}
+}

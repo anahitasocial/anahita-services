@@ -10,6 +10,20 @@ made.
 Releases before v1.0.17 are described on GitHub, under
 [Releases](https://github.com/anahitasocial/anahita-services/releases).
 
+## Embryo
+
+### Fixed
+
+1. **A quote of a post that is on Bluesky is a quote there** (roadmap row
+   156): one from Bluesky, or one of ours written there, is embedded as a
+   record, Bluesky's own quote, beside the post's own pictures, video or
+   card; the "↪" line and card are for a quoted post that is not on
+   Bluesky.
+2. **A quote's card on Bluesky has the quoted post's picture** (roadmap
+   row 156): a photo post's first picture, an article's cover, a video's
+   poster, a sound's cover, or the picture of a note's link card. It had
+   its words alone.
+
 ## v1.3.1 Birth, 2026-11-15
 
 ### Fixed

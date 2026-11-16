@@ -29,21 +29,24 @@ On the fediverse the line is a paragraph of the note (`ap.Note.EndWithQuote`),
 and Mastodon makes a card of the link. On Bluesky the address alone is the
 link (`bsky.OutPost.EndWithQuote`), and the post carries a card of the
 quoted post when it carries nothing else, since Bluesky draws no card of
-its own. Incoming quotes already end with such a line ("↪ bsky.app").
+its own, with the quoted post's picture (added the same day, after the
+first card on banu.io came without one). Incoming quotes already end with such a line ("↪ bsky.app").
 
-## Part 2: quotes as quotes (to plan)
+## Part 2: quotes as quotes
 
-1. **Bluesky:** a quoted post that is on Bluesky, one of ours posted there
-   or one from there, embedded as a record (`app.bsky.embed.record`, or
-   `recordWithMedia` beside pictures), with the line kept for a post that
-   is not.
-2. **The fediverse:** `quote` (and `_misskey_quote`, `quoteUri` for the
-   servers that read those) naming the quoted post's ActivityPub address,
-   when it has one; and this site answering others' `QuoteRequest`s for its
-   own posts, by each author's quote policy (`quote_policy`), with
-   `QuoteAuthorization`s, and saying that policy on each post
-   (`interactionPolicy.canQuote`), so that Mastodon shows quotes of ours
-   and lets its people quote them.
+1. **Bluesky (done 2026-11-16):** a quoted post that is on Bluesky, one of
+   ours written there or one from there, embedded as a record
+   (`bsky.OutPost.WithQuote`: `app.bsky.embed.record`, or `recordWithMedia`
+   beside the post's own pictures, video or card), with no line; the line
+   and the card for a post that is not. One of ours written there and not
+   yet readable is waited for, ten minutes at most, then led to by the line.
+2. **The fediverse (to plan):** `quote` (and `_misskey_quote`, `quoteUri`
+   for the servers that read those) naming the quoted post's ActivityPub
+   address, when it has one; and this site answering others'
+   `QuoteRequest`s for its own posts, by each author's quote policy
+   (`quote_policy`), with `QuoteAuthorization`s, and saying that policy on
+   each post (`interactionPolicy.canQuote`), so that Mastodon shows quotes
+   of ours and lets its people quote them.
 3. Quotes coming in, shown as quotes rather than as a line, once the above
    is known to work.
 
@@ -51,6 +54,8 @@ its own. Incoming quotes already end with such a line ("↪ bsky.app").
 
 1. Unit tests: `anahita-libs/federation/quoted_test.go`,
    `activitypub-service/ap/note_quote_test.go`,
-   `atproto-service/bsky/outgoing_quote_test.go`.
+   `atproto-service/bsky/outgoing_quote_test.go`, and in
+   `atproto-service/cmd/api/handlers/out_test.go` a quote's card with its
+   picture, and quotes of posts on Bluesky as records.
 2. On banu.io: a note quoting a public post shows the line and its card on
    Mastodon and on Bluesky.

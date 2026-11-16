@@ -1607,10 +1607,15 @@ its own. The card says to use one and where to make it.
    with a mark to say so; a note so cut carries a card of itself here,
    where the rest is. A post with pictures or a video has no room for a
    card, so when it is cut its words end instead with the address of the
-   post here, on a line of its own. A post that quotes ends with a line
-   that leads to what it quotes, as on the fediverse, "↪" and its address
-   (roadmap row 156), and carries a card of it when it carries nothing
-   else. A post or a reply that is changed here afterwards
+   post here, on a line of its own. A post that quotes one that is on
+   Bluesky, from there or one of this installation's written there, is a
+   quote there: the quoted post embedded as a record
+   (`app.bsky.embed.record`, or `recordWithMedia` beside its own pictures,
+   video or card; roadmap row 156). Quoting one that is not, it ends with
+   a line that leads to it, as on the fediverse, "↪" and its address, and
+   carries a card of it when it carries nothing else, with its picture: a
+   photo post's first, an article's cover, a video's poster, a sound's
+   cover, or the picture of a note's link card. A post or a reply that is changed here afterwards
    is not changed there: Bluesky has no changing a post, and taking it down
    to post it again would lose its likes, reposts and replies. Mastodon and
    other servers are sent the change.

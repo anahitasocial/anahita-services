@@ -64,6 +64,11 @@ type OutEmbed struct {
 	// A video, and its shape.
 	Video       *OutBlob  `json:"video,omitempty"`
 	AspectRatio *OutRatio `json:"aspectRatio,omitempty"`
+	// A post it quotes: a Ref in app.bsky.embed.record; in
+	// app.bsky.embed.recordWithMedia, an app.bsky.embed.record beside
+	// Media, what the post carries of its own.
+	Record any       `json:"record,omitempty"`
+	Media  *OutEmbed `json:"media,omitempty"`
 }
 
 // OutRatio is the shape of a picture or a video, which lets it be laid out
@@ -348,4 +353,19 @@ func NewOutPost(markdown, language string, at time.Time) *OutPost {
 		}
 	}
 	return post
+}
+
+// WithQuote makes the post a quote of another on Bluesky (roadmap row 156):
+// the quoted post embedded as a record, beside the pictures, video or card
+// the post carries of its own.
+func (p *OutPost) WithQuote(quoted *Ref) {
+	if quoted == nil || quoted.URI == "" || quoted.CID == "" {
+		return
+	}
+	record := &OutEmbed{Type: "app.bsky.embed.record", Record: quoted}
+	if p.Embed == nil {
+		p.Embed = record
+		return
+	}
+	p.Embed = &OutEmbed{Type: "app.bsky.embed.recordWithMedia", Record: record, Media: p.Embed}
 }

@@ -591,7 +591,13 @@ func (h *Handlers) record(ctx context.Context, w *write, upload uploader) (any, 
 	}
 	// The post it quotes, led to by a line at its end (roadmap row 156).
 	address, quoted := h.quotedAddress(note)
-	if address != "" {
+	// On Bluesky too, it is quoted there, as a quote made there is; a post
+	// that is not is led to by a line.
+	quotedRef, err := h.quotedRef(ctx, quoted, address)
+	if err != nil {
+		return nil, err
+	}
+	if address != "" && quotedRef == nil {
 		post.EndWithQuote(federation.QuotedLine, address)
 	}
 	if post.Text == "" && post.Embed == nil {
@@ -610,9 +616,12 @@ func (h *Handlers) record(ctx context.Context, w *write, upload uploader) (any, 
 		address := h.Site.Web(webPathOf(note))
 		post.EndWithLink(strings.TrimPrefix(address, "https://"), address)
 	}
-	// The post it quotes as its card, where it carries nothing else.
-	if address != "" && post.Embed == nil {
-		post.WithCard(address, cutTitle(quoted), hostOf(address), nil)
+	// The post it quotes, embedded where it is on Bluesky; as its card where
+	// it is not and the post carries nothing else.
+	if quotedRef != nil {
+		post.WithQuote(quotedRef)
+	} else if address != "" && post.Embed == nil {
+		post.WithCard(address, cutTitle(quoted), hostOf(address), h.quotedPicture(quoted, upload))
 	}
 	// The card of the link in it, as it was kept when the note was made.
 	if card := linkpreviews.FromMeta(note.Meta); card != nil && post.Embed == nil {
@@ -994,4 +1003,99 @@ func hostOf(address string) string {
 		host = host[:i]
 	}
 	return host
+}
+
+// quotedPicture is the picture of a quoted post's card on Bluesky, or nil:
+// a photo post's first picture, an article's cover, a video's poster, a
+// sound's cover, or the picture of the card a note carries. A post from
+// elsewhere has none kept here.
+func (h *Handlers) quotedPicture(quoted *entities.AnahitaNode, upload uploader) *bsky.OutBlob {
+	if quoted == nil || quoted.URI != "" || h.Keeper == nil || h.Keeper.Files == nil {
+		return nil
+	}
+	switch quoted.Type {
+	case constants.NodeMediumPhotoEntityType:
+		if h.Keeper.PhotoFiles == nil {
+			return nil
+		}
+		files, err := h.Keeper.PhotoFiles.BrowsePhotoFiles([]int64{quoted.ID})
+		if err != nil || len(files) == 0 {
+			return nil
+		}
+		sizes, err := quoted.PortraitsFor(files[0].Filename)
+		if err != nil {
+			return nil
+		}
+		return h.uploaded(sizes[entities.PortraitSizeMedium].Url, upload)
+	case constants.NodeMediumArticleEntityType:
+		return h.coverPicture(quoted, upload)
+	case videos.AudioNodeType:
+		return h.audioCover(quoted, upload)
+	case videos.NodeType:
+		if video := videos.FromMeta(quoted.Meta); video != nil {
+			return h.uploaded(video.Poster, upload)
+		}
+		return nil
+	}
+	if card := linkpreviews.FromMeta(quoted.Meta); card != nil {
+		return h.cardPicture(card.ImageKey, upload)
+	}
+	return nil
+}
+
+// uploaded is a picture in this installation's storage, given to the
+// account's server, or nil.
+func (h *Handlers) uploaded(path string, upload uploader) *bsky.OutBlob {
+	content, mimeType := h.stored(path)
+	if content == nil {
+		return nil
+	}
+	blob, err := upload(content, mimeType)
+	if err != nil {
+		return nil
+	}
+	return blob
+}
+
+// quotedWait is how long a quoted post written from here is waited for on
+// Bluesky before it is taken to be gone from there.
+const quotedWait = 10 * time.Minute
+
+// quotedRef is the post a post quotes as it is on Bluesky, or nil when it
+// is not there: one from Bluesky, or one of this installation's written
+// there. Only a quoted post that may be led to at all (`address`). A post
+// written there and not yet readable is tried again shortly
+// (errNotWrittenYet); one gone from Bluesky is led to by a line instead.
+func (h *Handlers) quotedRef(ctx context.Context, quoted *entities.AnahitaNode, address string) (*bsky.Ref, error) {
+	if quoted == nil || address == "" {
+		return nil, nil
+	}
+	uri := ""
+	if strings.HasPrefix(quoted.URI, "at://") {
+		uri = quoted.URI
+	} else if quoted.URI == "" && h.Sent != nil {
+		sent, err := h.Sent.Read(repositories.SentPost, quoted.ID, 0)
+		if err != nil {
+			return nil, err
+		}
+		if sent != nil {
+			uri = bsky.PostURI(sent.DID, sent.RKey)
+		}
+	}
+	if uri == "" {
+		return nil, nil
+	}
+	ref, _, err := h.refOf(ctx, uri)
+	if errors.Is(err, bsky.ErrNobody) {
+		return nil, nil
+	}
+	// Written from here and not readable there: about to be, when it was
+	// just made, and tried again; gone, when it is older, and led to.
+	if errors.Is(err, errNotWrittenYet) && time.Since(quoted.CreatedAt) > quotedWait {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return ref, nil
 }
