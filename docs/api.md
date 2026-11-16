@@ -183,7 +183,7 @@ in the reference.
 ## Services an installation may not run
 
 Some services are optional: recommendations, abuse reports, link previews,
-video, data export, websites, and the two for other networks
+video, data export, channels' feeds, and the two for other networks
 ([architecture.md](architecture.md)). Where one is not run, its routes are
 not there, and a client takes a `404`, or a `501` or above from the gateway,
 for there being nothing, not for a failure, as the web app does. What an installation speaks
@@ -272,7 +272,7 @@ through a Router put in it (`api.In("groups")`). Each section is a tag of its
 own in the document, in place of the service's, with `x-service` naming the
 service and `x-about` what is particular to it, and goes in a group as a
 service does. actor-service has five: **profiles**, what every kind has, then
-**people**, **groups**, **events** and **websites**. A route each kind has at
+**people**, **groups**, **events** and **channels**. A route each kind has at
 its own address alike is marked `Shared("profiles")`, written `x-shared`, and
 the reference lists it under its kind after the kind's own, pointing to the
 section that explains it ([Profiles](profiles.md#the-api)).

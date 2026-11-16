@@ -25,8 +25,8 @@ type EventNode struct {
 	_ struct{} `json:"-" apidoc:"omit=quote_policy"`
 }
 
-// ChannelNode is a channel, as it is sent: a site's feed, followed as a
-// profile, whose domain was proved when it was connected.
+// ChannelNode is a channel, as it is sent: a profile its admins post on as
+// it, which may read a website's feed.
 type ChannelNode struct {
 	responses.ActorNode
 

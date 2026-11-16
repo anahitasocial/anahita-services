@@ -3404,7 +3404,7 @@
         "type": "object"
       },
       "actor.ChannelNode": {
-        "description": "ChannelNode is a channel, as it is sent: a site's feed, followed as a profile, whose domain was proved when it was connected.",
+        "description": "ChannelNode is a channel, as it is sent: a profile its admins post on as it, which may read a website's feed.",
         "properties": {
           "access": {
             "description": "Who may see it: `public`, `registered`, `followers`, `leaders`, `mutuals`, `admins` or `myself` (permissions.md).",

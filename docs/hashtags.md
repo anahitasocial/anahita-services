@@ -97,7 +97,7 @@ is for those whose post or profile it is:
 | Who | May tie a location to, and take it away from |
 | --- | --- |
 | Anybody signed in | A post they wrote, or one on their profile; their own profile |
-| Whoever looks after a group, a website or an event | That profile |
+| Whoever looks after a group, a channel or an event | That profile |
 | Administrators and super administrators | Any |
 
 The rule is `anahita-libs/permissions/taggable.go` (`TaggablePermissions`),
@@ -114,7 +114,7 @@ what the most profiles used lately, and how many (`profiles`, shown as
 
 1. **Each profile once, of every kind.** A profile uses a tag by writing a
    post that carries it, or by being tagged with it: a person, a group, an
-   event or a website, here or on another server. One profile posting a
+   event or a channel, here or on another server. One profile posting a
    hashtag twenty times counts as one, so nobody can make something trend
    alone. Ties go to the one on more posts and profiles.
 2. **By when a post was written,** not when it arrived, and a profile by

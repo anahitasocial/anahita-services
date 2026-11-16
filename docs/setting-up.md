@@ -36,7 +36,7 @@ linked where they come in.
    4. [Download your data](data-export.md#running-it-and-not-running-it)
    5. [The web shell](web-shell.md#running-it), which gives each shared link
       its own title and picture
-   6. [Websites](channels.md): a website's feed as a profile to follow
+   6. [Channels](channels.md): a profile for an organization or a project, posted on by its admins, which may read a website's feed
 
 Next: [Customising](customising.md), then
 [Operating](operating.md).

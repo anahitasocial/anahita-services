@@ -1,7 +1,7 @@
 # Profiles
 
 A profile is how an **actor** is shown: a person, a group, an event or a
-website. Every actor has an id, a name and a description, and a place in the
+channel. Every actor has an id, a name and a description, and a place in the
 social graph: who follows it, who has blocked it, and, for a person, whom
 they follow. Most of all, an actor owns things. The posts and updates on it
 are its own, and following it is subscribing to them: what it posts comes to
@@ -17,7 +17,7 @@ is on its own page:
 | A person | An account, an account type, pronouns, tags in photos, who may quote them | [People](people.md) | `/people/` |
 | A group | Made by members, rules to agree to, events it hosts | [Groups](groups.md) | `/groups/` |
 | An event | A time, a place, going or maybe, a calendar file, being called off | [Events](events.md) | `/events/` |
-| A website | A site's feed, its proved domain, replies as the site | [Websites](channels.md) | `/channels/` |
+| A channel | Only its admins post on it, as it; a website's feed it may read | [Channels](channels.md) | `/channels/` |
 
 All four are served by actor-service, and kept in the graph as nodes of the
 types in [The graph](the-graph.md).
@@ -94,8 +94,8 @@ so no features and no access to choose; only people and groups can be
 removed as spam. Each kind's page in the reference has exactly its own.
 
 What each is sent as: a person as `actor.PersonNode`, a group as
-`actor.GroupNode`, an event as `actor.EventNode` and a website as
-`actor.WebsiteNode`, each what every profile is sent (`ActorNode`) without
+`actor.GroupNode`, an event as `actor.EventNode` and a channel as
+`actor.ChannelNode`, each what every profile is sent (`ActorNode`) without
 what only another kind has. `GET /actors/:alias` answers with
 `actor.HandleResponse`.
 
@@ -104,7 +104,7 @@ what only another kind has. `GET /actors/:alias` answers with
 | What | Where |
 | --- | --- |
 | The routes, and which are every profile's | `actor-service/cmd/api/routes.go` (`Section`, `Shared`) |
-| Groups, events and websites | `actor-service/cmd/api/handlers/group*.go`, `event*.go`, `website*.go` |
+| Groups, events and channels | `actor-service/cmd/api/handlers/group*.go`, `event*.go`, `channel*.go` |
 | People | `actor-service/cmd/api/handlers/person*.go` |
 | The shapes sent | `anahita-libs/responses/actor.go`, `actor-service/responses/` |
 | Who may do what | `anahita-libs/permissions/actor.go` |

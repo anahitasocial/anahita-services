@@ -100,7 +100,7 @@ says what kind of thing that is. Three families hold nearly everything.
 
 An actor is somebody, or a body of people, and the code's word for a
 **profile** ([Profiles](profiles.md)). A person is one; so is a collective of
-people: a group, an event, an organisation's website.
+people: a group, an event, an organisation's channel.
 
 1. **It has an identity:** a name, a handle, a description, a profile photo,
    an address of its own.
@@ -155,7 +155,7 @@ what it reposts.
 | Actors | `node.actor.person-service.person.v1` | A person with an account here |
 | | `node.actor.group-service.group.v1` | A group, which people follow and post in |
 | | `node.actor.actor-service.event.v1` | An event, which people say they are going to; often hosted by a group |
-| | `node.actor.actor-service.channel.v1` | A website's feed, verified, as a profile to follow ([Websites](channels.md)) |
+| | `node.actor.actor-service.channel.v1` | A channel: a profile its admins post on as it, which may read a website's feed ([Channels](channels.md)) |
 | | `node.actor.activitypub-service.person.v1` | Somebody on a server of the fediverse |
 | | `node.actor.atproto-service.person.v1` | Somebody on Bluesky |
 | Media | `node.medium.text-service.note.v1` | A note: a short post, and the kind that arrives from another server |

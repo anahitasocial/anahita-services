@@ -200,7 +200,7 @@ location's and the liked posts.
 | `all` (the default) | Everything below |
 | `posts` | Every kind of post: notes, articles, topics, photos and videos |
 | `media` | Photos and videos alone, as other networks mean media (the user, 2026-10-20) |
-| `actors` | Profiles: people, groups, events and websites, here and elsewhere |
+| `actors` | Profiles: people, groups, events and channels, here and elsewhere |
 | `feeds` | Custom feeds people have shared |
 
 Until 2026-10-20 `media` was every kind of post; it is `posts` now.

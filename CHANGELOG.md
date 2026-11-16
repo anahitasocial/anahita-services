@@ -96,21 +96,24 @@ Releases before v1.0.17 are described on GitHub, under
 
 ### Fixed
 
-1. **A channel is made first, its feed connected after** (roadmap row 147,
+1. **A channel's post sent to the fediverse once** (roadmap row 147,
+   phase 6): one its admins wrote was found twice by the sweep for what
+   did not go out, as a channel's note and as a profile's own post.
+2. **A channel is made first, its feed connected after** (roadmap row 147,
    phase 4): `POST /channels/_connect/:id`, which made a channel of a
    proved feed, is gone, and `suggested_name` and `suggested_alias` with
    it. Make the channel with `POST /channels/`, then connect its feed.
-2. **A new sound posted (`audio_add`)** can be turned off with the other
+3. **A new sound posted (`audio_add`)** can be turned off with the other
    posts, under `posts`.
-3. **A sensitive post from another server keeps its pictures** (roadmap
+4. **A sensitive post from another server keeps its pictures** (roadmap
    row 122): its warning is read, a Note's `summary` in its author's words
    or "Sensitive", or a Bluesky self-label as its kind, and its pictures,
    video or sound are kept behind it, as a post written here is. They were
    left out before.
-4. **Search finds a photo post by the alt text of any of its pictures,**
+5. **Search finds a photo post by the alt text of any of its pictures,**
    the second, third or fourth as well as the first; a whole word there
    counts as one in the post's words.
-5. **A photo post with several pictures** found by search, on a hashtag's
+6. **A photo post with several pictures** found by search, on a hashtag's
    or a location's page, or among liked posts, is answered with all of
    them, as in a feed, not its first picture alone.
 

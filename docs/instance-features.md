@@ -4,7 +4,7 @@ Anahita is small services, each doing one thing, and a site runs and shows
 only what it offers. One file says what that is: `instance.json`, beside
 the files that say what each kind of profile has. An instance is one big
 profile, and every profile on it has only what it has. A site of notes and
-photos alone, for example, offers no articles, topics, events, websites or
+photos alone, for example, offers no articles, topics, events, channels or
 videos: they are in no composer, menu or tab, and the services refuse them.
 
 Built for the recipes, roadmap row 139 ([the plan](plans/instance-features.md)).
@@ -22,7 +22,7 @@ Built for the recipes, roadmap row 139 ([the plan](plans/instance-features.md)).
 `instance.json` in the directory `ACTOR_FEATURES_PATH` names,
 `/app/defaults/actor_features` in graph-grpc-service's image, beside
 `default.json`, `person.json`, `group.json`, `event.json` and
-`website.json` ([Permissions](permissions.md#the-defaults)). It is in their
+`channel.json` ([Permissions](permissions.md#the-defaults)). It is in their
 form: a list of services, each with the kinds it offers.
 
 ```json
@@ -44,7 +44,7 @@ That is a site of people and groups, notes and photos.
 | No file | Everything, as before it was read. The image carries none |
 
 `actor-service`'s kinds are the kinds of profile that may be made: `group`,
-`event`, and `website`, which syndication-service makes. A person is always
+`event` and `channel` (`website`, its old name, read for one release). A person is always
 offered: it is an account. The kinds of post are `note`, `article` and
 `topic` (text-service), `photo` (photo-service), and `video` and `audio`
 (video-service).
@@ -85,9 +85,9 @@ everything, as no file does.
    fediverse still shows in a feed. This is about what is made here.
 5. **NodeInfo says what is offered,** in `metadata.offers`:
    `{"profiles": ["person", "group"], "posts": ["note", "photo"]}`. The web
-   app follows it: its menu (Groups, Events, Websites), a group's Events
-   tab, the recommendations' tabs, and the buttons that make a group, an
-   event or a website.
+   app follows it: its menu (Groups, Events, Channels), a group's and a
+   channel's Events tab, the recommendations' tabs, and the buttons that
+   make a group, an event or a channel.
 
 ## Video and sound
 

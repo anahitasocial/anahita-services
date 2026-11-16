@@ -152,7 +152,7 @@ The pages, grouped by what they are about, each group in the order to read it.
 What every profile has, then each kind's own. The API reference has the same
 five, under Profiles.
 
-1. [Profiles](profiles.md) — what every person, group, event and website has alike, and each kind's address
+1. [Profiles](profiles.md) — what every person, group, event and channel has alike, and each kind's address
    1. [What every profile has](profiles.md#what-every-profile-has)
    2. [Its address](profiles.md#its-address)
    3. [Its admins](profiles.md#its-admins)
@@ -174,7 +174,27 @@ five, under Profiles.
    3. [Reminders and when it is over](events.md#reminders-and-when-it-is-over)
    4. [The API](events.md#the-api)
    5. [Where the code is](events.md#where-the-code-is)
-5. [Websites](channels.md) — a website's feed as a profile, under Fediverse and Bluesky below
+5. [Channels](channels.md) — a profile for an organization or a project that only its admins post on, as it: what it posts, who wrote it, its privacy and events, and a website's feed it may read
+   1. [Who does what](channels.md#who-does-what)
+   2. [Making a channel](channels.md#making-a-channel)
+   3. [What it posts](channels.md#what-it-posts)
+   4. [Who wrote it](channels.md#who-wrote-it)
+   5. [Replies as the channel](channels.md#replies-as-the-channel)
+   6. [Privacy](channels.md#privacy)
+   7. [Events](channels.md#events)
+   8. [Its feed](channels.md#its-feed)
+   9. [Proving a domain](channels.md#proving-a-domain)
+   10. [Reading the feed](channels.md#reading-the-feed)
+   11. [The feed's notes](channels.md#the-feeds-notes)
+   12. [On the fediverse](channels.md#on-the-fediverse)
+   13. [On Bluesky](channels.md#on-bluesky)
+   14. [WebSub](channels.md#websub)
+   15. [Pausing and starting again](channels.md#pausing-and-starting-again)
+   16. [Settings](channels.md#settings)
+   17. [The tables](channels.md#the-tables)
+   18. [Endpoints](channels.md#endpoints)
+   19. [What is not built](channels.md#what-is-not-built)
+   20. [Where the code is](channels.md#where-the-code-is)
 
 ### Accounts and the graph
 
@@ -383,17 +403,7 @@ five, under Profiles.
    26. [Posts and people that are removed](federation.md#posts-and-people-that-are-removed)
    27. [Bluesky](federation.md#bluesky)
    28. [Where the code is](federation.md#where-the-code-is)
-2. [Websites](channels.md) — a website's feed as a profile to follow: connecting a site, proving its domain, its feed read and posted as notes, replies as the website, and on the fediverse
-   1. [Who does what](channels.md#who-does-what)
-   2. [Connecting a website](channels.md#connecting-a-website)
-   3. [Proving a domain](channels.md#proving-a-domain)
-   4. [Reading the feed](channels.md#reading-the-feed)
-   5. [Its posts](channels.md#its-posts)
-   6. [Replies as the website](channels.md#replies-as-the-website)
-   7. [On the fediverse](channels.md#on-the-fediverse)
-   8. [WebSub](channels.md#websub)
-   9. [Settings](channels.md#settings)
-   10. [Where the code is](channels.md#where-the-code-is)
+2. [A channel's feed](channels.md#its-feed) — a website's feed read and posted as a channel's notes, on the fediverse and Bluesky as the channel's ([Channels](channels.md), under Profiles above)
 3. [The federation lab](federation-lab.md) — trying federation on one machine: names, certificates, and another server to talk to
    1. [Why it is needed](federation-lab.md#why-it-is-needed)
    2. [What is in it](federation-lab.md#what-is-in-it)
@@ -455,6 +465,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | Plan | Roadmap item | Status |
 | --- | --- | --- |
 | [Recommendation service](plans/done/recommendation-service.md) | 3 | built 2026-10-11 |
+| [Websites become channels](plans/done/channels.md) | row 147 | done 2026-11-16: the rename; Create channel with a group's privacy; its admins post as it, Written by for them alone; its feed in its settings; events hosted by a channel; the docs, anahita.io and the recipes |
 | [Who sees your followers and who you follow](plans/done/who-sees-your-follows.md) | row 151 | done 2026-11-15 |
 | [Blocking a server yourself](plans/done/blocking-a-server.md) | row 152 | done 2026-11-16 |
 | [What is yours, and what you take part in](plans/done/whose-notifications.md) | row 146 | done 2026-11-16 |
@@ -477,7 +488,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Quote posts](plans/done/quote-posts.md) | 25 | done 2026-10-05 |
 | [Verified domains](plans/verified-domains.md) | 26 | not started |
 | [Collections](plans/collections.md) | 34 | shape decided 2026-10-06; kept for later, not to be built yet |
-| [Websites: a site's feed as something to follow](plans/done/website.md) | 30 | done 2026-10-17: syndication-service and syndication-worker, a verified domain's feed posted as notes, replies as the website, an Organization on the fediverse, its own Bluesky account ([Websites](channels.md)) |
+| [Websites: a site's feed as something to follow](plans/done/website.md) | 30 | done 2026-10-17: syndication-service and syndication-worker, a verified domain's feed posted as notes, replies as the website, an Organization on the fediverse, its own Bluesky account; websites became channels in row 147 ([Channels](channels.md)) |
 | [One clean schema](plans/done/migration-baseline.md) | 27 | done 2026-10-17: the migrations folded into `init.sql` and `legacy/upgrade.sql`, the PHP upgrade fixed, `make schema_test`, NULL only where it means something ([The database](architecture.md#the-database)) |
 | [The API reference, made from the code](plans/done/api-reference.md) | 38 | done 2026-10-15: every route described, `docs/api/index.html`, answers checked in the handler tests |
 | [Documentation agents can use, and an MCP server](plans/done/docs-for-agents.md) | 39 | done 2026-10-27: the MCP server is anahita-mcp |

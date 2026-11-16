@@ -59,8 +59,8 @@ react. Event names are versioned constants in `anahita-libs/event`, shaped
 | `feed-service` | 8098 | 50059 | Feeds and reposts |
 | `recommendation-service` | 8100 | | Suggestions of who to follow. Optional |
 | `link-preview-service` | 8101 | — | Fetches the page a link points to and keeps its title and picture, for the card on a note. The only service that connects to addresses people type. Optional. See [Link previews](link-previews.md) |
-| `syndication-service` | 8107 | — | Connecting a website: finds its feed and checks its domain's proof; takes WebSub hubs' calls. Goes only to public addresses. Optional. See [Websites](channels.md) |
-| `syndication-worker` | — | — | Reads every website's feed and posts what is new; looks at every proof again daily. Answers no requests |
+| `syndication-service` | 8107 | — | A channel's website feed: finds it, checks its domain's proof, connects and disconnects it; takes WebSub hubs' calls. Goes only to public addresses. Optional. See [Channels](channels.md#its-feed) |
+| `syndication-worker` | — | — | Reads every channel's feed and posts what is new; looks at every proof again daily. Answers no requests |
 | `video-service` | 8103 | — | Videos: uploads sent straight to storage, and the posts made of them. Optional. See [Videos](videos.md) |
 | `video-worker` | — | — | Makes the sizes of each uploaded video with ffmpeg, then the post. Answers no requests |
 | `import-export-service` | 8104 | — | A person's copy of their own data: asking for one and fetching it. Optional. See [Download your data](data-export.md) |

@@ -184,7 +184,8 @@ LIMIT ?`
 // A channel's notes, the items of its feed and its replies, that should have
 // gone out and did not, once its administrators have put it on the
 // fediverse. Its items are made by the channel itself, and dated as on its
-// site, so they are taken by when they were made here.
+// site, so they are taken by when they were made here. What its admins
+// post as it, of every kind, notesNotSent finds as a person's own.
 const channelNotesNotSent = `
 SELECT note.id
 FROM nodes AS note
@@ -224,8 +225,11 @@ func (repo *Missed) NotesNotSent(since, olderThan time.Time, limit int) ([]int64
 	if err != nil {
 		return nil, err
 	}
+	// A channel's own posts, made by its admins as it (roadmap row 147),
+	// are the channel's own as a person's are theirs: both find them.
 	both := append(people, channels...)
 	slices.Sort(both)
+	both = slices.Compact(both)
 	if len(both) > limit {
 		both = both[:limit]
 	}

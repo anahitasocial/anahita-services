@@ -146,9 +146,9 @@ Considered and not chosen:
 | Goal and name | recorded 2026-10-05; renamed website 2026-10-15 |
 | Scope | settled 2026-10-14; narrowed to the feed alone 2026-10-15; its open points settled the same day |
 | Design | 2026-10-16: a note per item (an article for a day first), syndication-service and syndication-worker, a website's own notes never edited, private feeds refused |
-| Parts 1–10 (as each was first built: articles, and the Pulse's name, were changed after) | done 2026-10-16: foundations, proving a domain, syndication-service, the stack knowing a website, syndication-worker, replies as the website, on the fediverse, WebSub, the web app, docs ([Websites](../../websites.md)) |
+| Parts 1–10 (as each was first built: articles, and the Pulse's name, were changed after) | done 2026-10-16: foundations, proving a domain, syndication-service, the stack knowing a website, syndication-worker, replies as the website, on the fediverse, WebSub, the web app, docs ([Websites](../../channels.md)) |
 | On the fediverse by choice | 2026-10-17, the user: off until one of its administrators turns it on, as a person's profile is, in place of always on; under Settings › Fediverse, with its handle |
 | Bluesky | 2026-10-17: a website's own Bluesky account, connected by one of its administrators under Settings › Fediverse; its notes posted there as it |
 | Tried | 2026-10-17: rmdstudio.com proved and connected, its ten newest items posted as notes, its Bluesky account (@rmdstudio.com) connected |
 | Done | 2026-10-17 |
-| Left for later | a follow from a real Mastodon server, not yet tried; replies with pictures, a GIF or a video as the website, which are still their writer's ([Websites](../../websites.md#what-is-not-built)) |
+| Left for later | a follow from a real Mastodon server, not yet tried; replies with pictures, a GIF or a video as the website, which are still their writer's ([Websites](../../channels.md#what-is-not-built)) |

@@ -53,7 +53,7 @@ deletion** with the days left, so an administrator can get back to it and
 restore it. Super administrators see every one: in those lists too, and all
 together, soonest first, on the **Scheduled for deletion** tab of the web
 app's administration (`GET /accounts?state=deleted` for each kind: `person`,
-`group`, `event`, `website`). Anybody else no longer finds it. Once purged it is gone from every
+`group`, `event`, `channel`). Anybody else no longer finds it. Once purged it is gone from every
 list. A disabled account leaves every list until it is enabled again; an
 archived one stays.
 

@@ -23,7 +23,7 @@ What each route answers when the viewer may not is in the [API reference](api/in
    3. [Who the author lets reply](#who-the-author-lets-reply)
    4. [Who looks after a thread](#who-looks-after-a-thread)
    5. [Editing, deleting and hiding a reply](#editing-deleting-and-hiding-a-reply)
-   6. [Replying as a website](#replying-as-a-website)
+   6. [Posting and replying as a channel](#posting-and-replying-as-a-channel)
    7. [Liking a reply](#liking-a-reply)
 8. [Likes](#likes)
 9. [Following](#following)
@@ -367,13 +367,16 @@ Hiding exists as well as deleting because, once this installation federates, a
 reply that came from another server can be hidden here and cannot be deleted
 there.
 
-### Replying as a website
+### Posting and replying as a channel
 
-Under a website's own post, a reply in words by one of its administrators is
-the website's, its owner and author, so the site answers its readers as
-itself; which administrator wrote it is kept for those who handle reports
-(`written_by`). Anywhere else a reply is its writer's. Who may connect a
-website is `CHANNELS_FROM`, administrators unless set. See [Websites](channels.md).
+Only a channel's admins, and the site's administrators, post on a channel,
+whatever its saved features say (`CanPostTo`); what they post is the
+channel's, its owner and author. Under a channel's own post, a reply in
+words by one of its admins is the channel's too. Which admin wrote each is
+kept as `written_by`, sent to the channel's admins and the site's
+administrators alone. Anywhere else a reply is its writer's. Who may make a
+channel and connect its feed is `CHANNELS_FROM`, administrators unless set.
+See [Channels](channels.md).
 
 ### Liking a reply
 
@@ -930,7 +933,7 @@ The defaults live in `graph-grpc-defaults/actor_features/`:
 | `person.json` | People, layered over `default.json` |
 | `group.json` | Groups, layered over `default.json` |
 | `event.json` | Events, layered over `default.json` |
-| `website.json` | Websites, layered over `default.json` |
+| `channel.json` | Channels, layered over `default.json`: nothing for followers to add; notes, photos, videos and sounds for its admins, articles and topics for them to turn on |
 | `instance.json` | Not in the image: what the whole site offers, which every profile is cut to after the others are layered ([What a site offers](instance-features.md)) |
 
 Each service lists its `add_permissions` as an entity and a level:

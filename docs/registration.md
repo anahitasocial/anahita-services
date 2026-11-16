@@ -334,6 +334,6 @@ Nothing in signup can create a super administrator. On a fresh database, set
 | The approval queue | `auth-service/cmd/api/handlers/signup_requests.go`, `auth-service/data/repositories/signup_requests.go`, table `signup_requests` |
 | Terms of Service and Privacy Policy | `auth-service/cmd/api/handlers/agreements.go`, the `tos_accepted_*` and `pp_accepted_*` columns of table `auth_accounts` |
 | Onboarding | `auth-service/cmd/api/handlers/onboarding.go`, `onboarding_test.go`; `onboarded_at` and `invited_by` in table `auth_accounts` |
-| Featured profiles | `actor-service/cmd/api/handlers/person.go` and `group.go` (`SetFeatured`, which `website.go` and `event.go` share), `featured_at` in table `nodes` |
+| Featured profiles | `actor-service/cmd/api/handlers/person.go` and `group.go` (`SetFeatured`, which `channel.go` and `event.go` share), `featured_at` in table `nodes` |
 | NodeInfo | `auth-service/cmd/api/handlers/node_info.go` (`federationProtocols`); setting `FEDERATION_PROTOCOLS` |
 | The first super administrator | `auth-service/data/services/super_admin_seed.go` (`SeedSuperAdmin`); settings `SUPER_ADMIN_EMAIL`, `SUPER_ADMIN_USERNAME`, `SUPER_ADMIN_NAME` |

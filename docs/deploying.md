@@ -463,8 +463,8 @@ or `secrets.env` and applying again restarts the services that read them.
 Every Deployment starts with one replica. The services that only answer
 requests can be given more:
 
-export, feed, identity-image, like, link-preview, location, photo, website,
-search, socialgraph, text, video, web-shell, and the gateway.
+export, feed, identity-image, like, link-preview, location, photo, search,
+socialgraph, syndication, text, video, web-shell, and the gateway.
 
 The three workers, import-export-worker, video-worker and syndication-worker, take their
 jobs from a table one at a time, so any number of copies share the work

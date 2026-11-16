@@ -23,7 +23,7 @@ orders by. The pages it links to have the numbers.
 | A custom feed | What a person chose: sources, hashtags, words, locations, languages, a distance | Newest first | [Custom feeds](feeds.md) |
 | Search | People, groups, events, posts and shared feeds that match the words | Most relevant, or most recent | [Search](search.md) |
 | A hashtag's or a location's posts | The posts that carry it | Most relevant, without the words | [Hashtags and locations](hashtags.md#a-hashtags-and-a-locations-posts) |
-| Suggestions | People, groups, events and websites to follow | By the reasons for each, scored | [Recommendations](recommendations.md) |
+| Suggestions | People, groups, events and channels to follow | By the reasons for each, scored | [Recommendations](recommendations.md) |
 | Trending | The hashtags and locations the most profiles used lately | By how many profiles, each once | [Trending](hashtags.md#trending) |
 | What is on | Every event still to come that the viewer may see, whoever hosts it; narrowed by when, online, and those somebody they follow hosts or is going to | Soonest first, always | [Events](events.md#what-is-on) |
 

@@ -375,10 +375,10 @@ The moment one of them stops being so, they are not found: every address of
 theirs answers `404`, in the same words as an address nobody has. A server
 is never told *why* somebody is not there.
 
-A **website**, a site's feed connected as a profile ([Websites](channels.md)),
-is on the fediverse once one of its administrators turns it on, off until
-then as a person is, and only while it is enabled and not on its way to
-being deleted, on a site that federates. It is an `Organization`, found by
+A **channel**, a profile its admins post on as it ([Channels](channels.md)),
+is on the fediverse once one of its admins turns it on, off until then as a
+person is, and only while it is public, enabled and not on its way to being
+deleted, on a site that federates. It is an `Organization`, found by
 its handle as a person is.
 
 Groups and events are not on the fediverse yet.
@@ -705,8 +705,9 @@ words; a tag tells another server of nobody who has not chosen to be known
 there. A tag approved or taken off sends the post again as an `Update`.
 Bluesky has no tags, and nothing goes there.
 
-A **website's notes**, the items of its feed and its replies, go out as a
-person's notes do, the website's, to its followers ([Websites](channels.md)).
+A **channel's posts**, what its admins post as it, the items of its feed and
+its replies, go out as a person's posts do, the channel's, to its followers
+([Channels](channels.md)).
 
 **An article goes as an `Article`** at the same address a note has
 (`/ap/notes/<uuid>`), under the same rules:
@@ -1397,8 +1398,8 @@ name on Bluesky by this installation. Somebody
 who already has an account there can connect it, and from then on their
 public notes are posted there, and a like, a repost or a reply they give
 here to something from Bluesky is made there too, as that account: see [Answering on Bluesky](#answering-on-bluesky).
-A website's administrators connect the site's own account the same way,
-and its notes are posted there ([Websites](channels.md#on-bluesky)).
+A channel's admins connect its own account the same way, and its posts
+are posted there ([Channels](channels.md#on-bluesky)).
 For everybody else such things stay here, which the web app says under the
 reply being written, and their follow of somebody on Bluesky is kept here
 without that account being told.
