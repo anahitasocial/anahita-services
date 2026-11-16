@@ -76,6 +76,10 @@ Releases before v1.0.17 are described on GitHub, under
 
 ### Changed
 
+1. **A channel is made first, its feed connected after** (roadmap row 147,
+   phase 4): `POST /channels/_connect/:id`, which made a channel of a
+   proved feed, is gone, and `suggested_name` and `suggested_alias` with
+   it. Make the channel with `POST /channels/`, then connect its feed.
 2. **Websites are channels** (roadmap row 147, phase 1: the rename alone;
    nothing else about them changes yet). Migration
    `20261122000021_channels` renames the type to
@@ -105,23 +109,47 @@ Releases before v1.0.17 are described on GitHub, under
 1. **A channel's post sent to the fediverse once** (roadmap row 147,
    phase 6): one its admins wrote was found twice by the sweep for what
    did not go out, as a channel's note and as a profile's own post.
-2. **A channel is made first, its feed connected after** (roadmap row 147,
-   phase 4): `POST /channels/_connect/:id`, which made a channel of a
-   proved feed, is gone, and `suggested_name` and `suggested_alias` with
-   it. Make the channel with `POST /channels/`, then connect its feed.
-3. **A new sound posted (`audio_add`)** can be turned off with the other
+2. **A new sound posted (`audio_add`)** can be turned off with the other
    posts, under `posts`.
-4. **A sensitive post from another server keeps its pictures** (roadmap
+3. **A sensitive post from another server keeps its pictures** (roadmap
    row 122): its warning is read, a Note's `summary` in its author's words
    or "Sensitive", or a Bluesky self-label as its kind, and its pictures,
    video or sound are kept behind it, as a post written here is. They were
    left out before.
-5. **Search finds a photo post by the alt text of any of its pictures,**
+4. **Search finds a photo post by the alt text of any of its pictures,**
    the second, third or fourth as well as the first; a whole word there
    counts as one in the post's words.
-6. **A photo post with several pictures** found by search, on a hashtag's
+5. **A photo post with several pictures** found by search, on a hashtag's
    or a location's page, or among liked posts, is answered with all of
    them, as in a feed, not its first picture alone.
+
+### Upgrading
+
+1. **Websites are channels,** and three settings have new names:
+   `WEBSITES_FROM` is `CHANNELS_FROM`, `WEBSITE_HOURLY_CAP` is
+   `CHANNEL_FEED_HOURLY_CAP` and `WEBSITE_READ_EVERY` is
+   `CHANNEL_FEED_READ_EVERY`. With Docker Compose the old names are still
+   read for this release. On Kubernetes, rename the keys in your
+   `config.env`: the manifests pass only the new ones, and a site that set
+   `WEBSITES_FROM` would otherwise fall back to administrators.
+   `CHANNELS_FROM` is now read by actor-service too, which makes channels.
+2. **In `instance.json`,** `website` among actor-service's kinds becomes
+   `channel` (still read for this release), and a site's own
+   `website.json` beside the defaults becomes `channel.json`.
+3. **The API's `/websites/…` addresses are `/channels/…`,** NodeInfo's
+   `websitesFrom` is `channelsFrom`, and the kind is `channel` in custom
+   feeds, recommendations and the accounts list. `POST
+   /channels/_connect/:id` is gone: a channel is made with `POST
+   /channels/`, and its feed connected with `PUT
+   /channels/_connect/feeds/:channel_id`. A web app from before this
+   release does not work with it: run Anahita Web's next release with it.
+4. **Four migrations** run by the migration job, as any upgrade's do
+   ([Upgrading](docs/deploying.md#upgrading)): who sees one's follows
+   (`graph_access`), servers a person blocked (`person_domain_blocks`), the
+   rename to channels (`channels`, which rewrites stored types, two tables
+   and custom feeds that name the kind), and a channel's feed notes marked
+   as such (`channel_feed_marks`). Take a backup first, as before any
+   upgrade.
 
 ## v1.2.9 Birth, 2026-11-15
 

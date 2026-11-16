@@ -140,11 +140,11 @@ func TestMostRelevant(t *testing.T) {
 
 	// What the searcher follows: Bob's chat comes first for Ana, who
 	// follows him, among the posts that mention coffee in the same way.
-	mine := search(constants.SearchScopeMedium, "coffee", ana)
+	mine := search(constants.SearchScopePosts, "coffee", ana)
 	if !before(mine, 26, 24) {
 		t.Errorf("what Ana follows should come first for her: %v", mine)
 	}
-	theirs := search(constants.SearchScopeMedium, "coffee", visitor)
+	theirs := search(constants.SearchScopePosts, "coffee", visitor)
 	if !before(theirs, 24, 26) {
 		t.Errorf("for a visitor, the post liked lately comes first: %v", theirs)
 	}
@@ -171,7 +171,7 @@ func TestMostRelevantWithInterestThatNeverFades(t *testing.T) {
 	repo := NewSearchRepo(db).(*SearchRepo)
 	repo.ranking = ranking.NewSource(path)
 	nodes, err := repo.Browse(&graphpb.SearchBrowseRequest{
-		Scope: constants.SearchScopeMedium, Keywords: "coffee", Ordering: "relevant", Limit: 50,
+		Scope: constants.SearchScopePosts, Keywords: "coffee", Ordering: "relevant", Limit: 50,
 	}, feedViewer(0))
 	if err != nil {
 		t.Fatal(err)
