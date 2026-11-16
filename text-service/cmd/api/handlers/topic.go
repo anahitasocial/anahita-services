@@ -266,6 +266,8 @@ func (h *topicHandler) Add(c echo.Context) error {
 	// Begun as a draft when it is asked to be: seen by its author alone,
 	// and announced when it is published.
 	medium.Draft = req.Draft
+	// On a channel, the channel's own, written by one of its admins.
+	an_handlers.OwnPost(medium, viewer.ID)
 	medium, err = h.Srv.MediaGRPC.AddWithLocations(medium, viewer, req.LocationIDs)
 	// A group's or an event's rules changed since they agreed: agreed to
 	// again first (roadmap row 102, part 5c).

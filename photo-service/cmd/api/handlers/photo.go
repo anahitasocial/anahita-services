@@ -425,6 +425,8 @@ func (h *photoHandler) Add(c echo.Context) error {
 	medium.Filename = plan.Files[0].Filename
 	medium.Mimetype = plan.Files[0].Mimetype
 
+	// On a channel, the channel's own, written by one of its admins.
+	handlers.OwnPost(medium, viewer.ID)
 	medium, err = h.Srv.MediaGRPC.AddWithLocations(medium, viewer, req.LocationIDs)
 	// A group's or an event's rules changed since they agreed: agreed to
 	// again first (roadmap row 102, part 5c).
@@ -531,6 +533,7 @@ func (h *photoHandler) onAfterFetched(c echo.Context, item *entities.AnahitaNode
 		}
 		if thread, err := handlers.Thread(c, h.readers(), item.RootID, viewer); err == nil {
 			handlers.SetReplyFlags(thread, item)
+			handlers.SetThreadWrittenBy(h.Srv.ActorsGRPC, thread, []*entities.AnahitaNode{item})
 		}
 		return nil
 	}

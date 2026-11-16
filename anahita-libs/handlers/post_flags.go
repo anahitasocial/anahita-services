@@ -26,7 +26,15 @@ const requestOwnersKey = "anahita.post_flags.owners"
 //
 // rel is the owner's relationship to the viewer. When the owner cannot be read
 // both answers are left unset, which the web app reads as "not answered here".
+//
+// For a channel's admins, and the site's administrators, it also names the
+// admin who wrote a channel's post (SetWrittenBy).
 func SetPostFlags(c echo.Context, actors services.ActorsGRPCInterface, post *entities.AnahitaNode, viewer *entities.Viewer, rel *entities.ActorRelation) {
+	setPostFlags(c, actors, post, viewer, rel)
+	SetWrittenBy(actors, []*entities.AnahitaNode{post}, viewer, SameRel(rel))
+}
+
+func setPostFlags(c echo.Context, actors services.ActorsGRPCInterface, post *entities.AnahitaNode, viewer *entities.Viewer, rel *entities.ActorRelation) {
 	if post == nil || post.Authorized == nil || post.OwnerID <= 0 {
 		return
 	}
@@ -115,6 +123,9 @@ func SetListPostFlags(c echo.Context, actors services.ActorsGRPCInterface, relat
 		if post.Authorized == nil {
 			post.Authorized = &entities.AnahitaNodeAuthorized{}
 		}
-		SetPostFlags(c, actors, post, viewer, rels[post.OwnerID])
+		setPostFlags(c, actors, post, viewer, rels[post.OwnerID])
 	}
+	SetWrittenBy(actors, posts, viewer, func(post *entities.AnahitaNode) *entities.ActorRelation {
+		return rels[post.OwnerID]
+	})
 }

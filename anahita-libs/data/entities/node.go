@@ -223,7 +223,11 @@ type AnahitaNode struct {
 	// Related Entities
 	Author *AnahitaNode
 	Editor *AnahitaNode
-	Parent *AnahitaNode
+	// Which of a channel's admins wrote a post made as the channel, read
+	// for its admins and the site's administrators alone
+	// (handlers.SetWrittenBy). Nil for everybody else.
+	WrittenBy *AnahitaNode
+	Parent    *AnahitaNode
 	// For a reply read on its own: the post at the top of its thread, so
 	// the page can say what it is a reply to and lead there. Not stored,
 	// and set only by a handler that has checked the viewer may see it.

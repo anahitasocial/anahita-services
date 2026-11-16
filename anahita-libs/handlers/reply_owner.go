@@ -64,3 +64,16 @@ func WrittenBy(meta json.RawMessage) int64 {
 	}
 	return fields.WrittenBy
 }
+
+// OwnPost makes a new post on a channel the channel's own (roadmap row 147):
+// its admins write as it, so the channel is its author, shown and sent as
+// such, and the admin who wrote it is kept in its meta. A post anywhere
+// else, and a reply, are left as they are: a reply is OwnReply's.
+func OwnPost(post *entities.AnahitaNode, writerID int64) {
+	if post == nil || post.OwnerType != constants.NodeActorChannelEntityType || post.ParentID > 0 || post.OwnerID <= 0 {
+		return
+	}
+	post.CreatedBy = post.OwnerID
+	post.ModifiedBy = writerID
+	post.Meta = WithWrittenBy(post.Meta, writerID)
+}

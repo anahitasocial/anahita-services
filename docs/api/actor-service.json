@@ -893,7 +893,7 @@
           },
           "editor": {
             "$ref": "#/components/schemas/Editor",
-            "description": "Who changed it last."
+            "description": "Who changed it last. Never on a channel's post, which its admins change as the channel."
           },
           "event": {
             "$ref": "#/components/schemas/Event",
@@ -1059,6 +1059,10 @@
           "warning": {
             "$ref": "#/components/schemas/Warning",
             "description": "A post's content warning, when it has one."
+          },
+          "written_by": {
+            "$ref": "#/components/schemas/Author",
+            "description": "Which of a channel's admins wrote it, sent to its admins and the site's administrators only: everybody else sees the channel alone."
           }
         },
         "required": [

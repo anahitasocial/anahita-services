@@ -23,6 +23,7 @@ import (
 	"anahita-libs/domains"
 	an_handlers "anahita-libs/handlers"
 	"anahita-libs/linkpreviews"
+	"anahita-libs/permissions"
 )
 
 const (
@@ -353,7 +354,7 @@ func (w *Worker) noteOf(ctx context.Context, channel *entities.AnahitaNode, admi
 	note.CommentStatus = true
 	// The graph keeps it unless it is in the future.
 	note.CreatedAt = item.Published
-	note.Meta = an_handlers.WithWrittenBy(w.cardOf(ctx, item.Link), adminID)
+	note.Meta = permissions.WithFromFeed(an_handlers.WithWrittenBy(w.cardOf(ctx, item.Link), adminID))
 	return note
 }
 

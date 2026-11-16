@@ -17,6 +17,7 @@ import (
 	an_const "anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
+	an_handlers "anahita-libs/handlers"
 	"anahita-libs/threads"
 	"anahita-libs/videos"
 
@@ -547,6 +548,8 @@ func (w *Worker) post(upload *repositories.Upload, meta []byte) (*entities.Anahi
 	}
 
 	medium.Meta = meta
+	// On a channel, the channel's own, written by one of its admins.
+	an_handlers.OwnPost(medium, upload.PersonID)
 
 	node, err := w.Posts.Add(medium, viewer)
 	if err != nil || node == nil {

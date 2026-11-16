@@ -11821,7 +11821,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-MediumNode" data-search="mediumnode access alias allow_download audio author authorized citation_count comment_count comment_status content cover_urls created_at deleted draft editor enabled files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer is_subscribed_by_viewer language library_only likes_count link_preview link_previews media_elsewhere media_removed mimetype origin_domain owner parent_id pinned portrait_urls quote quote_count quote_id quote_policy reply_access repost_count root root_id title type updated_at uri video view_count warning">
+<div class="route schema" id="schema-MediumNode" data-search="mediumnode access alias allow_download audio author authorized citation_count comment_count comment_status content cover_urls created_at deleted draft editor enabled files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer is_subscribed_by_viewer language library_only likes_count link_preview link_previews media_elsewhere media_removed mimetype origin_domain owner parent_id pinned portrait_urls quote quote_count quote_id quote_policy reply_access repost_count root root_id title type updated_at uri video view_count warning written_by">
 <h3>MediumNode</h3>
 <p>A post or a reply, read on its own or answered with after a change.</p>
 <table>
@@ -11841,7 +11841,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>created_at</code></td><td>time</td><td>When it was written.</td></tr>
 <tr><td><code>deleted</code></td><td>boolean</td><td>On a reply: removed, and kept as an empty placeholder because other replies hang from it. It carries no text and no author.</td></tr>
 <tr><td><code>draft</code></td><td>boolean</td><td>That it is a draft, an article or a topic still being written, seen by its author alone.</td></tr>
-<tr><td><code>editor</code></td><td><a href="#schema-Editor">Editor</a></td><td>Who changed it last.</td></tr>
+<tr><td><code>editor</code></td><td><a href="#schema-Editor">Editor</a></td><td>Who changed it last. Never on a channel&#39;s post, which its admins change as the channel.</td></tr>
 <tr><td><code>enabled</code> <span class="required">always</span></td><td>boolean</td><td>Whether it is shown: false when it has been disabled.</td></tr>
 <tr><td><code>files</code></td><td>list of <a href="#schema-PhotoFile">PhotoFile</a></td><td>The images of a photo post, in order. The first is the one portrait_urls shows.</td></tr>
 <tr><td><code>hidden</code></td><td>boolean</td><td>On a reply: hidden from its thread. Sent only to somebody who may show it again.</td></tr>
@@ -11878,10 +11878,11 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>video</code></td><td><a href="#schema-Video">Video</a></td><td>What a video post plays, or a post from elsewhere once its video was copied here.</td></tr>
 <tr><td><code>view_count</code> <span class="required">always</span></td><td>integer</td><td>How many times it has been read.</td></tr>
 <tr><td><code>warning</code></td><td><a href="#schema-Warning">Warning</a></td><td>Its content warning, when it has one: shown in place of the post until the reader chooses to see it.</td></tr>
+<tr><td><code>written_by</code></td><td><a href="#schema-Author">Author</a></td><td>Which of a channel&#39;s admins wrote it, sent to its admins and the site&#39;s administrators only: everybody else sees the channel alone.</td></tr>
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-MediumNodeItem" data-search="mediumnodeitem access alias audio author authorized comment_count content cover_urls created_at deleted files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer is_subscribed_by_viewer language likes_count link_preview link_previews media_elsewhere media_removed mimetype origin_domain owner parent_id portrait_urls quote quote_count quote_id repost_count root_id title type uri video warning">
+<div class="route schema" id="schema-MediumNodeItem" data-search="mediumnodeitem access alias audio author authorized comment_count content cover_urls created_at deleted files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer is_subscribed_by_viewer language likes_count link_preview link_previews media_elsewhere media_removed mimetype origin_domain owner parent_id portrait_urls quote quote_count quote_id repost_count root_id title type uri video warning written_by">
 <h3>MediumNodeItem</h3>
 <p>A post or a reply in a list.</p>
 <table>
@@ -11925,6 +11926,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>uri</code></td><td>string</td><td>What it is called on the server it came from, and that server, when it came from another. Left out of everything made here.</td></tr>
 <tr><td><code>video</code></td><td><a href="#schema-Video">Video</a></td><td>What a video post plays, or a post from elsewhere once its video was copied here.</td></tr>
 <tr><td><code>warning</code></td><td><a href="#schema-Warning">Warning</a></td><td>Its content warning, when it has one: shown in place of the post until the reader chooses to see it.</td></tr>
+<tr><td><code>written_by</code></td><td><a href="#schema-Author">Author</a></td><td>Which of a channel&#39;s admins wrote it, sent to its admins and the site&#39;s administrators only: everybody else sees the channel alone.</td></tr>
 </tbody>
 </table>
 </div>
@@ -11988,7 +11990,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-NodeItem" data-search="nodeitem access alias audio author authorized avatar_urls body comment_count content cover_urls created_at editor event feed files follower_count id is_admined_by_viewer is_blocked_by_viewer is_following_viewer is_leading_viewer is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer is_subscribed_by_viewer language likes_count link_preview media_removed mimetype name origin_domain owner parent pinned portrait_urls quote quote_count quote_id repost_count root root_id thread thread_next title type uri verified video warning">
+<div class="route schema" id="schema-NodeItem" data-search="nodeitem access alias audio author authorized avatar_urls body comment_count content cover_urls created_at editor event feed files follower_count id is_admined_by_viewer is_blocked_by_viewer is_following_viewer is_leading_viewer is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer is_subscribed_by_viewer language likes_count link_preview media_removed mimetype name origin_domain owner parent pinned portrait_urls quote quote_count quote_id repost_count root root_id thread thread_next title type uri verified video warning written_by">
 <h3>NodeItem</h3>
 <p>A post, a reply, a profile or anything else there is, as a list or a read sends it: what it is not is left out.</p>
 <table>
@@ -12005,7 +12007,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>content</code></td><td>string</td><td>A post&#39;s words, as Markdown.</td></tr>
 <tr><td><code>cover_urls</code></td><td>map of <a href="#schema-Image">Image</a></td><td>A profile&#39;s cover picture, in each size there is: <code>medium</code>, <code>large</code>.</td></tr>
 <tr><td><code>created_at</code></td><td>time</td><td>When it was made.</td></tr>
-<tr><td><code>editor</code></td><td><a href="#schema-Editor">Editor</a></td><td>Who changed it last.</td></tr>
+<tr><td><code>editor</code></td><td><a href="#schema-Editor">Editor</a></td><td>Who changed it last. Never on a channel&#39;s post, which its admins change as the channel.</td></tr>
 <tr><td><code>event</code></td><td><a href="#schema-Event">Event</a></td><td>On an event: when it is and how many are going. Left out on anything else, and where whoever sent the node did not attach it.</td></tr>
 <tr><td><code>feed</code></td><td><a href="#schema-FeedBrief">FeedBrief</a></td><td>On a custom feed: its picture and what it shows. Left out on anything else.</td></tr>
 <tr><td><code>files</code></td><td>list of <a href="#schema-PhotoFile">PhotoFile</a></td><td>The images of a photo post, in order. The first is the one portrait_urls shows.</td></tr>
@@ -12044,6 +12046,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>verified</code></td><td>boolean</td><td>A mark kept from earlier versions of Anahita. Nothing sets it yet.</td></tr>
 <tr><td><code>video</code></td><td><a href="#schema-Video">Video</a></td><td>What a video post plays.</td></tr>
 <tr><td><code>warning</code></td><td><a href="#schema-Warning">Warning</a></td><td>A post&#39;s content warning, when it has one.</td></tr>
+<tr><td><code>written_by</code></td><td><a href="#schema-Author">Author</a></td><td>Which of a channel&#39;s admins wrote it, sent to its admins and the site&#39;s administrators only: everybody else sees the channel alone.</td></tr>
 </tbody>
 </table>
 </div>

@@ -158,6 +158,7 @@ func (h *photoHandler) AddReply(c echo.Context) error {
 	}
 
 	handlers.SetReplyFlags(thread, reply)
+	handlers.SetThreadWrittenBy(h.Srv.ActorsGRPC, thread, []*entities.AnahitaNode{reply})
 	batchPresignPaths(h.Env, []*entities.AnahitaNode{reply})
 
 	mediaResp := &responses.MediumNodeResponse{}

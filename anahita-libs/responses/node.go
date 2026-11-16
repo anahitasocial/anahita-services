@@ -109,7 +109,11 @@ type NodeItem struct {
 
 	// Related Entities
 	Author *Author `json:"author,omitempty"`
-	// Who changed it last.
+	// Which of a channel's admins wrote it, sent to its admins and the
+	// site's administrators only: everybody else sees the channel alone.
+	WrittenBy *Author `json:"written_by,omitempty"`
+	// Who changed it last. Never on a channel's post, which its admins
+	// change as the channel.
 	Editor *Editor `json:"editor,omitempty"`
 	// What it answers, on a reply; what it reposts, on a repost.
 	Parent *Parent `json:"parent,omitempty"`
@@ -188,8 +192,9 @@ func (r *NodeResponse) MapNodeItem(node *entities.AnahitaNode) *NodeItem {
 			}
 			return nil
 		}(),
+		WrittenBy: writtenByOf(node),
 		Editor: func() *Editor {
-			if node.Editor != nil {
+			if node.Editor != nil && !ownedByChannel(node) {
 				return NewEditor(node.Editor)
 			}
 			return nil

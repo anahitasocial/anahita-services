@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	an_handlers "anahita-libs/handlers"
 	"log"
 
 	"anahita-libs/data/entities"
@@ -119,6 +120,11 @@ func setFeedFlags(env *Env, nodes []*entities.AnahitaNode, viewer *entities.View
 		post.Authorized.Edit, _ = media.CanEdit(mediumCtx)
 		post.Authorized.Delete, _ = media.CanDelete(mediumCtx)
 	}
+
+	// Which admin wrote a channel's post, for its admins.
+	an_handlers.SetWrittenBy(env.Srv.ActorsGRPC, posts, viewer, func(post *entities.AnahitaNode) *entities.ActorRelation {
+		return rels[post.OwnerID]
+	})
 }
 
 // setReplyFeedFlags answers, for every reply in a profile's list of replies,
@@ -249,4 +255,13 @@ func setReplyFeedFlags(env *Env, replies []*entities.AnahitaNode, viewer *entiti
 			permissions.CanBlockFromOwner(viewer, withOwner.Owner, reply.GetAuthorID(), rels[root.OwnerID])
 		reply.Authorized.BlockFromOwner = &blockFromOwner
 	}
+
+	// Which admin wrote a channel's reply, for its admins: the reply is on
+	// the channel, as the thread's root is.
+	an_handlers.SetWrittenBy(env.Srv.ActorsGRPC, replies, viewer, func(reply *entities.AnahitaNode) *entities.ActorRelation {
+		if reply.Root == nil || reply.OwnerID != reply.Root.OwnerID {
+			return nil
+		}
+		return rels[reply.OwnerID]
+	})
 }

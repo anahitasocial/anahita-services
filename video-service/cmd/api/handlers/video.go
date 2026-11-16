@@ -306,6 +306,7 @@ func (h *videoHandler) onAfterFetched(c echo.Context, item *entities.AnahitaNode
 		}
 		if thread, err := handlers.Thread(c, h.readers(), item.RootID, viewer); err == nil {
 			handlers.SetReplyFlags(thread, item)
+			handlers.SetThreadWrittenBy(h.Srv.ActorsGRPC, thread, []*entities.AnahitaNode{item})
 		}
 		return nil
 	}

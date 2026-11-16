@@ -56,6 +56,15 @@ func CanPostTo(viewer *entities.Viewer, owner *entities.AnahitaNode, rel *entiti
 		return false, fmt.Errorf("viewer %d is not allowed to read actor %d", viewer.ID, owner.GetID())
 	}
 
+	// A channel posts as itself: its admins alone write on it, whatever
+	// its saved features say (roadmap row 147). Its followers reply.
+	if owner.GetType() == constants.NodeActorChannelEntityType {
+		if rel.HasAdmin {
+			return true, nil
+		}
+		return false, fmt.Errorf("viewer %d does not write as channel %d", viewer.ID, owner.GetID())
+	}
+
 	// An entity the owner has no permission for answers "" and admits only
 	// the owner's administrators.
 	if AddAccessAllows(owner.AddPermissionAccess(service, entity), rel, viewer) {

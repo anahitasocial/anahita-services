@@ -281,6 +281,9 @@ func (h *noteHandler) newPost(c echo.Context, req *requests.NoteAddRequest, view
 	// The preview of a link in it, when its writer kept one.
 	medium.Meta = h.withLinkPreview(medium.Meta, req.LinkPreviewURL, medium.Body, false)
 
+	// On a channel, the channel's own, written by one of its admins.
+	an_handlers.OwnPost(medium, viewer.ID)
+
 	return medium, nil
 }
 

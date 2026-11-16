@@ -3,6 +3,7 @@ package permissions
 import (
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"encoding/json"
 	"errors"
 )
 
@@ -116,14 +117,47 @@ func (m *MediumPermissions) CanRead(ctx *MediumAccessContext) (bool, error) {
 }
 
 // IsChannelFeedItem says whether a post is one a channel made of its feed: its
-// own post, not a reply under one. Nobody changes its words or narrows who
-// sees it, its administrators included: it follows the site, which is
-// where it is written, and is public (docs/channels.md). Deleting it,
-// hiding replies under it, and who may reply or quote stay as for any
-// post.
+// own post, not a reply under one, marked as from its feed when it was
+// made (FromFeedMetaKey; the item's channel_feed_items row says the same).
+// Nobody changes its words or narrows who sees it, its administrators
+// included: it follows the site, which is where it is written
+// (docs/channels.md). What its admins write as the channel is theirs to
+// change. Deleting it, hiding replies under it, and who may reply or quote
+// stay as for any post.
 func IsChannelFeedItem(medium *entities.AnahitaNode) bool {
 	return medium != nil && medium.OwnerType == constants.NodeActorChannelEntityType &&
-		medium.RootID == 0 && medium.ParentID == 0
+		medium.RootID == 0 && medium.ParentID == 0 && FromFeed(medium.Meta)
+}
+
+// FromFeedMetaKey is where a channel's post made of an item of its feed is
+// marked as such, by syndication-service's worker.
+const FromFeedMetaKey = "from_feed"
+
+// FromFeed says whether a post's meta marks it as made of a feed's item.
+func FromFeed(meta json.RawMessage) bool {
+	var fields map[string]json.RawMessage
+	if len(meta) == 0 || json.Unmarshal(meta, &fields) != nil {
+		return false
+	}
+	return string(fields[FromFeedMetaKey]) == "true"
+}
+
+// WithFromFeed marks a post as made of a feed's item, beside what its meta
+// holds.
+func WithFromFeed(meta json.RawMessage) json.RawMessage {
+	fields := map[string]json.RawMessage{}
+	if len(meta) > 0 {
+		_ = json.Unmarshal(meta, &fields)
+		if fields == nil {
+			fields = map[string]json.RawMessage{}
+		}
+	}
+	fields[FromFeedMetaKey] = json.RawMessage("true")
+	out, err := json.Marshal(fields)
+	if err != nil {
+		return meta
+	}
+	return out
 }
 
 // ChannelFeedItemRefusal is why changing a channel's own post is refused.

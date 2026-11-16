@@ -35,3 +35,54 @@ func TestAReplyUnderAChannelsPostIsTheChannels(t *testing.T) {
 		t.Errorf("somebody else's reply: %+v", theirs)
 	}
 }
+
+func TestAPostOnAChannelIsTheChannels(t *testing.T) {
+	post := entities.NewAnahitaNode()
+	post.OwnerID, post.OwnerType, post.CreatedBy = 900, constants.NodeActorChannelEntityType, 7
+	post.Meta = []byte(`{"link_preview":{"url":"https://example.com"}}`)
+	OwnPost(post, 7)
+	if post.CreatedBy != 900 || post.ModifiedBy != 7 || WrittenBy(post.Meta) != 7 || len(post.Meta) < 40 {
+		t.Errorf("the post: author %d, changed by %d, meta %s", post.CreatedBy, post.ModifiedBy, post.Meta)
+	}
+
+	mine := entities.NewAnahitaNode()
+	mine.OwnerID, mine.OwnerType, mine.CreatedBy = 7, constants.NodeActorPersonEntityType, 7
+	OwnPost(mine, 7)
+	if mine.CreatedBy != 7 || WrittenBy(mine.Meta) != 0 {
+		t.Errorf("a person's own post was changed: author %d, meta %s", mine.CreatedBy, mine.Meta)
+	}
+
+	reply := entities.NewAnahitaNode()
+	reply.OwnerID, reply.OwnerType, reply.CreatedBy, reply.ParentID = 900, constants.NodeActorChannelEntityType, 900, 10
+	OwnPost(reply, 7)
+	if WrittenBy(reply.Meta) != 0 {
+		t.Errorf("a reply is OwnReply's, not OwnPost's: %s", reply.Meta)
+	}
+}
+
+func TestWhoWroteAChannelsPostIsShownToItsAdmins(t *testing.T) {
+	post := entities.NewAnahitaNode()
+	post.OwnerID, post.OwnerType = 900, constants.NodeActorChannelEntityType
+	post.Meta = WithWrittenBy(nil, 7)
+
+	admin := entities.NewViewer()
+	admin.ID, admin.Authenticated = 7, true
+	follower := entities.NewViewer()
+	follower.ID, follower.Authenticated = 8, true
+
+	if got := WriterShown(admin, post, &entities.ActorRelation{HasAdmin: true}); got != 7 {
+		t.Errorf("the channel's admin is not shown who wrote it: %d", got)
+	}
+	if got := WriterShown(follower, post, &entities.ActorRelation{IsLeading: true}); got != 0 {
+		t.Errorf("a follower is shown who wrote it: %d", got)
+	}
+	if got := WriterShown(entities.NewViewer(), post, nil); got != 0 {
+		t.Errorf("somebody signed out is shown who wrote it: %d", got)
+	}
+	mine := entities.NewAnahitaNode()
+	mine.OwnerID, mine.OwnerType = 7, constants.NodeActorPersonEntityType
+	mine.Meta = WithWrittenBy(nil, 7)
+	if got := WriterShown(admin, mine, &entities.ActorRelation{HasAdmin: true}); got != 0 {
+		t.Errorf("a post not a channel's names a writer: %d", got)
+	}
+}

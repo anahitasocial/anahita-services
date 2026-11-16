@@ -174,6 +174,7 @@ func BlankRemoved(reply *entities.AnahitaNode) {
 	reply.Author = nil
 	reply.Owner = nil
 	reply.Editor = nil
+	reply.WrittenBy = nil
 	reply.LikesCount = 0
 	reply.IsLikedByViewer = false
 }

@@ -8,11 +8,34 @@
     },
     {
         "service": "text-service",
-        "node_types": [],
-        "composers": [],
+        "node_types": ["note"],
+        "composers": ["note"],
         "enabled": true,
         "add_permissions": [
-            { "entity": "article", "access": "admins" }
+            { "entity": "note", "access": "admins" },
+            { "entity": "article", "access": "admins" },
+            { "entity": "topic", "access": "admins" }
+        ],
+        "include_common_permissions": ["content_creator"]
+    },
+    {
+        "service": "photo-service",
+        "node_types": ["photo"],
+        "composers": ["photo"],
+        "enabled": true,
+        "add_permissions": [
+            { "entity": "photo", "access": "admins" }
+        ],
+        "include_common_permissions": ["content_creator"]
+    },
+    {
+        "service": "video-service",
+        "node_types": ["video", "audio"],
+        "composers": ["video", "audio"],
+        "enabled": true,
+        "add_permissions": [
+            { "entity": "video", "access": "admins" },
+            { "entity": "audio", "access": "admins" }
         ],
         "include_common_permissions": ["content_creator"]
     }

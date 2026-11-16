@@ -93,6 +93,9 @@ type MediumNodeItem struct {
 
 	// Related Entities
 	Author *Author `json:"author,omitempty"`
+	// Which of a channel's admins wrote it, sent to its admins and the
+	// site's administrators only: everybody else sees the channel alone.
+	WrittenBy *Author `json:"written_by,omitempty"`
 	// The profile it is on.
 	Owner *Owner `json:"owner,omitempty"`
 
@@ -223,7 +226,11 @@ type MediumNode struct {
 
 	// Related Entities
 	Author *Author `json:"author,omitempty"`
-	// Who changed it last.
+	// Which of a channel's admins wrote it, sent to its admins and the
+	// site's administrators only: everybody else sees the channel alone.
+	WrittenBy *Author `json:"written_by,omitempty"`
+	// Who changed it last. Never on a channel's post, which its admins
+	// change as the channel.
 	Editor *Editor `json:"editor,omitempty"`
 	// The profile it is on.
 	Owner *Owner `json:"owner,omitempty"`
@@ -290,6 +297,7 @@ func (r *MediumNodeResponse) MapMediumNodeItem(node *entities.AnahitaNode) *Medi
 			}
 			return nil
 		}(),
+		WrittenBy: writtenByOf(node),
 		Owner: func() *Owner {
 			if node.Owner != nil {
 				return NewOwner(node.Owner)
@@ -373,8 +381,9 @@ func (r *MediumNodeResponse) MapMediumNode(node *entities.AnahitaNode) *MediumNo
 			}
 			return nil
 		}(),
+		WrittenBy: writtenByOf(node),
 		Editor: func() *Editor {
-			if node.Editor != nil {
+			if node.Editor != nil && !ownedByChannel(node) {
 				return NewEditor(node.Editor)
 			}
 			return nil
@@ -440,4 +449,20 @@ func allowDownloadOf(node *entities.AnahitaNode) *bool {
 	}
 	allow := node.AllowDownload
 	return &allow
+}
+
+// ownedByChannel says whether a post is a channel's, made by one of its
+// admins as the channel: who wrote or changed it is not shown.
+func ownedByChannel(node *entities.AnahitaNode) bool {
+	return node.OwnerType == constants.NodeActorChannelEntityType ||
+		(node.Owner != nil && node.Owner.Type == constants.NodeActorChannelEntityType)
+}
+
+// writtenByOf is the admin who wrote a channel's post, where it was read for
+// the viewer (handlers.SetWrittenBy).
+func writtenByOf(node *entities.AnahitaNode) *Author {
+	if node.WrittenBy == nil || node.WrittenBy.ID == 0 {
+		return nil
+	}
+	return NewAuthor(node.WrittenBy)
 }

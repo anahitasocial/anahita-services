@@ -56,13 +56,24 @@ func TestTheChannelsRepliesAreChangedByThoseWhoReplyAsIt(t *testing.T) {
 	}
 }
 
-// A channel's own notes follow its site; the replies under them, its own
-// included, are replies like any.
+// A channel's notes made of its feed follow its site; what its admins write
+// as it, and the replies under either, are theirs to change.
 func TestAChannelsOwnNoteFollowsItsSite(t *testing.T) {
 	item := entities.NewAnahitaNode()
 	item.OwnerType = constants.NodeActorChannelEntityType
+	item.Meta = WithFromFeed([]byte(`{"written_by":7}`))
 	if !IsChannelFeedItem(item) {
-		t.Error("a channel's own note can be changed")
+		t.Error("a note made of a channel's feed can be changed")
+	}
+	if string(item.Meta) != `{"from_feed":true,"written_by":7}` {
+		t.Errorf("the mark is not kept beside what was there: %s", item.Meta)
+	}
+
+	written := entities.NewAnahitaNode()
+	written.OwnerType = constants.NodeActorChannelEntityType
+	written.Meta = []byte(`{"written_by":7}`)
+	if IsChannelFeedItem(written) {
+		t.Error("what a channel's admins write as it cannot be changed")
 	}
 
 	reply := entities.NewAnahitaNode()

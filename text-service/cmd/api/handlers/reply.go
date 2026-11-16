@@ -99,6 +99,7 @@ func (h *mediumHandler) Thread(c echo.Context) error {
 	}
 
 	batchPresignPaths(h.Env, replies)
+	an_handlers.SetThreadWrittenBy(h.Srv.ActorsGRPC, thread, replies)
 
 	for _, reply := range replies {
 		blankRemoved(reply)
@@ -172,6 +173,7 @@ func (h *mediumHandler) AddReply(c echo.Context) error {
 	}
 
 	setReplyFlags(thread, reply)
+	an_handlers.SetThreadWrittenBy(h.Srv.ActorsGRPC, thread, []*entities.AnahitaNode{reply})
 	batchPresignPaths(h.Env, []*entities.AnahitaNode{reply})
 
 	mediaResp := &responses.MediumNodeResponse{}

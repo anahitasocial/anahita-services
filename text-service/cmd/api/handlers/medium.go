@@ -153,6 +153,7 @@ func (h *mediumHandler) onAfterFetched(c echo.Context, item *entities.AnahitaNod
 	if item.RootID > 0 {
 		if thread, err := h.thread(c, item.RootID, viewer); err == nil {
 			setReplyFlags(thread, item)
+			an_handlers.SetThreadWrittenBy(h.Srv.ActorsGRPC, thread, []*entities.AnahitaNode{item})
 			// What it is a reply to, for a page that shows the reply on
 			// its own. Only to somebody who may see the thread.
 			if permissions.CanSeeThread(thread) {

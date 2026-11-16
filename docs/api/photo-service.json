@@ -324,7 +324,7 @@
           },
           "editor": {
             "$ref": "#/components/schemas/Editor",
-            "description": "Who changed it last."
+            "description": "Who changed it last. Never on a channel's post, which its admins change as the channel."
           },
           "enabled": {
             "description": "Whether it is shown: false when it has been disabled.",
@@ -487,6 +487,10 @@
           "warning": {
             "$ref": "#/components/schemas/Warning",
             "description": "Its content warning, when it has one: shown in place of the post until the reader chooses to see it."
+          },
+          "written_by": {
+            "$ref": "#/components/schemas/Author",
+            "description": "Which of a channel's admins wrote it, sent to its admins and the site's administrators only: everybody else sees the channel alone."
           }
         },
         "required": [
@@ -681,6 +685,10 @@
           "warning": {
             "$ref": "#/components/schemas/Warning",
             "description": "Its content warning, when it has one: shown in place of the post until the reader chooses to see it."
+          },
+          "written_by": {
+            "$ref": "#/components/schemas/Author",
+            "description": "Which of a channel's admins wrote it, sent to its admins and the site's administrators only: everybody else sees the channel alone."
           }
         },
         "required": [

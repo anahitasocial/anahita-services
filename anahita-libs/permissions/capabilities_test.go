@@ -87,6 +87,21 @@ func TestComposers(t *testing.T) {
 	}
 }
 
+// A channel posts as itself (roadmap row 147): its admins write on it, and
+// its followers do not, whatever its saved features say.
+func TestOnlyAChannelsAdminsWriteOnIt(t *testing.T) {
+	channel := profileWith("public", perm("note", "followers"), perm("article", "followers"))
+	channel.Type = constants.NodeActorChannelEntityType
+	media := constants.OAuthScopeMediaWrite
+
+	if got := Composers(viewerAs(100, media), channel, &entities.ActorRelation{IsLeading: true}); !reflect.DeepEqual(got, []string{}) {
+		t.Errorf("a follower may write on a channel: %v", got)
+	}
+	if got := Composers(viewerAs(100, media), channel, &entities.ActorRelation{IsLeading: true, HasAdmin: true}); !reflect.DeepEqual(got, []string{"note", "article"}) {
+		t.Errorf("the channel's admin: got %v", got)
+	}
+}
+
 func postOn(owner *entities.AnahitaNode, access string) *entities.AnahitaNode {
 	post := entities.NewAnahitaNode()
 	post.ID = 10
