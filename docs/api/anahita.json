@@ -2374,7 +2374,7 @@
             "type": "boolean"
           },
           "kind": {
-            "description": "Its kind: \"adult\", \"suggestive\", \"graphic\", \"nudity\" or \"other\".",
+            "description": "Its kind: \"adult\", \"suggestive\", \"graphic\", \"nudity\", \"other\" or \"ai\" (Made with AI).",
             "type": "string"
           },
           "text": {
@@ -3682,7 +3682,7 @@
             "additionalProperties": {
               "type": "string"
             },
-            "description": "By kind (`adult`, `suggestive`, `graphic`, `nudity`, `other`): `show`, `warn` or `hide`. Every kind is there, `warn` where they have not chosen.",
+            "description": "By kind (`adult`, `suggestive`, `graphic`, `nudity`, `other`, `ai`): `show`, `warn` or `hide`. Every kind is there, at its default where they have not chosen: `warn`, but `show` for `ai`.",
             "type": [
               "object",
               "null"
@@ -12042,7 +12042,7 @@
               "schema": {
                 "properties": {
                   "warning": {
-                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity`, `other` or `ai` (Made with AI); empty takes it off.",
                     "maxLength": 16,
                     "type": "string"
                   },
@@ -12059,7 +12059,7 @@
               "schema": {
                 "properties": {
                   "warning": {
-                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity`, `other` or `ai` (Made with AI); empty takes it off.",
                     "maxLength": 16,
                     "type": "string"
                   },
@@ -12076,7 +12076,7 @@
               "schema": {
                 "properties": {
                   "warning": {
-                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity`, `other` or `ai` (Made with AI); empty takes it off.",
                     "maxLength": 16,
                     "type": "string"
                   },
@@ -12335,7 +12335,7 @@
                     "type": "string"
                   },
                   "warning": {
-                    "description": "Its content warning: \"adult\", \"suggestive\", \"graphic\", \"nudity\" or \"other\"; left out, none. An \"other\" warning's words are in WarningText, up to 100 characters.",
+                    "description": "Its content warning: \"adult\", \"suggestive\", \"graphic\", \"nudity\", \"other\" or \"ai\" (Made with AI); left out, none. An \"other\" warning's words are in WarningText, up to 100 characters.",
                     "maxLength": 16,
                     "type": "string"
                   },
@@ -12404,7 +12404,7 @@
                     "type": "string"
                   },
                   "warning": {
-                    "description": "Its content warning: \"adult\", \"suggestive\", \"graphic\", \"nudity\" or \"other\"; left out, none. An \"other\" warning's words are in WarningText, up to 100 characters.",
+                    "description": "Its content warning: \"adult\", \"suggestive\", \"graphic\", \"nudity\", \"other\" or \"ai\" (Made with AI); left out, none. An \"other\" warning's words are in WarningText, up to 100 characters.",
                     "maxLength": 16,
                     "type": "string"
                   },
@@ -12477,7 +12477,7 @@
                     "type": "string"
                   },
                   "warning": {
-                    "description": "Its content warning: \"adult\", \"suggestive\", \"graphic\", \"nudity\" or \"other\"; left out, none. An \"other\" warning's words are in WarningText, up to 100 characters.",
+                    "description": "Its content warning: \"adult\", \"suggestive\", \"graphic\", \"nudity\", \"other\" or \"ai\" (Made with AI); left out, none. An \"other\" warning's words are in WarningText, up to 100 characters.",
                     "maxLength": 16,
                     "type": "string"
                   },
@@ -27312,7 +27312,7 @@
               "schema": {
                 "properties": {
                   "warning": {
-                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity`, `other` or `ai` (Made with AI); empty takes it off.",
                     "maxLength": 16,
                     "type": "string"
                   },
@@ -27329,7 +27329,7 @@
               "schema": {
                 "properties": {
                   "warning": {
-                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity`, `other` or `ai` (Made with AI); empty takes it off.",
                     "maxLength": 16,
                     "type": "string"
                   },
@@ -27346,7 +27346,7 @@
               "schema": {
                 "properties": {
                   "warning": {
-                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity`, `other` or `ai` (Made with AI); empty takes it off.",
                     "maxLength": 16,
                     "type": "string"
                   },
@@ -31300,7 +31300,7 @@
                     "additionalProperties": {
                       "type": "string"
                     },
-                    "description": "By kind (`adult`, `suggestive`, `graphic`, `nudity`, `other`): `show`, `warn` or `hide`. A kind left out stays as it was.",
+                    "description": "By kind (`adult`, `suggestive`, `graphic`, `nudity`, `other`, `ai`): `show`, `warn` or `hide`. A kind left out stays as it was.",
                     "type": "object"
                   }
                 },
@@ -33794,7 +33794,7 @@
               "schema": {
                 "properties": {
                   "warning": {
-                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity`, `other` or `ai` (Made with AI); empty takes it off.",
                     "maxLength": 16,
                     "type": "string"
                   },
@@ -33811,7 +33811,7 @@
               "schema": {
                 "properties": {
                   "warning": {
-                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity`, `other` or `ai` (Made with AI); empty takes it off.",
                     "maxLength": 16,
                     "type": "string"
                   },
@@ -33828,7 +33828,7 @@
               "schema": {
                 "properties": {
                   "warning": {
-                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity`, `other` or `ai` (Made with AI); empty takes it off.",
                     "maxLength": 16,
                     "type": "string"
                   },
@@ -39169,7 +39169,7 @@
               "schema": {
                 "properties": {
                   "warning": {
-                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity`, `other` or `ai` (Made with AI); empty takes it off.",
                     "maxLength": 16,
                     "type": "string"
                   },
@@ -39186,7 +39186,7 @@
               "schema": {
                 "properties": {
                   "warning": {
-                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity`, `other` or `ai` (Made with AI); empty takes it off.",
                     "maxLength": 16,
                     "type": "string"
                   },
@@ -39203,7 +39203,7 @@
               "schema": {
                 "properties": {
                   "warning": {
-                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity`, `other` or `ai` (Made with AI); empty takes it off.",
                     "maxLength": 16,
                     "type": "string"
                   },
@@ -39462,7 +39462,7 @@
                     "type": "string"
                   },
                   "warning": {
-                    "description": "Its content warning: \"adult\", \"suggestive\", \"graphic\", \"nudity\" or \"other\"; left out, none. An \"other\" warning's words are in WarningText, up to 100 characters.",
+                    "description": "Its content warning: \"adult\", \"suggestive\", \"graphic\", \"nudity\", \"other\" or \"ai\" (Made with AI); left out, none. An \"other\" warning's words are in WarningText, up to 100 characters.",
                     "maxLength": 16,
                     "type": "string"
                   },
@@ -39531,7 +39531,7 @@
                     "type": "string"
                   },
                   "warning": {
-                    "description": "Its content warning: \"adult\", \"suggestive\", \"graphic\", \"nudity\" or \"other\"; left out, none. An \"other\" warning's words are in WarningText, up to 100 characters.",
+                    "description": "Its content warning: \"adult\", \"suggestive\", \"graphic\", \"nudity\", \"other\" or \"ai\" (Made with AI); left out, none. An \"other\" warning's words are in WarningText, up to 100 characters.",
                     "maxLength": 16,
                     "type": "string"
                   },
@@ -39604,7 +39604,7 @@
                     "type": "string"
                   },
                   "warning": {
-                    "description": "Its content warning: \"adult\", \"suggestive\", \"graphic\", \"nudity\" or \"other\"; left out, none. An \"other\" warning's words are in WarningText, up to 100 characters.",
+                    "description": "Its content warning: \"adult\", \"suggestive\", \"graphic\", \"nudity\", \"other\" or \"ai\" (Made with AI); left out, none. An \"other\" warning's words are in WarningText, up to 100 characters.",
                     "maxLength": 16,
                     "type": "string"
                   },
@@ -41625,7 +41625,7 @@
               "schema": {
                 "properties": {
                   "warning": {
-                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity`, `other` or `ai` (Made with AI); empty takes it off.",
                     "maxLength": 16,
                     "type": "string"
                   },
@@ -41642,7 +41642,7 @@
               "schema": {
                 "properties": {
                   "warning": {
-                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity`, `other` or `ai` (Made with AI); empty takes it off.",
                     "maxLength": 16,
                     "type": "string"
                   },
@@ -41659,7 +41659,7 @@
               "schema": {
                 "properties": {
                   "warning": {
-                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity`, `other` or `ai` (Made with AI); empty takes it off.",
                     "maxLength": 16,
                     "type": "string"
                   },

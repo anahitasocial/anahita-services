@@ -344,10 +344,13 @@ five, under Profiles.
    1. [The kinds](content-warnings.md#the-kinds)
    2. [On a post](content-warnings.md#on-a-post)
    3. [A warning the administrators gave](content-warnings.md#a-warning-the-administrators-gave)
-   4. [Where it is shown](content-warnings.md#where-it-is-shown)
-   5. [What the web app does](content-warnings.md#what-the-web-app-does)
-   6. [Where the code is](content-warnings.md#where-the-code-is)
-   7. [What is not built](content-warnings.md#what-is-not-built)
+   4. [What each reader chooses](content-warnings.md#what-each-reader-chooses)
+   5. [Where it is shown](content-warnings.md#where-it-is-shown)
+   6. [What the web app does](content-warnings.md#what-the-web-app-does)
+   7. [Made with AI](content-warnings.md#made-with-ai)
+   8. [On the fediverse and Bluesky](content-warnings.md#on-the-fediverse-and-bluesky)
+   9. [Where the code is](content-warnings.md#where-the-code-is)
+   10. [What is not built](content-warnings.md#what-is-not-built)
 7. [Custom feeds](feeds.md) — feeds people build: what one is made of, who sees it, and what they see in it
    1. [The home page](feeds.md#the-home-page)
    2. [A feed is a node](feeds.md#a-feed-is-a-node)
@@ -466,6 +469,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | Plan | Roadmap item | Status |
 | --- | --- | --- |
 | [Recommendation service](plans/done/recommendation-service.md) | 3 | built 2026-10-11 |
+| [Content warnings](plans/done/content-warnings.md) | 122 | done 2026-11-16: six kinds, Made with AI the sixth, which starts at Show; an author's or the administrators' (a report's case, `warned`); each reader's Show, Warn or Hide in Settings › Content; both networks in and out |
 | [Quotes going out](plans/done/quotes-going-out.md) | row 156 | done 2026-11-16: quotes as quotes on Mastodon (FEP-044f, stamps and quote requests both ways) and on Bluesky (record embeds); a line that leads to a quoted post on neither; quotes coming in kept as quotes when approved |
 | [Custom feeds that match any, or all](plans/done/feeds-any-or-all.md) | row 149 | done 2026-11-16: `match` in a feed's definition, any or all; Any of these and All of these in the web app's form, a new feed starting at Any |
 | [Websites become channels](plans/done/channels.md) | row 147 | done 2026-11-16: the rename; Create channel with a group's privacy; its admins post as it, Written by for them alone; its feed in its settings; events hosted by a channel; the docs, anahita.io and the recipes |
@@ -508,7 +512,6 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Pictures, GIFs, videos and sounds in a thread's notes](plans/done/thread-media.md) | 143 | done 2026-11-09: photos in any note, set in the thread's own transaction (2026-11-08); a GIF, a video or a sound in any note, the notes after it kept with its upload and made by the worker once it is ready |
 | [Short posts of 500 characters](plans/done/short-posts.md) | 144 | done 2026-11-08: 500 for every short post, articles, topics and events keeping 8,000; a link counted as 23, and shortened for Bluesky; a count like Bluesky's |
 | [What a site offers](plans/instance-features.md) | 139 | its first part built 2026-11-09: instance.json, the kinds of profile and post a site offers; lists' layouts and the tutorials later |
-| [Content warnings](plans/content-warnings.md) | 122 | planned 2026-11-03, Made with AI added 2026-11-07: six kinds, an author marks a post and each reader chooses Show, Warn or Hide; both networks in and out; moderators add one from a report |
 | [Direct messages, and being found on the fediverse](plans/direct-messages.md) | 123 | planned 2026-11-03: listed on FediDB, FediDB's 128 questions answered in features.md, then messages here and with the fediverse as private mentions, with consent first |
 | [Moving: who you follow, your followers, and your posts](plans/moving.md) | 124 | parts 1 to 3 done 2026-11-08 (lists in and out; following somebody who moved; moving one's own account), part 4, posts, later; brought forward 2026-11-08, with blocks, mutes and saved posts, from a download or a single CSV; planned 2026-11-03: following out and in as Mastodon's CSV, heeding others' moves, moving oneself between Anahitas and with Mastodon with a signpost left behind, then posts between Anahitas |
 | [Muting profiles](plans/done/muting.md) | 133 | done 2026-11-08: a mute hides somebody's posts, reposts and replies from the person who muted, everywhere but their own profile, and their notifications by a tick; for a day, a week, a month or until unmuted; nobody told, nothing sent; Mute in a person's menu and on what they posted, Settings › Privacy › Muted |

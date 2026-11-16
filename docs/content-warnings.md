@@ -8,8 +8,8 @@ Nothing is removed for being sensitive; the reader is asked. This page covers
 the kinds, what is stored and sent, and what the web app does.
 
 The routes are in the API reference: [text-service](api/index.html#text-service), [photo-service](api/index.html#photo-service) and [video-service](api/index.html#video-service).
-The plan, with what is still to come, is
-[Content warnings](plans/content-warnings.md) (roadmap row 122).
+The plan, done, is
+[Content warnings](plans/done/content-warnings.md) (roadmap row 122).
 
 ## Contents
 
@@ -19,14 +19,16 @@ The plan, with what is still to come, is
 4. [What each reader chooses](#what-each-reader-chooses)
 5. [Where it is shown](#where-it-is-shown)
 6. [What the web app does](#what-the-web-app-does)
-7. [On the fediverse and Bluesky](#on-the-fediverse-and-bluesky)
-8. [Where the code is](#where-the-code-is)
-9. [What is not built](#what-is-not-built)
+7. [Made with AI](#made-with-ai)
+8. [On the fediverse and Bluesky](#on-the-fediverse-and-bluesky)
+9. [Where the code is](#where-the-code-is)
+10. [What is not built](#what-is-not-built)
 
 ## The kinds
 
-Bluesky's four labels, so that they can cross one for one, and a fifth for
-a warning in the author's own words, as the fediverse writes them.
+Bluesky's four labels, so that they can cross one for one, a fifth for a
+warning in the author's own words, as the fediverse writes them, and a sixth
+for what was made with AI.
 
 | `warning` | Said to people | For |
 | --- | --- | --- |
@@ -35,6 +37,7 @@ a warning in the author's own words, as the fediverse writes them.
 | `graphic` | Graphic media | Violence, gore or disturbing images |
 | `nudity` | Non-sexual nudity | Artistic nudes, for example |
 | `other` | The author's words, up to 100 characters | Spoilers, grief, anything else |
+| `ai` | Made with AI | Pictures or video made or changed by AI ([Made with AI](#made-with-ai)) |
 
 The kinds are in `anahita-libs/data/entities/warning.go`.
 
@@ -106,8 +109,8 @@ warning (built on 2026-11-16):
 | `warn` | The warning and View, the post blurred behind it |
 | `hide` | In a list, one line, "Hidden: Graphic media", which opens the post if pressed; on the post's own page and in the photo theatre, as Warn |
 
-Every kind starts at `warn`. Somebody not signed in has `warn` and no
-choice. A post a moderator gave its warning is seen as its kind, as any
+Every kind starts at `warn`, but `ai` at `show`: it says what a post is,
+not what it holds. Somebody not signed in has those and no choice. A post a moderator gave its warning is seen as its kind, as any
 other.
 
 1. **Read:** `GET /people/:id/content-preferences`, answered with
@@ -169,9 +172,37 @@ and nothing is read again when a choice changes.
 6. **Settings › Content** is where each person chooses Show, Warn or Hide
    for each kind ([What each reader chooses](#what-each-reader-chooses)).
 
+## Made with AI
+
+The sixth kind (built on 2026-11-16) says that a post's pictures or video
+were made or changed by AI. It is a mark, not a warning of what a post
+holds:
+
+1. **Shown, not hidden:** readers start at `show`, and see the post with a
+   quiet line under it, "Made with AI". A reader can choose Warn or Hide
+   for it as for any kind.
+2. **The author says so,** in the composer as for any kind; or **the file
+   does:** the web app reads a chosen photo or video for IPTC's digital
+   source type `trainedAlgorithmicMedia` or
+   `compositeWithTrainedAlgorithmicMedia`, in its XMP or its C2PA manifest,
+   and if it is there chooses Made with AI and says why. The author sees it
+   and may take it off. It is read in the browser, since a video goes from
+   there straight to storage and a photo's signs are gone once it is made
+   again at its sizes; another client can read the same words.
+3. **A reader can ask for it:** **Made with AI, not marked**
+   (`needs_ai_label`) is a reason to report a post, and the administrators
+   add the kind as any warning
+   ([A warning the administrators gave](#a-warning-the-administrators-gave)).
+4. **No guessing:** nothing looks at a picture to decide whether AI made
+   it.
+5. **Not sent to other networks,** which have no field for it, and not read
+   from them: on the fediverse, as a warning, it would hide the post. A
+   link pasted elsewhere shows the post as it is.
+
 ## On the fediverse and Bluesky
 
-A post's warning goes with it to both networks, as it is shown here:
+A post's warning goes with it to both networks, as it is shown here, but
+Made with AI, which goes to neither:
 
 | Network | A post with a photo, a GIF, a video or a sound | A post of words alone |
 | --- | --- | --- |
@@ -221,13 +252,12 @@ this was built keeps what it was kept with until it is next changed there.
 | A link pasted elsewhere | `web-shell/shell/pages.go` (`warningDescription`) |
 | Sent to the fediverse | `activitypub-service/ap/note.go` (`WithWarning`), its words from `entities.WarningSaid` |
 | Sent to Bluesky | `atproto-service/bsky/outgoing.go` (`WithLabel`), its label from `entities.WarningLabel` |
+| Made with AI | `anahita-libs/data/entities/warning.go` (`WarningAI`, `WarningHides`, `WarningChoiceDefaultFor`); `src/utils/madeWithAI.js` (anahita-web) |
 | A moderator's warning | `anahita-libs/handlers/warning.go` (`IsWarningModerator`, `SetWarningBy`); the event `moderation.medium.warned.v1` from `graph-grpc-service/cmd/server/handlers/medium.go` (`announceWarned`); `notification-service/cmd/api/handlers/event_medium_warned.go`; the reason in `abuse-report-service/data/reasons/reasons.json` |
 | Each reader's choices | `anahita-libs/data/entities/warning.go` (`WarningChoices`); `graph-grpc-service/data/repositories/content_preferences.go`; `actor-service/cmd/api/handlers/person_content_preferences.go` |
 | The web app | `src/utils/warnings.js`, `src/utils/contentChoices.js`, `src/containers/actors/Settings/ContentChoices.jsx`, `src/components/ContentWarningDialog.jsx`, `ContentWarningButton.jsx`, `WarningCover.jsx`, `src/containers/controls/medium/ContentWarning.jsx` (anahita-web) |
 
 ## What is not built
 
-The rest of the plan, its fifth phase:
-
-- **Made with AI**, a sixth kind, chosen for an author when the file says
-  so.
+Everything in the plan is built. What it leaves out on purpose is in its
+[Out of scope](plans/done/content-warnings.md#out-of-scope).

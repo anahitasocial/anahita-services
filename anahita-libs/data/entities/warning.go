@@ -16,6 +16,10 @@ const (
 	WarningGraphic    = "graphic"
 	WarningNudity     = "nudity"
 	WarningOther      = "other"
+	// WarningAI is Made with AI (roadmap row 122, phase 5): what a post is,
+	// not what it holds. It hides nothing to begin with, and goes to
+	// neither network, which has no field for it.
+	WarningAI = "ai"
 
 	// WarningTextMax is how long an Other warning's words may be, in
 	// characters.
@@ -30,6 +34,14 @@ var WarningKinds = []string{
 	WarningGraphic,
 	WarningNudity,
 	WarningOther,
+	WarningAI,
+}
+
+// WarningHides says whether a kind is a warning of what a post holds, which
+// hides it where a reader has not chosen to see it, and is sent to other
+// networks: every kind but Made with AI.
+func WarningHides(kind string) bool {
+	return kind != "" && kind != WarningAI
 }
 
 // IsWarningKind says whether kind is one of the kinds, the empty string (no
@@ -151,7 +163,8 @@ func WarningFromFediverse(sensitive bool, summary string) (string, string) {
 
 // What each reader chooses for each kind (docs/plans/content-warnings.md,
 // What a reader chooses): to see it at once, behind its warning, or not at
-// all. Every kind starts at Warn, so that seeing any of it is chosen.
+// all. Every kind starts at Warn, so that seeing any of it is chosen, but
+// Made with AI, at Show.
 const (
 	WarningShow = "show"
 	WarningWarn = "warn"
@@ -159,8 +172,17 @@ const (
 )
 
 // WarningChoiceDefault is what a reader has for a kind they have not
-// chosen for, and what somebody not signed in has for every kind.
+// chosen for, and what somebody not signed in has: Warn, but Show for Made
+// with AI, which says what a post is, not what it holds.
 const WarningChoiceDefault = WarningWarn
+
+// WarningChoiceDefaultFor is the default for one kind.
+func WarningChoiceDefaultFor(kind string) string {
+	if kind == WarningAI {
+		return WarningShow
+	}
+	return WarningChoiceDefault
+}
 
 // IsWarningChoice says whether choice is Show, Warn or Hide.
 func IsWarningChoice(choice string) bool {
@@ -173,7 +195,7 @@ func IsWarningChoice(choice string) bool {
 func WarningChoices(choices map[string]string) map[string]string {
 	out := make(map[string]string, len(WarningKinds))
 	for _, kind := range WarningKinds {
-		out[kind] = WarningChoiceDefault
+		out[kind] = WarningChoiceDefaultFor(kind)
 		if choice, ok := choices[kind]; ok && IsWarningChoice(choice) {
 			out[kind] = choice
 		}
@@ -186,7 +208,7 @@ func WarningChoices(choices map[string]string) map[string]string {
 func WarningChoicesKept(choices map[string]string) map[string]string {
 	out := map[string]string{}
 	for kind, choice := range WarningChoices(choices) {
-		if choice != WarningChoiceDefault {
+		if choice != WarningChoiceDefaultFor(kind) {
 			out[kind] = choice
 		}
 	}

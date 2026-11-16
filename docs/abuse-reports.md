@@ -195,8 +195,9 @@ case, which is then closed as `refused`
 the case was closed first by the account being removed, it stays recorded as
 `deleted`. A post can be given a content warning from its case, which is
 then closed as `warned` ([A warning the administrators
-gave](content-warnings.md#a-warning-the-administrators-gave)); the reason
-`needs_warning`, "Should have a content warning", is for posts alone.
+gave](content-warnings.md#a-warning-the-administrators-gave)); the reasons
+`needs_warning`, "Should have a content warning", and `needs_ai_label`,
+"Made with AI, not marked", are for posts alone.
 
 Two administrators deciding the same case at once get one decision recorded;
 the second is told it was already decided (409). A closed case cannot be

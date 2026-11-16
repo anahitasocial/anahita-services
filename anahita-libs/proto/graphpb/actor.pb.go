@@ -2782,8 +2782,8 @@ func (*RulesAgreeResponse) Descriptor() ([]byte, []int) {
 }
 
 // A person's choice of Show, Warn or Hide for each kind of content warning
-// (roadmap row 122, phase 2), by kind. Read, every kind is there, Warn
-// where they have not chosen.
+// (roadmap row 122, phase 2), by kind. Read, every kind is there, at its
+// default where they have not chosen.
 type ContentPreferences struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Choices       map[string]string      `protobuf:"bytes,1,rep,name=choices,proto3" json:"choices,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
@@ -2872,7 +2872,7 @@ func (x *ContentPreferencesReadRequest) GetPersonId() int64 {
 	return 0
 }
 
-// Replaces their choices: a kind left out is Warn.
+// Replaces their choices: a kind left out is at its default.
 type ContentPreferencesSaveRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	PersonId      int64                  `protobuf:"varint,1,opt,name=person_id,json=personId,proto3" json:"person_id,omitempty"`

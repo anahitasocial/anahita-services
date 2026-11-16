@@ -330,7 +330,9 @@ type Posted struct {
 // words alone has the warning as its summary, which hides them. An
 // article keeps its summary, its opening.
 func (n *Note) WithWarning(post *entities.AnahitaNode) *Note {
-	if post.Warning == "" {
+	// Made with AI says what a post is: the fediverse has no field for it,
+	// and as a warning it would hide the post (row 122, phase 5).
+	if !entities.WarningHides(post.Warning) {
 		return n
 	}
 	n.Sensitive = true

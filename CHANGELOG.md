@@ -26,6 +26,11 @@ Releases before v1.0.17 are described on GitHub, under
    site administrator who did not write it. Its author is told
    (`medium_warned`) and may not take it off
    ([Content warnings](docs/content-warnings.md#a-warning-the-administrators-gave)).
+3. **Made with AI, a sixth kind of warning** (roadmap row 122, phase 5):
+   `ai`, which readers start at Show; sent to neither network, and hiding
+   nothing where a link is pasted. A report can ask for it ("Made with AI,
+   not marked", `needs_ai_label`)
+   ([Made with AI](docs/content-warnings.md#made-with-ai)).
 
 ### Upgrading
 

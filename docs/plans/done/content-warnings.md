@@ -8,9 +8,9 @@ consent." Shaped with the user the same day, after Bluesky's moderation
 settings and Mastodon's content warnings. **Made with AI** added as a sixth
 kind on 2026-11-07, at the user's word, after asking how to tell AI images
 apart ([Made with AI](#made-with-ai)). **Phase 1 built on 2026-11-09:** posts
-carry a warning, everybody at Warn ([Content warnings](../content-warnings.md));
-**phase 3 on 2026-11-09 and 2026-11-15, phases 2 and 4 on 2026-11-16;**
-phase 5 is not built.
+carry a warning, everybody at Warn ([Content warnings](../../content-warnings.md));
+**phase 3 on 2026-11-09 and 2026-11-15, phases 2, 4 and 5 on 2026-11-16:**
+all of it.
 
 ## Contents
 
@@ -131,7 +131,7 @@ photo, a GIF, a video or a sound goes as `sensitive` alone, which blurs its
 pictures and shows its words; a post of words alone goes with the table's
 `summary` too. An Article keeps its opening as its `summary`, and goes as
 `sensitive`. Bluesky's self-label, as `labels` on the post record; Other
-sends none. ([Content warnings](../content-warnings.md#on-the-fediverse-and-bluesky).)
+sends none. ([Content warnings](../../content-warnings.md#on-the-fediverse-and-bluesky).)
 
 **In.**
 - ActivityPub: `sensitive` or a `summary` on a Note makes a post with an
@@ -165,7 +165,7 @@ on upload, with the place a photo was taken). What can be believed without
 checking is a file saying it **was** made with AI: nobody gains by faking that
 against themselves. A file saying it came from a camera means something only
 with a signature that checks out, which is roadmap row 131
-([content-credentials.md](content-credentials.md)).
+([content-credentials.md](../content-credentials.md)).
 
 1. **The author says so,** with the sixth kind, in the composer as any other.
 2. **The file says so.** On upload, before a photo is made again at its
@@ -223,6 +223,12 @@ with a signature that checks out, which is roadmap row 131
    case records what was done elsewhere, as for every other action), and
    `medium_warned` to the author.
 5. **Made with AI:** the sixth kind, the signs read from a file on upload,
-   the composer choosing it, the report reason: about one session.
+   the composer choosing it, the report reason: about one session. **Built
+   on 2026-11-16,** with one change: the signs are read in the browser as
+   a file is chosen, not by the photo and video services on upload. A
+   video goes from the browser straight to storage, so no service sees it
+   before the post is made; one check, in one place, for both. Show draws
+   a quiet line, "Made with AI", under such a post: for this kind the mark
+   is the point.
 
 About four days in all, services and web.

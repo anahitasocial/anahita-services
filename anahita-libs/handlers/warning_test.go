@@ -22,7 +22,7 @@ func TestSetWarning(t *testing.T) {
 		{name: "other without words", kind: "other", text: "  ", valid: false, allowed: true},
 		{name: "other too long", kind: "other", text: strings.Repeat("ج", 101), valid: false, allowed: true},
 		{name: "other at the limit", kind: "other", text: strings.Repeat("ج", 100), valid: true, allowed: true, wantKind: "other", wantTx: strings.Repeat("ج", 100)},
-		{name: "not a kind", kind: "ai", valid: false, allowed: true},
+		{name: "not a kind", kind: "gore", valid: false, allowed: true},
 		{name: "taken off", post: entities.AnahitaNode{Warning: "nudity"}, kind: "", valid: true, allowed: true},
 		{name: "a moderator's taken off", post: entities.AnahitaNode{Warning: "nudity", WarningByModerator: true}, kind: "", valid: true, allowed: false, wantKind: "nudity"},
 		{name: "a moderator's changed", post: entities.AnahitaNode{Warning: "nudity", WarningByModerator: true}, kind: "adult", valid: true, allowed: false, wantKind: "nudity"},
@@ -75,7 +75,7 @@ func TestWarningModerator(t *testing.T) {
 	if !SetWarningAsModerator(post, "", "") || post.Warning != "" || post.WarningByModerator {
 		t.Errorf("taken off: %+v", post)
 	}
-	if SetWarningAsModerator(post, "ai", "") {
+	if SetWarningAsModerator(post, "gore", "") {
 		t.Error("a kind that is not one was taken")
 	}
 }

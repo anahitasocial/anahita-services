@@ -137,8 +137,8 @@ type MediumAddRequest struct {
 	// until it is published (POST /<kind>/<id>/publish). Not read of
 	// anything else.
 	Draft bool `form:"draft" json:"draft"`
-	// Its content warning: "adult", "suggestive", "graphic", "nudity" or
-	// "other"; left out, none. An "other" warning's words are in
+	// Its content warning: "adult", "suggestive", "graphic", "nudity",
+	// "other" or "ai" (Made with AI); left out, none. An "other" warning's words are in
 	// WarningText, up to 100 characters.
 	Warning     string `json:"warning" form:"warning" validate:"omitempty,max=16"`
 	WarningText string `json:"warning_text" form:"warning_text" validate:"omitempty,max=400"`
@@ -162,7 +162,7 @@ type MediumEditQuotePolicyRequest struct {
 type MediumEditWarningRequest struct {
 	// The post's id.
 	ID int64 `param:"id" validate:"required,numeric"`
-	// Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty
+	// Its kind: `adult`, `suggestive`, `graphic`, `nudity`, `other` or `ai` (Made with AI); empty
 	// takes it off.
 	Warning string `json:"warning" form:"warning" validate:"omitempty,max=16"`
 	// An `other` warning's words, up to 100 characters. Not read of the

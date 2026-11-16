@@ -26,7 +26,7 @@ it makes (OpenAI, Adobe Firefly, Google, Microsoft). Anahita can check that
 signature on upload and say, quietly, what it proves.
 
 What a file says it was made with AI, unsigned, is believed already, by row
-122 ([content-warnings.md](content-warnings.md#made-with-ai)). This row is the
+122 ([content-warnings.md](done/content-warnings.md#made-with-ai)). This row is the
 signed part.
 
 ## What C2PA is

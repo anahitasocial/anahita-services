@@ -6,7 +6,7 @@ import "anahita-libs/data/entities"
 // holds, so that a reader is shown it behind the warning until they choose
 // to see it.
 type Warning struct {
-	// Its kind: "adult", "suggestive", "graphic", "nudity" or "other".
+	// Its kind: "adult", "suggestive", "graphic", "nudity", "other" or "ai" (Made with AI).
 	Kind string `json:"kind"`
 	// An Other warning's words, as its author wrote them. Left out for the
 	// other kinds, which are said in the reader's own language.

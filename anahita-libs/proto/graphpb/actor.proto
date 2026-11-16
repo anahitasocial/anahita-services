@@ -404,8 +404,8 @@ message RulesAgreeRequest {
 message RulesAgreeResponse {}
 
 // A person's choice of Show, Warn or Hide for each kind of content warning
-// (roadmap row 122, phase 2), by kind. Read, every kind is there, Warn
-// where they have not chosen.
+// (roadmap row 122, phase 2), by kind. Read, every kind is there, at its
+// default where they have not chosen.
 message ContentPreferences {
     map<string, string> choices = 1;
 }
@@ -414,7 +414,7 @@ message ContentPreferencesReadRequest {
     int64 person_id = 1;
 }
 
-// Replaces their choices: a kind left out is Warn.
+// Replaces their choices: a kind left out is at its default.
 message ContentPreferencesSaveRequest {
     int64 person_id = 1;
     map<string, string> choices = 2;

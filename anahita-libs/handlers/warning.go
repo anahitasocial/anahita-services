@@ -13,7 +13,7 @@ import (
 // docs/plans/content-warnings.md), as a request gives it and as it is kept.
 
 // ErrWarningInvalid is the error a request gets when its warning is not one:
-// a kind that is not one of the five, or an Other with no words or too many.
+// a kind that is not one of the six, or an Other with no words or too many.
 const ErrWarningInvalid = "warning_invalid"
 
 // ErrWarningNotAllowed is the error an author gets when they would change or
@@ -24,7 +24,7 @@ const ErrWarningNotAllowed = "warning_not_allowed"
 func RefuseWarning(c echo.Context) error {
 	return c.JSON(http.StatusBadRequest, responses.Refusal{
 		Error:       ErrWarningInvalid,
-		Description: "warning must be \"adult\", \"suggestive\", \"graphic\", \"nudity\" or \"other\", and an \"other\" warning needs warning_text of up to 100 characters",
+		Description: "warning must be \"adult\", \"suggestive\", \"graphic\", \"nudity\", \"other\" or \"ai\", and an \"other\" warning needs warning_text of up to 100 characters",
 	})
 }
 

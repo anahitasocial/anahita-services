@@ -1156,7 +1156,7 @@
             "type": "boolean"
           },
           "kind": {
-            "description": "Its kind: \"adult\", \"suggestive\", \"graphic\", \"nudity\" or \"other\".",
+            "description": "Its kind: \"adult\", \"suggestive\", \"graphic\", \"nudity\", \"other\" or \"ai\" (Made with AI).",
             "type": "string"
           },
           "text": {
@@ -2749,7 +2749,7 @@
               "schema": {
                 "properties": {
                   "warning": {
-                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity`, `other` or `ai` (Made with AI); empty takes it off.",
                     "maxLength": 16,
                     "type": "string"
                   },
@@ -2766,7 +2766,7 @@
               "schema": {
                 "properties": {
                   "warning": {
-                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity`, `other` or `ai` (Made with AI); empty takes it off.",
                     "maxLength": 16,
                     "type": "string"
                   },
@@ -2783,7 +2783,7 @@
               "schema": {
                 "properties": {
                   "warning": {
-                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity` or `other`; empty takes it off.",
+                    "description": "Its kind: `adult`, `suggestive`, `graphic`, `nudity`, `other` or `ai` (Made with AI); empty takes it off.",
                     "maxLength": 16,
                     "type": "string"
                   },

@@ -63,8 +63,8 @@ type ActorsGRPCInterface interface {
 	SetRules(profileID int64, items []*graphpb.ProfileRule, viewer *entities.Viewer) (*graphpb.ProfileRules, error)
 	AgreeRules(profileID, version int64, viewer *entities.Viewer) error
 	// A person's choice of Show, Warn or Hide for each kind of content
-	// warning (roadmap row 122, phase 2): every kind, Warn where they have
-	// not chosen. Whose they may read or change is the caller's to ask.
+	// warning (roadmap row 122, phase 2): every kind, at its default where
+	// they have not chosen. Whose they may read or change is the caller's to ask.
 	ReadContentPreferences(personID int64) (map[string]string, error)
 	SaveContentPreferences(personID int64, choices map[string]string) (map[string]string, error)
 

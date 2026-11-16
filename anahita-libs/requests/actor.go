@@ -228,7 +228,7 @@ type PersonContentPreferencesRequest struct {
 type PersonEditContentPreferencesRequest struct {
 	// The person's id: the viewer's own.
 	ID int64 `param:"id" validate:"required,numeric"`
-	// By kind (`adult`, `suggestive`, `graphic`, `nudity`, `other`):
+	// By kind (`adult`, `suggestive`, `graphic`, `nudity`, `other`, `ai`):
 	// `show`, `warn` or `hide`. A kind left out stays as it was.
 	Choices map[string]string `json:"choices" validate:"required"`
 }

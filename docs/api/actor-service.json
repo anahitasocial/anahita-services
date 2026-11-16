@@ -1634,7 +1634,7 @@
             "type": "boolean"
           },
           "kind": {
-            "description": "Its kind: \"adult\", \"suggestive\", \"graphic\", \"nudity\" or \"other\".",
+            "description": "Its kind: \"adult\", \"suggestive\", \"graphic\", \"nudity\", \"other\" or \"ai\" (Made with AI).",
             "type": "string"
           },
           "text": {
@@ -1853,7 +1853,7 @@
             "additionalProperties": {
               "type": "string"
             },
-            "description": "By kind (`adult`, `suggestive`, `graphic`, `nudity`, `other`): `show`, `warn` or `hide`. Every kind is there, `warn` where they have not chosen.",
+            "description": "By kind (`adult`, `suggestive`, `graphic`, `nudity`, `other`, `ai`): `show`, `warn` or `hide`. Every kind is there, at its default where they have not chosen: `warn`, but `show` for `ai`.",
             "type": [
               "object",
               "null"
@@ -9703,7 +9703,7 @@
                     "additionalProperties": {
                       "type": "string"
                     },
-                    "description": "By kind (`adult`, `suggestive`, `graphic`, `nudity`, `other`): `show`, `warn` or `hide`. A kind left out stays as it was.",
+                    "description": "By kind (`adult`, `suggestive`, `graphic`, `nudity`, `other`, `ai`): `show`, `warn` or `hide`. A kind left out stays as it was.",
                     "type": "object"
                   }
                 },

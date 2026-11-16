@@ -149,6 +149,16 @@
       "atproto_reason": "com.atproto.moderation.defs#reasonSexual"
     },
     {
+      "key": "needs_ai_label",
+      "label": { "en-GB": "Made with AI, not marked", "fr-FR": "Fait avec l’IA, sans le dire" },
+      "description": {
+        "en-GB": "A picture or a video made or changed by AI, not marked as Made with AI.",
+        "fr-FR": "Une image ou une vidéo faite ou modifiée par l’IA, sans la mention Fait avec l’IA."
+      },
+      "applies_to": ["node.medium."],
+      "atproto_reason": "com.atproto.moderation.defs#reasonMisleading"
+    },
+    {
       "key": "other",
       "label": { "en-GB": "Something else", "fr-FR": "Autre chose" },
       "description": {

@@ -272,7 +272,8 @@ func post(reader Reader, id int64, kind string) *Subject {
 	// A post with a content warning (row 122) shows nothing of itself where
 	// its link is pasted, which would show it to whoever sees the link,
 	// warned or not: no picture, and the warning in place of its words.
-	if node.Warning != "" {
+	// Made with AI hides nothing: it says what a post is.
+	if entities.WarningHides(node.Warning) {
 		subject.Tags.Description = warningDescription(node)
 		return subject
 	}

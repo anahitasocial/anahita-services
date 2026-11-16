@@ -76,6 +76,7 @@ func TestWarningChoices(t *testing.T) {
 		WarningGraphic:    WarningHide,
 		WarningNudity:     WarningShow,
 		WarningOther:      WarningWarn,
+		WarningAI:         WarningShow,
 	}
 	if len(got) != len(want) {
 		t.Fatalf("got %v, want %v", got, want)
@@ -89,8 +90,15 @@ func TestWarningChoices(t *testing.T) {
 	kept := WarningChoicesKept(map[string]string{
 		WarningGraphic: WarningHide,
 		WarningAdult:   WarningWarn,
+		WarningAI:      WarningShow,
 	})
 	if len(kept) != 1 || kept[WarningGraphic] != WarningHide {
 		t.Errorf("kept %v, want graphic: hide alone", kept)
+	}
+	if kept := WarningChoicesKept(map[string]string{WarningAI: WarningWarn}); kept[WarningAI] != WarningWarn {
+		t.Errorf("made with AI at Warn was not kept: %v", kept)
+	}
+	if WarningHides(WarningAI) || WarningHides("") || !WarningHides(WarningOther) {
+		t.Error("only a warning of what a post holds hides it")
 	}
 }

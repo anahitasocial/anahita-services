@@ -276,7 +276,7 @@ who may call it: somebody signed in.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>choices</code> <span class="required">always</span></td><td>map of string</td><td>By kind (<code>adult</code>, <code>suggestive</code>, <code>graphic</code>, <code>nudity</code>, <code>other</code>): <code>show</code>, <code>warn</code> or <code>hide</code>. A kind left out stays as it was.</td></tr>
+<tr><td><code>choices</code> <span class="required">always</span></td><td>map of string</td><td>By kind (<code>adult</code>, <code>suggestive</code>, <code>graphic</code>, <code>nudity</code>, <code>other</code>, <code>ai</code>): <code>show</code>, <code>warn</code> or <code>hide</code>. A kind left out stays as it was.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -6723,7 +6723,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>warning</code></td><td>string</td><td>Its kind: <code>adult</code>, <code>suggestive</code>, <code>graphic</code>, <code>nudity</code> or <code>other</code>; empty takes it off. At most 16 characters.</td></tr>
+<tr><td><code>warning</code></td><td>string</td><td>Its kind: <code>adult</code>, <code>suggestive</code>, <code>graphic</code>, <code>nudity</code>, <code>other</code> or <code>ai</code> (Made with AI); empty takes it off. At most 16 characters.</td></tr>
 <tr><td><code>warning_text</code></td><td>string</td><td>An <code>other</code> warning&#39;s words, up to 100 characters. Not read of the other kinds. At most 400 characters.</td></tr>
 </tbody>
 </table>
@@ -6788,7 +6788,7 @@ who may call it: anyone, signed in or not.">
 <tr><td><code>location_ids</code></td><td>list of integer</td><td>The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its <code>location</code>, all as <code>Place</code>s in its <code>tag</code> (roadmap row 82, part 3b). Up to five; what is not a location is passed over. At most 5 of them.</td></tr>
 <tr><td><code>quote_policy</code></td><td>string</td><td>Who may quote it: &#34;anyone&#34;, &#34;followers&#34; or &#34;nobody&#34;. Left out, the author&#39;s own setting applies. See constants.EffectiveQuotePolicy. At most 16 characters.</td></tr>
 <tr><td><code>reply_access</code></td><td>string</td><td>Who may reply: &#34;anyone&#34;, &#34;nobody&#34;, or any of &#34;followers&#34;, &#34;following&#34; and &#34;mentioned&#34; joined by commas. Left out, anyone the profile lets. See constants.NormalizeReplyAccess. At most 64 characters.</td></tr>
-<tr><td><code>warning</code></td><td>string</td><td>Its content warning: &#34;adult&#34;, &#34;suggestive&#34;, &#34;graphic&#34;, &#34;nudity&#34; or &#34;other&#34;; left out, none. An &#34;other&#34; warning&#39;s words are in WarningText, up to 100 characters. At most 16 characters.</td></tr>
+<tr><td><code>warning</code></td><td>string</td><td>Its content warning: &#34;adult&#34;, &#34;suggestive&#34;, &#34;graphic&#34;, &#34;nudity&#34;, &#34;other&#34; or &#34;ai&#34; (Made with AI); left out, none. An &#34;other&#34; warning&#39;s words are in WarningText, up to 100 characters. At most 16 characters.</td></tr>
 <tr><td><code>warning_text</code></td><td>string</td><td> At most 400 characters.</td></tr>
 </tbody>
 </table>
@@ -6804,7 +6804,7 @@ who may call it: anyone, signed in or not.">
 <tr><td><code>quote_policy</code></td><td>string</td><td>Who may quote it: &#34;anyone&#34;, &#34;followers&#34; or &#34;nobody&#34;. Left out, the author&#39;s own setting applies. See constants.EffectiveQuotePolicy. At most 16 characters.</td></tr>
 <tr><td><code>reply_access</code></td><td>string</td><td>Who may reply: &#34;anyone&#34;, &#34;nobody&#34;, or any of &#34;followers&#34;, &#34;following&#34; and &#34;mentioned&#34; joined by commas. Left out, anyone the profile lets. See constants.NormalizeReplyAccess. At most 64 characters.</td></tr>
 <tr><td><code>title</code> <span class="required">always</span></td><td>string</td><td>Its title. At most 100 characters.</td></tr>
-<tr><td><code>warning</code></td><td>string</td><td>Its content warning: &#34;adult&#34;, &#34;suggestive&#34;, &#34;graphic&#34;, &#34;nudity&#34; or &#34;other&#34;; left out, none. An &#34;other&#34; warning&#39;s words are in WarningText, up to 100 characters. At most 16 characters.</td></tr>
+<tr><td><code>warning</code></td><td>string</td><td>Its content warning: &#34;adult&#34;, &#34;suggestive&#34;, &#34;graphic&#34;, &#34;nudity&#34;, &#34;other&#34; or &#34;ai&#34; (Made with AI); left out, none. An &#34;other&#34; warning&#39;s words are in WarningText, up to 100 characters. At most 16 characters.</td></tr>
 <tr><td><code>warning_text</code></td><td>string</td><td> At most 400 characters.</td></tr>
 </tbody>
 </table>
@@ -7424,7 +7424,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>warning</code></td><td>string</td><td>Its kind: <code>adult</code>, <code>suggestive</code>, <code>graphic</code>, <code>nudity</code> or <code>other</code>; empty takes it off. At most 16 characters.</td></tr>
+<tr><td><code>warning</code></td><td>string</td><td>Its kind: <code>adult</code>, <code>suggestive</code>, <code>graphic</code>, <code>nudity</code>, <code>other</code> or <code>ai</code> (Made with AI); empty takes it off. At most 16 characters.</td></tr>
 <tr><td><code>warning_text</code></td><td>string</td><td>An <code>other</code> warning&#39;s words, up to 100 characters. Not read of the other kinds. At most 400 characters.</td></tr>
 </tbody>
 </table>
@@ -7829,7 +7829,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>warning</code></td><td>string</td><td>Its kind: <code>adult</code>, <code>suggestive</code>, <code>graphic</code>, <code>nudity</code> or <code>other</code>; empty takes it off. At most 16 characters.</td></tr>
+<tr><td><code>warning</code></td><td>string</td><td>Its kind: <code>adult</code>, <code>suggestive</code>, <code>graphic</code>, <code>nudity</code>, <code>other</code> or <code>ai</code> (Made with AI); empty takes it off. At most 16 characters.</td></tr>
 <tr><td><code>warning_text</code></td><td>string</td><td>An <code>other</code> warning&#39;s words, up to 100 characters. Not read of the other kinds. At most 400 characters.</td></tr>
 </tbody>
 </table>
@@ -7894,7 +7894,7 @@ who may call it: anyone, signed in or not.">
 <tr><td><code>location_ids</code></td><td>list of integer</td><td>The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its <code>location</code>, all as <code>Place</code>s in its <code>tag</code> (roadmap row 82, part 3b). Up to five; what is not a location is passed over. At most 5 of them.</td></tr>
 <tr><td><code>quote_policy</code></td><td>string</td><td>Who may quote it: &#34;anyone&#34;, &#34;followers&#34; or &#34;nobody&#34;. Left out, the author&#39;s own setting applies. See constants.EffectiveQuotePolicy. At most 16 characters.</td></tr>
 <tr><td><code>reply_access</code></td><td>string</td><td>Who may reply: &#34;anyone&#34;, &#34;nobody&#34;, or any of &#34;followers&#34;, &#34;following&#34; and &#34;mentioned&#34; joined by commas. Left out, anyone the profile lets. See constants.NormalizeReplyAccess. At most 64 characters.</td></tr>
-<tr><td><code>warning</code></td><td>string</td><td>Its content warning: &#34;adult&#34;, &#34;suggestive&#34;, &#34;graphic&#34;, &#34;nudity&#34; or &#34;other&#34;; left out, none. An &#34;other&#34; warning&#39;s words are in WarningText, up to 100 characters. At most 16 characters.</td></tr>
+<tr><td><code>warning</code></td><td>string</td><td>Its content warning: &#34;adult&#34;, &#34;suggestive&#34;, &#34;graphic&#34;, &#34;nudity&#34;, &#34;other&#34; or &#34;ai&#34; (Made with AI); left out, none. An &#34;other&#34; warning&#39;s words are in WarningText, up to 100 characters. At most 16 characters.</td></tr>
 <tr><td><code>warning_text</code></td><td>string</td><td> At most 400 characters.</td></tr>
 </tbody>
 </table>
@@ -7910,7 +7910,7 @@ who may call it: anyone, signed in or not.">
 <tr><td><code>quote_policy</code></td><td>string</td><td>Who may quote it: &#34;anyone&#34;, &#34;followers&#34; or &#34;nobody&#34;. Left out, the author&#39;s own setting applies. See constants.EffectiveQuotePolicy. At most 16 characters.</td></tr>
 <tr><td><code>reply_access</code></td><td>string</td><td>Who may reply: &#34;anyone&#34;, &#34;nobody&#34;, or any of &#34;followers&#34;, &#34;following&#34; and &#34;mentioned&#34; joined by commas. Left out, anyone the profile lets. See constants.NormalizeReplyAccess. At most 64 characters.</td></tr>
 <tr><td><code>title</code> <span class="required">always</span></td><td>string</td><td>Its title. At most 100 characters.</td></tr>
-<tr><td><code>warning</code></td><td>string</td><td>Its content warning: &#34;adult&#34;, &#34;suggestive&#34;, &#34;graphic&#34;, &#34;nudity&#34; or &#34;other&#34;; left out, none. An &#34;other&#34; warning&#39;s words are in WarningText, up to 100 characters. At most 16 characters.</td></tr>
+<tr><td><code>warning</code></td><td>string</td><td>Its content warning: &#34;adult&#34;, &#34;suggestive&#34;, &#34;graphic&#34;, &#34;nudity&#34;, &#34;other&#34; or &#34;ai&#34; (Made with AI); left out, none. An &#34;other&#34; warning&#39;s words are in WarningText, up to 100 characters. At most 16 characters.</td></tr>
 <tr><td><code>warning_text</code></td><td>string</td><td> At most 400 characters.</td></tr>
 </tbody>
 </table>
@@ -8332,7 +8332,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>warning</code></td><td>string</td><td>Its kind: <code>adult</code>, <code>suggestive</code>, <code>graphic</code>, <code>nudity</code> or <code>other</code>; empty takes it off. At most 16 characters.</td></tr>
+<tr><td><code>warning</code></td><td>string</td><td>Its kind: <code>adult</code>, <code>suggestive</code>, <code>graphic</code>, <code>nudity</code>, <code>other</code> or <code>ai</code> (Made with AI); empty takes it off. At most 16 characters.</td></tr>
 <tr><td><code>warning_text</code></td><td>string</td><td>An <code>other</code> warning&#39;s words, up to 100 characters. Not read of the other kinds. At most 400 characters.</td></tr>
 </tbody>
 </table>
@@ -8984,7 +8984,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>warning</code></td><td>string</td><td>Its kind: <code>adult</code>, <code>suggestive</code>, <code>graphic</code>, <code>nudity</code> or <code>other</code>; empty takes it off. At most 16 characters.</td></tr>
+<tr><td><code>warning</code></td><td>string</td><td>Its kind: <code>adult</code>, <code>suggestive</code>, <code>graphic</code>, <code>nudity</code>, <code>other</code> or <code>ai</code> (Made with AI); empty takes it off. At most 16 characters.</td></tr>
 <tr><td><code>warning_text</code></td><td>string</td><td>An <code>other</code> warning&#39;s words, up to 100 characters. Not read of the other kinds. At most 400 characters.</td></tr>
 </tbody>
 </table>
@@ -12478,7 +12478,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
 <tr><td><code>by_moderator</code></td><td>boolean</td><td>That a moderator gave it, which its author may then not take off.</td></tr>
-<tr><td><code>kind</code> <span class="required">always</span></td><td>string</td><td>Its kind: &#34;adult&#34;, &#34;suggestive&#34;, &#34;graphic&#34;, &#34;nudity&#34; or &#34;other&#34;.</td></tr>
+<tr><td><code>kind</code> <span class="required">always</span></td><td>string</td><td>Its kind: &#34;adult&#34;, &#34;suggestive&#34;, &#34;graphic&#34;, &#34;nudity&#34;, &#34;other&#34; or &#34;ai&#34; (Made with AI).</td></tr>
 <tr><td><code>text</code></td><td>string</td><td>An Other warning&#39;s words, as its author wrote them. Left out for the other kinds, which are said in the reader&#39;s own language.</td></tr>
 </tbody>
 </table>
@@ -12987,7 +12987,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>choices</code> <span class="required">always</span></td><td>map of string or null</td><td>By kind (<code>adult</code>, <code>suggestive</code>, <code>graphic</code>, <code>nudity</code>, <code>other</code>): <code>show</code>, <code>warn</code> or <code>hide</code>. Every kind is there, <code>warn</code> where they have not chosen.</td></tr>
+<tr><td><code>choices</code> <span class="required">always</span></td><td>map of string or null</td><td>By kind (<code>adult</code>, <code>suggestive</code>, <code>graphic</code>, <code>nudity</code>, <code>other</code>, <code>ai</code>): <code>show</code>, <code>warn</code> or <code>hide</code>. Every kind is there, at its default where they have not chosen: <code>warn</code>, but <code>show</code> for <code>ai</code>.</td></tr>
 </tbody>
 </table>
 </div>

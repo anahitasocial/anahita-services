@@ -49,7 +49,7 @@ is gathered at the end, [for planning](#not-built).
 | Feature | Anahita | |
 | --- | --- | --- |
 | Edit published posts | yes | |
-| Content warnings | partly | An author's, on any post, shown behind the warning and sent with it to both networks; each reader's choices and warnings from elsewhere are planned ([Content warnings](content-warnings.md)) |
+| Content warnings | yes | An author's or the administrators', on any post, shown behind the warning, sent with it to both networks and read from them; each reader chooses Show, Warn or Hide for each kind; Made with AI as a sixth kind ([Content warnings](content-warnings.md)) |
 | Formatted text in posts | yes | |
 | Write in Markdown | yes | Posts are kept as Markdown |
 | Posts over 500 characters | no | 500, as Mastodon and Threads, a link counted as 23; longer is a thread, an article or a topic (roadmap row 144) |
@@ -216,15 +216,13 @@ Every **no** and **planned** above, gathered for planning.
 
 **Planned,** each with its plan:
 
-1. Content warnings and sensitive media, each reader's choices and
-   federation: [Content warnings](plans/content-warnings.md)
-2. Direct messages: [Direct messages](plans/direct-messages.md)
-3. Translating posts: [Translation](plans/translation.md)
-4. Albums or collections: [Collections](plans/collections.md)
-5. Verified profile links: [Verified domains](plans/verified-domains.md)
-6. Importing server blocklists:
+1. Direct messages: [Direct messages](plans/direct-messages.md)
+2. Translating posts: [Translation](plans/translation.md)
+3. Albums or collections: [Collections](plans/collections.md)
+4. Verified profile links: [Verified domains](plans/verified-domains.md)
+5. Importing server blocklists:
    [Refusing servers from a file](plans/domain-block-import.md)
-7. An official mobile app, Anahita Mobile
+6. An official mobile app, Anahita Mobile
 
 **Decided against, or put off, with why:**
 
