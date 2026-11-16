@@ -1654,9 +1654,12 @@ its own. The card says to use one and where to make it.
    (`app.bsky.embed.record`, or `recordWithMedia` beside its own pictures,
    video or card; roadmap row 156). Quoting one that is not, it ends with
    a line that leads to it, as on the fediverse, "↪" and its address, and
-   carries a card of it when it carries nothing else, with its picture: a
-   photo post's first, an article's cover, a video's poster, a sound's
-   cover, or the picture of a note's link card. A post or a reply that is changed here afterwards
+   carries a card of it when it carries nothing else: its opening in plain
+   words, a link as its words or its short address; whose it is, by name
+   and handle ("False Knees · @falseknees@mastodon.social"); and its
+   picture: the first of a post with pictures, one from the fediverse too,
+   an article's cover, a video's poster, a sound's cover, or the picture of
+   a note's link card. A post or a reply that is changed here afterwards
    is not changed there: Bluesky has no changing a post, and taking it down
    to post it again would lose its likes, reposts and replies. Mastodon and
    other servers are sent the change.

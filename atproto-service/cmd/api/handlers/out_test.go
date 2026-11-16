@@ -1666,3 +1666,51 @@ func TestAQuoteOfAPostOnBlueskyIsAQuoteThere(t *testing.T) {
 		t.Errorf("a quote of ours written there:\n%s", out)
 	}
 }
+
+// A quote of a post from the fediverse, which is not on Bluesky, goes with a
+// card of it: its words plain, a link as its words and no Markdown; whose
+// it is, by name and handle; and its first picture, kept here while it is
+// quoted (the user, 2026-11-16: the card showed the post's Markdown, the
+// host alone and no picture).
+func TestTheCardOfAQuotedPostFromTheFediverse(t *testing.T) {
+	w, _ := writingWorld(t)
+	w.connect()
+
+	author := &entities.AnahitaNode{
+		ID: 120, Type: constants.NodeActorActivityPubPersonEntityType, Enabled: true,
+		Alias: "falseknees@mastodon.social", Name: "False Knees",
+		URI: "https://mastodon.social/users/falseknees", Access: constants.AnahitaAccessPublic,
+	}
+	quoted := &entities.AnahitaNode{
+		ID: 121, Type: constants.NodeMediumNoteEntityType, Enabled: true, OwnerID: 120, CreatedBy: 120,
+		Access: constants.AnahitaAccessPublic, URI: "https://mastodon.social/users/falseknees/statuses/1",
+		Body: "focus - prints available at [https://store.falseknees.com/](https://store.falseknees.com/)",
+	}
+	sizes, _ := quoted.PortraitsFor("comic.png")
+	w.files.content[sizes[entities.PortraitSizeMedium].Url] = aPicture(t)
+	w.listed.kept[121] = []*entities.PhotoFile{{Filename: "comic.png", Mimetype: "image/png", Width: 600, Height: 600}}
+	quote := &entities.AnahitaNode{
+		ID: 122, Type: constants.NodeMediumNoteEntityType, Enabled: true, OwnerID: anaID, CreatedBy: anaID,
+		Access: constants.AnahitaAccessPublic, Body: "Today's mantra", QuoteID: 121,
+	}
+	w.nodes.kept = append(w.nodes.kept, author, quoted, quote)
+	w.heard("node.medium.text-service.note.added.v1", event.EventPayload{ObjectType: constants.NodeMediumNoteEntityType, ObjectID: 122})
+	if failed := w.drain(); len(failed) != 0 {
+		t.Fatal(failed)
+	}
+
+	written := writtenWith(w, "Today's mantra")
+	for _, want := range []string{
+		`"app.bsky.embed.external"`,
+		`"title":"focus - prints available at store.falseknees.com"`,
+		`"description":"False Knees · @falseknees@mastodon.social"`,
+		`"thumb":{"$type":"blob"`,
+	} {
+		if !strings.Contains(written, want) {
+			t.Errorf("the quote as written lacks %s:\n%s", want, written)
+		}
+	}
+	if strings.Contains(written, "](") {
+		t.Errorf("the card shows Markdown:\n%s", written)
+	}
+}

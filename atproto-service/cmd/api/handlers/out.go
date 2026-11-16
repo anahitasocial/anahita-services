@@ -621,7 +621,7 @@ func (h *Handlers) record(ctx context.Context, w *write, upload uploader) (any, 
 	if quotedRef != nil {
 		post.WithQuote(quotedRef)
 	} else if address != "" && post.Embed == nil {
-		post.WithCard(address, cutTitle(quoted), hostOf(address), h.quotedPicture(quoted, upload))
+		post.WithCard(address, cutTitle(quoted), h.quotedBy(quoted, address), h.quotedPicture(quoted, upload))
 	}
 	// The card of the link in it, as it was kept when the note was made.
 	if card := linkpreviews.FromMeta(note.Meta); card != nil && post.Embed == nil {
@@ -974,7 +974,9 @@ func cutTitle(note *entities.AnahitaNode) string {
 	if title := strings.TrimSpace(note.Name); title != "" {
 		return title
 	}
-	words := strings.Fields(note.Body)
+	// In plain words: a card's title shows no Markdown, and a link in it
+	// is its words or its short address (the user, 2026-11-16).
+	words := strings.Fields(bsky.PlainText(note.Body))
 	opening := strings.Join(words, " ")
 	if letters := []rune(opening); len(letters) > 80 {
 		opening = strings.TrimSpace(string(letters[:79])) + "…"
@@ -1005,28 +1007,51 @@ func hostOf(address string) string {
 	return host
 }
 
+// quotedBy is the line under a quoted post's card on Bluesky: whose it is,
+// by name and handle, "False Knees · @falseknees@mastodon.social"; or the
+// host of its address when its author cannot be read.
+func (h *Handlers) quotedBy(quoted *entities.AnahitaNode, address string) string {
+	if quoted == nil || quoted.CreatedBy <= 0 {
+		return hostOf(address)
+	}
+	author, err := h.Nodes.Read(quoted.CreatedBy)
+	if err != nil || author == nil || author.Alias == "" {
+		return hostOf(address)
+	}
+	// Somebody from elsewhere is named by their whole handle; somebody here
+	// by theirs on this installation.
+	handle := "@" + author.Alias
+	if !strings.Contains(author.Alias, "@") {
+		handle += "@" + h.Site.Domain
+	}
+	if name := strings.TrimSpace(author.Name); name != "" {
+		return name + " · " + handle
+	}
+	return handle
+}
+
 // quotedPicture is the picture of a quoted post's card on Bluesky, or nil:
-// a photo post's first picture, an article's cover, a video's poster, a
-// sound's cover, or the picture of the card a note carries. A post from
-// elsewhere has none kept here.
+// its first picture, of a photo post or of any post with pictures, one from
+// elsewhere too, whose pictures are kept here while it is quoted; an
+// article's cover, a video's poster, a sound's cover, or the picture of the
+// card a note carries.
 func (h *Handlers) quotedPicture(quoted *entities.AnahitaNode, upload uploader) *bsky.OutBlob {
-	if quoted == nil || quoted.URI != "" || h.Keeper == nil || h.Keeper.Files == nil {
+	if quoted == nil || h.Keeper == nil || h.Keeper.Files == nil {
+		return nil
+	}
+	if h.Keeper.PhotoFiles != nil {
+		if files, err := h.Keeper.PhotoFiles.BrowsePhotoFiles([]int64{quoted.ID}); err == nil && len(files) > 0 {
+			if sizes, err := quoted.PortraitsFor(files[0].Filename); err == nil {
+				if blob := h.uploaded(sizes[entities.PortraitSizeMedium].Url, upload); blob != nil {
+					return blob
+				}
+			}
+		}
+	}
+	if quoted.URI != "" {
 		return nil
 	}
 	switch quoted.Type {
-	case constants.NodeMediumPhotoEntityType:
-		if h.Keeper.PhotoFiles == nil {
-			return nil
-		}
-		files, err := h.Keeper.PhotoFiles.BrowsePhotoFiles([]int64{quoted.ID})
-		if err != nil || len(files) == 0 {
-			return nil
-		}
-		sizes, err := quoted.PortraitsFor(files[0].Filename)
-		if err != nil {
-			return nil
-		}
-		return h.uploaded(sizes[entities.PortraitSizeMedium].Url, upload)
 	case constants.NodeMediumArticleEntityType:
 		return h.coverPicture(quoted, upload)
 	case videos.AudioNodeType:

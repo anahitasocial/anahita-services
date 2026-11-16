@@ -21,6 +21,12 @@ Releases before v1.0.17 are described on GitHub, under
    profile by its address, as Bonfire does, leads to the profile. Servers
    asking for ActivityPub get the JSON as before
    ([Federation](docs/federation.md#what-other-servers-are-told)).
+2. **The card of a quoted post on Bluesky** (roadmap row 156), when the
+   quoted post is not on Bluesky: its title in plain words, not its
+   Markdown; whose it is, by name and handle, not the host alone; and its
+   first picture, a post from the fediverse's too. A link whose words are
+   only its address is shown short in what goes to Bluesky, as an address
+   alone is.
 
 ## v1.3.4 Birth, 2026-11-16
 

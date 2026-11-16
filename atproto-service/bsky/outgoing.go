@@ -283,6 +283,13 @@ func plain(markdown string) string {
 	return outEscape.ReplaceAllString(markdown, "$1")
 }
 
+// PlainText is what a post written here says, as Bluesky shows it: its
+// words, a link as its words or its short address, Markdown's marks taken
+// out. For a card's title, where nothing is marked.
+func PlainText(markdown string) string {
+	return NewOutPost(markdown, "", time.Time{}).Text
+}
+
 // NewOutPost makes a post of what was written here.
 func NewOutPost(markdown, language string, at time.Time) *OutPost {
 	markdown = strings.TrimSpace(strings.ReplaceAll(markdown, "\r\n", "\n"))
@@ -310,8 +317,10 @@ func NewOutPost(markdown, language string, at time.Time) *OutPost {
 		switch {
 		case m[2] >= 0: // [words](address)
 			words := plain(markdown[m[2]:m[3]])
-			if strings.TrimSpace(words) == "" {
-				words = markdown[m[4]:m[5]]
+			// A link whose words are only an address, as Mastodon writes
+			// one, is shown short, as an address alone is.
+			if trimmed := strings.TrimSpace(words); trimmed == "" || strings.HasPrefix(trimmed, "http://") || strings.HasPrefix(trimmed, "https://") {
+				words = ShortLink(markdown[m[4]:m[5]])
 			}
 			mark(words, map[string]string{"$type": "app.bsky.richtext.facet#link", "uri": markdown[m[4]:m[5]]})
 		case m[6] >= 0: // an address alone
