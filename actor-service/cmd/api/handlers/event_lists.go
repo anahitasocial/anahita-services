@@ -339,6 +339,18 @@ type EventHostedRequest struct {
 //
 // GET /groups/:id/events/?filter=upcoming|past
 func (h *eventHandler) HostedBy(c echo.Context) error {
+	return h.hostedBy(c, constants.NodeActorGroupType)
+}
+
+// HostedByChannel lists the events a channel hosts (roadmap row 147, phase
+// 5), as HostedBy does a group's.
+//
+// GET /channels/:id/events/?filter=upcoming|past
+func (h *eventHandler) HostedByChannel(c echo.Context) error {
+	return h.hostedBy(c, an_constants.NodeActorChannelEntityType)
+}
+
+func (h *eventHandler) hostedBy(c echo.Context, hostType string) error {
 	var (
 		req    = &EventHostedRequest{Limit: an_constants.RequestLimitDefault}
 		viewer = getViewer(c)
@@ -358,7 +370,7 @@ func (h *eventHandler) HostedBy(c echo.Context) error {
 		filter = an_constants.EventListUpcoming
 	}
 
-	group, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, constants.NodeActorGroupType, viewer)
+	group, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, hostType, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)

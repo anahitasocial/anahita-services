@@ -3812,6 +3812,109 @@
         "x-viewer": "signed_in"
       }
     },
+    "/channels/{id}/events/": {
+      "get": {
+        "description": "Those the viewer may see. Each an event, or what is shown of one the viewer may only answer as a follower of the channel.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getChannelsByIdEvents",
+        "parameters": [
+          {
+            "description": "The group.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "upcoming or past. Upcoming when left out.",
+            "in": "query",
+            "name": "filter",
+            "schema": {
+              "enum": [
+                "upcoming",
+                "past"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send: up to 100.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "maximum": 100,
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {},
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "403": {
+            "description": "the viewer may not see the channel"
+          },
+          "404": {
+            "description": "there is no such channel"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The events a channel hosts",
+        "tags": [
+          "channels"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*eventHandler).HostedByChannel",
+        "x-viewer": "anyone"
+      }
+    },
     "/channels/{id}/featured": {
       "patch": {
         "description": "What onboarding offers new members to follow. Super administrators only.\n\nWho may call it: somebody signed in.",
@@ -4447,7 +4550,7 @@
                     "type": "string"
                   },
                   "host_group_id": {
-                    "description": "A group hosting it, which whoever makes the event must administer. Left out for an event that is its maker's own.",
+                    "description": "A group or a channel hosting it, which whoever makes the event must administer. Left out for an event that is its maker's own.",
                     "format": "int64",
                     "type": "integer"
                   },
@@ -4546,7 +4649,7 @@
                     "type": "string"
                   },
                   "host_group_id": {
-                    "description": "A group hosting it, which whoever makes the event must administer. Left out for an event that is its maker's own.",
+                    "description": "A group or a channel hosting it, which whoever makes the event must administer. Left out for an event that is its maker's own.",
                     "format": "int64",
                     "type": "integer"
                   },
@@ -4645,7 +4748,7 @@
                     "type": "string"
                   },
                   "host_group_id": {
-                    "description": "A group hosting it, which whoever makes the event must administer. Left out for an event that is its maker's own.",
+                    "description": "A group or a channel hosting it, which whoever makes the event must administer. Left out for an event that is its maker's own.",
                     "format": "int64",
                     "type": "integer"
                   },

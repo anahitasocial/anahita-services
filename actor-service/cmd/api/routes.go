@@ -561,6 +561,16 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	channels.DELETE("/:id", r.handler.Channel.Delete, r.authorize).With(remove("channel", actorReq.Delete))
 	channels.GET("/:id/deletion-counts", r.handler.Channel.DeletionCounts, r.authorize).With(counts("channel", handlers.GroupDeletionCounts{}))
 	channels.DELETE("/:id/purge", r.handler.Channel.Purge, r.authorize).With(purge("channel"))
+
+	// The events a channel hosts (roadmap row 147, phase 5).
+	channels.GET("/:id/events/", r.handler.Event.HostedByChannel, r.setViewer).
+		Summary("The events a channel hosts").
+		Describe("Those the viewer may see. Each an event, or what is shown of one the viewer may only answer as a follower of the channel.").
+		Viewer(apidoc.Anyone).
+		Takes(&handlers.EventHostedRequest{Limit: 20}).
+		Sends(http.StatusOK, libs_responses.List[any]{}).
+		Refuses(http.StatusForbidden, "the viewer may not see the channel").
+		Refuses(http.StatusNotFound, "there is no such channel")
 	channels.PATCH("/:id/enabled", r.handler.Channel.SetEnabled, r.authorize).With(enabled)
 	channels.PATCH("/:id/featured", r.handler.Channel.SetFeatured, r.authorize).With(featured)
 	channels.POST("/:id/restore", r.handler.Channel.Restore, r.authorize).With(restore("channel"))

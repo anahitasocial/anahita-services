@@ -92,8 +92,8 @@ type EventAddRequest struct {
 	EventFields
 	// Who can see it. Anybody, unless it says otherwise.
 	Access string `form:"access" json:"access" validate:"omitempty,oneof=public registered followers"`
-	// A group hosting it, which whoever makes the event must administer.
-	// Left out for an event that is its maker's own.
+	// A group or a channel hosting it, which whoever makes the event must
+	// administer. Left out for an event that is its maker's own.
 	HostGroupID int64 `form:"host_group_id" json:"host_group_id" validate:"omitempty,numeric"`
 }
 
@@ -645,10 +645,14 @@ func (h *groupHandler) setEventHosts(events []*entities.AnahitaNode, viewer *ent
 	}
 }
 
-// hostGroup reads the group that is to host an event, for a viewer who
-// administers it. The status is 0 when they do.
+// hostGroup reads the group, or the channel (roadmap row 147, phase 5),
+// that is to host an event, for a viewer who administers it. The status is
+// 0 when they do.
 func (h *eventHandler) hostGroup(groupID int64, viewer *entities.Viewer) (*entities.AnahitaNode, int) {
 	group, err := h.Srv.ActorsGRPC.ReadOfType(groupID, constants.NodeActorGroupType, viewer)
+	if err != nil || group == nil {
+		group, err = h.Srv.ActorsGRPC.ReadOfType(groupID, an_constants.NodeActorChannelEntityType, viewer)
+	}
 	if err != nil || group == nil {
 		log.Println(err)
 		return nil, http.StatusNotFound

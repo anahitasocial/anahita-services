@@ -14,14 +14,18 @@ Releases before v1.0.17 are described on GitHub, under
 
 ### Added
 
-1. **A channel's feed, connected in its settings** (roadmap row 147,
+1. **Events hosted by a channel** (roadmap row 147, phase 5): `POST
+   /events/` takes a channel's id in `host_group_id`, from one of its
+   admins, whose admins are carried onto the event as a group's are; `GET
+   /channels/:id/events/` lists the events a channel hosts.
+2. **A channel's feed, connected in its settings** (roadmap row 147,
    phase 4): `GET`, `PUT` and `DELETE /channels/_connect/feeds/:channel_id`,
    for its admins. A site's domain is proved as before (`POST
    /channels/_connect`, `…/:id/check`), then its feed connected to a
    channel already made: one feed a channel (`has_feed`). Disconnecting
    keeps the notes it brought, and connecting the same feed again posts
    none of them twice.
-2. **A channel's admins post as it** (roadmap row 147, phase 3): notes,
+3. **A channel's admins post as it** (roadmap row 147, phase 3): notes,
    photos, videos and sounds made on a channel are the channel's own, its
    author shown and sent; the admin who wrote each is kept as
    `written_by`, sent only to its admins and the site's administrators,
@@ -31,35 +35,35 @@ Releases before v1.0.17 are described on GitHub, under
    for a channel's posts. The notes a feed makes are marked `from_feed` in
    their meta (migration `20261122000022`), and only those keep their
    site's words; what its admins write is theirs to change.
-3. **Making a channel without a feed** (roadmap row 147, phase 2): `POST
+4. **Making a channel without a feed** (roadmap row 147, phase 2): `POST
    /channels/`, by whoever `CHANNELS_FROM` allows, now read by actor-service
    too; a channel has a group's privacy (`/access`, follow requests), who
    sees its follows (`/graph-access`), features, archiving and spam removal.
    A channel that lets people ask is asked to follow.
-4. **Whose notifications** (roadmap row 146): what is yours, or a website's
+5. **Whose notifications** (roadmap row 146): what is yours, or a website's
    you look after, tells you of everyone; what you take part in tells you
    of the people you follow. Replying and reposting subscribe you to the
    post; a post's subscribers are told of likes, reposts and replies by
    people they follow; a website's admins are told as its author. Post
    notifications carry `notify_off` while the reader is told of the
    profile; profiles say `is_subscribed_by_viewer` to whoever follows them.
-5. **Blocking a server yourself** (roadmap row 152): `GET`, `POST
+6. **Blocking a server yourself** (roadmap row 152): `GET`, `POST
    /socialgraph/:actor_id/blocked-servers`, `DELETE …/:domain`. Nothing
    from the server, or one under it, is shown to the person; no
    notifications; follows with people there end both ways, their server
    told as for any follow that ends, and new ones are refused. Bluesky is
    refused (`server_on_bluesky`). In the download as `domain_blocks.csv`.
    Migration `20261122000020_person_domain_blocks`.
-6. **Who sees a profile's followers and whom it follows** (roadmap row
+7. **Who sees a profile's followers and whom it follows** (roadmap row
    151): `PATCH /people|groups|events/:id/graph-access`, an access level or
    none, never wider than the profile; the lists answer 403 to anybody
    else, the counts stay, and recommendations name only those who let the
    viewer see whom they follow. Migration `20261122000019_graph_access`.
-7. **Mailpit in the development stack:** every message is caught and read
+8. **Mailpit in the development stack:** every message is caught and read
    at http://localhost:8025, nothing sent anywhere. Point `.env` at it
    (`SMTP_HOST="mailpit"`, `SMTP_PORT="1025"`, no user or password); see
    Getting started, Mail in development.
-8. **Removing a follower who is on another server tells their server**
+9. **Removing a follower who is on another server tells their server**
    (roadmap row 150), with a `Reject` of their follow, so that it stops
    delivering one's posts to them. It is not a block, and they may follow
    again.
