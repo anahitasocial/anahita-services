@@ -112,12 +112,11 @@ deletion — goes through `SendFromTemplate`. So with `MAILER_PROVIDER=smtp`
 nothing is delivered, the person is shown "check your email", and the log
 line goes past unread. This is the first thing to check.
 
-**The Mailgun path depends on a template stored at Mailgun.** The notifiers
-pass `"message_action"`, which the provider hands to `msg.SetTemplate` — it
-is a Mailgun-hosted template, not a file in this repository, so nothing here
-can tell you whether it exists on the sending domain. If it does not, the
-send is rejected. The same applies to every other template name the
-notifiers use.
+**The mail vendor's API path depended on a template stored with the vendor.**
+The notifiers passed `"message_action"`, a template hosted in the vendor's
+dashboard, not a file in this repository, so nothing here could tell whether
+it existed. (Since resolved: the vendors' API clients are gone, SMTP is the
+only transport, and the templates are in `mail-grpc-service/templates/`.)
 
 All three remaining findings are fixed, and one was withdrawn:
 

@@ -14,11 +14,9 @@ import (
 
 // Message templates, by the name callers pass over the wire.
 //
-// This map is what replaced Mailgun's hosted templates. The name in a
-// SendFromTemplate request used to be forwarded verbatim to the vendor and
-// resolved in their dashboard, which meant the rendering of every email this
-// system sends lived outside version control — nothing here could tell you what
-// a message looked like, or whether the template still existed.
+// The name in a SendFromTemplate request is looked up here, so the rendering
+// of every email this system sends is in version control: what a message looks
+// like, and whether its template exists, can be read and tested.
 //
 // Every notifier in auth-service uses "message_action". It is one template
 // because all sixteen call sites pass the same four variables: title, body,

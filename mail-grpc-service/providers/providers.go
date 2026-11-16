@@ -31,11 +31,9 @@ type Message struct {
 // ONE method, and it takes a rendered message. Templates are deliberately
 // absent: rendering belongs to the service, which owns the templates, not to
 // whatever happens to be carrying the bytes. That split is what makes the
-// provider swappable, and it removed a real bug along with the old shape — the
-// Mailgun and SES implementations stored the template name and data as fields
-// on a single provider instance shared across every gRPC call, so concurrent
-// sends raced and a Send following a SendFromTemplate silently inherited the
-// previous call's template.
+// provider swappable, and it keeps a provider free of per-message state: one
+// instance is shared across every gRPC call, so a template name or data kept
+// on it would let concurrent sends race and one send inherit another's.
 //
 // The context is here so a hung server cannot pin the RPC goroutine forever,
 // which is what the old stdlib smtp.SendMail path did.
@@ -45,11 +43,9 @@ type MailProviderInterface interface {
 
 // NewProvider initializes the mail provider.
 //
-// SMTP is the only one. The Mailgun and AWS SES API clients were removed along
-// with the MAILER_PROVIDER switch: both vendors expose SMTP, so neither is lost
-// as a supplier, and the API paths cost vendor-specific credentials plus — in
-// Mailgun's case — a message template living in the vendor's dashboard instead
-// of in this repository.
+// SMTP is the only one: every mail provider offers a relay, so none is lost
+// as a supplier, and no vendor's API, credentials or hosted templates are
+// needed. The messages' templates are in this repository.
 func NewProvider(config *config.Config) (MailProviderInterface, error) {
 	return NewSmtpMailer(config), nil
 }

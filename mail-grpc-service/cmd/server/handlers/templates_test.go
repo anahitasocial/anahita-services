@@ -5,9 +5,8 @@ import (
 	"testing"
 )
 
-// The message templates used to live in a Mailgun account, where nothing could
-// test them and nothing could tell you what a password reset email looked like.
-// Now that they are in the repository, these are the properties worth holding.
+// The message templates are in the repository, so what a password reset email
+// looks like can be tested. These are the properties worth holding.
 
 func actionData() map[string]any {
 	return map[string]any{

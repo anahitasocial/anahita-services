@@ -2,9 +2,8 @@
 //
 // message_action.{html,txt}.tmpl are the live pair — see messageTemplates in
 // the handlers package for the registry that maps a wire template name onto
-// them. They replaced a template hosted in a Mailgun account, which meant the
-// appearance of every email this system sends used to live outside version
-// control.
+// them. The appearance of every email this system sends lives here, in
+// version control, where it can be read and tested.
 //
 // mail.{html,plain}.tmpl are the older pair and are now referenced by nothing:
 // they served the Send RPC, which has no callers and no longer renders through

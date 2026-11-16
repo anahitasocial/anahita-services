@@ -400,9 +400,9 @@ Read by mail-grpc-service.
 | `SMTP_SECURE` | `true` for implicit TLS (port 465); `false` (default) for STARTTLS (port 587) |
 | `DEVELOPER_EMAIL` | Where every message goes when `ENV=dev`. Required in development — the service refuses to start without it |
 
-Mail goes out over SMTP and nothing else, so any provider works — Mailgun's or
-SES's relay, Postmark, an internal MTA, or a local sink such as
-[mailpit](https://mailpit.axllent.org/). Message templates live in
+Mail goes out over SMTP and nothing else, so any provider with an SMTP relay
+works: SES, Postmark, an internal MTA, or a local sink such as
+[Mailpit](https://mailpit.axllent.org/), which the development stack runs. Message templates live in
 `mail-grpc-service/templates/`.
 
 ## Abuse reports

@@ -25,7 +25,7 @@ import (
 // The previous implementation called smtp.SendMail, which takes no context and
 // has no deadline of its own, so a server that accepted the connection and then
 // stopped responding pinned the RPC goroutine for as long as the process ran.
-// Thirty seconds matches what the Mailgun and SES clients used.
+// Thirty seconds is long enough for a slow relay, and no longer.
 const sendTimeout = 30 * time.Second
 
 type SmtpMailer struct {
