@@ -20,6 +20,7 @@ const (
 	ErrMissingOAuthJWKSURL      = "OAuth JWKS URL is missing"
 	ErrInvalidGroupsFrom        = "GROUPS_FROM must be one of: "
 	ErrInvalidEventsFrom        = "EVENTS_FROM must be one of: "
+	ErrInvalidChannelsFrom      = "CHANNELS_FROM must be one of: "
 )
 
 // Config is what actor-service is told from its environment.
@@ -41,6 +42,8 @@ type Config struct {
 	GroupsFrom       string
 	// Who may make an event of their own. See GetEventsFrom.
 	EventsFrom string
+	// Who may make a channel (roadmap row 147). See GetChannelsFrom.
+	ChannelsFrom string
 	// The web app's address, for links that leave the site: the one in a
 	// calendar file. Optional; without it the link is left out.
 	WebOrigin string
@@ -60,7 +63,9 @@ func NewConfig() *Config {
 		OAuthJWKSURL:     os.Getenv("OAUTH_JWKS_URL"),
 		GroupsFrom:       os.Getenv("GROUPS_FROM"),
 		EventsFrom:       os.Getenv("EVENTS_FROM"),
-		WebOrigin:        strings.TrimRight(os.Getenv("WEB_ORIGIN"), "/"),
+		// WEBSITES_FROM, its old name, still read for one release.
+		ChannelsFrom: getenv.Renamed("CHANNELS_FROM", "WEBSITES_FROM"),
+		WebOrigin:    strings.TrimRight(os.Getenv("WEB_ORIGIN"), "/"),
 	}
 
 	// If JWKS URL is unset, derive it from the issuer — auth-service is
@@ -114,6 +119,11 @@ func (config *Config) Validate() error {
 	// hint as to why.
 	if config.GroupsFrom != "" && !constants.IsRoleLevel(constants.NormalizeRoleLevel(config.GroupsFrom)) {
 		return errors.New(ErrInvalidGroupsFrom + strings.Join(constants.RoleLevelValues, ", "))
+	}
+
+	// And for channels (roadmap row 147).
+	if config.ChannelsFrom != "" && !constants.IsRoleLevel(constants.NormalizeRoleLevel(config.ChannelsFrom)) {
+		return errors.New(ErrInvalidChannelsFrom + strings.Join(constants.RoleLevelValues, ", "))
 	}
 
 	// The same for events: a value nobody recognises is a typo, and would
@@ -201,6 +211,17 @@ func (config *Config) GetGroupsFrom() string {
 		return constants.RoleLevelAdministrators
 	}
 
+	return value
+}
+
+// GetChannelsFrom returns the minimum role that may make a channel, as
+// syndication-service and auth-service read it: administrators unless the
+// installation says otherwise.
+func (config *Config) GetChannelsFrom() string {
+	value := constants.NormalizeRoleLevel(config.ChannelsFrom)
+	if value == "" {
+		return constants.RoleLevelAdministrators
+	}
 	return value
 }
 

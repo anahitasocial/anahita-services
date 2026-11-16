@@ -1,7 +1,6 @@
 package permissions
 
 import (
-	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 )
 
@@ -117,8 +116,9 @@ func CanRequestToFollow(ctx *FollowContext) bool {
 		return false
 	}
 
-	// A channel is public, and followed outright: there is nothing to ask.
-	if !ctx.Target.AllowFollowRequest || ctx.Target.Type == constants.NodeActorChannelEntityType {
+	// A channel may be asked to follow, as a group may, when it is not open
+	// to everybody (roadmap row 147, phase 2).
+	if !ctx.Target.AllowFollowRequest {
 		return false
 	}
 

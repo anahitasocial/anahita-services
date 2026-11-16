@@ -110,8 +110,11 @@ func (h *groupHandler) getActorAccessContext(actor *entities.AnahitaNode, viewer
 
 // kind is the kind this handler serves, as instance.json names it.
 func (h *groupHandler) kind() string {
-	if h.nodeType == an_constants.NodeActorEventEntityType {
+	switch h.nodeType {
+	case an_constants.NodeActorEventEntityType:
 		return "event"
+	case an_constants.NodeActorChannelEntityType:
+		return "channel"
 	}
 	return "group"
 }
@@ -121,6 +124,9 @@ func (h *groupHandler) kind() string {
 func (h *groupHandler) createLevel() string {
 	if h.nodeType == an_constants.NodeActorEventEntityType {
 		return h.Config.GetEventsFrom()
+	}
+	if h.nodeType == an_constants.NodeActorChannelEntityType {
+		return h.Config.GetChannelsFrom()
 	}
 
 	return h.Config.GetGroupsFrom()

@@ -143,12 +143,13 @@ func TestCanRequestToFollow(t *testing.T) {
 		{"somebody elsewhere who approves their followers", &FollowContext{viewer, me, elsewhere(true), none, none}, true},
 		{"somebody elsewhere who does not", &FollowContext{viewer, me, elsewhere(false), none, none}, false},
 		{"somebody elsewhere you already follow", &FollowContext{viewer, me, elsewhere(true), none, &entities.ActorRelation{IsLeading: true}}, false},
-		// Public, and followed outright, whatever its column says.
-		{"a Channel", &FollowContext{viewer, me, func() *entities.AnahitaNode {
+		// A channel that lets people ask is asked, as a group is (roadmap
+		// row 147, phase 2).
+		{"a channel that lets people ask", &FollowContext{viewer, me, func() *entities.AnahitaNode {
 			channel := asked()
 			channel.Type = constants.NodeActorChannelEntityType
 			return channel
-		}(), none, none}, false},
+		}(), none, none}, true},
 	}
 
 	for _, c := range cases {

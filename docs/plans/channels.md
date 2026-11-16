@@ -196,7 +196,7 @@ From the check of both repositories on 2026-11-15:
 | Phase | What | Status |
 | --- | --- | --- |
 | 1 | The rename, nothing else changed: types, tables, addresses, settings, words; the migration rehearsed on a copy | ✅ 2026-11-16 |
-| 2 | Add channel without a feed; privacy, follow requests, archiving and features as a group's; `channel.json` | ⬜ |
+| 2 | Add channel without a feed; privacy, follow requests, archiving and features as a group's; `channel.json` | ✅ 2026-11-16, `channel.json`'s kinds of post left for phase 3, with posting as the channel |
 | 3 | Admins post as the channel; Written by, for its admins; a feed item told by its row | ⬜ |
 | 4 | The feed connected and disconnected in settings | ⬜ |
 | 5 | Events hosted by a channel | ⬜ |

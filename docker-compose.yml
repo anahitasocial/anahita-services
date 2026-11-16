@@ -263,6 +263,9 @@ services:
       # administrators or super-administrators. Enforced by actor-service
       # and published by auth-service, from this one entry.
       EVENTS_FROM: ${EVENTS_FROM:-}
+      # Who may make a channel (roadmap row 147): administrators unless set;
+      # the same entry auth-service publishes and syndication-service reads.
+      CHANNELS_FROM: ${CHANNELS_FROM:-${WEBSITES_FROM:-}}
       # The web app's address, for the link back in an event's calendar file.
       WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:3000}
       # The geocoders, as location-service has them: an event's address is

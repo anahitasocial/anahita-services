@@ -13698,6 +13698,136 @@
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).Browse",
         "x-viewer": "anyone"
+      },
+      "post": {
+        "description": "A profile only it posts on, written by its admins; whoever makes it is its first admin. Left without `access`, only its admins can see it until they open it. A website's feed is connected to it apart (POST /channels/_connect).\n\nWho may call it: somebody signed in.",
+        "operationId": "postChannels",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "access": {
+                    "description": "Who can see it. Left out, only its administrators, until they open it from its settings.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "admins"
+                    ],
+                    "type": "string"
+                  },
+                  "body": {
+                    "description": "What it says of itself.",
+                    "maxLength": 500,
+                    "type": "string"
+                  },
+                  "enabled": {
+                    "default": true,
+                    "description": "Whether it is enabled.",
+                    "type": "boolean"
+                  },
+                  "name": {
+                    "description": "Its name.",
+                    "maxLength": 64,
+                    "type": "string"
+                  },
+                  "website_url": {
+                    "description": "One link on the profile. A bare `example.com` is taken as https.",
+                    "format": "uri",
+                    "maxLength": 255,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "access": {
+                    "description": "Who can see it. Left out, only its administrators, until they open it from its settings.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "admins"
+                    ],
+                    "type": "string"
+                  },
+                  "body": {
+                    "description": "What it says of itself.",
+                    "maxLength": 500,
+                    "type": "string"
+                  },
+                  "enabled": {
+                    "default": true,
+                    "description": "Whether it is enabled.",
+                    "type": "boolean"
+                  },
+                  "name": {
+                    "description": "Its name.",
+                    "maxLength": 64,
+                    "type": "string"
+                  },
+                  "website_url": {
+                    "description": "One link on the profile. A bare `example.com` is taken as https.",
+                    "format": "uri",
+                    "maxLength": 255,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/actor.ChannelNode"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AudienceRefusal"
+                }
+              }
+            },
+            "description": "`access_not_allowed`: public, where nothing new may be, with the levels it may have"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Make a channel",
+        "tags": [
+          "channels"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Add",
+        "x-viewer": "signed_in"
       }
     },
     "/channels/_connect": {
@@ -14284,6 +14414,115 @@
         "x-viewer": "signed_in"
       }
     },
+    "/channels/{id}/access": {
+      "patch": {
+        "description": "And whether people it is not open to may ask to follow it.\n\nWho may call it: somebody signed in.",
+        "operationId": "patchChannelsByIdAccess",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "access": {
+                    "default": "public",
+                    "description": "Who may see it: `public`, `registered`, `followers` or `admins`.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "admins"
+                    ],
+                    "type": "string"
+                  },
+                  "allow_follow_request": {
+                    "description": "Whether people it is not open to may ask to follow it.",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "access"
+                ],
+                "type": "object"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "access": {
+                    "default": "public",
+                    "description": "Who may see it: `public`, `registered`, `followers` or `admins`.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "admins"
+                    ],
+                    "type": "string"
+                  },
+                  "allow_follow_request": {
+                    "description": "Whether people it is not open to may ask to follow it.",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "access"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/actor.ChannelNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change who may see it",
+        "tags": [
+          "channels"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).EditAccess",
+        "x-shared": "profiles",
+        "x-viewer": "signed_in"
+      }
+    },
     "/channels/{id}/admins/": {
       "get": {
         "description": "Who may call it: somebody signed in.",
@@ -14529,6 +14768,64 @@
         ],
         "x-handler": "actor/cmd/api/handlers.(*adminHandler).Delete",
         "x-shared": "profiles",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/channels/{id}/archive": {
+      "post": {
+        "description": "For good, and nothing is destroyed (account-lifecycle.md).\n\nWho may call it: somebody signed in, who has just proved who they are again.",
+        "operationId": "postChannelsByIdArchive",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "archived"
+          },
+          "204": {
+            "description": "archived already, or being deleted"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`step_up_required`: the viewer must prove who they are again first; or the viewer may not, without a body"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Archive a channel",
+        "tags": [
+          "channels"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Archive",
+        "x-shared": "profiles",
+        "x-step-up": true,
         "x-viewer": "signed_in"
       }
     },
@@ -14826,6 +15123,205 @@
         "x-viewer": "signed_in"
       }
     },
+    "/channels/{id}/features": {
+      "patch": {
+        "description": "Each kind of post, on or off, and who may add it (permissions.md).\n\nWho may call it: somebody signed in.",
+        "operationId": "patchChannelsByIdFeatures",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "features": {
+                    "description": "Each feature as it is to be. An empty list goes back to the installation's defaults.",
+                    "items": {
+                      "$ref": "#/components/schemas/ActorFeatureRequest"
+                    },
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "features"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/actor.ChannelNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change what may be posted on it",
+        "tags": [
+          "channels"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).EditFeatures",
+        "x-shared": "profiles",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/channels/{id}/graph-access": {
+      "patch": {
+        "description": "An access level, or empty for whoever may see the profile; never wider than the profile. Groups and events have no `leaders` or `mutuals`.\n\nWho may call it: somebody signed in.",
+        "operationId": "patchChannelsByIdGraphAccess",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "graph_access": {
+                    "description": "An access level: `public`, `registered`, `followers`, `leaders` (people it follows) or `mutuals`, for a person only, or `admins`; empty for whoever may see the profile. Never wider than the profile.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "graph_access": {
+                    "description": "An access level: `public`, `registered`, `followers`, `leaders` (people it follows) or `mutuals`, for a person only, or `admins`; empty for whoever may see the profile. Never wider than the profile.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "graph_access": {
+                    "description": "An access level: `public`, `registered`, `followers`, `leaders` (people it follows) or `mutuals`, for a person only, or `admins`; empty for whoever may see the profile. Never wider than the profile.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/actor.ChannelNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`graph_access_invalid`, or a level that is not one"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change who may see its followers and whom it follows",
+        "tags": [
+          "channels"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).EditGraphAccess",
+        "x-shared": "profiles",
+        "x-viewer": "signed_in"
+      }
+    },
     "/channels/{id}/purge": {
       "delete": {
         "description": "Everything of it, at once and with no thirty days. Super administrators only, never on their own profile. Queued, and done by the sweeper.\n\nWho may call it: a super administrator, who has just proved who they are again.",
@@ -14957,6 +15453,76 @@
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).Restore",
         "x-shared": "profiles",
         "x-viewer": "signed_in"
+      }
+    },
+    "/channels/{id}/spam": {
+      "post": {
+        "description": "A moderator's decision (roadmap row 102): everything of it destroyed at once, with no thirty days, and recorded as `removed-as-spam` with who decided. Administrators and super administrators; never an administrator's or a super administrator's account, nor one's own. Queued, and done by the sweeper.\n\nWho may call it: a site administrator.",
+        "operationId": "postChannelsByIdSpam",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurgeQueued"
+                }
+              }
+            },
+            "description": "purged or queued already"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurgeQueued"
+                }
+              }
+            },
+            "description": "queued"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer is not an administrator"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurgeRefused"
+                }
+              }
+            },
+            "description": "it cannot be removed (`administrator`, `yourself`, `not_found`, `wrong_type`); nothing was queued"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove a channel as spam",
+        "tags": [
+          "channels"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).DeleteAsSpam",
+        "x-viewer": "admin"
       }
     },
     "/clients": {

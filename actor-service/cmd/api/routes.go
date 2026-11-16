@@ -528,11 +528,10 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	groups.POST("/:id/admins/", r.handler.Admin.Add, r.authorize).With(addGroupAdmin)
 	groups.DELETE("/:id/admins/:admin_id", r.handler.Admin.Delete, r.authorize).With(removeGroupAdmin)
 
-	// Channels — a site's feed as a profile, read and looked after as a
-	// group is. Made by syndication-service once its domain is proved
-	// (POST /channels/_connect), so there is no POST /channels/ here; nobody
-	// posts on one, so it has no features to choose and no audience to
-	// change: it is public.
+	// Channels — a profile only it posts on, written by its admins (roadmap
+	// row 147), read and looked after as a group is: made here, or by
+	// syndication-service from a website's feed once its domain is proved
+	// (POST /channels/_connect).
 	channels := api.In("channels").Group("channels")
 	channels.GET("/", r.handler.Channel.Browse, r.setViewer).
 		Summary("Channels").
@@ -542,6 +541,15 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Sends(http.StatusOK, libs_responses.List[any]{}).
 		Refuses(http.StatusForbidden, "the viewer may not list channels")
 	channels.GET("/:id", r.handler.Channel.Read, r.setViewer).With(readGroup("channel"))
+	// Made as a group is, with or without a feed (roadmap row 147, phase
+	// 2): whoever CHANNELS_FROM allows; its maker is its first admin.
+	channels.POST("/", r.handler.Channel.Add, r.authorize).
+		Summary("Make a channel").
+		Describe("A profile only it posts on, written by its admins; whoever makes it is its first admin. Left without `access`, only its admins can see it until they open it. A website's feed is connected to it apart (POST /channels/_connect).").
+		Viewer(apidoc.SignedIn).
+		Takes(actorReq.Add).
+		Sends(http.StatusCreated, responses.ChannelNode{}).
+		Sends(http.StatusUnprocessableEntity, libs_responses.AudienceRefusal{}, "`access_not_allowed`: public, where nothing new may be, with the levels it may have")
 	channels.PATCH("/:id", r.handler.Channel.Edit, r.authorize).
 		Summary("Change a channel").
 		Describe("Its name and its description. Its handle and its site stay as they were connected.").
@@ -557,6 +565,14 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	channels.PATCH("/:id/featured", r.handler.Channel.SetFeatured, r.authorize).With(featured)
 	channels.POST("/:id/restore", r.handler.Channel.Restore, r.authorize).With(restore("channel"))
 	channels.PATCH("/:id/download-default", r.handler.Channel.EditDownloadDefault, r.authorize).With(downloads(responses.ChannelNode{}))
+	// As a group's (roadmap row 147, phase 2): who sees it, and may ask to
+	// follow it; who sees its followers; what it offers; archiving; and
+	// spam taken away by an administrator.
+	channels.PATCH("/:id/access", r.handler.Channel.EditAccess, r.authorize).With(access(actorReq.EditAccess, responses.ChannelNode{}))
+	channels.PATCH("/:id/graph-access", r.handler.Channel.EditGraphAccess, r.authorize).With(graphAccess(responses.ChannelNode{}))
+	channels.PATCH("/:id/features", r.handler.Channel.EditFeatures, r.authorize).With(features(actorReq.EditFeatures, responses.ChannelNode{}))
+	channels.POST("/:id/archive", r.handler.Channel.Archive, r.authorize).With(archive("channel"))
+	channels.POST("/:id/spam", r.handler.Channel.DeleteAsSpam, r.authorize).With(spam("channel"))
 
 	channels.GET("/:id/admins/", r.handler.ChannelAdmin.Browse, r.authorize).With(channelAdmins)
 	channels.POST("/:id/admins/", r.handler.ChannelAdmin.Add, r.authorize).With(addChannelAdmin)
