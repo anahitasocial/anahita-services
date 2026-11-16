@@ -9,7 +9,8 @@ settings and Mastodon's content warnings. **Made with AI** added as a sixth
 kind on 2026-11-07, at the user's word, after asking how to tell AI images
 apart ([Made with AI](#made-with-ai)). **Phase 1 built on 2026-11-09:** posts
 carry a warning, everybody at Warn ([Content warnings](../content-warnings.md));
-the rest is not built.
+**phase 3 on 2026-11-09 and 2026-11-15, phase 2 on 2026-11-16;** phases 4
+and 5 are not built.
 
 ## Contents
 
@@ -151,7 +152,8 @@ sends none. ([Content warnings](../content-warnings.md#on-the-fediverse-and-blue
    refused (`warning_not_allowed`) when a moderator's warning would be taken
    off by its author.
 4. The reader's choices in their settings, as their other choices are kept:
-   `GET` and `PATCH /people/:id/content-preferences`, `{ adult: "warn", … }`.
+   `GET` and `PATCH /people/:id/content-preferences`, `{ choices: { adult:
+   "warn", … } }`, in `content_preferences`. **Built on 2026-11-16.**
 5. `POST /abuse-reports/cases/:id/warn` `{ kind, text }`, and the same on a
    post for an administrator.
 
@@ -201,7 +203,12 @@ with a signature that checks out, which is roadmap row 131
    2026-11-09;** Show and Hide come with the reader's choices. Also: a
    `PATCH /…/:id/warning` of each kind, the post's menu for its author, and
    a link pasted elsewhere showing nothing of the post.
-2. **The reader's choices:** the Content tab and its preferences.
+2. **The reader's choices:** the Content tab and its preferences. **Built
+   on 2026-11-16:** Settings › Content, Show · Warn · Hide for each kind,
+   saved as chosen; Hide is one line in a list and Warn on a post's own
+   page and in the photo theatre, where the reader opened it. Show draws
+   the post as any other, without the quiet line naming its kind: nothing
+   said that the reader chose not to be told.
 3. **Federation** in and out, pictures from elsewhere kept and blurred.
    **Out built on 2026-11-09; in on 2026-11-15:** a Note's `summary` or
    `sensitive` and Bluesky's self-labels read (`WarningFromFediverse`,

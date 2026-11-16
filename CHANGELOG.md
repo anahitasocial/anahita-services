@@ -10,6 +10,22 @@ made.
 Releases before v1.0.17 are described on GitHub, under
 [Releases](https://github.com/anahitasocial/anahita-services/releases).
 
+## Embryo
+
+### Added
+
+1. **Each reader chooses what they see of content warnings** (roadmap row
+   122, phase 2): Show, Warn or Hide for each kind, read and changed at
+   `GET` and `PATCH /people/:id/content-preferences`, the person's own
+   alone. Every kind starts at Warn
+   ([Content warnings](docs/content-warnings.md#what-each-reader-chooses)).
+
+### Upgrading
+
+1. **One migration,** `content_preferences`: a table for each reader's
+   choices, run by the migration job as any upgrade's are
+   ([Upgrading](docs/deploying.md#upgrading)).
+
 ## v1.3.3 Birth, 2026-11-15
 
 ### Added

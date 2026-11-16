@@ -148,3 +148,47 @@ func WarningFromFediverse(sensitive bool, summary string) (string, string) {
 	}
 	return "", ""
 }
+
+// What each reader chooses for each kind (docs/plans/content-warnings.md,
+// What a reader chooses): to see it at once, behind its warning, or not at
+// all. Every kind starts at Warn, so that seeing any of it is chosen.
+const (
+	WarningShow = "show"
+	WarningWarn = "warn"
+	WarningHide = "hide"
+)
+
+// WarningChoiceDefault is what a reader has for a kind they have not
+// chosen for, and what somebody not signed in has for every kind.
+const WarningChoiceDefault = WarningWarn
+
+// IsWarningChoice says whether choice is Show, Warn or Hide.
+func IsWarningChoice(choice string) bool {
+	return choice == WarningShow || choice == WarningWarn || choice == WarningHide
+}
+
+// WarningChoices is a reader's choice for every kind, theirs where they
+// made one and the default for the rest. Anything else in choices is left
+// out.
+func WarningChoices(choices map[string]string) map[string]string {
+	out := make(map[string]string, len(WarningKinds))
+	for _, kind := range WarningKinds {
+		out[kind] = WarningChoiceDefault
+		if choice, ok := choices[kind]; ok && IsWarningChoice(choice) {
+			out[kind] = choice
+		}
+	}
+	return out
+}
+
+// WarningChoicesKept is what of a reader's choices is stored: only a kind
+// whose choice is not the default.
+func WarningChoicesKept(choices map[string]string) map[string]string {
+	out := map[string]string{}
+	for kind, choice := range WarningChoices(choices) {
+		if choice != WarningChoiceDefault {
+			out[kind] = choice
+		}
+	}
+	return out
+}

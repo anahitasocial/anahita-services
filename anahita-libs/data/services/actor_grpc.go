@@ -62,6 +62,11 @@ type ActorsGRPCInterface interface {
 	ReadRules(profileID, personID int64) (*graphpb.RulesReadResponse, error)
 	SetRules(profileID int64, items []*graphpb.ProfileRule, viewer *entities.Viewer) (*graphpb.ProfileRules, error)
 	AgreeRules(profileID, version int64, viewer *entities.Viewer) error
+	// A person's choice of Show, Warn or Hide for each kind of content
+	// warning (roadmap row 122, phase 2): every kind, Warn where they have
+	// not chosen. Whose they may read or change is the caller's to ask.
+	ReadContentPreferences(personID int64) (map[string]string, error)
+	SaveContentPreferences(personID int64, choices map[string]string) (map[string]string, error)
 
 	// ReadPurgeBatch reports how far a RequestPurge has got. A batch id
 	// nobody was given comes back with a total of zero.
@@ -674,4 +679,41 @@ func viewerToGrpc(viewer *entities.Viewer) *graphpb.Viewer {
 		Email:      viewer.Email,
 		Username:   viewer.Username,
 	}
+}
+
+// ReadContentPreferences is a person's choice for every kind of content
+// warning.
+func (srv *ActorsGRPC) ReadContentPreferences(personID int64) (map[string]string, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, err
+	}
+	if client == nil {
+		return nil, errors.New("the graph service is not configured")
+	}
+	resp, err := client.ReadContentPreferences(context.Background(), &graphpb.ContentPreferencesReadRequest{PersonId: personID})
+	if err != nil {
+		return nil, err
+	}
+	return resp.GetChoices(), nil
+}
+
+// SaveContentPreferences replaces a person's choices; a kind left out is
+// Warn.
+func (srv *ActorsGRPC) SaveContentPreferences(personID int64, choices map[string]string) (map[string]string, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, err
+	}
+	if client == nil {
+		return nil, errors.New("the graph service is not configured")
+	}
+	resp, err := client.SaveContentPreferences(context.Background(), &graphpb.ContentPreferencesSaveRequest{
+		PersonId: personID,
+		Choices:  choices,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return resp.GetChoices(), nil
 }

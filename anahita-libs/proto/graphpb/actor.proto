@@ -403,6 +403,23 @@ message RulesAgreeRequest {
 
 message RulesAgreeResponse {}
 
+// A person's choice of Show, Warn or Hide for each kind of content warning
+// (roadmap row 122, phase 2), by kind. Read, every kind is there, Warn
+// where they have not chosen.
+message ContentPreferences {
+    map<string, string> choices = 1;
+}
+
+message ContentPreferencesReadRequest {
+    int64 person_id = 1;
+}
+
+// Replaces their choices: a kind left out is Warn.
+message ContentPreferencesSaveRequest {
+    int64 person_id = 1;
+    map<string, string> choices = 2;
+}
+
 service ActorService {
     rpc Count(ActorCountRequest) returns (ActorCountResponse) {}
     rpc Browse(ActorBrowseRequest) returns (ActorBrowseResponse) {}
@@ -443,5 +460,9 @@ service ActorService {
     rpc ReadRules(RulesReadRequest) returns (RulesReadResponse) {}
     rpc SetRules(RulesSetRequest) returns (RulesSetResponse) {}
     rpc AgreeRules(RulesAgreeRequest) returns (RulesAgreeResponse) {}
+    // A person's own choices for content warnings. Whose they may read or
+    // change is the caller's to ask.
+    rpc ReadContentPreferences(ContentPreferencesReadRequest) returns (ContentPreferences) {}
+    rpc SaveContentPreferences(ContentPreferencesSaveRequest) returns (ContentPreferences) {}
     rpc Ping(ActorPingRequest) returns (ActorPingResponse) {}
 }

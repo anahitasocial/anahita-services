@@ -24,6 +24,7 @@ func NewRepositories(db *sql.DB) *Repositories {
 		Replies:            NewRepliesRepo(db),
 		Quotes:             NewQuotesRepo(db),
 		Citations:          NewCitationsRepo(db),
+		ContentPreferences: NewContentPreferencesRepo(db),
 		Pins:               NewPinsRepo(db),
 		Bookmarks:          NewBookmarksRepo(db),
 		Reposts:            NewRepostsRepo(db),
@@ -56,6 +57,7 @@ type Repositories struct {
 	Replies            RepliesRepoInterface
 	Quotes             QuotesRepoInterface
 	Citations          CitationsRepoInterface
+	ContentPreferences ContentPreferencesRepoInterface
 	Pins               PinsRepoInterface
 	Bookmarks          BookmarksRepoInterface
 	Reposts            RepostsRepoInterface

@@ -2781,6 +2781,150 @@ func (*RulesAgreeResponse) Descriptor() ([]byte, []int) {
 	return file_proto_graphpb_actor_proto_rawDescGZIP(), []int{47}
 }
 
+// A person's choice of Show, Warn or Hide for each kind of content warning
+// (roadmap row 122, phase 2), by kind. Read, every kind is there, Warn
+// where they have not chosen.
+type ContentPreferences struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Choices       map[string]string      `protobuf:"bytes,1,rep,name=choices,proto3" json:"choices,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ContentPreferences) Reset() {
+	*x = ContentPreferences{}
+	mi := &file_proto_graphpb_actor_proto_msgTypes[48]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContentPreferences) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContentPreferences) ProtoMessage() {}
+
+func (x *ContentPreferences) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_graphpb_actor_proto_msgTypes[48]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContentPreferences.ProtoReflect.Descriptor instead.
+func (*ContentPreferences) Descriptor() ([]byte, []int) {
+	return file_proto_graphpb_actor_proto_rawDescGZIP(), []int{48}
+}
+
+func (x *ContentPreferences) GetChoices() map[string]string {
+	if x != nil {
+		return x.Choices
+	}
+	return nil
+}
+
+type ContentPreferencesReadRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PersonId      int64                  `protobuf:"varint,1,opt,name=person_id,json=personId,proto3" json:"person_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ContentPreferencesReadRequest) Reset() {
+	*x = ContentPreferencesReadRequest{}
+	mi := &file_proto_graphpb_actor_proto_msgTypes[49]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContentPreferencesReadRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContentPreferencesReadRequest) ProtoMessage() {}
+
+func (x *ContentPreferencesReadRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_graphpb_actor_proto_msgTypes[49]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContentPreferencesReadRequest.ProtoReflect.Descriptor instead.
+func (*ContentPreferencesReadRequest) Descriptor() ([]byte, []int) {
+	return file_proto_graphpb_actor_proto_rawDescGZIP(), []int{49}
+}
+
+func (x *ContentPreferencesReadRequest) GetPersonId() int64 {
+	if x != nil {
+		return x.PersonId
+	}
+	return 0
+}
+
+// Replaces their choices: a kind left out is Warn.
+type ContentPreferencesSaveRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PersonId      int64                  `protobuf:"varint,1,opt,name=person_id,json=personId,proto3" json:"person_id,omitempty"`
+	Choices       map[string]string      `protobuf:"bytes,2,rep,name=choices,proto3" json:"choices,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ContentPreferencesSaveRequest) Reset() {
+	*x = ContentPreferencesSaveRequest{}
+	mi := &file_proto_graphpb_actor_proto_msgTypes[50]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContentPreferencesSaveRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContentPreferencesSaveRequest) ProtoMessage() {}
+
+func (x *ContentPreferencesSaveRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_graphpb_actor_proto_msgTypes[50]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContentPreferencesSaveRequest.ProtoReflect.Descriptor instead.
+func (*ContentPreferencesSaveRequest) Descriptor() ([]byte, []int) {
+	return file_proto_graphpb_actor_proto_rawDescGZIP(), []int{50}
+}
+
+func (x *ContentPreferencesSaveRequest) GetPersonId() int64 {
+	if x != nil {
+		return x.PersonId
+	}
+	return 0
+}
+
+func (x *ContentPreferencesSaveRequest) GetChoices() map[string]string {
+	if x != nil {
+		return x.Choices
+	}
+	return nil
+}
+
 var File_proto_graphpb_actor_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_actor_proto_rawDesc = "" +
@@ -2952,7 +3096,20 @@ const file_proto_graphpb_actor_proto_rawDesc = "" +
 	"profile_id\x18\x01 \x01(\x03R\tprofileId\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\x03R\aversion\x12%\n" +
 	"\x06viewer\x18\x03 \x01(\v2\r.graph.ViewerR\x06viewer\"\x14\n" +
-	"\x12RulesAgreeResponse2\xfc\f\n" +
+	"\x12RulesAgreeResponse\"\x92\x01\n" +
+	"\x12ContentPreferences\x12@\n" +
+	"\achoices\x18\x01 \x03(\v2&.graph.ContentPreferences.ChoicesEntryR\achoices\x1a:\n" +
+	"\fChoicesEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"<\n" +
+	"\x1dContentPreferencesReadRequest\x12\x1b\n" +
+	"\tperson_id\x18\x01 \x01(\x03R\bpersonId\"\xc5\x01\n" +
+	"\x1dContentPreferencesSaveRequest\x12\x1b\n" +
+	"\tperson_id\x18\x01 \x01(\x03R\bpersonId\x12K\n" +
+	"\achoices\x18\x02 \x03(\v21.graph.ContentPreferencesSaveRequest.ChoicesEntryR\achoices\x1a:\n" +
+	"\fChoicesEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x012\xb6\x0e\n" +
 	"\fActorService\x12>\n" +
 	"\x05Count\x12\x18.graph.ActorCountRequest\x1a\x19.graph.ActorCountResponse\"\x00\x12A\n" +
 	"\x06Browse\x12\x19.graph.ActorBrowseRequest\x1a\x1a.graph.ActorBrowseResponse\"\x00\x12;\n" +
@@ -2976,7 +3133,9 @@ const file_proto_graphpb_actor_proto_rawDesc = "" +
 	"\tReadRules\x12\x17.graph.RulesReadRequest\x1a\x18.graph.RulesReadResponse\"\x00\x12=\n" +
 	"\bSetRules\x12\x16.graph.RulesSetRequest\x1a\x17.graph.RulesSetResponse\"\x00\x12C\n" +
 	"\n" +
-	"AgreeRules\x12\x18.graph.RulesAgreeRequest\x1a\x19.graph.RulesAgreeResponse\"\x00\x12;\n" +
+	"AgreeRules\x12\x18.graph.RulesAgreeRequest\x1a\x19.graph.RulesAgreeResponse\"\x00\x12[\n" +
+	"\x16ReadContentPreferences\x12$.graph.ContentPreferencesReadRequest\x1a\x19.graph.ContentPreferences\"\x00\x12[\n" +
+	"\x16SaveContentPreferences\x12$.graph.ContentPreferencesSaveRequest\x1a\x19.graph.ContentPreferences\"\x00\x12;\n" +
 	"\x04Ping\x12\x17.graph.ActorPingRequest\x1a\x18.graph.ActorPingResponse\"\x00B\n" +
 	"Z\b/graphpbb\x06proto3"
 
@@ -2992,141 +3151,152 @@ func file_proto_graphpb_actor_proto_rawDescGZIP() []byte {
 	return file_proto_graphpb_actor_proto_rawDescData
 }
 
-var file_proto_graphpb_actor_proto_msgTypes = make([]protoimpl.MessageInfo, 48)
+var file_proto_graphpb_actor_proto_msgTypes = make([]protoimpl.MessageInfo, 53)
 var file_proto_graphpb_actor_proto_goTypes = []any{
-	(*Actors)(nil),                      // 0: graph.Actors
-	(*ActorCountRequest)(nil),           // 1: graph.ActorCountRequest
-	(*ActorCountResponse)(nil),          // 2: graph.ActorCountResponse
-	(*ActorBrowseRequest)(nil),          // 3: graph.ActorBrowseRequest
-	(*ActorBrowseResponse)(nil),         // 4: graph.ActorBrowseResponse
-	(*ActorReadRequest)(nil),            // 5: graph.ActorReadRequest
-	(*ActorReadResponse)(nil),           // 6: graph.ActorReadResponse
-	(*ActorBatchReadRequest)(nil),       // 7: graph.ActorBatchReadRequest
-	(*ActorBatchReadResponse)(nil),      // 8: graph.ActorBatchReadResponse
-	(*ActorEditRequest)(nil),            // 9: graph.ActorEditRequest
-	(*ActorEditResponse)(nil),           // 10: graph.ActorEditResponse
-	(*ActorAddRequest)(nil),             // 11: graph.ActorAddRequest
-	(*ActorAddResponse)(nil),            // 12: graph.ActorAddResponse
-	(*ActorDeleteRequest)(nil),          // 13: graph.ActorDeleteRequest
-	(*ActorRestoreRequest)(nil),         // 14: graph.ActorRestoreRequest
-	(*ActorRestoreResponse)(nil),        // 15: graph.ActorRestoreResponse
-	(*ActorDeleteResponse)(nil),         // 16: graph.ActorDeleteResponse
-	(*ActorDeletionCountsRequest)(nil),  // 17: graph.ActorDeletionCountsRequest
-	(*ActorDeletionCountsResponse)(nil), // 18: graph.ActorDeletionCountsResponse
-	(*ActorPurgeBatchRequest)(nil),      // 19: graph.ActorPurgeBatchRequest
-	(*ActorPurgeRefusal)(nil),           // 20: graph.ActorPurgeRefusal
-	(*ActorPurgeBatchResponse)(nil),     // 21: graph.ActorPurgeBatchResponse
-	(*ActorPurgeBatchReadRequest)(nil),  // 22: graph.ActorPurgeBatchReadRequest
-	(*ActorPurgeItem)(nil),              // 23: graph.ActorPurgeItem
-	(*ActorPurgeBatchReadResponse)(nil), // 24: graph.ActorPurgeBatchReadResponse
-	(*PublicAccessCountsRequest)(nil),   // 25: graph.PublicAccessCountsRequest
-	(*PublicAccessCountsResponse)(nil),  // 26: graph.PublicAccessCountsResponse
-	(*MakePublicRegisteredRequest)(nil), // 27: graph.MakePublicRegisteredRequest
-	(*ActorArchiveRequest)(nil),         // 28: graph.ActorArchiveRequest
-	(*ActorArchiveResponse)(nil),        // 29: graph.ActorArchiveResponse
-	(*ActorSetEnabledRequest)(nil),      // 30: graph.ActorSetEnabledRequest
-	(*ActorSetEnabledResponse)(nil),     // 31: graph.ActorSetEnabledResponse
-	(*ActorSetPersonTypeRequest)(nil),   // 32: graph.ActorSetPersonTypeRequest
-	(*ActorSetPersonTypeResponse)(nil),  // 33: graph.ActorSetPersonTypeResponse
-	(*ActorSetFeaturedRequest)(nil),     // 34: graph.ActorSetFeaturedRequest
-	(*ActorSetFeaturedResponse)(nil),    // 35: graph.ActorSetFeaturedResponse
-	(*ActorTouchLastVisitRequest)(nil),  // 36: graph.ActorTouchLastVisitRequest
-	(*ActorTouchLastVisitResponse)(nil), // 37: graph.ActorTouchLastVisitResponse
-	(*ActorPingRequest)(nil),            // 38: graph.ActorPingRequest
-	(*ActorPingResponse)(nil),           // 39: graph.ActorPingResponse
-	(*ProfileRule)(nil),                 // 40: graph.ProfileRule
-	(*ProfileRules)(nil),                // 41: graph.ProfileRules
-	(*RulesReadRequest)(nil),            // 42: graph.RulesReadRequest
-	(*RulesReadResponse)(nil),           // 43: graph.RulesReadResponse
-	(*RulesSetRequest)(nil),             // 44: graph.RulesSetRequest
-	(*RulesSetResponse)(nil),            // 45: graph.RulesSetResponse
-	(*RulesAgreeRequest)(nil),           // 46: graph.RulesAgreeRequest
-	(*RulesAgreeResponse)(nil),          // 47: graph.RulesAgreeResponse
-	(*Node)(nil),                        // 48: graph.Node
-	(*Viewer)(nil),                      // 49: graph.Viewer
+	(*Actors)(nil),                        // 0: graph.Actors
+	(*ActorCountRequest)(nil),             // 1: graph.ActorCountRequest
+	(*ActorCountResponse)(nil),            // 2: graph.ActorCountResponse
+	(*ActorBrowseRequest)(nil),            // 3: graph.ActorBrowseRequest
+	(*ActorBrowseResponse)(nil),           // 4: graph.ActorBrowseResponse
+	(*ActorReadRequest)(nil),              // 5: graph.ActorReadRequest
+	(*ActorReadResponse)(nil),             // 6: graph.ActorReadResponse
+	(*ActorBatchReadRequest)(nil),         // 7: graph.ActorBatchReadRequest
+	(*ActorBatchReadResponse)(nil),        // 8: graph.ActorBatchReadResponse
+	(*ActorEditRequest)(nil),              // 9: graph.ActorEditRequest
+	(*ActorEditResponse)(nil),             // 10: graph.ActorEditResponse
+	(*ActorAddRequest)(nil),               // 11: graph.ActorAddRequest
+	(*ActorAddResponse)(nil),              // 12: graph.ActorAddResponse
+	(*ActorDeleteRequest)(nil),            // 13: graph.ActorDeleteRequest
+	(*ActorRestoreRequest)(nil),           // 14: graph.ActorRestoreRequest
+	(*ActorRestoreResponse)(nil),          // 15: graph.ActorRestoreResponse
+	(*ActorDeleteResponse)(nil),           // 16: graph.ActorDeleteResponse
+	(*ActorDeletionCountsRequest)(nil),    // 17: graph.ActorDeletionCountsRequest
+	(*ActorDeletionCountsResponse)(nil),   // 18: graph.ActorDeletionCountsResponse
+	(*ActorPurgeBatchRequest)(nil),        // 19: graph.ActorPurgeBatchRequest
+	(*ActorPurgeRefusal)(nil),             // 20: graph.ActorPurgeRefusal
+	(*ActorPurgeBatchResponse)(nil),       // 21: graph.ActorPurgeBatchResponse
+	(*ActorPurgeBatchReadRequest)(nil),    // 22: graph.ActorPurgeBatchReadRequest
+	(*ActorPurgeItem)(nil),                // 23: graph.ActorPurgeItem
+	(*ActorPurgeBatchReadResponse)(nil),   // 24: graph.ActorPurgeBatchReadResponse
+	(*PublicAccessCountsRequest)(nil),     // 25: graph.PublicAccessCountsRequest
+	(*PublicAccessCountsResponse)(nil),    // 26: graph.PublicAccessCountsResponse
+	(*MakePublicRegisteredRequest)(nil),   // 27: graph.MakePublicRegisteredRequest
+	(*ActorArchiveRequest)(nil),           // 28: graph.ActorArchiveRequest
+	(*ActorArchiveResponse)(nil),          // 29: graph.ActorArchiveResponse
+	(*ActorSetEnabledRequest)(nil),        // 30: graph.ActorSetEnabledRequest
+	(*ActorSetEnabledResponse)(nil),       // 31: graph.ActorSetEnabledResponse
+	(*ActorSetPersonTypeRequest)(nil),     // 32: graph.ActorSetPersonTypeRequest
+	(*ActorSetPersonTypeResponse)(nil),    // 33: graph.ActorSetPersonTypeResponse
+	(*ActorSetFeaturedRequest)(nil),       // 34: graph.ActorSetFeaturedRequest
+	(*ActorSetFeaturedResponse)(nil),      // 35: graph.ActorSetFeaturedResponse
+	(*ActorTouchLastVisitRequest)(nil),    // 36: graph.ActorTouchLastVisitRequest
+	(*ActorTouchLastVisitResponse)(nil),   // 37: graph.ActorTouchLastVisitResponse
+	(*ActorPingRequest)(nil),              // 38: graph.ActorPingRequest
+	(*ActorPingResponse)(nil),             // 39: graph.ActorPingResponse
+	(*ProfileRule)(nil),                   // 40: graph.ProfileRule
+	(*ProfileRules)(nil),                  // 41: graph.ProfileRules
+	(*RulesReadRequest)(nil),              // 42: graph.RulesReadRequest
+	(*RulesReadResponse)(nil),             // 43: graph.RulesReadResponse
+	(*RulesSetRequest)(nil),               // 44: graph.RulesSetRequest
+	(*RulesSetResponse)(nil),              // 45: graph.RulesSetResponse
+	(*RulesAgreeRequest)(nil),             // 46: graph.RulesAgreeRequest
+	(*RulesAgreeResponse)(nil),            // 47: graph.RulesAgreeResponse
+	(*ContentPreferences)(nil),            // 48: graph.ContentPreferences
+	(*ContentPreferencesReadRequest)(nil), // 49: graph.ContentPreferencesReadRequest
+	(*ContentPreferencesSaveRequest)(nil), // 50: graph.ContentPreferencesSaveRequest
+	nil,                                   // 51: graph.ContentPreferences.ChoicesEntry
+	nil,                                   // 52: graph.ContentPreferencesSaveRequest.ChoicesEntry
+	(*Node)(nil),                          // 53: graph.Node
+	(*Viewer)(nil),                        // 54: graph.Viewer
 }
 var file_proto_graphpb_actor_proto_depIdxs = []int32{
-	48, // 0: graph.Actors.actors:type_name -> graph.Node
-	49, // 1: graph.ActorCountRequest.viewer:type_name -> graph.Viewer
-	49, // 2: graph.ActorBrowseRequest.viewer:type_name -> graph.Viewer
-	48, // 3: graph.ActorBrowseResponse.actors:type_name -> graph.Node
-	49, // 4: graph.ActorReadRequest.viewer:type_name -> graph.Viewer
-	48, // 5: graph.ActorReadResponse.actor:type_name -> graph.Node
-	49, // 6: graph.ActorBatchReadRequest.viewer:type_name -> graph.Viewer
-	48, // 7: graph.ActorBatchReadResponse.actors:type_name -> graph.Node
-	48, // 8: graph.ActorEditRequest.actor:type_name -> graph.Node
-	49, // 9: graph.ActorEditRequest.viewer:type_name -> graph.Viewer
-	48, // 10: graph.ActorEditResponse.actor:type_name -> graph.Node
-	48, // 11: graph.ActorAddRequest.actor:type_name -> graph.Node
-	49, // 12: graph.ActorAddRequest.viewer:type_name -> graph.Viewer
-	48, // 13: graph.ActorAddResponse.actor:type_name -> graph.Node
-	49, // 14: graph.ActorDeleteRequest.viewer:type_name -> graph.Viewer
-	49, // 15: graph.ActorRestoreRequest.viewer:type_name -> graph.Viewer
-	48, // 16: graph.ActorDeleteResponse.actor:type_name -> graph.Node
-	49, // 17: graph.ActorDeletionCountsRequest.viewer:type_name -> graph.Viewer
-	49, // 18: graph.ActorPurgeBatchRequest.viewer:type_name -> graph.Viewer
+	53, // 0: graph.Actors.actors:type_name -> graph.Node
+	54, // 1: graph.ActorCountRequest.viewer:type_name -> graph.Viewer
+	54, // 2: graph.ActorBrowseRequest.viewer:type_name -> graph.Viewer
+	53, // 3: graph.ActorBrowseResponse.actors:type_name -> graph.Node
+	54, // 4: graph.ActorReadRequest.viewer:type_name -> graph.Viewer
+	53, // 5: graph.ActorReadResponse.actor:type_name -> graph.Node
+	54, // 6: graph.ActorBatchReadRequest.viewer:type_name -> graph.Viewer
+	53, // 7: graph.ActorBatchReadResponse.actors:type_name -> graph.Node
+	53, // 8: graph.ActorEditRequest.actor:type_name -> graph.Node
+	54, // 9: graph.ActorEditRequest.viewer:type_name -> graph.Viewer
+	53, // 10: graph.ActorEditResponse.actor:type_name -> graph.Node
+	53, // 11: graph.ActorAddRequest.actor:type_name -> graph.Node
+	54, // 12: graph.ActorAddRequest.viewer:type_name -> graph.Viewer
+	53, // 13: graph.ActorAddResponse.actor:type_name -> graph.Node
+	54, // 14: graph.ActorDeleteRequest.viewer:type_name -> graph.Viewer
+	54, // 15: graph.ActorRestoreRequest.viewer:type_name -> graph.Viewer
+	53, // 16: graph.ActorDeleteResponse.actor:type_name -> graph.Node
+	54, // 17: graph.ActorDeletionCountsRequest.viewer:type_name -> graph.Viewer
+	54, // 18: graph.ActorPurgeBatchRequest.viewer:type_name -> graph.Viewer
 	20, // 19: graph.ActorPurgeBatchResponse.refused:type_name -> graph.ActorPurgeRefusal
 	23, // 20: graph.ActorPurgeBatchReadResponse.items:type_name -> graph.ActorPurgeItem
-	49, // 21: graph.MakePublicRegisteredRequest.viewer:type_name -> graph.Viewer
-	49, // 22: graph.ActorArchiveRequest.viewer:type_name -> graph.Viewer
-	49, // 23: graph.ActorSetEnabledRequest.viewer:type_name -> graph.Viewer
-	49, // 24: graph.ActorSetPersonTypeRequest.viewer:type_name -> graph.Viewer
-	49, // 25: graph.ActorSetFeaturedRequest.viewer:type_name -> graph.Viewer
+	54, // 21: graph.MakePublicRegisteredRequest.viewer:type_name -> graph.Viewer
+	54, // 22: graph.ActorArchiveRequest.viewer:type_name -> graph.Viewer
+	54, // 23: graph.ActorSetEnabledRequest.viewer:type_name -> graph.Viewer
+	54, // 24: graph.ActorSetPersonTypeRequest.viewer:type_name -> graph.Viewer
+	54, // 25: graph.ActorSetFeaturedRequest.viewer:type_name -> graph.Viewer
 	40, // 26: graph.ProfileRules.items:type_name -> graph.ProfileRule
 	41, // 27: graph.RulesReadResponse.rules:type_name -> graph.ProfileRules
 	40, // 28: graph.RulesSetRequest.items:type_name -> graph.ProfileRule
-	49, // 29: graph.RulesSetRequest.viewer:type_name -> graph.Viewer
+	54, // 29: graph.RulesSetRequest.viewer:type_name -> graph.Viewer
 	41, // 30: graph.RulesSetResponse.rules:type_name -> graph.ProfileRules
-	49, // 31: graph.RulesAgreeRequest.viewer:type_name -> graph.Viewer
-	1,  // 32: graph.ActorService.Count:input_type -> graph.ActorCountRequest
-	3,  // 33: graph.ActorService.Browse:input_type -> graph.ActorBrowseRequest
-	5,  // 34: graph.ActorService.Read:input_type -> graph.ActorReadRequest
-	7,  // 35: graph.ActorService.BatchRead:input_type -> graph.ActorBatchReadRequest
-	9,  // 36: graph.ActorService.Edit:input_type -> graph.ActorEditRequest
-	11, // 37: graph.ActorService.Add:input_type -> graph.ActorAddRequest
-	13, // 38: graph.ActorService.Delete:input_type -> graph.ActorDeleteRequest
-	14, // 39: graph.ActorService.Restore:input_type -> graph.ActorRestoreRequest
-	17, // 40: graph.ActorService.DeletionCounts:input_type -> graph.ActorDeletionCountsRequest
-	19, // 41: graph.ActorService.RequestPurge:input_type -> graph.ActorPurgeBatchRequest
-	22, // 42: graph.ActorService.ReadPurgeBatch:input_type -> graph.ActorPurgeBatchReadRequest
-	25, // 43: graph.ActorService.PublicAccessCounts:input_type -> graph.PublicAccessCountsRequest
-	27, // 44: graph.ActorService.MakePublicRegistered:input_type -> graph.MakePublicRegisteredRequest
-	28, // 45: graph.ActorService.Archive:input_type -> graph.ActorArchiveRequest
-	30, // 46: graph.ActorService.SetEnabled:input_type -> graph.ActorSetEnabledRequest
-	34, // 47: graph.ActorService.SetFeatured:input_type -> graph.ActorSetFeaturedRequest
-	32, // 48: graph.ActorService.SetPersonType:input_type -> graph.ActorSetPersonTypeRequest
-	36, // 49: graph.ActorService.TouchLastVisit:input_type -> graph.ActorTouchLastVisitRequest
-	42, // 50: graph.ActorService.ReadRules:input_type -> graph.RulesReadRequest
-	44, // 51: graph.ActorService.SetRules:input_type -> graph.RulesSetRequest
-	46, // 52: graph.ActorService.AgreeRules:input_type -> graph.RulesAgreeRequest
-	38, // 53: graph.ActorService.Ping:input_type -> graph.ActorPingRequest
-	2,  // 54: graph.ActorService.Count:output_type -> graph.ActorCountResponse
-	4,  // 55: graph.ActorService.Browse:output_type -> graph.ActorBrowseResponse
-	6,  // 56: graph.ActorService.Read:output_type -> graph.ActorReadResponse
-	8,  // 57: graph.ActorService.BatchRead:output_type -> graph.ActorBatchReadResponse
-	10, // 58: graph.ActorService.Edit:output_type -> graph.ActorEditResponse
-	12, // 59: graph.ActorService.Add:output_type -> graph.ActorAddResponse
-	16, // 60: graph.ActorService.Delete:output_type -> graph.ActorDeleteResponse
-	15, // 61: graph.ActorService.Restore:output_type -> graph.ActorRestoreResponse
-	18, // 62: graph.ActorService.DeletionCounts:output_type -> graph.ActorDeletionCountsResponse
-	21, // 63: graph.ActorService.RequestPurge:output_type -> graph.ActorPurgeBatchResponse
-	24, // 64: graph.ActorService.ReadPurgeBatch:output_type -> graph.ActorPurgeBatchReadResponse
-	26, // 65: graph.ActorService.PublicAccessCounts:output_type -> graph.PublicAccessCountsResponse
-	26, // 66: graph.ActorService.MakePublicRegistered:output_type -> graph.PublicAccessCountsResponse
-	29, // 67: graph.ActorService.Archive:output_type -> graph.ActorArchiveResponse
-	31, // 68: graph.ActorService.SetEnabled:output_type -> graph.ActorSetEnabledResponse
-	35, // 69: graph.ActorService.SetFeatured:output_type -> graph.ActorSetFeaturedResponse
-	33, // 70: graph.ActorService.SetPersonType:output_type -> graph.ActorSetPersonTypeResponse
-	37, // 71: graph.ActorService.TouchLastVisit:output_type -> graph.ActorTouchLastVisitResponse
-	43, // 72: graph.ActorService.ReadRules:output_type -> graph.RulesReadResponse
-	45, // 73: graph.ActorService.SetRules:output_type -> graph.RulesSetResponse
-	47, // 74: graph.ActorService.AgreeRules:output_type -> graph.RulesAgreeResponse
-	39, // 75: graph.ActorService.Ping:output_type -> graph.ActorPingResponse
-	54, // [54:76] is the sub-list for method output_type
-	32, // [32:54] is the sub-list for method input_type
-	32, // [32:32] is the sub-list for extension type_name
-	32, // [32:32] is the sub-list for extension extendee
-	0,  // [0:32] is the sub-list for field type_name
+	54, // 31: graph.RulesAgreeRequest.viewer:type_name -> graph.Viewer
+	51, // 32: graph.ContentPreferences.choices:type_name -> graph.ContentPreferences.ChoicesEntry
+	52, // 33: graph.ContentPreferencesSaveRequest.choices:type_name -> graph.ContentPreferencesSaveRequest.ChoicesEntry
+	1,  // 34: graph.ActorService.Count:input_type -> graph.ActorCountRequest
+	3,  // 35: graph.ActorService.Browse:input_type -> graph.ActorBrowseRequest
+	5,  // 36: graph.ActorService.Read:input_type -> graph.ActorReadRequest
+	7,  // 37: graph.ActorService.BatchRead:input_type -> graph.ActorBatchReadRequest
+	9,  // 38: graph.ActorService.Edit:input_type -> graph.ActorEditRequest
+	11, // 39: graph.ActorService.Add:input_type -> graph.ActorAddRequest
+	13, // 40: graph.ActorService.Delete:input_type -> graph.ActorDeleteRequest
+	14, // 41: graph.ActorService.Restore:input_type -> graph.ActorRestoreRequest
+	17, // 42: graph.ActorService.DeletionCounts:input_type -> graph.ActorDeletionCountsRequest
+	19, // 43: graph.ActorService.RequestPurge:input_type -> graph.ActorPurgeBatchRequest
+	22, // 44: graph.ActorService.ReadPurgeBatch:input_type -> graph.ActorPurgeBatchReadRequest
+	25, // 45: graph.ActorService.PublicAccessCounts:input_type -> graph.PublicAccessCountsRequest
+	27, // 46: graph.ActorService.MakePublicRegistered:input_type -> graph.MakePublicRegisteredRequest
+	28, // 47: graph.ActorService.Archive:input_type -> graph.ActorArchiveRequest
+	30, // 48: graph.ActorService.SetEnabled:input_type -> graph.ActorSetEnabledRequest
+	34, // 49: graph.ActorService.SetFeatured:input_type -> graph.ActorSetFeaturedRequest
+	32, // 50: graph.ActorService.SetPersonType:input_type -> graph.ActorSetPersonTypeRequest
+	36, // 51: graph.ActorService.TouchLastVisit:input_type -> graph.ActorTouchLastVisitRequest
+	42, // 52: graph.ActorService.ReadRules:input_type -> graph.RulesReadRequest
+	44, // 53: graph.ActorService.SetRules:input_type -> graph.RulesSetRequest
+	46, // 54: graph.ActorService.AgreeRules:input_type -> graph.RulesAgreeRequest
+	49, // 55: graph.ActorService.ReadContentPreferences:input_type -> graph.ContentPreferencesReadRequest
+	50, // 56: graph.ActorService.SaveContentPreferences:input_type -> graph.ContentPreferencesSaveRequest
+	38, // 57: graph.ActorService.Ping:input_type -> graph.ActorPingRequest
+	2,  // 58: graph.ActorService.Count:output_type -> graph.ActorCountResponse
+	4,  // 59: graph.ActorService.Browse:output_type -> graph.ActorBrowseResponse
+	6,  // 60: graph.ActorService.Read:output_type -> graph.ActorReadResponse
+	8,  // 61: graph.ActorService.BatchRead:output_type -> graph.ActorBatchReadResponse
+	10, // 62: graph.ActorService.Edit:output_type -> graph.ActorEditResponse
+	12, // 63: graph.ActorService.Add:output_type -> graph.ActorAddResponse
+	16, // 64: graph.ActorService.Delete:output_type -> graph.ActorDeleteResponse
+	15, // 65: graph.ActorService.Restore:output_type -> graph.ActorRestoreResponse
+	18, // 66: graph.ActorService.DeletionCounts:output_type -> graph.ActorDeletionCountsResponse
+	21, // 67: graph.ActorService.RequestPurge:output_type -> graph.ActorPurgeBatchResponse
+	24, // 68: graph.ActorService.ReadPurgeBatch:output_type -> graph.ActorPurgeBatchReadResponse
+	26, // 69: graph.ActorService.PublicAccessCounts:output_type -> graph.PublicAccessCountsResponse
+	26, // 70: graph.ActorService.MakePublicRegistered:output_type -> graph.PublicAccessCountsResponse
+	29, // 71: graph.ActorService.Archive:output_type -> graph.ActorArchiveResponse
+	31, // 72: graph.ActorService.SetEnabled:output_type -> graph.ActorSetEnabledResponse
+	35, // 73: graph.ActorService.SetFeatured:output_type -> graph.ActorSetFeaturedResponse
+	33, // 74: graph.ActorService.SetPersonType:output_type -> graph.ActorSetPersonTypeResponse
+	37, // 75: graph.ActorService.TouchLastVisit:output_type -> graph.ActorTouchLastVisitResponse
+	43, // 76: graph.ActorService.ReadRules:output_type -> graph.RulesReadResponse
+	45, // 77: graph.ActorService.SetRules:output_type -> graph.RulesSetResponse
+	47, // 78: graph.ActorService.AgreeRules:output_type -> graph.RulesAgreeResponse
+	48, // 79: graph.ActorService.ReadContentPreferences:output_type -> graph.ContentPreferences
+	48, // 80: graph.ActorService.SaveContentPreferences:output_type -> graph.ContentPreferences
+	39, // 81: graph.ActorService.Ping:output_type -> graph.ActorPingResponse
+	58, // [58:82] is the sub-list for method output_type
+	34, // [34:58] is the sub-list for method input_type
+	34, // [34:34] is the sub-list for extension type_name
+	34, // [34:34] is the sub-list for extension extendee
+	0,  // [0:34] is the sub-list for field type_name
 }
 
 func init() { file_proto_graphpb_actor_proto_init() }
@@ -3142,7 +3312,7 @@ func file_proto_graphpb_actor_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_graphpb_actor_proto_rawDesc), len(file_proto_graphpb_actor_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   48,
+			NumMessages:   53,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

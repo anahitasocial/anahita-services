@@ -16,10 +16,12 @@ The plan, with what is still to come, is
 1. [The kinds](#the-kinds)
 2. [On a post](#on-a-post)
 3. [A warning the administrators gave](#a-warning-the-administrators-gave)
-4. [Where it is shown](#where-it-is-shown)
-5. [What the web app does](#what-the-web-app-does)
-6. [Where the code is](#where-the-code-is)
-7. [What is not built](#what-is-not-built)
+4. [What each reader chooses](#what-each-reader-chooses)
+5. [Where it is shown](#where-it-is-shown)
+6. [What the web app does](#what-the-web-app-does)
+7. [On the fediverse and Bluesky](#on-the-fediverse-and-bluesky)
+8. [Where the code is](#where-the-code-is)
+9. [What is not built](#what-is-not-built)
 
 ## The kinds
 
@@ -77,6 +79,38 @@ web app does not offer the choice on such a post.
 Nothing sets it yet: the report reason, the case's action and the post's
 menu for administrators are phase 4 of the plan.
 
+## What each reader chooses
+
+Each person chooses, for each kind, what they see of a post with that
+warning (built on 2026-11-16):
+
+| Choice | What they see |
+| --- | --- |
+| `show` | The post as any other |
+| `warn` | The warning and View, the post blurred behind it |
+| `hide` | In a list, one line, "Hidden: Graphic media", which opens the post if pressed; on the post's own page and in the photo theatre, as Warn |
+
+Every kind starts at `warn`. Somebody not signed in has `warn` and no
+choice. A post a moderator gave its warning is seen as its kind, as any
+other.
+
+1. **Read:** `GET /people/:id/content-preferences`, answered with
+   `{ "choices": { "adult": "warn", … } }`, every kind there.
+2. **Changed:** `PATCH /people/:id/content-preferences` with
+   `{ "choices": { "graphic": "hide" } }`; the kinds not named stay as they
+   were. Refused with 400 `content_preference_invalid` for a kind that is
+   not one or a choice that is not `show`, `warn` or `hide`.
+3. **Theirs alone:** both answer 403 for anybody but the person, an
+   administrator too. What somebody chose not to see is nobody else's
+   business.
+
+It is stored in `content_preferences` (migration
+`20261122000024_content_preferences`): a person's choices as JSON, only the
+kinds not at `warn`, removed with the person when they are purged. The
+server hides nothing because of it: a hidden post is still sent, and the
+web app draws it as one line, so that a page holds as many posts as it did
+and nothing is read again when a choice changes.
+
 ## Where it is shown
 
 1. **Everywhere a post is drawn** in the web app (below).
@@ -84,9 +118,8 @@ menu for administrators are phase 4 of the plan.
    picture of it (the site's own is used), and the warning in place of its
    words, "Content warning: graphic media" or "Content warning: " and the
    author's words ([The web shell](web-shell.md)).
-3. **Other servers** are not told yet: a post goes to the fediverse and
-   Bluesky as it did, without its warning, and a warning from there is not
-   read. That is phase 3 of the plan.
+3. **Other servers** are told, and their warnings are read
+   ([On the fediverse and Bluesky](#on-the-fediverse-and-bluesky)).
 
 ## What the web app does
 
@@ -110,12 +143,13 @@ menu for administrators are phase 4 of the plan.
    The same in feeds, on profiles, on a post's own page, in replies,
    quotes, reposts and posts shown in an article; in the photo theatre, a
    veil over the picture, each post behind its own as one steps through
-   them, and the warning for its title.
+   them, and the warning for its title. Each reader sees it as they chose
+   for its kind: as any other at Show, and at Hide, in a list, as one line
+   that opens it.
 5. **A profile's Photos card** leaves out a photo with a warning: the card
    is a glance at who somebody is.
-
-Everybody sees every kind behind its warning; each reader's own choice of
-Show, Warn or Hide is phase 2.
+6. **Settings › Content** is where each person chooses Show, Warn or Hide
+   for each kind ([What each reader chooses](#what-each-reader-chooses)).
 
 ## On the fediverse and Bluesky
 
@@ -169,14 +203,13 @@ this was built keeps what it was kept with until it is next changed there.
 | A link pasted elsewhere | `web-shell/shell/pages.go` (`warningDescription`) |
 | Sent to the fediverse | `activitypub-service/ap/note.go` (`WithWarning`), its words from `entities.WarningSaid` |
 | Sent to Bluesky | `atproto-service/bsky/outgoing.go` (`WithLabel`), its label from `entities.WarningLabel` |
-| The web app | `src/utils/warnings.js`, `src/components/ContentWarningDialog.jsx`, `ContentWarningButton.jsx`, `WarningCover.jsx`, `src/containers/controls/medium/ContentWarning.jsx` (anahita-web) |
+| Each reader's choices | `anahita-libs/data/entities/warning.go` (`WarningChoices`); `graph-grpc-service/data/repositories/content_preferences.go`; `actor-service/cmd/api/handlers/person_content_preferences.go` |
+| The web app | `src/utils/warnings.js`, `src/utils/contentChoices.js`, `src/containers/actors/Settings/ContentChoices.jsx`, `src/components/ContentWarningDialog.jsx`, `ContentWarningButton.jsx`, `WarningCover.jsx`, `src/containers/controls/medium/ContentWarning.jsx` (anahita-web) |
 
 ## What is not built
 
 The rest of the plan, each a phase of it:
 
-- **Each reader's choices** of Show, Warn or Hide for each kind, in a
-  Content tab of their settings.
 - **The administrators' warning:** a report reason, the case's action, the
   post's menu, and a notification to the author.
 - **Made with AI**, a sixth kind, chosen for an author when the file says

@@ -60,3 +60,37 @@ func TestWarningFromFediverse(t *testing.T) {
 		t.Errorf("a long one cut is still a warning here: %q", text)
 	}
 }
+
+// THE RULE THIS GUARDS: every kind starts at Warn, a reader's own choice
+// is kept, and only what differs from Warn is stored.
+func TestWarningChoices(t *testing.T) {
+	got := WarningChoices(map[string]string{
+		WarningGraphic: WarningHide,
+		WarningNudity:  WarningShow,
+		WarningAdult:   "maybe",
+		"made-up":      WarningShow,
+	})
+	want := map[string]string{
+		WarningAdult:      WarningWarn,
+		WarningSuggestive: WarningWarn,
+		WarningGraphic:    WarningHide,
+		WarningNudity:     WarningShow,
+		WarningOther:      WarningWarn,
+	}
+	if len(got) != len(want) {
+		t.Fatalf("got %v, want %v", got, want)
+	}
+	for kind, choice := range want {
+		if got[kind] != choice {
+			t.Errorf("%s: got %q, want %q", kind, got[kind], choice)
+		}
+	}
+
+	kept := WarningChoicesKept(map[string]string{
+		WarningGraphic: WarningHide,
+		WarningAdult:   WarningWarn,
+	})
+	if len(kept) != 1 || kept[WarningGraphic] != WarningHide {
+		t.Errorf("kept %v, want graphic: hide alone", kept)
+	}
+}

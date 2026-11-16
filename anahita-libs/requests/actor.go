@@ -215,3 +215,20 @@ type ActorEditDownloadDefaultRequest struct {
 	// Whether its new photos and videos start out downloadable.
 	Allow bool `json:"allow" form:"allow"`
 }
+
+// PersonContentPreferencesRequest names whose choices for content warnings
+// are read: the viewer's own.
+type PersonContentPreferencesRequest struct {
+	// The person's id: the viewer's own.
+	ID int64 `param:"id" validate:"required,numeric"`
+}
+
+// PersonEditContentPreferencesRequest changes a person's choice of Show,
+// Warn or Hide for kinds of content warning (roadmap row 122, phase 2).
+type PersonEditContentPreferencesRequest struct {
+	// The person's id: the viewer's own.
+	ID int64 `param:"id" validate:"required,numeric"`
+	// By kind (`adult`, `suggestive`, `graphic`, `nudity`, `other`):
+	// `show`, `warn` or `hide`. A kind left out stays as it was.
+	Choices map[string]string `json:"choices" validate:"required"`
+}

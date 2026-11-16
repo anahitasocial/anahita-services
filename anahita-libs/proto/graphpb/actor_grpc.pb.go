@@ -19,28 +19,30 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ActorService_Count_FullMethodName                = "/graph.ActorService/Count"
-	ActorService_Browse_FullMethodName               = "/graph.ActorService/Browse"
-	ActorService_Read_FullMethodName                 = "/graph.ActorService/Read"
-	ActorService_BatchRead_FullMethodName            = "/graph.ActorService/BatchRead"
-	ActorService_Edit_FullMethodName                 = "/graph.ActorService/Edit"
-	ActorService_Add_FullMethodName                  = "/graph.ActorService/Add"
-	ActorService_Delete_FullMethodName               = "/graph.ActorService/Delete"
-	ActorService_Restore_FullMethodName              = "/graph.ActorService/Restore"
-	ActorService_DeletionCounts_FullMethodName       = "/graph.ActorService/DeletionCounts"
-	ActorService_RequestPurge_FullMethodName         = "/graph.ActorService/RequestPurge"
-	ActorService_ReadPurgeBatch_FullMethodName       = "/graph.ActorService/ReadPurgeBatch"
-	ActorService_PublicAccessCounts_FullMethodName   = "/graph.ActorService/PublicAccessCounts"
-	ActorService_MakePublicRegistered_FullMethodName = "/graph.ActorService/MakePublicRegistered"
-	ActorService_Archive_FullMethodName              = "/graph.ActorService/Archive"
-	ActorService_SetEnabled_FullMethodName           = "/graph.ActorService/SetEnabled"
-	ActorService_SetFeatured_FullMethodName          = "/graph.ActorService/SetFeatured"
-	ActorService_SetPersonType_FullMethodName        = "/graph.ActorService/SetPersonType"
-	ActorService_TouchLastVisit_FullMethodName       = "/graph.ActorService/TouchLastVisit"
-	ActorService_ReadRules_FullMethodName            = "/graph.ActorService/ReadRules"
-	ActorService_SetRules_FullMethodName             = "/graph.ActorService/SetRules"
-	ActorService_AgreeRules_FullMethodName           = "/graph.ActorService/AgreeRules"
-	ActorService_Ping_FullMethodName                 = "/graph.ActorService/Ping"
+	ActorService_Count_FullMethodName                  = "/graph.ActorService/Count"
+	ActorService_Browse_FullMethodName                 = "/graph.ActorService/Browse"
+	ActorService_Read_FullMethodName                   = "/graph.ActorService/Read"
+	ActorService_BatchRead_FullMethodName              = "/graph.ActorService/BatchRead"
+	ActorService_Edit_FullMethodName                   = "/graph.ActorService/Edit"
+	ActorService_Add_FullMethodName                    = "/graph.ActorService/Add"
+	ActorService_Delete_FullMethodName                 = "/graph.ActorService/Delete"
+	ActorService_Restore_FullMethodName                = "/graph.ActorService/Restore"
+	ActorService_DeletionCounts_FullMethodName         = "/graph.ActorService/DeletionCounts"
+	ActorService_RequestPurge_FullMethodName           = "/graph.ActorService/RequestPurge"
+	ActorService_ReadPurgeBatch_FullMethodName         = "/graph.ActorService/ReadPurgeBatch"
+	ActorService_PublicAccessCounts_FullMethodName     = "/graph.ActorService/PublicAccessCounts"
+	ActorService_MakePublicRegistered_FullMethodName   = "/graph.ActorService/MakePublicRegistered"
+	ActorService_Archive_FullMethodName                = "/graph.ActorService/Archive"
+	ActorService_SetEnabled_FullMethodName             = "/graph.ActorService/SetEnabled"
+	ActorService_SetFeatured_FullMethodName            = "/graph.ActorService/SetFeatured"
+	ActorService_SetPersonType_FullMethodName          = "/graph.ActorService/SetPersonType"
+	ActorService_TouchLastVisit_FullMethodName         = "/graph.ActorService/TouchLastVisit"
+	ActorService_ReadRules_FullMethodName              = "/graph.ActorService/ReadRules"
+	ActorService_SetRules_FullMethodName               = "/graph.ActorService/SetRules"
+	ActorService_AgreeRules_FullMethodName             = "/graph.ActorService/AgreeRules"
+	ActorService_ReadContentPreferences_FullMethodName = "/graph.ActorService/ReadContentPreferences"
+	ActorService_SaveContentPreferences_FullMethodName = "/graph.ActorService/SaveContentPreferences"
+	ActorService_Ping_FullMethodName                   = "/graph.ActorService/Ping"
 )
 
 // ActorServiceClient is the client API for ActorService service.
@@ -86,6 +88,10 @@ type ActorServiceClient interface {
 	ReadRules(ctx context.Context, in *RulesReadRequest, opts ...grpc.CallOption) (*RulesReadResponse, error)
 	SetRules(ctx context.Context, in *RulesSetRequest, opts ...grpc.CallOption) (*RulesSetResponse, error)
 	AgreeRules(ctx context.Context, in *RulesAgreeRequest, opts ...grpc.CallOption) (*RulesAgreeResponse, error)
+	// A person's own choices for content warnings. Whose they may read or
+	// change is the caller's to ask.
+	ReadContentPreferences(ctx context.Context, in *ContentPreferencesReadRequest, opts ...grpc.CallOption) (*ContentPreferences, error)
+	SaveContentPreferences(ctx context.Context, in *ContentPreferencesSaveRequest, opts ...grpc.CallOption) (*ContentPreferences, error)
 	Ping(ctx context.Context, in *ActorPingRequest, opts ...grpc.CallOption) (*ActorPingResponse, error)
 }
 
@@ -307,6 +313,26 @@ func (c *actorServiceClient) AgreeRules(ctx context.Context, in *RulesAgreeReque
 	return out, nil
 }
 
+func (c *actorServiceClient) ReadContentPreferences(ctx context.Context, in *ContentPreferencesReadRequest, opts ...grpc.CallOption) (*ContentPreferences, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ContentPreferences)
+	err := c.cc.Invoke(ctx, ActorService_ReadContentPreferences_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *actorServiceClient) SaveContentPreferences(ctx context.Context, in *ContentPreferencesSaveRequest, opts ...grpc.CallOption) (*ContentPreferences, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ContentPreferences)
+	err := c.cc.Invoke(ctx, ActorService_SaveContentPreferences_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *actorServiceClient) Ping(ctx context.Context, in *ActorPingRequest, opts ...grpc.CallOption) (*ActorPingResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ActorPingResponse)
@@ -360,6 +386,10 @@ type ActorServiceServer interface {
 	ReadRules(context.Context, *RulesReadRequest) (*RulesReadResponse, error)
 	SetRules(context.Context, *RulesSetRequest) (*RulesSetResponse, error)
 	AgreeRules(context.Context, *RulesAgreeRequest) (*RulesAgreeResponse, error)
+	// A person's own choices for content warnings. Whose they may read or
+	// change is the caller's to ask.
+	ReadContentPreferences(context.Context, *ContentPreferencesReadRequest) (*ContentPreferences, error)
+	SaveContentPreferences(context.Context, *ContentPreferencesSaveRequest) (*ContentPreferences, error)
 	Ping(context.Context, *ActorPingRequest) (*ActorPingResponse, error)
 	mustEmbedUnimplementedActorServiceServer()
 }
@@ -433,6 +463,12 @@ func (UnimplementedActorServiceServer) SetRules(context.Context, *RulesSetReques
 }
 func (UnimplementedActorServiceServer) AgreeRules(context.Context, *RulesAgreeRequest) (*RulesAgreeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AgreeRules not implemented")
+}
+func (UnimplementedActorServiceServer) ReadContentPreferences(context.Context, *ContentPreferencesReadRequest) (*ContentPreferences, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadContentPreferences not implemented")
+}
+func (UnimplementedActorServiceServer) SaveContentPreferences(context.Context, *ContentPreferencesSaveRequest) (*ContentPreferences, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SaveContentPreferences not implemented")
 }
 func (UnimplementedActorServiceServer) Ping(context.Context, *ActorPingRequest) (*ActorPingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
@@ -836,6 +872,42 @@ func _ActorService_AgreeRules_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ActorService_ReadContentPreferences_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ContentPreferencesReadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ActorServiceServer).ReadContentPreferences(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ActorService_ReadContentPreferences_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ActorServiceServer).ReadContentPreferences(ctx, req.(*ContentPreferencesReadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ActorService_SaveContentPreferences_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ContentPreferencesSaveRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ActorServiceServer).SaveContentPreferences(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ActorService_SaveContentPreferences_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ActorServiceServer).SaveContentPreferences(ctx, req.(*ContentPreferencesSaveRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ActorService_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ActorPingRequest)
 	if err := dec(in); err != nil {
@@ -944,6 +1016,14 @@ var ActorService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AgreeRules",
 			Handler:    _ActorService_AgreeRules_Handler,
+		},
+		{
+			MethodName: "ReadContentPreferences",
+			Handler:    _ActorService_ReadContentPreferences_Handler,
+		},
+		{
+			MethodName: "SaveContentPreferences",
+			Handler:    _ActorService_SaveContentPreferences_Handler,
 		},
 		{
 			MethodName: "Ping",

@@ -563,6 +563,13 @@ DELETE FROM search_preferences
 WHERE person_id = ?
 LIMIT ?`
 
+	// What they chose to see of each kind of content warning (roadmap row
+	// 122, phase 2).
+	const deleteContentPreferences = `
+DELETE FROM content_preferences
+WHERE person_id = ?
+LIMIT ?`
+
 	// The servers they blocked for themselves (roadmap row 152).
 	const deleteServerBlocks = `
 DELETE FROM person_domain_blocks
@@ -571,6 +578,7 @@ LIMIT ?`
 
 	for _, query := range []string{
 		deleteSearchPreferences,
+		deleteContentPreferences,
 		deleteServerBlocks,
 		deleteEdgesFromActor,
 		deleteEdgesToActor,

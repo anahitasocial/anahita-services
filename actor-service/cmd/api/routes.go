@@ -416,6 +416,23 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Sends(http.StatusBadRequest, libs_responses.Refusal{}, "`quote_policy_invalid`, or not well formed").
 		Refuses(http.StatusForbidden, "the viewer may not change it").
 		Refuses(http.StatusNotFound, "there is no such person")
+	// What they chose to see of each kind of content warning (roadmap row
+	// 122, phase 2): theirs alone.
+	people.GET("/:id/content-preferences", r.handler.Person.ReadContentPreferences, r.authorize).
+		Summary("A person's choices for content warnings").
+		Describe("Show, Warn or Hide for each kind: whether a post of that kind is shown at once, behind its warning, or as one line that opens it. The viewer's own alone.").
+		Viewer(apidoc.SignedIn).
+		Takes(&requests.PersonContentPreferencesRequest{}).
+		Sends(http.StatusOK, responses.ContentPreferences{}).
+		Refuses(http.StatusForbidden, "they are not the viewer's own")
+	people.PATCH("/:id/content-preferences", r.handler.Person.EditContentPreferences, r.authorize).
+		Summary("Change a person's choices for content warnings").
+		Describe("The kinds named change; the others stay as they were.").
+		Viewer(apidoc.SignedIn).
+		Takes(&requests.PersonEditContentPreferencesRequest{}).
+		Sends(http.StatusOK, responses.ContentPreferences{}).
+		Sends(http.StatusBadRequest, libs_responses.Refusal{}, "`content_preference_invalid`, or not well formed").
+		Refuses(http.StatusForbidden, "they are not the viewer's own")
 	// What their new photos and videos start with, about being downloaded.
 	people.PATCH("/:id/download-default", r.handler.Person.EditDownloadDefault, r.authorize).With(downloads(responses.PersonNode{}))
 

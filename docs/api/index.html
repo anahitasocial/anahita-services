@@ -58,7 +58,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <p class="group">Profiles</p>
 <ul>
 <li><a href="#profiles">Profiles</a> <span class="count">1</span></li>
-<li><a href="#people">People</a> <span class="count">22</span></li>
+<li><a href="#people">People</a> <span class="count">24</span></li>
 <li><a href="#groups">Groups</a> <span class="count">25</span></li>
 <li><a href="#events">Events</a> <span class="count">27</span></li>
 <li><a href="#channels">Channels</a> <span class="count">20</span></li>
@@ -96,7 +96,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 </ul>
 <p class="group">Reference</p>
 <ul>
-<li><a href="#schemas">Shapes</a> <span class="count">181</span></li>
+<li><a href="#schemas">Shapes</a> <span class="count">182</span></li>
 </ul>
 </nav>
 <main>
@@ -234,6 +234,61 @@ who may call it: anyone, signed in or not.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>actor/cmd/api/handlers.(*personHandler).TaggedIn</code></p>
+</details>
+<details class="route" id="getPeopleByIdContentPreferences" data-search="get /people/{id}/content-preferences a person&#39;s choices for content warnings show, warn or hide for each kind: whether a post of that kind is shown at once, behind its warning, or as one line that opens it. the viewer&#39;s own alone.
+
+who may call it: somebody signed in.">
+<summary><span class="method get">GET</span> <code class="path">/people/{id}/content-preferences</code> <span class="summary">A person&#39;s choices for content warnings</span></summary>
+<div class="description"><p>Show, Warn or Hide for each kind: whether a post of that kind is shown at once, behind its warning, or as one line that opens it. The viewer&#39;s own alone.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The person&#39;s id: the viewer&#39;s own.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-actor.ContentPreferences">actor.ContentPreferences</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>they are not the viewer&#39;s own</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*personHandler).ReadContentPreferences</code></p>
+</details>
+<details class="route" id="patchPeopleByIdContentPreferences" data-search="patch /people/{id}/content-preferences change a person&#39;s choices for content warnings the kinds named change; the others stay as they were.
+
+who may call it: somebody signed in.">
+<summary><span class="method patch">PATCH</span> <code class="path">/people/{id}/content-preferences</code> <span class="summary">Change a person&#39;s choices for content warnings</span></summary>
+<div class="description"><p>The kinds named change; the others stay as they were.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The person&#39;s id: the viewer&#39;s own.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>choices</code> <span class="required">always</span></td><td>map of string</td><td>By kind (<code>adult</code>, <code>suggestive</code>, <code>graphic</code>, <code>nudity</code>, <code>other</code>): <code>show</code>, <code>warn</code> or <code>hide</code>. A kind left out stays as it was.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-actor.ContentPreferences">actor.ContentPreferences</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>content_preference_invalid</code>, or not well formed<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>they are not the viewer&#39;s own</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*personHandler).EditContentPreferences</code></p>
 </details>
 <details class="route" id="patchPeopleByIdQuotePolicy" data-search="patch /people/{id}/quote-policy change who may quote a person&#39;s posts for the posts that do not say.
 
@@ -12923,6 +12978,16 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>uri</code></td><td>string</td><td>What it is called on the server it came from, and that server, when it came from another. Left out of everything made here.</td></tr>
 <tr><td><code>verified</code></td><td>boolean</td><td>A mark kept from earlier versions of Anahita. Nothing sets it yet.</td></tr>
 <tr><td><code>website_url</code></td><td>string</td><td>One link on the profile. Rendered as an anchor, so the value is validated to http(s) on the way in — see requests/actor.go.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-actor.ContentPreferences" data-search="actor.contentpreferences choices">
+<h3>actor.ContentPreferences</h3>
+<p>A person&#39;s choice for every kind of content warning (roadmap row 122, phase 2).</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>choices</code> <span class="required">always</span></td><td>map of string or null</td><td>By kind (<code>adult</code>, <code>suggestive</code>, <code>graphic</code>, <code>nudity</code>, <code>other</code>): <code>show</code>, <code>warn</code> or <code>hide</code>. Every kind is there, <code>warn</code> where they have not chosen.</td></tr>
 </tbody>
 </table>
 </div>

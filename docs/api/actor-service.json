@@ -1846,6 +1846,25 @@
         ],
         "type": "object"
       },
+      "actor.ContentPreferences": {
+        "description": "ContentPreferences is a person's choice for every kind of content warning (roadmap row 122, phase 2).",
+        "properties": {
+          "choices": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "By kind (`adult`, `suggestive`, `graphic`, `nudity`, `other`): `show`, `warn` or `hide`. Every kind is there, `warn` where they have not chosen.",
+            "type": [
+              "object",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "choices"
+        ],
+        "type": "object"
+      },
       "actor.EventNode": {
         "description": "EventNode is an event, as it is sent: a group with a time and a place, and `event` saying when it is, how many may go and are going, and what the viewer answered.",
         "properties": {
@@ -9608,6 +9627,133 @@
         "x-handler": "actor/cmd/api/handlers.(*personHandler).Archive",
         "x-shared": "profiles",
         "x-step-up": true,
+        "x-viewer": "signed_in"
+      }
+    },
+    "/people/{id}/content-preferences": {
+      "get": {
+        "description": "Show, Warn or Hide for each kind: whether a post of that kind is shown at once, behind its warning, or as one line that opens it. The viewer's own alone.\n\nWho may call it: somebody signed in.",
+        "operationId": "getPeopleByIdContentPreferences",
+        "parameters": [
+          {
+            "description": "The person's id: the viewer's own.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/actor.ContentPreferences"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "they are not the viewer's own"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A person's choices for content warnings",
+        "tags": [
+          "people"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).ReadContentPreferences",
+        "x-viewer": "signed_in"
+      },
+      "patch": {
+        "description": "The kinds named change; the others stay as they were.\n\nWho may call it: somebody signed in.",
+        "operationId": "patchPeopleByIdContentPreferences",
+        "parameters": [
+          {
+            "description": "The person's id: the viewer's own.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "choices": {
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "description": "By kind (`adult`, `suggestive`, `graphic`, `nudity`, `other`): `show`, `warn` or `hide`. A kind left out stays as it was.",
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "choices"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/actor.ContentPreferences"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`content_preference_invalid`, or not well formed"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "they are not the viewer's own"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change a person's choices for content warnings",
+        "tags": [
+          "people"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).EditContentPreferences",
         "x-viewer": "signed_in"
       }
     },
