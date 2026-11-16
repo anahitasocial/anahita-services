@@ -41,17 +41,22 @@ func (h *videoHandler) EditWarning(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)
-	if err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-	if ok, err := h.mayEdit(c, medium, viewer, mediumAccessCtx); !ok {
-		log.Println(err)
-		return c.NoContent(http.StatusForbidden)
+	// A site administrator warns as a moderator what they did not write,
+	// any post, a reply or one from another server too (row 122, phase 4).
+	moderator := handlers.IsWarningModerator(medium, viewer)
+	if !moderator {
+		mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)
+		if err != nil {
+			log.Println(err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		if ok, err := h.mayEdit(c, medium, viewer, mediumAccessCtx); !ok {
+			log.Println(err)
+			return c.NoContent(http.StatusForbidden)
+		}
 	}
 
-	valid, allowed := handlers.SetWarning(medium, req.Warning, req.WarningText)
+	valid, allowed := handlers.SetWarningBy(medium, moderator, req.Warning, req.WarningText)
 	if !valid {
 		return handlers.RefuseWarning(c)
 	}

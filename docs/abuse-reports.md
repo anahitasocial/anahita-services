@@ -186,14 +186,17 @@ post, disabling an account or archiving a group is done through the service
 that owns it, under that service's own rules: an administrator who may not
 archive a group cannot do it from here either. The app does the action first,
 then records the case as `actioned` with what was done: `deleted`, `disabled`,
-`archived`, `blocked`, `removed_as_spam`, `refused` or `other`. A person or a
+`archived`, `blocked`, `removed_as_spam`, `refused`, `warned` or `other`. A person or a
 group reported can be removed as spam from its case, which is then closed as
 `removed_as_spam` ([Removing as spam](account-lifecycle.md#removing-as-spam)).
 An account from another network, or a post of one, can be refused from its
 case, which is then closed as `refused`
 ([Accounts that are refused](federation.md#accounts-that-are-refused)); if
 the case was closed first by the account being removed, it stays recorded as
-`deleted`.
+`deleted`. A post can be given a content warning from its case, which is
+then closed as `warned` ([A warning the administrators
+gave](content-warnings.md#a-warning-the-administrators-gave)); the reason
+`needs_warning`, "Should have a content warning", is for posts alone.
 
 Two administrators deciding the same case at once get one decision recorded;
 the second is told it was already decided (409). A closed case cannot be

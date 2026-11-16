@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 )
 
@@ -40,5 +41,41 @@ func TestSetWarning(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+// THE RULE THIS GUARDS: a site administrator warns as a moderator what
+// they did not write, and what they give is marked theirs; taken off, the
+// mark goes with it.
+func TestWarningModerator(t *testing.T) {
+	post := &entities.AnahitaNode{CreatedBy: 7}
+	admin := entities.NewViewer()
+	admin.ID = 9
+	admin.PersonType = constants.PersonTypeAdmin
+	author := entities.NewViewer()
+	author.ID = 7
+	author.PersonType = constants.PersonTypeAdmin
+	member := entities.NewViewer()
+	member.ID = 9
+	member.PersonType = constants.PersonTypeRegistered
+
+	if !IsWarningModerator(post, admin) {
+		t.Error("an administrator is not a moderator of another's post")
+	}
+	if IsWarningModerator(post, author) {
+		t.Error("an administrator is a moderator of their own post")
+	}
+	if IsWarningModerator(post, member) || IsWarningModerator(post, nil) {
+		t.Error("somebody not an administrator is a moderator")
+	}
+
+	if !SetWarningAsModerator(post, "graphic", "") || post.Warning != "graphic" || !post.WarningByModerator {
+		t.Errorf("given: %+v", post)
+	}
+	if !SetWarningAsModerator(post, "", "") || post.Warning != "" || post.WarningByModerator {
+		t.Errorf("taken off: %+v", post)
+	}
+	if SetWarningAsModerator(post, "ai", "") {
+		t.Error("a kind that is not one was taken")
 	}
 }

@@ -8329,7 +8329,7 @@
               "schema": {
                 "properties": {
                   "action": {
-                    "description": "What was done: `none`, `deleted`, `disabled`, `archived`, `blocked`, `removed_as_spam`, `refused` or `other`.",
+                    "description": "What was done: `none`, `deleted`, `disabled`, `archived`, `blocked`, `removed_as_spam`, `refused`, `warned` or `other`.",
                     "enum": [
                       "none",
                       "deleted",
@@ -8338,6 +8338,7 @@
                       "blocked",
                       "removed_as_spam",
                       "refused",
+                      "warned",
                       "other"
                     ],
                     "type": "string"
@@ -12021,7 +12022,7 @@
     },
     "/articles/{id}/warning": {
       "patch": {
-        "description": "Its kind, and for `other` its words: shown in place of the post until a reader chooses to see it. An empty `warning` takes it off. Whoever may edit the post may; a reply, its author alone. A warning a moderator gave stays as it is.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "description": "Its kind, and for `other` its words: shown in place of the post until a reader chooses to see it. An empty `warning` takes it off. Whoever may edit the post may; a reply, its author alone. A site administrator who did not write it gives or takes off a warning as a moderator, on any post, and its author is told; its author may not change what a moderator gave.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
         "operationId": "patchArticlesByIdWarning",
         "parameters": [
           {
@@ -27291,7 +27292,7 @@
     },
     "/notes/{id}/warning": {
       "patch": {
-        "description": "Its kind, and for `other` its words: shown in place of the post until a reader chooses to see it. An empty `warning` takes it off. Whoever may edit the post may; a reply, its author alone. A warning a moderator gave stays as it is.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "description": "Its kind, and for `other` its words: shown in place of the post until a reader chooses to see it. An empty `warning` takes it off. Whoever may edit the post may; a reply, its author alone. A site administrator who did not write it gives or takes off a warning as a moderator, on any post, and its author is told; its author may not change what a moderator gave.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
         "operationId": "patchNotesByIdWarning",
         "parameters": [
           {
@@ -33773,7 +33774,7 @@
     },
     "/photos/{id}/warning": {
       "patch": {
-        "description": "Its kind, and for `other` its words: shown in place of the post until a reader chooses to see it. An empty `warning` takes it off. Whoever may edit the post may; a reply, its author alone. A warning a moderator gave stays as it is.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "description": "Its kind, and for `other` its words: shown in place of the post until a reader chooses to see it. An empty `warning` takes it off. Whoever may edit the post may; a reply, its author alone. A site administrator who did not write it gives or takes off a warning as a moderator, on any post, and its author is told; its author may not change what a moderator gave.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
         "operationId": "patchPhotosByIdWarning",
         "parameters": [
           {
@@ -39148,7 +39149,7 @@
     },
     "/topics/{id}/warning": {
       "patch": {
-        "description": "Its kind, and for `other` its words: shown in place of the post until a reader chooses to see it. An empty `warning` takes it off. Whoever may edit the post may; a reply, its author alone. A warning a moderator gave stays as it is.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "description": "Its kind, and for `other` its words: shown in place of the post until a reader chooses to see it. An empty `warning` takes it off. Whoever may edit the post may; a reply, its author alone. A site administrator who did not write it gives or takes off a warning as a moderator, on any post, and its author is told; its author may not change what a moderator gave.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
         "operationId": "patchTopicsByIdWarning",
         "parameters": [
           {
@@ -41604,7 +41605,7 @@
     },
     "/videos/{id}/warning": {
       "patch": {
-        "description": "A video or a sound. Its kind, and for `other` its words: shown in place of the post until a reader chooses to see it. An empty `warning` takes it off. Whoever may edit the post may; a reply, its author alone. A warning a moderator gave stays as it is.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "description": "A video or a sound. Its kind, and for `other` its words: shown in place of the post until a reader chooses to see it. An empty `warning` takes it off. Whoever may edit the post may; a reply, its author alone. A site administrator who did not write it gives or takes off a warning as a moderator, on any post, and its author is told; its author may not change what a moderator gave.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
         "operationId": "patchVideosByIdWarning",
         "parameters": [
           {

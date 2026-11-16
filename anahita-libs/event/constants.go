@@ -44,6 +44,12 @@ const (
 	EventFormatNodeMediumEdited  = "node.medium.%s.%s.edited.v1"
 	EventFormatNodeMediumDeleted = "node.medium.%s.%s.deleted.v1"
 
+	// The site's administrators gave a post a content warning (roadmap row
+	// 122, phase 4): the subject is the administrator, the object the post,
+	// the target its author. Not under node.medium., whose listeners take
+	// any name but deleted for a post to send again.
+	EventMediumWarned = "moderation.medium.warned.v1"
+
 	EventFormatNodeRepostAdded   = "node.repost.repost.%s.added.v1"
 	EventFormatNodeRepostDeleted = "node.repost.repost.%s.deleted.v1"
 

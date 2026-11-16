@@ -19,6 +19,13 @@ Releases before v1.0.17 are described on GitHub, under
    `GET` and `PATCH /people/:id/content-preferences`, the person's own
    alone. Every kind starts at Warn
    ([Content warnings](docs/content-warnings.md#what-each-reader-chooses)).
+2. **The administrators can give a post a content warning** (roadmap row
+   122, phase 4): a report can ask for one ("Should have a content
+   warning", `needs_warning`); from the case, which is closed as `warned`,
+   or from any post's or reply's menu, through `PATCH /…/:id/warning` by a
+   site administrator who did not write it. Its author is told
+   (`medium_warned`) and may not take it off
+   ([Content warnings](docs/content-warnings.md#a-warning-the-administrators-gave)).
 
 ### Upgrading
 

@@ -71,13 +71,29 @@ migration `20261122000017_content_warnings`; and on `video_uploads`,
 
 ## A warning the administrators gave
 
-`warning_by_moderator` says that the site's administrators gave a post its
-warning. Its author cannot change it or take it off: they are answered 403
-`warning_not_allowed`, unless they ask for the warning it already has. The
-web app does not offer the choice on such a post.
+A site administrator who did not write a post gives it its warning as a
+moderator (built on 2026-11-16), from three places:
 
-Nothing sets it yet: the report reason, the case's action and the post's
-menu for administrators are phase 4 of the plan.
+1. **A report:** somebody reports a post as **Should have a content
+   warning** (`needs_warning`, for posts alone).
+2. **Its case:** "Content warning" in the case's ⋮ menu gives the post a
+   warning, and closes the case as `warned` ([Reports](abuse-reports.md)).
+3. **The post's ⋮ menu,** without a report, and a reply's.
+
+The warning goes through the same `PATCH /…/:id/warning`: an administrator
+who is not the post's author may change any post's, a reply or one from
+another server too, and what they give is marked `warning_by_moderator`.
+Taking it off takes the mark with it.
+
+1. **Its author is told,** by a `medium_warned` notification that no choice
+   turns off and that does not name the administrator
+   ([Notifications](notifications.md)).
+2. **Its author cannot change it or take it off:** they are answered 403
+   `warning_not_allowed`, unless they ask for the warning it already has.
+   The web app does not offer them the choice on such a post. They can
+   report it, as with any decision.
+3. **It goes to the fediverse and Bluesky** as an author's does, and an
+   edit there does not take it off here.
 
 ## What each reader chooses
 
@@ -132,7 +148,9 @@ and nothing is read again when a choice changes.
 2. **The reply form** has the same, an icon among its pictures and GIF.
 3. **A post's menu**, on its own page, has **Content warning** for whoever
    may edit it, and a reply's menu for its writer; not on a warning the
-   administrators gave.
+   administrators gave. A site administrator has it on every post and
+   reply they did not write, and a case about a post has it in its ⋮ menu
+   ([A warning the administrators gave](#a-warning-the-administrators-gave)).
 4. **A post with one** shows the warning with its kind's icon and
    **View** over its photo, GIF, video or sound, drawn blurred behind it so
    that the card keeps its height and nothing jumps, and its words as they
@@ -203,14 +221,13 @@ this was built keeps what it was kept with until it is next changed there.
 | A link pasted elsewhere | `web-shell/shell/pages.go` (`warningDescription`) |
 | Sent to the fediverse | `activitypub-service/ap/note.go` (`WithWarning`), its words from `entities.WarningSaid` |
 | Sent to Bluesky | `atproto-service/bsky/outgoing.go` (`WithLabel`), its label from `entities.WarningLabel` |
+| A moderator's warning | `anahita-libs/handlers/warning.go` (`IsWarningModerator`, `SetWarningBy`); the event `moderation.medium.warned.v1` from `graph-grpc-service/cmd/server/handlers/medium.go` (`announceWarned`); `notification-service/cmd/api/handlers/event_medium_warned.go`; the reason in `abuse-report-service/data/reasons/reasons.json` |
 | Each reader's choices | `anahita-libs/data/entities/warning.go` (`WarningChoices`); `graph-grpc-service/data/repositories/content_preferences.go`; `actor-service/cmd/api/handlers/person_content_preferences.go` |
 | The web app | `src/utils/warnings.js`, `src/utils/contentChoices.js`, `src/containers/actors/Settings/ContentChoices.jsx`, `src/components/ContentWarningDialog.jsx`, `ContentWarningButton.jsx`, `WarningCover.jsx`, `src/containers/controls/medium/ContentWarning.jsx` (anahita-web) |
 
 ## What is not built
 
-The rest of the plan, each a phase of it:
+The rest of the plan, its fifth phase:
 
-- **The administrators' warning:** a report reason, the case's action, the
-  post's menu, and a notification to the author.
 - **Made with AI**, a sixth kind, chosen for an author when the file says
   so.

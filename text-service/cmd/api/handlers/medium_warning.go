@@ -41,29 +41,35 @@ func (h *mediumHandler) EditWarning(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	if medium.RootID > 0 {
-		if medium.DeletedAt != nil {
-			return c.NoContent(http.StatusGone)
-		}
-		if _, refused := h.replyRuling(c, medium, viewer, permissions.CanEditReply); refused != 0 {
-			return c.NoContent(refused)
-		}
-	} else {
-		if permissions.IsChannelFeedItem(medium) {
-			return c.JSON(http.StatusForbidden, responses.Refusal{Error: permissions.ChannelFeedItemRefusal})
-		}
-		mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)
-		if err != nil {
-			log.Println(err)
-			return c.NoContent(http.StatusInternalServerError)
-		}
-		if ok, err := h.Perms.Medium.CanEdit(mediumAccessCtx); !ok {
-			log.Println(err)
-			return c.NoContent(http.StatusForbidden)
+	if medium.RootID > 0 && medium.DeletedAt != nil {
+		return c.NoContent(http.StatusGone)
+	}
+
+	// A site administrator warns as a moderator what they did not write,
+	// any post, a reply or one from another server too (row 122, phase 4).
+	moderator := an_handlers.IsWarningModerator(medium, viewer)
+	if !moderator {
+		if medium.RootID > 0 {
+			if _, refused := h.replyRuling(c, medium, viewer, permissions.CanEditReply); refused != 0 {
+				return c.NoContent(refused)
+			}
+		} else {
+			if permissions.IsChannelFeedItem(medium) {
+				return c.JSON(http.StatusForbidden, responses.Refusal{Error: permissions.ChannelFeedItemRefusal})
+			}
+			mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)
+			if err != nil {
+				log.Println(err)
+				return c.NoContent(http.StatusInternalServerError)
+			}
+			if ok, err := h.Perms.Medium.CanEdit(mediumAccessCtx); !ok {
+				log.Println(err)
+				return c.NoContent(http.StatusForbidden)
+			}
 		}
 	}
 
-	valid, allowed := an_handlers.SetWarning(medium, req.Warning, req.WarningText)
+	valid, allowed := an_handlers.SetWarningBy(medium, moderator, req.Warning, req.WarningText)
 	if !valid {
 		return an_handlers.RefuseWarning(c)
 	}

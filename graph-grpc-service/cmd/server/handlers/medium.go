@@ -224,7 +224,12 @@ func (h *mediumHandler) Edit(ctx context.Context, req *graphpb.MediumEditRequest
 	// and is announced as one made now.
 	wasDraft := node.Draft
 
+	// Whether the site's administrators give it a warning now, a new one
+	// or another kind: its author is told (row 122, phase 4).
+	warnedBefore, kindBefore := node.WarningByModerator, node.Warning
+
 	applyEditableMediumFields(node, req.Medium)
+	warned := node.WarningByModerator && (!warnedBefore || node.Warning != kindBefore)
 
 	v := validators.NewMediumValidator()
 	if err := v.ValidateEdit(node); err != nil {
@@ -303,9 +308,35 @@ func (h *mediumHandler) Edit(ctx context.Context, req *graphpb.MediumEditRequest
 		}
 	}()
 
+	if warned {
+		go h.announceWarned(node, viewer)
+	}
+
 	return &graphpb.MediumEditResponse{
 		Medium: nodeToGrpc(node),
 	}, nil
+}
+
+// announceWarned says the site's administrators gave a post a content
+// warning, so that its author is told.
+func (h *mediumHandler) announceWarned(node *entities.AnahitaNode, viewer *entities.Viewer) {
+	payload := &event.EventPayload{
+		Name:             event.EventMediumWarned,
+		SourceService:    node.Service,
+		SubjectID:        viewer.ID,
+		SubjectType:      constants.NodeActorPersonEntityType,
+		ObjectID:         node.ID,
+		ObjectType:       node.Type,
+		TargetID:         node.CreatedBy,
+		TargetType:       constants.NodeActorPersonEntityType,
+		OwnerID:          node.Owner.ID,
+		OwnerType:        node.Owner.Type,
+		ViewerID:         viewer.ID,
+		ViewerPersonType: viewer.PersonType,
+	}
+	if err := h.env.Publisher.Publish(payload, payload.Name); err != nil {
+		log.Println(err)
+	}
 }
 
 // Add create a new medium

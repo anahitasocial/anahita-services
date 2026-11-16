@@ -42,6 +42,8 @@ func startEventListerner(h *handlers.Handlers, config *config.Config) error {
 		event.RemoteRepostTopic,
 		// Somebody followed from here moved their account elsewhere.
 		event.RemoteMovedTopic,
+		// A post given a content warning by the administrators.
+		event.EventMediumWarned,
 	}
 	if err = cosumer.Listen(topics, h.Event.HandleEvents); err != nil {
 		return err

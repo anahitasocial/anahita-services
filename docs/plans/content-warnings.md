@@ -9,8 +9,8 @@ settings and Mastodon's content warnings. **Made with AI** added as a sixth
 kind on 2026-11-07, at the user's word, after asking how to tell AI images
 apart ([Made with AI](#made-with-ai)). **Phase 1 built on 2026-11-09:** posts
 carry a warning, everybody at Warn ([Content warnings](../content-warnings.md));
-**phase 3 on 2026-11-09 and 2026-11-15, phase 2 on 2026-11-16;** phases 4
-and 5 are not built.
+**phase 3 on 2026-11-09 and 2026-11-15, phases 2 and 4 on 2026-11-16;**
+phase 5 is not built.
 
 ## Contents
 
@@ -215,7 +215,13 @@ with a signature that checks out, which is roadmap row 131
    `WarningFromLabels`), the pictures, video and sound kept behind them,
    an edit's warning followed unless a moderator gave it.
 4. **Moderators:** the report reason, the case's action, the post's menu,
-   the notification.
+   the notification. **Built on 2026-11-16:** `needs_warning`, the case's
+   "Content warning" closing it as `warned`, the post's and a reply's menu
+   for a site administrator who did not write it, through the same `PATCH
+   /…/:id/warning` rather than a route of the case's (`POST
+   /abuse-reports/cases/:id/warn` in Storage, item 5, was not made: the
+   case records what was done elsewhere, as for every other action), and
+   `medium_warned` to the author.
 5. **Made with AI:** the sixth kind, the signs read from a file on upload,
    the composer choosing it, the report reason: about one session.
 

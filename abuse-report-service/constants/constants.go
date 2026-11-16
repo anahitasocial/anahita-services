@@ -24,6 +24,9 @@ const (
 	// Refused: an account from another network refused for the whole site,
 	// and removed with what was here of it (docs/plans/done/refused-accounts.md).
 	ActionRefused = "refused"
+	// Warned: a post given a content warning by the administrators, which
+	// its author may not take off (roadmap row 122, phase 4).
+	ActionWarned = "warned"
 
 	// ReasonRule is the reason given for breaking one of the rules: the
 	// site's, or a group's or an event's. Not in the reasons file: the rules
@@ -60,4 +63,5 @@ var CaseStatuses = []string{CaseStatusOpen, CaseStatusActioned, CaseStatusDismis
 // Actions are the values a decision's action may hold.
 var Actions = []string{
 	ActionNone, ActionDeleted, ActionDisabled, ActionArchived, ActionBlocked, ActionOther,
+	ActionRemovedAsSpam, ActionRefused, ActionWarned,
 }

@@ -55,3 +55,38 @@ func SetWarning(post *entities.AnahitaNode, kind, text string) (valid, allowed b
 	}
 	return true, true
 }
+
+// IsWarningModerator says whether the viewer gives a post its warning as a
+// moderator (row 122, phase 4): a site administrator who did not write it.
+// A moderator may warn any post, a reply or one from another server too,
+// and its author may not change what they gave.
+func IsWarningModerator(post *entities.AnahitaNode, viewer *entities.Viewer) bool {
+	if viewer == nil || !viewer.IsAdminOrSuperAdmin() {
+		return false
+	}
+	return post.CreatedBy != viewer.ID
+}
+
+// SetWarningAsModerator gives a post the warning a moderator asks for, or
+// takes it off, whoever gave the one it has. valid is false when the
+// warning is not one; nothing is changed then.
+func SetWarningAsModerator(post *entities.AnahitaNode, kind, text string) (valid bool) {
+	kind, text, valid = entities.NormalizeWarning(kind, text)
+	if !valid {
+		return false
+	}
+	post.Warning = kind
+	post.WarningText = text
+	post.WarningByModerator = kind != ""
+	return true
+}
+
+// SetWarningBy gives a post the warning a request asks for, as its author
+// or, for a moderator (IsWarningModerator), as the site's: the same answers
+// as SetWarning. A moderator is always allowed.
+func SetWarningBy(post *entities.AnahitaNode, moderator bool, kind, text string) (valid, allowed bool) {
+	if moderator {
+		return SetWarningAsModerator(post, kind, text), true
+	}
+	return SetWarning(post, kind, text)
+}

@@ -80,6 +80,7 @@ their own server, never here.
 | `admin_add` | Somebody becomes an administrator of a profile | Its other administrators |
 | `event_rsvp` | Somebody answers an event | Its administrators |
 | `event_changed`, `event_cancelled`, `event_reminder` | An event moves, is called off, or is near | Each person who answered it |
+| `medium_warned` | The site's administrators gave a post a content warning ([Content warnings](content-warnings.md#a-warning-the-administrators-gave)); its subject is the author, not the administrator | The post's author, a person here |
 
 **Subscribers.** Following a profile, or becoming one of its
 administrators, subscribes to it; each is a reason to stay subscribed, and
@@ -157,7 +158,7 @@ Everybody is told about everything to begin with. A person turns kinds of
 thing off, and on again, in the Notifications section of their settings
 (`GET` and `PATCH /notifications/settings`); a notification of a kind turned
 off is not made at all. Each off is a row in `notifications_off`; on is
-none. A purge takes them with the person.
+none. `medium_warned` is in no kind of thing: it cannot be turned off. A purge takes them with the person.
 
 | Kind of thing (`topic`) | Notifications |
 | --- | --- |

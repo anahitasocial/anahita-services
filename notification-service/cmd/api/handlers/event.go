@@ -60,6 +60,11 @@ func (h *eventHandler) HandleEvents(payload *event.EventPayload) error {
 		return nil
 	}
 
+	// The site's administrators gave a post a content warning.
+	if payload.Name == event.EventMediumWarned {
+		return h.eventMediumWarned(payload)
+	}
+
 	if strings.Contains(payload.Name, "node.medium.") {
 		// An edit tells nobody (the user, 2026-10-19): a name it newly
 		// adds is a mention, told as one by actor-service.

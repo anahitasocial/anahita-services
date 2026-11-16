@@ -207,7 +207,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Sends(http.StatusUnprocessableEntity, responses.Refusal{}, reply)
 	videos.PATCH("/:id/warning", r.handler.Video.EditWarning, r.authorize).
 		Summary("Give it a content warning, or take it off").
-		Describe("A video or a sound. Its kind, and for `other` its words: shown in place of the post until a reader chooses to see it. An empty `warning` takes it off. Whoever may edit the post may; a reply, its author alone. A warning a moderator gave stays as it is.").
+		Describe("A video or a sound. Its kind, and for `other` its words: shown in place of the post until a reader chooses to see it. An empty `warning` takes it off. Whoever may edit the post may; a reply, its author alone. A site administrator who did not write it gives or takes off a warning as a moderator, on any post, and its author is told; its author may not change what a moderator gave.").
 		Viewer(apidoc.SignedIn).
 		Scope(write).
 		Takes(&requests.MediumEditWarningRequest{}).

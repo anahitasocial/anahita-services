@@ -139,6 +139,16 @@
       "atproto_reason": "com.atproto.moderation.defs#reasonViolation"
     },
     {
+      "key": "needs_warning",
+      "label": { "en-GB": "Should have a content warning", "fr-FR": "Devrait avoir un avertissement" },
+      "description": {
+        "en-GB": "Sexual, violent or disturbing content shown without a warning.",
+        "fr-FR": "Un contenu sexuel, violent ou choquant montré sans avertissement."
+      },
+      "applies_to": ["node.medium."],
+      "atproto_reason": "com.atproto.moderation.defs#reasonSexual"
+    },
+    {
       "key": "other",
       "label": { "en-GB": "Something else", "fr-FR": "Autre chose" },
       "description": {
