@@ -24,7 +24,33 @@ const (
 // (roadmap row 122), declared as Mastodon declares it.
 var noteContext = []any{
 	contextActivityStreams,
-	map[string]any{"sensitive": "as:sensitive"},
+	map[string]any{
+		"sensitive": "as:sensitive",
+		// Quotes and who may make them (FEP-044f, roadmap row 156), as
+		// Mastodon declares them.
+		"gts":                "https://gotosocial.org/ns#",
+		"interactionPolicy":  map[string]string{"@id": "gts:interactionPolicy", "@type": "@id"},
+		"canQuote":           map[string]string{"@id": "gts:canQuote", "@type": "@id"},
+		"automaticApproval":  map[string]string{"@id": "gts:automaticApproval", "@type": "@id"},
+		"quote":              map[string]string{"@id": "https://w3id.org/fep/044f#quote", "@type": "@id"},
+		"quoteAuthorization": map[string]string{"@id": "https://w3id.org/fep/044f#quoteAuthorization", "@type": "@id"},
+		"quoteUri":           "http://fedibird.com/ns#quoteUri",
+		"_misskey_quote":     "https://misskey-hub.net/ns#_misskey_quote",
+	},
+}
+
+// quoteContext is what the words of a quote's stamp, request and answer
+// mean (FEP-044f).
+var quoteContext = []any{
+	contextActivityStreams,
+	map[string]any{
+		"QuoteAuthorization": "https://w3id.org/fep/044f#QuoteAuthorization",
+		"QuoteRequest":       "https://w3id.org/fep/044f#QuoteRequest",
+		"gts":                "https://gotosocial.org/ns#",
+		"interactingObject":  map[string]string{"@id": "gts:interactingObject", "@type": "@id"},
+		"interactionTarget":  map[string]string{"@id": "gts:interactionTarget", "@type": "@id"},
+		"quote":              map[string]string{"@id": "https://w3id.org/fep/044f#quote", "@type": "@id"},
+	},
 }
 
 // actorContext is what the words in a person's description mean. The last

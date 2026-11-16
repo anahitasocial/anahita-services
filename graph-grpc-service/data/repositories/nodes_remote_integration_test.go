@@ -105,6 +105,22 @@ func TestWhatIsKeptFromAnotherServer(t *testing.T) {
 		t.Errorf("her note edited: %+v (created %v, %v)", again, created, err)
 	}
 
+	// A quote of Ana's note, approved: it says what it quotes, and her note
+	// is counted as quoted (roadmap row 156); taken out there, it is out here.
+	quoting := note()
+	quoting.URI, quoting.QuoteID = "https://mastodon.example/users/alice/statuses/3", 10
+	quote, _, err := repo.UpsertRemote(quoting)
+	if err != nil || quote.QuoteID != 10 {
+		t.Fatalf("her quote: %+v (%v)", quote, err)
+	}
+	if ana, _ := repo.Read(10); ana == nil || ana.QuoteCount != 1 {
+		t.Errorf("Ana's note quoted %v times", ana)
+	}
+	quoting.QuoteID = 0
+	if unquoted, _, err := repo.UpsertRemote(quoting); err != nil || unquoted.QuoteID != 0 {
+		t.Errorf("her quote, its quote taken out: %+v (%v)", unquoted, err)
+	}
+
 	// A note that says it is from the future is from now.
 	early := note()
 	early.URI, early.CreatedAt = "https://mastodon.example/users/alice/statuses/2", time.Now().Add(48*time.Hour)

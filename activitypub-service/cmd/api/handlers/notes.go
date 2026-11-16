@@ -300,10 +300,9 @@ func (h *Handlers) described(note, author *entities.AnahitaNode, answering *answ
 			sent.Content = "<p>" + html.EscapeString(title) + "</p>" + sent.Content
 		}
 	}
-	// The post it quotes, led to by a line at its end (roadmap row 156).
-	if address := h.quotedAddress(note); address != "" {
-		sent.EndWithQuote(address)
-	}
+	// The post it quotes, as a quote between servers or by a line that
+	// leads to it, and who may quote it (roadmap row 156).
+	h.withQuote(sent, note, author)
 	// Its content warning, once what it carries is known.
 	return sent.WithWarning(note)
 }
@@ -593,6 +592,11 @@ func (h *Handlers) tellOf(ctx context.Context, nodeID int64, retagged bool) erro
 	}
 	if begun {
 		if err := h.toReaders(ctx, author, replyInbox, ap.NewCreate(h.addresses, sent, note.UUID), "create:"+note.UUID); err != nil {
+			return err
+		}
+		// A quote of a post on another server asks its author to let it
+		// (roadmap row 156): sent again with their stamp when they do.
+		if err := h.askToQuote(ctx, note, author, sent); err != nil {
 			return err
 		}
 		return h.Objects.Told(note.ID, note.UpdatedAt)

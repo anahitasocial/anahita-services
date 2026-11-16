@@ -10,6 +10,29 @@ made.
 Releases before v1.0.17 are described on GitHub, under
 [Releases](https://github.com/anahitasocial/anahita-services/releases).
 
+## Embryo
+
+### Added
+
+1. **Quotes on Mastodon are quotes** (roadmap row 156, FEP-044f): a quote
+   names the post it quotes, with the stamp that its author let it, and
+   Mastodon shows it inside. For a post here, the stamp is this
+   installation's, served at `/ap/quotes/:uuid`; for a post elsewhere, its
+   author is asked with a `QuoteRequest`, and the quote is sent again with
+   their stamp when they accept, or without the quote when they refuse.
+   Every post says who may quote it (`interactionPolicy.canQuote`), by its
+   quote policy, and somebody elsewhere who asks to quote a post here is
+   answered by it.
+2. **Quotes from Mastodon are kept as quotes** (roadmap row 156): approved
+   by a stamp, or of their own author's post, they show the quoted post
+   inside, read and kept here if it was not.
+
+### Upgrading
+
+1. **One migration,** `activitypub_quotes`: two tables, for the quotes
+   asked of other servers and the stamps given here, run by the migration
+   job as any upgrade's are ([Upgrading](docs/deploying.md#upgrading)).
+
 ## v1.3.2 Birth, 2026-11-15
 
 ### Fixed

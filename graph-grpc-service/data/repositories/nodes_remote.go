@@ -175,6 +175,13 @@ func (r *nodesRepo) UpsertRemote(node *entities.AnahitaNode) (*entities.AnahitaN
 		return nil, false, err
 	}
 
+	// One more note quoting the post it quotes (roadmap row 156).
+	if node.QuoteID > 0 {
+		if err := NewQuotesRepo(r.db).Recount(node.QuoteID); err != nil {
+			return nil, false, err
+		}
+	}
+
 	// A new reply is one more thing said in its thread, and under what it
 	// answers.
 	if !known && saved != nil && saved.RootID > 0 {
@@ -489,6 +496,8 @@ func (r *nodesRepo) addRemote(ctx context.Context, node *entities.AnahitaNode) (
 		// row 122): read for each network by the service that keeps it.
 		columns["warning"] = node.Warning
 		columns["warning_text"] = node.WarningText
+		// The post it quotes, when its author let it (roadmap row 156).
+		columns["quote_id"] = nullableID(node.QuoteID)
 	}
 	// A reply is seen by whoever may see the root of its thread, and says
 	// nothing of its own about who may: as a reply written here.
@@ -546,6 +555,9 @@ func (r *nodesRepo) editRemote(ctx context.Context, id int64, node *entities.Ana
 	if !IsRemoteActorType(node.Type) {
 		columns["warning"] = sq.Expr("IF(warning_by_moderator, warning, ?)", node.Warning)
 		columns["warning_text"] = sq.Expr("IF(warning_by_moderator, warning_text, ?)", node.WarningText)
+		// What it quotes, as its author's server says it now (roadmap row
+		// 156).
+		columns["quote_id"] = nullableID(node.QuoteID)
 	}
 
 	query, args, err := sq.Update("nodes").SetMap(columns).

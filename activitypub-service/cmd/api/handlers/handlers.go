@@ -32,6 +32,9 @@ type Env struct {
 	Actors   repositories.ActorsInterface
 	Follows  repositories.FollowsInterface
 	Objects  repositories.ObjectsInterface
+	// Quotes between servers (roadmap row 156). Nil in tests that are not
+	// of quotes: then quotes go as a line that leads to the quoted post.
+	Quotes repositories.QuotesInterface
 	// Where pictures of people elsewhere are fetched from and kept. Nil for
 	// neither, in tests: then nobody's picture is copied.
 	Pictures Pictures

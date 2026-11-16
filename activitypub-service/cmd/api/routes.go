@@ -143,6 +143,16 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Unbound().
 		Sends(http.StatusOK, ap.Note{}).
 		Refuses(http.StatusNotFound, "there is no such post that went out")
+	// A stamp: a quote of a post here approved (roadmap row 156, FEP-044f).
+	ap_.GET("/quotes/:uuid", r.handler.QuoteStamp, r.setViewer).
+		Summary("A quote's stamp").
+		Describe(server+"A `QuoteAuthorization`: the author of a post here let another post quote it. Given to a post on another server that asked with a `QuoteRequest`, or made for a post here that quotes another here, and there only while the quote is.").
+		Viewer(apidoc.Anyone).
+		Media(activity).
+		Takes(&handlers.NoteRef{}).
+		Unbound().
+		Sends(http.StatusOK, ap.QuoteAuthorization{}).
+		Refuses(http.StatusNotFound, "there is no such stamp, or the quote it approved is gone")
 	// One of a photo post's pictures, for a server that was sent the post.
 	ap_.GET("/notes/:uuid/pictures/:position", r.handler.Picture, r.setViewer).
 		Summary("A picture of a post").

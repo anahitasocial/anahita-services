@@ -280,6 +280,12 @@ func (h *Handlers) keepRepost(reposter, note *entities.AnahitaNode, tell bool) e
 // here had seen. Only a note that begins a thread, open to everybody, by
 // somebody on the same server as the note.
 func (h *Handlers) fetchNote(ctx context.Context, address string) (*entities.AnahitaNode, error) {
+	return h.fetchNoteFor(ctx, address, false)
+}
+
+// fetchNoteFor is fetchNote, for a post another one quotes when `forAQuote`
+// (roadmap row 156).
+func (h *Handlers) fetchNoteFor(ctx context.Context, address string, forAQuote bool) (*entities.AnahitaNode, error) {
 	if h.Fetcher == nil || h.Site.IsOurs(address) {
 		return nil, nil
 	}
@@ -299,6 +305,7 @@ func (h *Handlers) fetchNote(ctx context.Context, address string) (*entities.Ana
 	if !note.IsPublic() || note.IsReply() || !sameHost(note.Author(), note.ID) || h.accountRefused(note.Author()) {
 		return nil, nil
 	}
+	note.ForAQuote = forAQuote
 
 	writer, err := remote.Fetch(ctx, h.Fetcher, note.Author(), h.Site.IsOurs)
 	if err != nil || writer == nil {

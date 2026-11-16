@@ -44,6 +44,15 @@ type Note struct {
 	Sensitive bool `json:"sensitive,omitempty"`
 	// An Article's cover.
 	Image *Image `json:"image,omitempty"`
+	// The post it quotes, by its address between servers (FEP-044f; roadmap
+	// row 156), under each name servers read it by, and the address of the
+	// stamp that says its author let it be quoted.
+	Quote              string `json:"quote,omitempty"`
+	QuoteURI           string `json:"quoteUri,omitempty"`
+	MisskeyQuote       string `json:"_misskey_quote,omitempty"`
+	QuoteAuthorization string `json:"quoteAuthorization,omitempty"`
+	// Who may quote it: Mastodon offers its Quote button by it.
+	InteractionPolicy *InteractionPolicy `json:"interactionPolicy,omitempty"`
 }
 
 // SentPicture is one picture of a post, as it is sent: where to fetch it,
@@ -400,6 +409,32 @@ type ReceivedNote struct {
 	// On a Note, the words its author put before it, which Mastodon shows
 	// to be clicked past: its content warning. On an Article, its opening.
 	Summary string `json:"summary"`
+	// The post it quotes, under whichever name its server uses (roadmap row
+	// 156), and the stamp that says its author let it.
+	Quote              json.RawMessage `json:"quote"`
+	QuoteURI           json.RawMessage `json:"quoteUri"`
+	QuoteURL           json.RawMessage `json:"quoteUrl"`
+	MisskeyQuote       json.RawMessage `json:"_misskey_quote"`
+	QuoteAuthorization json.RawMessage `json:"quoteAuthorization"`
+	// Read because another post quotes it: what it quotes in turn is not
+	// read, only found among what is kept already.
+	ForAQuote bool `json:"-"`
+}
+
+// Quoted is the address of the post it quotes, or nothing: FEP-044f's
+// quote first, then the names other servers use.
+func (n *ReceivedNote) Quoted() string {
+	for _, raw := range []json.RawMessage{n.Quote, n.QuoteURI, n.QuoteURL, n.MisskeyQuote} {
+		if address := idOf(raw); strings.HasPrefix(address, "https://") {
+			return address
+		}
+	}
+	return ""
+}
+
+// QuoteStamp is the address of the stamp its quote carries, or nothing.
+func (n *ReceivedNote) QuoteStamp() string {
+	return idOf(n.QuoteAuthorization)
 }
 
 // Warning is the content warning a post from elsewhere is kept with

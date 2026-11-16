@@ -32,7 +32,7 @@ quoted post when it carries nothing else, since Bluesky draws no card of
 its own, with the quoted post's picture (added the same day, after the
 first card on banu.io came without one). Incoming quotes already end with such a line ("↪ bsky.app").
 
-## Part 2: quotes as quotes
+## Part 2: quotes as quotes (done 2026-11-16)
 
 1. **Bluesky (done 2026-11-16):** a quoted post that is on Bluesky, one of
    ours written there or one from there, embedded as a record
@@ -40,15 +40,22 @@ first card on banu.io came without one). Incoming quotes already end with such a
    beside the post's own pictures, video or card), with no line; the line
    and the card for a post that is not. One of ours written there and not
    yet readable is waited for, ten minutes at most, then led to by the line.
-2. **The fediverse (to plan):** `quote` (and `_misskey_quote`, `quoteUri`
-   for the servers that read those) naming the quoted post's ActivityPub
-   address, when it has one; and this site answering others'
-   `QuoteRequest`s for its own posts, by each author's quote policy
-   (`quote_policy`), with `QuoteAuthorization`s, and saying that policy on
-   each post (`interactionPolicy.canQuote`), so that Mastodon shows quotes
-   of ours and lets its people quote them.
-3. Quotes coming in, shown as quotes rather than as a line, once the above
-   is known to work.
+2. **The fediverse (done 2026-11-16):** a quote names the quoted post
+   (`quote`, with `quoteUri` and `_misskey_quote`), its words ending with
+   `RE:` and its address in a `quote-inline` paragraph. For a post here, a
+   stamp this installation makes from the two posts, served at
+   `/ap/quotes/:uuid`. For a post elsewhere, a `QuoteRequest` to its author,
+   asked once; their `Accept` sends the quote again with their stamp, their
+   `Reject` without the quote (`activitypub_quote_requests`). Every post
+   says who may quote it (`interactionPolicy.canQuote`), by its quote
+   policy or its author's. A `QuoteRequest` from elsewhere is answered by
+   that policy, with a kept stamp (`activitypub_quote_stamps`) or a
+   `Reject`.
+3. **Quotes coming in (done 2026-11-16):** kept as quotes, the quoted post
+   inside, when approved: a self-quote, a stamp given here, or a stamp
+   read from the quoted author's server and checked. The quoted post is
+   read and kept once when it is not here; what it quotes in turn is not
+   followed. The graph keeps `quote_id` on a post from elsewhere.
 
 ## Verification
 
@@ -56,6 +63,9 @@ first card on banu.io came without one). Incoming quotes already end with such a
    `activitypub-service/ap/note_quote_test.go`,
    `atproto-service/bsky/outgoing_quote_test.go`, and in
    `atproto-service/cmd/api/handlers/out_test.go` a quote's card with its
-   picture, and quotes of posts on Bluesky as records.
+   picture, and quotes of posts on Bluesky as records;
+   `activitypub-service/cmd/api/handlers/quotes_test.go`, and on MySQL
+   `activitypub-service/data/repositories/quotes_integration_test.go` and
+   the graph's `TestWhatIsKeptFromAnotherServer`.
 2. On banu.io: a note quoting a public post shows the line and its card on
    Mastodon and on Bluesky.

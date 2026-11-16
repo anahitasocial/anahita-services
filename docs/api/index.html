@@ -86,7 +86,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 </ul>
 <p class="group">Fediverse and Bluesky</p>
 <ul>
-<li><a href="#activitypub-service">The fediverse</a> <span class="count">30</span></li>
+<li><a href="#activitypub-service">The fediverse</a> <span class="count">31</span></li>
 <li><a href="#atproto-service">Bluesky</a> <span class="count">7</span></li>
 <li><a href="#syndication-service">Channels</a> <span class="count">7</span></li>
 </ul>
@@ -96,7 +96,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 </ul>
 <p class="group">Reference</p>
 <ul>
-<li><a href="#schemas">Shapes</a> <span class="count">178</span></li>
+<li><a href="#schemas">Shapes</a> <span class="count">181</span></li>
 </ul>
 </nav>
 <main>
@@ -10815,6 +10815,28 @@ who may call it: anyone, signed in or not.">
 </table>
 <p class="handler">Answered by <code>activitypub/cmd/api/handlers.(*Handlers).Video</code></p>
 </details>
+<details class="route" id="getApQuotesByUuid" data-search="get /ap/quotes/{uuid} a quote&#39;s stamp for other servers, in activitystreams (https://www.w3.org/tr/activitystreams-vocabulary/). a `quoteauthorization`: the author of a post here let another post quote it. given to a post on another server that asked with a `quoterequest`, or made for a post here that quotes another here, and there only while the quote is.
+
+who may call it: anyone, signed in or not.">
+<summary><span class="method get">GET</span> <code class="path">/ap/quotes/{uuid}</code> <span class="summary">A quote&#39;s stamp</span></summary>
+<div class="description"><p>For other servers, in ActivityStreams (https://www.w3.org/TR/activitystreams-vocabulary/). A <code>QuoteAuthorization</code>: the author of a post here let another post quote it. Given to a post on another server that asked with a <code>QuoteRequest</code>, or made for a post here that quotes another here, and there only while the quote is.</p></div>
+<p class="who"><strong>Who:</strong> anyone, signed in or not</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>uuid</code> <span class="required">required</span></td><td>path</td><td>string</td><td>The post&#39;s UUID.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-activitypub.QuoteAuthorization">activitypub.QuoteAuthorization</a> <span class="media">application/activity+json</span></div></td></tr>
+<tr><td class="status s4">404</td><td>there is no such stamp, or the quote it approved is gone</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>activitypub/cmd/api/handlers.(*Handlers).QuoteStamp</code></p>
+</details>
 <details class="route" id="getApUsersByUuid" data-search="get /ap/users/{uuid} somebody here, as other servers see them for other servers, in activitystreams (https://www.w3.org/tr/activitystreams-vocabulary/). a `person`, or an `organization` for a channel, with their public key.
 
 who may call it: anyone, signed in or not.">
@@ -12637,6 +12659,16 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
+<div class="route schema" id="schema-activitypub.InteractionPolicy" data-search="activitypub.interactionpolicy canquote">
+<h3>activitypub.InteractionPolicy</h3>
+<p>InteractionPolicy says who may do what with a post: here, who may quote it, approved without being asked.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>canQuote</code></td><td><a href="#schema-activitypub.SubPolicy">activitypub.SubPolicy</a></td><td></td></tr>
+</tbody>
+</table>
+</div>
 <div class="route schema" id="schema-activitypub.JRD" data-search="activitypub.jrd aliases links subject">
 <h3>activitypub.JRD</h3>
 <p>A WebFinger answer: who a handle is, and where they are.</p>
@@ -12689,13 +12721,14 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-activitypub.Note" data-search="activitypub.note @context attachment attributedto cc content contentmap id image inreplyto location name published sensitive summary tag to type updated url">
+<div class="route schema" id="schema-activitypub.Note" data-search="activitypub.note @context _misskey_quote attachment attributedto cc content contentmap id image inreplyto interactionpolicy location name published quote quoteauthorization quoteuri sensitive summary tag to type updated url">
 <h3>activitypub.Note</h3>
 <p>A post, as it is sent to and read from another server.</p>
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
 <tr><td><code>@context</code></td><td>anything</td><td></td></tr>
+<tr><td><code>_misskey_quote</code></td><td>string</td><td></td></tr>
 <tr><td><code>attachment</code></td><td>list of <a href="#schema-activitypub.SentPicture">activitypub.SentPicture</a></td><td>The pictures of a photo post, or the video of a video post.</td></tr>
 <tr><td><code>attributedTo</code> <span class="required">always</span></td><td>string</td><td></td></tr>
 <tr><td><code>cc</code> <span class="required">always</span></td><td>list of string or null</td><td></td></tr>
@@ -12704,9 +12737,13 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>id</code> <span class="required">always</span></td><td>string</td><td></td></tr>
 <tr><td><code>image</code></td><td><a href="#schema-activitypub.Image">activitypub.Image</a></td><td>An Article&#39;s cover.</td></tr>
 <tr><td><code>inReplyTo</code></td><td>string</td><td>What it answers, by the address that has between servers.</td></tr>
+<tr><td><code>interactionPolicy</code></td><td><a href="#schema-activitypub.InteractionPolicy">activitypub.InteractionPolicy</a></td><td>Who may quote it: Mastodon offers its Quote button by it.</td></tr>
 <tr><td><code>location</code></td><td>map of anything</td><td>Where it is: the first location its author chose for it, a <code>Place</code> (roadmap row 82, part 3b). Every one is also a <code>Place</code> in Tag.</td></tr>
 <tr><td><code>name</code></td><td>string</td><td>An Article&#39;s title, and the opening it is summed up by. A note has neither: Mastodon shows a note&#39;s summary as a warning to click past.</td></tr>
 <tr><td><code>published</code></td><td>string</td><td></td></tr>
+<tr><td><code>quote</code></td><td>string</td><td>The post it quotes, by its address between servers (FEP-044f; roadmap row 156), under each name servers read it by, and the address of the stamp that says its author let it be quoted.</td></tr>
+<tr><td><code>quoteAuthorization</code></td><td>string</td><td></td></tr>
+<tr><td><code>quoteUri</code></td><td>string</td><td></td></tr>
 <tr><td><code>sensitive</code></td><td>boolean</td><td>Its content warning (roadmap row 122): sensitive, which has what it carries blurred; and, for a post of words alone, the warning as its Summary, which Mastodon shows to be clicked past.</td></tr>
 <tr><td><code>summary</code></td><td>string</td><td></td></tr>
 <tr><td><code>tag</code></td><td>list of <a href="#schema-activitypub.Tag">activitypub.Tag</a></td><td></td></tr>
@@ -12725,6 +12762,21 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>id</code> <span class="required">always</span></td><td>string</td><td></td></tr>
 <tr><td><code>owner</code> <span class="required">always</span></td><td>string</td><td></td></tr>
 <tr><td><code>publicKeyPem</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-activitypub.QuoteAuthorization" data-search="activitypub.quoteauthorization @context attributedto id interactingobject interactiontarget type">
+<h3>activitypub.QuoteAuthorization</h3>
+<p>A stamp: <code>attributedTo</code>, the quoted post&#39;s author, let <code>interactingObject</code> quote <code>interactionTarget</code>.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>@context</code></td><td>anything</td><td></td></tr>
+<tr><td><code>attributedTo</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+<tr><td><code>id</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+<tr><td><code>interactingObject</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+<tr><td><code>interactionTarget</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+<tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td></td></tr>
 </tbody>
 </table>
 </div>
@@ -12797,6 +12849,16 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>handle</code></td><td>string</td><td>What they are, or would be, called from other servers, and where those servers find them.</td></tr>
 <tr><td><code>indexable</code> <span class="required">always</span></td><td>boolean</td><td>Whether other servers may find them in search.</td></tr>
 <tr><td><code>reason</code></td><td>string</td><td>Why not: <code>site_private</code>, <code>site_unreachable</code> or <code>profile_not_public</code>.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-activitypub.SubPolicy" data-search="activitypub.subpolicy automaticapproval">
+<h3>activitypub.SubPolicy</h3>
+<p>Who is approved at once. Anybody not in it is never approved: Anahita asks nobody to approve by hand.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>automaticApproval</code> <span class="required">always</span></td><td>list of string or null</td><td></td></tr>
 </tbody>
 </table>
 </div>

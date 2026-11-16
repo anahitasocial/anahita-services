@@ -139,7 +139,17 @@ func (h *Handlers) Inbox(c echo.Context) error {
 	case "Announce":
 		err = h.announced(ctx, from, &activity)
 	case "Accept", "Reject":
-		err = h.answered(from, &activity, activity.Type == "Accept")
+		// A quote of theirs answered (roadmap row 156), or a follow.
+		if h.isQuoteAnswer(&activity) {
+			err = h.quoteAnswered(ctx, from, &activity, activity.Type == "Accept")
+		} else {
+			err = h.answered(from, &activity, activity.Type == "Accept")
+		}
+	case "QuoteRequest":
+		// Somebody there asking to quote a post here (roadmap row 156).
+		if h.Quotes != nil {
+			err = h.quoteRequested(ctx, from, body)
+		}
 	case "Update":
 		// Themselves: their name, their words about themselves, their key.
 		if activity.ObjectID() == from.ID {
@@ -434,7 +444,15 @@ func (h *Handlers) store(authorID int64, note *ap.ReceivedNote, parentID int64) 
 	node.OriginDomain = hostOf(note.ID)
 	node.OwnerID = authorID
 	node.ParentID = parentID
-	words := cutRunes(h.namedHere(federation.WithoutCustomEmoji(federation.PostToMarkdown(note.Content), note.Tag)), receivedNoteMax)
+	// A quote, kept as one when its author let it be (roadmap row 156):
+	// then the line that leads to the quoted post goes, as it shows.
+	content := note.Content
+	if parentID == 0 {
+		if node.QuoteID = h.keepsQuote(note); node.QuoteID > 0 {
+			content = withoutQuoteLine(content)
+		}
+	}
+	words := cutRunes(h.namedHere(federation.WithoutCustomEmoji(federation.PostToMarkdown(content), note.Tag)), receivedNoteMax)
 	node.Body = words
 	// A video or a sound is not kept: the post leads to where it is. Not
 	// a link for a card, which would say its words again.

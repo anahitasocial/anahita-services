@@ -34,22 +34,23 @@ Bluesky account they already have. See [Bluesky](#bluesky).
 13. [Somebody who moved](#somebody-who-moved)
 14. [Moving one's own account](#moving-ones-own-account)
 15. [Posts going out](#posts-going-out)
-16. [Posts coming in](#posts-coming-in)
-17. [What can be done with what came from elsewhere](#what-can-be-done-with-what-came-from-elsewhere)
-18. [The inbox](#the-inbox)
-19. [What is sent, and when it does not arrive](#what-is-sent-and-when-it-does-not-arrive)
-20. [Signing keys and signed requests](#signing-keys-and-signed-requests)
-21. [The API](#the-api)
-22. [Leaving, and what follows a person's changes](#leaving-and-what-follows-a-persons-changes)
-23. [Replies](#replies)
-24. [Likes and reposts](#likes-and-reposts)
-25. [Servers that are refused](#servers-that-are-refused)
-26. [Accounts that are refused](#accounts-that-are-refused)
-27. [Pictures that are removed](#pictures-that-are-removed)
-28. [Posts and people that are removed](#posts-and-people-that-are-removed)
-29. [Bluesky](#bluesky)
-30. [Where the code is](#where-the-code-is)
-31. [Further reading](#further-reading)
+16. [Quotes](#quotes)
+17. [Posts coming in](#posts-coming-in)
+18. [What can be done with what came from elsewhere](#what-can-be-done-with-what-came-from-elsewhere)
+19. [The inbox](#the-inbox)
+20. [What is sent, and when it does not arrive](#what-is-sent-and-when-it-does-not-arrive)
+21. [Signing keys and signed requests](#signing-keys-and-signed-requests)
+22. [The API](#the-api)
+23. [Leaving, and what follows a person's changes](#leaving-and-what-follows-a-persons-changes)
+24. [Replies](#replies)
+25. [Likes and reposts](#likes-and-reposts)
+26. [Servers that are refused](#servers-that-are-refused)
+27. [Accounts that are refused](#accounts-that-are-refused)
+28. [Pictures that are removed](#pictures-that-are-removed)
+29. [Posts and people that are removed](#posts-and-people-that-are-removed)
+30. [Bluesky](#bluesky)
+31. [Where the code is](#where-the-code-is)
+32. [Further reading](#further-reading)
 
 ## What it is
 
@@ -727,12 +728,45 @@ its deletion follow, as for a note. A post the article shows by its
 address on a line of its own stays a link.
 
 **Not sent:** topics (the user, 2026-10-17: they stay here); anything in a group;
-a quoted post: the note that quotes goes, ending with a line that leads to
-it, "↪" and its address, of which Mastodon makes a card (roadmap row 156): its page here
-when it is public, its own address when it came from the fediverse or
-Bluesky, and no line when nobody signed out may see it;
+a quoted post itself, which a quote names ([Quotes](#quotes));
 the card for a link. Somebody who starts following is sent what is posted
 from then on, and nothing from before.
+
+## Quotes
+
+Quotes between servers are as Mastodon makes them (FEP-044f; roadmap row
+156): a post names what it quotes, and the quoted post's author says, in a
+stamp their server keeps, that they let it.
+
+| A quote here of | Goes out as |
+| --- | --- |
+| A post here on the fediverse | A quote: `quote` (with `quoteUri` and `_misskey_quote` for the servers that read those) naming it, and `quoteAuthorization`, a stamp this installation gives and serves at `/ap/quotes/:uuid`, made from the two posts each time it is asked for and there only while the quote is |
+| A post on another server of the fediverse | A quote, and a `QuoteRequest` to its author, asked once. Their `Accept` sends the quote again (an `Update`) with their stamp; their `Reject` sends it again without the quote. Only the quoted post's author is listened to (`activitypub_quote_requests`) |
+| A post on Bluesky alone, or one here not on the fediverse but public | A line that leads to it, "↪" and its address, of which Mastodon makes a card |
+| A post nobody signed out may see | Nothing of it: no line |
+
+A quote's words end with `RE:` and the quoted post's address, in a
+paragraph marked `quote-inline`, which Mastodon hides when it shows the
+quote and a server that shows no quotes leads its readers by. Every post
+says who may quote it, in `interactionPolicy.canQuote`, by its quote policy
+or its author's: everybody (`as:Public`), its author's followers, or, for
+nobody and for a reply, its author alone. Without it, Mastodon takes a post
+to be one nobody may quote.
+
+**Somebody elsewhere who asks to quote a post here** (`QuoteRequest`) is
+answered by that policy: an `Accept` with a stamp, kept in
+`activitypub_quote_stamps` and served at `/ap/quotes/:uuid`, or a `Reject`.
+Somebody its author blocked, or on a server they blocked, is told no; so
+is a request for a reply, or for a post that does not go out.
+
+**A quote that comes in** is kept as one, the quoted post shown inside it,
+when it is approved: it quotes its own author, or carries a stamp. For a
+post here, the stamp this installation gave; for a post elsewhere, one read
+from its author's server and checked (`interactingObject`,
+`interactionTarget`, `attributedTo`). Its `quote-inline` line is then taken
+out, as it shows. A quoted post not kept here is read and kept, once: what
+it quotes in turn is not followed. A quote that is not approved is kept as
+the words it is, with the line that leads to the quoted post.
 
 ## Posts coming in
 
@@ -1722,10 +1756,11 @@ app.
 | What | Where |
 | --- | --- |
 | Bluesky | `atproto-service/`: `bsky/` (the reader, a post's words, Jetstream), `cmd/api/handlers/` (`lookup.go`, `posts.go`, `reposts.go`, `backfill.go`, `stream.go`, `events.go`, `own.go` (one's own Bluesky posts brought in), `import.go` (importing follows), `reactions.go` and `verify.go` (what people on Bluesky do in return, and what they took back), `media.go` and `retention.go` (pictures and posts removed after a while); writing: `settings.go`, `out.go`, `hidden.go` (hidden replies, by threadgate), `bsky/session.go`, `bsky/outgoing.go`), tables `atproto_actors`, `atproto_cursor`, `atproto_reposts`, `atproto_accounts`, `atproto_sent`, `atproto_writes` |
-| What both protocols share | `anahita-libs/federation/`: pictures (`pictures.go`), removing and restoring them (`media.go`), cards (`cards.go`), refused servers (`blocks.go`), a post's words (`content.go`) |
+| What both protocols share | `anahita-libs/federation/`: pictures (`pictures.go`), removing and restoring them (`media.go`), cards (`cards.go`), refused servers (`blocks.go`), a post's words (`content.go`), where a quoted post is (`quoted.go`) |
 | The service | `activitypub-service/` |
 | Who is on the fediverse | `cmd/api/handlers/handlers.go`: `siteFederates`, `mayFederate`, `federating` |
 | WebFinger and host-meta | `cmd/api/handlers/discovery.go` |
+| Quotes (FEP-044f) | `cmd/api/handlers/quotes.go` (a quote going out, its stamp, `QuoteRequest`s both ways, quotes coming in), `ap/quote.go`, tables `activitypub_quote_requests` and `activitypub_quote_stamps`; on Bluesky, `atproto-service/cmd/api/handlers/out.go` (`quotedRef`) and `bsky/outgoing.go` (`WithQuote`); both, `anahita-libs/federation/quoted.go` |
 | A person's description | `cmd/api/handlers/actor.go`, `ap/actor.go` |
 | The addresses of things | `ap/addresses.go` |
 | Keys | `keys/`, `cmd/api/handlers/keys.go`, table `actor_keys` |

@@ -328,6 +328,15 @@
         ],
         "type": "object"
       },
+      "activitypub.InteractionPolicy": {
+        "description": "InteractionPolicy says who may do what with a post: here, who may quote it, approved without being asked.",
+        "properties": {
+          "canQuote": {
+            "$ref": "#/components/schemas/activitypub.SubPolicy"
+          }
+        },
+        "type": "object"
+      },
       "activitypub.JRD": {
         "description": "JRD is a WebFinger answer: who a handle is, and where they are.",
         "properties": {
@@ -445,6 +454,9 @@
         "description": "Note is a post, as it is sent to and read from another server.",
         "properties": {
           "@context": {},
+          "_misskey_quote": {
+            "type": "string"
+          },
           "attachment": {
             "description": "The pictures of a photo post, or the video of a video post.",
             "items": {
@@ -484,6 +496,10 @@
             "description": "What it answers, by the address that has between servers.",
             "type": "string"
           },
+          "interactionPolicy": {
+            "$ref": "#/components/schemas/activitypub.InteractionPolicy",
+            "description": "Who may quote it: Mastodon offers its Quote button by it."
+          },
           "location": {
             "additionalProperties": {},
             "description": "Where it is: the first location its author chose for it, a `Place` (roadmap row 82, part 3b). Every one is also a `Place` in Tag.",
@@ -494,6 +510,16 @@
             "type": "string"
           },
           "published": {
+            "type": "string"
+          },
+          "quote": {
+            "description": "The post it quotes, by its address between servers (FEP-044f; roadmap row 156), under each name servers read it by, and the address of the stamp that says its author let it be quoted.",
+            "type": "string"
+          },
+          "quoteAuthorization": {
+            "type": "string"
+          },
+          "quoteUri": {
             "type": "string"
           },
           "sensitive": {
@@ -554,6 +580,35 @@
           "id",
           "owner",
           "publicKeyPem"
+        ],
+        "type": "object"
+      },
+      "activitypub.QuoteAuthorization": {
+        "description": "QuoteAuthorization is a stamp: `attributedTo`, the quoted post's author, let `interactingObject` quote `interactionTarget`.",
+        "properties": {
+          "@context": {},
+          "attributedTo": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "interactingObject": {
+            "type": "string"
+          },
+          "interactionTarget": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "attributedTo",
+          "interactingObject",
+          "interactionTarget"
         ],
         "type": "object"
       },
@@ -715,6 +770,24 @@
           "enabled",
           "discoverable",
           "indexable"
+        ],
+        "type": "object"
+      },
+      "activitypub.SubPolicy": {
+        "description": "SubPolicy is who is approved at once. Anybody not in it is never approved: Anahita asks nobody to approve by hand.",
+        "properties": {
+          "automaticApproval": {
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "automaticApproval"
         ],
         "type": "object"
       },
@@ -2189,6 +2262,50 @@
           "activitypub-service"
         ],
         "x-handler": "activitypub/cmd/api/handlers.(*Handlers).Video",
+        "x-viewer": "anyone"
+      }
+    },
+    "/ap/quotes/{uuid}": {
+      "get": {
+        "description": "For other servers, in ActivityStreams (https://www.w3.org/TR/activitystreams-vocabulary/). A `QuoteAuthorization`: the author of a post here let another post quote it. Given to a post on another server that asked with a `QuoteRequest`, or made for a post here that quotes another here, and there only while the quote is.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getApQuotesByUuid",
+        "parameters": [
+          {
+            "description": "The post's UUID.",
+            "in": "path",
+            "name": "uuid",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/activity+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/activitypub.QuoteAuthorization"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "description": "there is no such stamp, or the quote it approved is gone"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A quote's stamp",
+        "tags": [
+          "activitypub-service"
+        ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).QuoteStamp",
         "x-viewer": "anyone"
       }
     },

@@ -35,6 +35,15 @@ func (a Addresses) Activity(uuid string) string { return a.Site.API("/ap/activit
 func (a Addresses) Note(uuid string) string       { return a.Site.NoteID(uuid) }
 func (a Addresses) NoteCreate(uuid string) string { return a.Note(uuid) + "/activity" }
 
+// QuoteRequest is the address of a note's asking to quote a post on
+// another server (roadmap row 156): one for each note, as it asks once.
+func (a Addresses) QuoteRequest(uuid string) string { return a.Note(uuid) + "/quote" }
+
+// QuoteStamp is the address of a stamp given here (FEP-044f): for a quote
+// of one post here by another, the quoting note's UUID; for a post
+// elsewhere that quotes one here, the stamp's own.
+func (a Addresses) QuoteStamp(uuid string) string { return a.Site.API("/ap/quotes/" + uuid) }
+
 // NotePage is where a note is read, in the web app.
 func (a Addresses) NotePage(id int64) string { return a.Site.Web(fmt.Sprintf("/notes/%d", id)) }
 

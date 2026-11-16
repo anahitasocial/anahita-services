@@ -389,20 +389,21 @@ five, under Profiles.
    12. [Somebody who moved](federation.md#somebody-who-moved)
    13. [Moving one's own account](federation.md#moving-ones-own-account)
    14. [Posts going out](federation.md#posts-going-out)
-   15. [Posts coming in](federation.md#posts-coming-in)
-   16. [What can be done with what came from elsewhere](federation.md#what-can-be-done-with-what-came-from-elsewhere)
-   17. [The inbox](federation.md#the-inbox)
-   18. [What is sent, and when it does not arrive](federation.md#what-is-sent-and-when-it-does-not-arrive)
-   19. [Signing keys and signed requests](federation.md#signing-keys-and-signed-requests)
-   20. [The API](federation.md#the-api)
-   21. [Leaving, and what follows a person's changes](federation.md#leaving-and-what-follows-a-persons-changes)
-   22. [Servers that are refused](federation.md#servers-that-are-refused)
-   23. [Replies](federation.md#replies)
-   24. [Likes and reposts](federation.md#likes-and-reposts)
-   25. [Pictures that are removed](federation.md#pictures-that-are-removed)
-   26. [Posts and people that are removed](federation.md#posts-and-people-that-are-removed)
-   27. [Bluesky](federation.md#bluesky)
-   28. [Where the code is](federation.md#where-the-code-is)
+   15. [Quotes](federation.md#quotes)
+   16. [Posts coming in](federation.md#posts-coming-in)
+   17. [What can be done with what came from elsewhere](federation.md#what-can-be-done-with-what-came-from-elsewhere)
+   18. [The inbox](federation.md#the-inbox)
+   19. [What is sent, and when it does not arrive](federation.md#what-is-sent-and-when-it-does-not-arrive)
+   20. [Signing keys and signed requests](federation.md#signing-keys-and-signed-requests)
+   21. [The API](federation.md#the-api)
+   22. [Leaving, and what follows a person's changes](federation.md#leaving-and-what-follows-a-persons-changes)
+   23. [Servers that are refused](federation.md#servers-that-are-refused)
+   24. [Replies](federation.md#replies)
+   25. [Likes and reposts](federation.md#likes-and-reposts)
+   26. [Pictures that are removed](federation.md#pictures-that-are-removed)
+   27. [Posts and people that are removed](federation.md#posts-and-people-that-are-removed)
+   28. [Bluesky](federation.md#bluesky)
+   29. [Where the code is](federation.md#where-the-code-is)
 2. [A channel's feed](channels.md#its-feed) — a website's feed read and posted as a channel's notes, on the fediverse and Bluesky as the channel's ([Channels](channels.md), under Profiles above)
 3. [The federation lab](federation-lab.md) — trying federation on one machine: names, certificates, and another server to talk to
    1. [Why it is needed](federation-lab.md#why-it-is-needed)
@@ -465,7 +466,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | Plan | Roadmap item | Status |
 | --- | --- | --- |
 | [Recommendation service](plans/done/recommendation-service.md) | 3 | built 2026-10-11 |
-| [Quotes going out](plans/quotes-going-out.md) | row 156 | part 1 done 2026-11-16: a line that leads to the quoted post on Mastodon and Bluesky; part 2, quotes as quotes, to plan |
+| [Quotes going out](plans/done/quotes-going-out.md) | row 156 | done 2026-11-16: quotes as quotes on Mastodon (FEP-044f, stamps and quote requests both ways) and on Bluesky (record embeds); a line that leads to a quoted post on neither; quotes coming in kept as quotes when approved |
 | [Custom feeds that match any, or all](plans/done/feeds-any-or-all.md) | row 149 | done 2026-11-16: `match` in a feed's definition, any or all; Any of these and All of these in the web app's form, a new feed starting at Any |
 | [Websites become channels](plans/done/channels.md) | row 147 | done 2026-11-16: the rename; Create channel with a group's privacy; its admins post as it, Written by for them alone; its feed in its settings; events hosted by a channel; the docs, anahita.io and the recipes |
 | [Who sees your followers and who you follow](plans/done/who-sees-your-follows.md) | row 151 | done 2026-11-15 |

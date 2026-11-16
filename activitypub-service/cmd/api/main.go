@@ -91,6 +91,7 @@ func main() {
 		Actors:   repositories.NewActors(db),
 		Follows:  repositories.NewFollows(db),
 		Objects:  repositories.NewObjects(db),
+		Quotes:   repositories.NewQuotes(db),
 		Blocks:   repositories.NewBlocks(db),
 		// The accounts refused one by one (docs/plans/done/refused-accounts.md).
 		RefusedAccounts: federation.NewRefusedAccounts(db),

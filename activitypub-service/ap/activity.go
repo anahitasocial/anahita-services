@@ -14,7 +14,12 @@ type Activity struct {
 	Object json.RawMessage `json:"object"`
 	// Where it went: in a Move, the account moved to.
 	Target json.RawMessage `json:"target,omitempty"`
+	// What came of it: in an Accept of a QuoteRequest, the stamp.
+	Result json.RawMessage `json:"result,omitempty"`
 }
+
+// ResultID is the address of what came of it.
+func (a *Activity) ResultID() string { return idOf(a.Result) }
 
 // ActorID is who did it. Sent as an address, or as a description with one.
 func (a *Activity) ActorID() string { return idOf(a.Actor) }
