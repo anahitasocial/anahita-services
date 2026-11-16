@@ -180,10 +180,23 @@ func (p *OutPost) AddImage(blob *OutBlob, alt string, width, height int) {
 // when they must be. It is for a post that carries pictures or a video,
 // and so has no room for a card that leads to the rest.
 func (p *OutPost) EndWithLink(label, address string) {
+	p.endWith("", label, address)
+}
+
+// EndWithQuote ends the post with a line leading to the post it quotes
+// (roadmap row 156): `prefix`, then the address shown without its scheme,
+// which alone is the link.
+func (p *OutPost) EndWithQuote(prefix, address string) {
+	p.endWith(prefix, strings.TrimPrefix(address, "https://"), address)
+}
+
+// endWith ends the post with `prefix` and `label`, `label` a link to
+// `address`, cutting its words where they would not fit.
+func (p *OutPost) endWith(prefix, label, address string) {
 	if !strings.HasPrefix(address, "https://") || label == "" {
 		return
 	}
-	tail := "\n\n" + label
+	tail := "\n\n" + prefix + label
 	room := PostMax - len([]rune(tail))
 	if letters := []rune(p.Text); len(letters) > room {
 		p.Text = strings.TrimRight(string(letters[:room-1]), " \n") + "…"
@@ -198,7 +211,7 @@ func (p *OutPost) EndWithLink(label, address string) {
 		}
 	}
 	if p.Text == "" {
-		tail = label
+		tail = prefix + label
 	}
 	link := OutFacet{Features: []map[string]string{{"$type": "app.bsky.richtext.facet#link", "uri": address}}}
 	link.Index.ByteStart = len(p.Text) + len(tail) - len(label)

@@ -10,6 +10,17 @@ made.
 Releases before v1.0.17 are described on GitHub, under
 [Releases](https://github.com/anahitasocial/anahita-services/releases).
 
+## Embryo
+
+### Fixed
+
+1. **A quote reaches Mastodon and Bluesky as one** (roadmap row 156,
+   part 1): a post that quotes ends with "↪" and the quoted post's
+   address, its page here when it is public, its own address when it came
+   from elsewhere, and no line when nobody signed out may see it. Mastodon
+   makes a card of it; on Bluesky the post carries a card of it when it
+   carries nothing else. It went out as the note around it alone.
+
 ## v1.3.0 Birth, 2026-11-15
 
 ### Added

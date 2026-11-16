@@ -727,7 +727,10 @@ its deletion follow, as for a note. A post the article shows by its
 address on a line of its own stays a link.
 
 **Not sent:** topics (the user, 2026-10-17: they stay here); anything in a group;
-a quoted post (the note that quotes goes, without what it quotes);
+a quoted post: the note that quotes goes, ending with a line that leads to
+it, "↪" and its address, of which Mastodon makes a card (roadmap row 156): its page here
+when it is public, its own address when it came from the fediverse or
+Bluesky, and no line when nobody signed out may see it;
 the card for a link. Somebody who starts following is sent what is posted
 from then on, and nothing from before.
 
@@ -1604,7 +1607,10 @@ its own. The card says to use one and where to make it.
    with a mark to say so; a note so cut carries a card of itself here,
    where the rest is. A post with pictures or a video has no room for a
    card, so when it is cut its words end instead with the address of the
-   post here, on a line of its own. A post or a reply that is changed here afterwards
+   post here, on a line of its own. A post that quotes ends with a line
+   that leads to what it quotes, as on the fediverse, "↪" and its address
+   (roadmap row 156), and carries a card of it when it carries nothing
+   else. A post or a reply that is changed here afterwards
    is not changed there: Bluesky has no changing a post, and taking it down
    to post it again would lose its likes, reposts and replies. Mastodon and
    other servers are sent the change.

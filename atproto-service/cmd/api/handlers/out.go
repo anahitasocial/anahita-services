@@ -589,6 +589,11 @@ func (h *Handlers) record(ctx context.Context, w *write, upload uploader) (any, 
 	if note.Type == videos.AudioNodeType {
 		post.WithCard(h.Site.Web(webPathOf(note)), cutTitle(note), articleOpening(note), h.audioCover(note, upload))
 	}
+	// The post it quotes, led to by a line at its end (roadmap row 156).
+	address, quoted := h.quotedAddress(note)
+	if address != "" {
+		post.EndWithQuote(federation.QuotedLine, address)
+	}
 	if post.Text == "" && post.Embed == nil {
 		return nil, nil
 	}
@@ -604,6 +609,10 @@ func (h *Handlers) record(ctx context.Context, w *write, upload uploader) (any, 
 	if (post.Cut || morePictures) && post.Embed != nil && post.Embed.Type != "app.bsky.embed.external" {
 		address := h.Site.Web(webPathOf(note))
 		post.EndWithLink(strings.TrimPrefix(address, "https://"), address)
+	}
+	// The post it quotes as its card, where it carries nothing else.
+	if address != "" && post.Embed == nil {
+		post.WithCard(address, cutTitle(quoted), hostOf(address), nil)
 	}
 	// The card of the link in it, as it was kept when the note was made.
 	if card := linkpreviews.FromMeta(note.Meta); card != nil && post.Embed == nil {
@@ -962,4 +971,27 @@ func cutTitle(note *entities.AnahitaNode) string {
 		opening = strings.TrimSpace(string(letters[:79])) + "…"
 	}
 	return opening
+}
+
+// quotedAddress is where a post that quotes leads to the post it quotes, and
+// that post; or nothing: see federation.QuotedAddress.
+func (h *Handlers) quotedAddress(note *entities.AnahitaNode) (string, *entities.AnahitaNode) {
+	if note == nil || note.QuoteID <= 0 {
+		return "", nil
+	}
+	quoted, err := h.Nodes.Read(note.QuoteID)
+	if err != nil || quoted == nil {
+		return "", nil
+	}
+	public := permissions.CanReadByID(h.Nodes, quoted.ID, entities.NewViewer())
+	return federation.QuotedAddress(quoted, public, h.Site.Web), quoted
+}
+
+// hostOf is an address's host, for a card's line under its title.
+func hostOf(address string) string {
+	host := strings.TrimPrefix(address, "https://")
+	if i := strings.IndexByte(host, '/'); i >= 0 {
+		host = host[:i]
+	}
+	return host
 }

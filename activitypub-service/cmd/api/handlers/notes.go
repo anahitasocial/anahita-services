@@ -300,8 +300,26 @@ func (h *Handlers) described(note, author *entities.AnahitaNode, answering *answ
 			sent.Content = "<p>" + html.EscapeString(title) + "</p>" + sent.Content
 		}
 	}
+	// The post it quotes, led to by a line at its end (roadmap row 156).
+	if address := h.quotedAddress(note); address != "" {
+		sent.EndWithQuote(address)
+	}
 	// Its content warning, once what it carries is known.
 	return sent.WithWarning(note)
+}
+
+// quotedAddress is where a post that quotes leads to the post it quotes,
+// or nothing: see federation.QuotedAddress.
+func (h *Handlers) quotedAddress(note *entities.AnahitaNode) string {
+	if note == nil || note.QuoteID <= 0 {
+		return ""
+	}
+	quoted, err := h.Nodes.Read(note.QuoteID)
+	if err != nil || quoted == nil {
+		return ""
+	}
+	public := permissions.CanReadByID(h.Nodes, quoted.ID, entities.NewViewer())
+	return federation.QuotedAddress(quoted, public, h.addresses.Site.Web)
 }
 
 // Video sends a server that asks for a video post's file to where it is,
