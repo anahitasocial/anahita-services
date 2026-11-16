@@ -465,6 +465,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | Plan | Roadmap item | Status |
 | --- | --- | --- |
 | [Recommendation service](plans/done/recommendation-service.md) | 3 | built 2026-10-11 |
+| [Custom feeds that match any, or all](plans/done/feeds-any-or-all.md) | row 149 | done 2026-11-16: `match` in a feed's definition, any or all; Any of these and All of these in the web app's form, a new feed starting at Any |
 | [Websites become channels](plans/done/channels.md) | row 147 | done 2026-11-16: the rename; Create channel with a group's privacy; its admins post as it, Written by for them alone; its feed in its settings; events hosted by a channel; the docs, anahita.io and the recipes |
 | [Who sees your followers and who you follow](plans/done/who-sees-your-follows.md) | row 151 | done 2026-11-15 |
 | [Blocking a server yourself](plans/done/blocking-a-server.md) | row 152 | done 2026-11-16 |

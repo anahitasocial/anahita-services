@@ -72,6 +72,7 @@ func TestParseRefuses(t *testing.T) {
 		"a kind of post":     {`{"sources":{"following":true},"filters":{"media_types":["podcast"]}}`, RefusedMediaType},
 		"a kind of profile":  {`{"sources":{"following":true},"filters":{"actor_types":["planet"]}}`, RefusedActorType},
 		"an order":           {`{"sources":{"following":true},"order":"top"}`, RefusedOrder},
+		"a way of matching":  {`{"sources":{"following":true},"match":"some"}`, RefusedMatch},
 		"a language":         {`{"sources":{"following":true},"filters":{"language":"en'; --"}}`, RefusedLanguage},
 		"a short keyword":    {`{"filters":{"keywords_any":["a"]}}`, RefusedKeywordLength},
 		"a hashtag":          {`{"filters":{"hashtags_any":["two words"]}}`, RefusedHashtag},
@@ -255,5 +256,26 @@ func TestALiveAreaIsWhereverItsReaderIs(t *testing.T) {
 	fixed.ForgetPoint()
 	if fixed.NeedsPoint() || !fixed.AtPoint(1, 1) || fixed.Filters.Near.Latitude != 49.28 {
 		t.Errorf("a fixed area keeps its own point: %+v", fixed.Filters.Near)
+	}
+}
+
+// Any or all (roadmap row 149): a definition that says nothing is all, as
+// every feed saved before was; any is kept; and a feed of any still needs
+// something to match.
+func TestMatchIsAllUnlessItSaysAny(t *testing.T) {
+	old, err := Parse([]byte(`{"sources":{"actors":[7]},"filters":{"hashtags_any":["ceres"]}}`))
+	if err != nil || old.Match != "" || old.MatchesAny() {
+		t.Errorf("a definition from before: %v, match %q", err, old.Match)
+	}
+	anyOf, err := Parse([]byte(`{"sources":{"actors":[7]},"filters":{"hashtags_any":["ceres"]},"match":"ANY"}`))
+	if err != nil || anyOf.Match != MatchAny || !anyOf.MatchesAny() {
+		t.Errorf("any: %v, match %q", err, anyOf.Match)
+	}
+	all, err := Parse([]byte(`{"sources":{"actors":[7]},"match":"all"}`))
+	if err != nil || all.Match != "" {
+		t.Errorf("all is kept as nothing: %v, match %q", err, all.Match)
+	}
+	if _, err := Parse([]byte(`{"filters":{"media_types":["photo"]},"match":"any"}`)); err != RefusedTooBroad {
+		t.Errorf("any with nothing to match: %v", err)
 	}
 }

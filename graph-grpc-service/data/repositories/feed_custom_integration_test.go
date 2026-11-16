@@ -136,6 +136,7 @@ func TestCustomFeedNeverWidensWhatAReaderMaySee(t *testing.T) {
 
 	const garden = `{"filters":{"hashtags_any":["garden"]}}`
 	const following = `{"sources":{"following":true}}`
+	const followingOrSpam = `{"sources":{"following":true},"filters":{"hashtags_any":["spam"]},"match":"any"}`
 
 	cases := []struct {
 		what       string
@@ -157,6 +158,13 @@ func TestCustomFeedNeverWidensWhatAReaderMaySee(t *testing.T) {
 		{"whoever Alice follows, to a visitor", following, feedAlice, 0, []int64{feedBobPublic}},
 		{"whoever Alice follows, to somebody Bob has blocked", following, feedAlice, feedDave, nil},
 		{"whoever nobody follows", following, 0, feedAlice, nil},
+
+		// Any (roadmap row 149): whoever Alice follows, or #spam from
+		// anywhere. Each reader still sees only what they may.
+		{"followed or #spam, to Alice", followingOrSpam, feedAlice, feedAlice, []int64{feedBobPublic, feedBobFollowers, feedInSecret, feedGroupPhoto}},
+		{"followed or #spam, to Carol", followingOrSpam, feedAlice, feedCarol, []int64{feedBobPublic, feedGroupPhoto}},
+		{"followed or #spam, to somebody Bob has blocked", followingOrSpam, feedAlice, feedDave, []int64{feedGroupPhoto}},
+		{"followed or #spam, with nobody following", followingOrSpam, 0, feedAlice, []int64{feedGroupPhoto}},
 	}
 
 	for _, c := range cases {
@@ -194,6 +202,15 @@ func TestCustomFeedSourcesFiltersAndExclusions(t *testing.T) {
 		{"without a keyword", `{"filters":{"hashtags_any":["garden"]},"exclude":{"keywords":["compost","ride"]}}`, []int64{feedBobFollowers, feedInSecret}},
 		{"without a profile", `{"filters":{"hashtags_any":["garden"]},"exclude":{"actors":[2]}}`, []int64{feedInSecret, feedGroupPhoto}},
 		{"without somebody's posts wherever they are", `{"filters":{"hashtags_any":["garden"]},"exclude":{"actors":[4]}}`, []int64{feedBobPublic, feedBobFollowers, feedInSecret}},
+
+		// Any or all (roadmap row 149).
+		{"Carol's and #spam, all", `{"sources":{"actors":[4]},"filters":{"hashtags_any":["spam"]}}`, nil},
+		{"Carol's or #spam, any", `{"sources":{"actors":[4]},"filters":{"hashtags_any":["spam"]},"match":"any"}`, []int64{feedCarolFrench, feedCarolPlain, feedGroupPhoto}},
+		{"a hashtag or a keyword, any", `{"filters":{"hashtags_any":["spam"],"keywords_any":["compost"]},"match":"any"}`, []int64{feedBobPublic, feedCarolFrench, feedGroupPhoto}},
+		{"a place or a profile, any", `{"sources":{"actors":[2]},"filters":{"locations_any":[110]},"match":"any"}`, []int64{feedBobPublic, feedBobFollowers, feedCarolFrench}},
+		{"any, its language still narrowing", `{"sources":{"actors":[4]},"filters":{"hashtags_any":["garden"],"language":"fr"},"match":"any"}`, []int64{feedCarolFrench}},
+		{"any, its kind of post still narrowing", `{"sources":{"actors":[4]},"filters":{"hashtags_any":["garden"],"media_types":["photo"]},"match":"any"}`, []int64{feedGroupPhoto}},
+		{"any, what is excluded still out", `{"sources":{"actors":[4]},"filters":{"hashtags_any":["spam"]},"exclude":{"keywords":["ride"]},"match":"any"}`, []int64{feedCarolFrench, feedCarolPlain}},
 	}
 
 	for _, c := range cases {

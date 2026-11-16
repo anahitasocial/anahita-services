@@ -63,9 +63,9 @@ The definition gains one key, `match`: `"any"` or `"all"`.
 
 | Phase | What | Status |
 | --- | --- | --- |
-| 1 | `match` in the definition, the query, and their tests | ⬜ |
-| 2 | The choice in the web app's form, and a feed described in words | ⬜ |
-| 3 | The docs of both repositories; tried at both sizes; changelogs | ⬜ |
+| 1 | `match` in the definition, the query, and their tests | ✅ 2026-11-16: `all` stored as nothing, so a service not yet upgraded reads a feed of all |
+| 2 | The choice in the web app's form, and a feed described in words | ✅ 2026-11-16 |
+| 3 | The docs of both repositories; tried at both sizes; changelogs | ✅ 2026-11-16 |
 
 ## Verification
 

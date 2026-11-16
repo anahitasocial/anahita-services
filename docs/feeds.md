@@ -56,7 +56,8 @@ Every feed orders its posts by date, newest first. (Search is the one place with
     "actors": [789]
   },
   "include_replies": false,
-  "order": "newest"
+  "order": "newest",
+  "match": "any"
 }
 ```
 
@@ -70,7 +71,7 @@ Every feed orders its posts by date, newest first. (Search is the one place with
 
 The web app offers this as one choice of three: **Everyone** (neither), **Profiles I follow** (`following`), or **Chosen profiles** (`actors`, with "And profiles I follow" for both). A new feed starts from the profiles its owner follows, so that it shows something; given a hashtag, a keyword, a location or an area before the owner chose, it switches to Everyone, since "a #dweb feed" almost always means everybody's.
 
-**Filters** narrow the sources. A post must match every kind of filter given; within a list, matching one entry is enough.
+**Filters** narrow the sources. A post must match every kind of filter given; within a list, matching one entry is enough. With `match` set to `any`, some of them match instead of narrowing ([Any or all](#any-or-all)).
 
 | Key | Keeps |
 | --- | --- |
@@ -82,6 +83,31 @@ The web app offers this as one choice of three: **Everyone** (neither), **Profil
 | `language` | Posts their author marked as written in this language |
 | `near` | Posts within `radius_km` (1 to 500) of a point, `latitude` and `longitude`: tied to a location there, or carrying a point of their own there. Narrows as a location does. With `"live": true` the point is wherever whoever reads the feed is: none is kept, and each page is read with `near_latitude` and `near_longitude` (see below). Otherwise the point is kept with the feed, as the web app took it from the browser when it was made, to three decimals |
 | `origin` | Where a post was written: `here`, on this installation, or `elsewhere`, on the fediverse or Bluesky. Left out for anywhere |
+
+### Any or all
+
+**`match`** says how what a post matches lets it in (roadmap row 149, the
+user, 2026-11-15: "any posts with these keywords or any posts from these
+profiles or these hashtags"). It is one choice for the whole feed:
+
+| Group | Keys | With `all`, or nothing | With `any` |
+| --- | --- | --- | --- |
+| What a post matches | `sources.following`, `sources.actors`, `hashtags_any`, `keywords_any`, `locations_any`, `near` | The sources add up, and each other kind narrows them | A post matching one of them is in: posts from Naomi, or anything tagged #ceres |
+| What it must be | `media_types`, `actor_types`, `language`, `origin`, `include_replies` | Narrow | Narrow |
+| Exclude | `exclude.*` | Left out | Left out |
+
+A definition without `match` is `all`, as every feed saved before this was,
+and `all` is kept as nothing, so that a definition reads the same to a
+service that has not heard of it; another value is refused
+(`unknown_match`). The web app offers the choice once two kinds of thing
+to match are filled in, as "Show posts that match: Any of these, All of
+these", and a new feed starts at Any. The feed's sentence says "or" between
+them: "Posts from Naomi, or tagged #ceres". A feed of `any` still needs
+something to match: with no source, a hashtag, a keyword, a location or an
+area. Something it asks for that cannot be read (whoever its owner follows,
+with no owner; an area around wherever its reader is, with no point sent)
+matches nothing: with `all` the feed is empty, with `any` the rest still
+match.
 
 **Exclude** leaves posts out whatever else is true of them: by hashtag, by keyword, and by profile. An excluded profile's posts are left out wherever they were posted, and so is everything posted on it.
 

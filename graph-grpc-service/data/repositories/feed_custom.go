@@ -103,7 +103,7 @@ func (repo *FeedCustomRepo) Browse(def *feeds.Definition, ownerID int64, before 
 	query := GetBaseSelectQuery().
 		Where(sq.Eq{"node.type": def.MediaEntityTypes()})
 
-	query = feedCustomSources(query, def, ownerID)
+	query = feedCustomMatching(query, def, ownerID)
 	query = feedCustomFilters(query, def)
 	query = feedCustomExclusions(query, def)
 
@@ -130,62 +130,85 @@ func (repo *FeedCustomRepo) Browse(def *feeds.Definition, ownerID int64, before 
 	return FetchNodes(repo.db, query)
 }
 
-// feedCustomSources keeps the feed to where its posts come from: whoever its
-// owner follows, the profiles chosen by hand, or both. With neither, the
-// whole site, which the definition allows only through a narrowing filter.
-func feedCustomSources(query sq.SelectBuilder, def *feeds.Definition, ownerID int64) sq.SelectBuilder {
-	sources := sq.Or{}
+// feedCustomMatching keeps the posts that match what the feed asks for:
+// where they come from (whoever its owner follows, the profiles chosen by
+// hand), their hashtags, their locations, their words and their area. With
+// Match all, each kind asked for narrows the rest; with Match any (roadmap
+// row 149), a post matching one of them is in. With no source, the whole
+// site, which the definition allows only through something else to match.
+func feedCustomMatching(query sq.SelectBuilder, def *feeds.Definition, ownerID int64) sq.SelectBuilder {
+	matches, unreadable := feedCustomMatches(def, ownerID)
 
+	if def.MatchesAny() {
+		if len(matches) == 0 {
+			// Nothing it asks for can be read: nothing, and never the site.
+			return query.Where("1 = 0")
+		}
+		return query.Where(sq.Or(matches))
+	}
+
+	if unreadable {
+		return query.Where("1 = 0")
+	}
+	for _, match := range matches {
+		query = query.Where(match)
+	}
+	return query
+}
+
+// feedCustomMatches is one condition for each kind of thing the feed asks
+// a post to match. unreadable says something it asks for cannot be read:
+// whoever its owner follows, with no owner; an area around wherever its
+// reader is, with nobody saying where. Left out of the list, it matches
+// nothing: with all, the feed is empty; with any, the rest still match.
+func feedCustomMatches(def *feeds.Definition, ownerID int64) (matches []sq.Sqlizer, unreadable bool) {
+	sources := sq.Or{}
 	if def.Sources.Following && ownerID > 0 {
 		sources = append(sources, sq.Expr(feedCustomFollowed, constants.EdgeFollowEntityType, ownerID))
 	}
 	if len(def.Sources.Actors) > 0 {
 		sources = append(sources, sq.Eq{"node.owner_id": def.Sources.Actors})
 	}
-
 	switch {
 	case len(sources) > 0:
-		return query.Where(sources)
+		matches = append(matches, sources)
 	case def.HasSources():
-		// It names a source, and none of them can be read: whoever its
-		// owner follows, with no owner. Nothing, and never the site.
-		return query.Where("1 = 0")
+		unreadable = true
 	}
 
-	return query
+	if len(def.Filters.Hashtags) > 0 {
+		matches = append(matches, feedCustomTaggedWith(def.Filters.Hashtags))
+	}
+
+	if len(def.Filters.Locations) > 0 {
+		matches = append(matches, feedCustomPlacedAt(def.Filters.Locations))
+	}
+
+	if mentions := feedCustomMentions(def.Filters.Keywords); len(mentions) > 0 {
+		matches = append(matches, mentions)
+	}
+
+	if def.NeedsPoint() {
+		unreadable = true
+	} else if near := def.Filters.Near; near != nil {
+		metres := near.RadiusKm * 1000
+		matches = append(matches, sq.Expr(feedCustomNear,
+			constants.EdgeTagLocationType, near.Longitude, near.Latitude, metres,
+			near.Longitude, near.Latitude, metres))
+	}
+
+	return matches, unreadable
 }
 
+// feedCustomFilters is what a post must be, whatever it matches: on a kind
+// of profile, in a language, written here or elsewhere.
 func feedCustomFilters(query sq.SelectBuilder, def *feeds.Definition) sq.SelectBuilder {
 	if types := def.ActorEntityTypes(); len(types) > 0 {
 		query = query.Where(sq.Eq{"owner.type": types})
 	}
 
-	if len(def.Filters.Hashtags) > 0 {
-		query = query.Where(feedCustomTaggedWith(def.Filters.Hashtags))
-	}
-
-	if len(def.Filters.Locations) > 0 {
-		query = query.Where(feedCustomPlacedAt(def.Filters.Locations))
-	}
-
-	if matches := feedCustomMentions(def.Filters.Keywords); len(matches) > 0 {
-		query = query.Where(matches)
-	}
-
 	if def.Filters.Language != "" {
 		query = query.Where(sq.Eq{"node.language": def.Filters.Language})
-	}
-
-	// Wherever its reader is, and nobody said where: nothing, and never
-	// the area around 0, 0.
-	if def.NeedsPoint() {
-		return query.Where("1 = 0")
-	}
-	if near := def.Filters.Near; near != nil {
-		metres := near.RadiusKm * 1000
-		query = query.Where(feedCustomNear,
-			constants.EdgeTagLocationType, near.Longitude, near.Latitude, metres,
-			near.Longitude, near.Latitude, metres)
 	}
 
 	// Where it was written: here, or on another server, which a post kept

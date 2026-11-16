@@ -56,6 +56,15 @@ const (
 	MaxPage  = 40
 )
 
+// How what a post matches lets it in (roadmap row 149): all, every kind
+// that is asked for, as feeds always were; or any, one of them. A
+// definition that says nothing is all, so a feed saved before keeps its
+// meaning.
+const (
+	MatchAll = "all"
+	MatchAny = "any"
+)
+
 // Newest first, the one order there is. The key is kept in the definition so
 // that another order is a value added here, and not a change of shape.
 const OrderNewest = "newest"
@@ -67,7 +76,11 @@ const OrderNewest = "newest"
 // site, which it may only do through a hashtag, a keyword or a place.
 //
 // Filters narrow that, each kind in turn; inside a list, any one will do.
-// What is excluded is left out whatever else is true.
+// With Match any, the sources, the hashtags, the keywords, the locations
+// and the area are one list instead, and a post matching one is in: posts
+// from Naomi, or anything tagged #ceres. The kinds of post and profile,
+// the language and where it was written narrow either way. What is
+// excluded is left out whatever else is true.
 type Definition struct {
 	Sources Sources `json:"sources"`
 	Filters Filters `json:"filters"`
@@ -76,6 +89,9 @@ type Definition struct {
 	// thread.
 	IncludeReplies bool   `json:"include_replies"`
 	Order          string `json:"order"`
+	// MatchAny, or nothing for all: whether a post must match every kind
+	// of source and filter asked for, or one of them.
+	Match string `json:"match,omitempty"`
 }
 
 type Sources struct {
@@ -180,6 +196,7 @@ const (
 	RefusedLocation      Refusal = "invalid_location"
 	RefusedLanguage      Refusal = "invalid_language"
 	RefusedOrder         Refusal = "unknown_order"
+	RefusedMatch         Refusal = "unknown_match"
 	RefusedNear          Refusal = "invalid_near"
 	RefusedOrigin        Refusal = "unknown_origin"
 )
@@ -302,6 +319,17 @@ func (d *Definition) Check() error {
 		return RefusedOrder
 	}
 
+	// All is kept as nothing at all: a definition reads as it did before
+	// row 149, to a service that has not yet heard of any.
+	d.Match = strings.ToLower(strings.TrimSpace(d.Match))
+	switch d.Match {
+	case "", MatchAll:
+		d.Match = ""
+	case MatchAny:
+	default:
+		return RefusedMatch
+	}
+
 	switch {
 	case len(d.Sources.Actors) > MaxActors, len(d.Exclude.Actors) > MaxActors:
 		return RefusedTooManyActors
@@ -352,6 +380,11 @@ func (d *Definition) AtPoint(latitude, longitude float64) bool {
 	near.Latitude = math.Round(latitude*1000) / 1000
 	near.Longitude = math.Round(longitude*1000) / 1000
 	return true
+}
+
+// MatchesAny reports whether a post matching one source or filter is in.
+func (d *Definition) MatchesAny() bool {
+	return d.Match == MatchAny
 }
 
 // HasSources reports whether the feed names where its posts come from.
