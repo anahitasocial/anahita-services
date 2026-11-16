@@ -104,6 +104,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Takes(&handlers.ActorRef{}).
 		Unbound().
 		Sends(http.StatusOK, ap.Actor{}).
+		SendsNothing(http.StatusFound, "a browser, asking for text/html, is sent to their profile in the web app, the actor's `url`").
 		Refuses(http.StatusNotFound, gone).
 		Refuses(http.StatusServiceUnavailable, "their key cannot be read now")
 	ap_.GET("/users/:uuid/followers", r.handler.Followers, r.setViewer).
@@ -142,6 +143,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Takes(&handlers.NoteRef{}).
 		Unbound().
 		Sends(http.StatusOK, ap.Note{}).
+		SendsNothing(http.StatusFound, "a browser, asking for text/html, is sent to the post's page in the web app, the note's `url`").
 		Refuses(http.StatusNotFound, "there is no such post that went out")
 	// A stamp: a quote of a post here approved (roadmap row 156, FEP-044f).
 	ap_.GET("/quotes/:uuid", r.handler.QuoteStamp, r.setViewer).

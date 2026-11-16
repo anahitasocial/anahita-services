@@ -2126,6 +2126,9 @@
             },
             "description": "OK"
           },
+          "302": {
+            "description": "a browser, asking for text/html, is sent to the post's page in the web app, the note's `url`"
+          },
           "404": {
             "description": "there is no such post that went out"
           }
@@ -2334,6 +2337,9 @@
               }
             },
             "description": "OK"
+          },
+          "302": {
+            "description": "a browser, asking for text/html, is sent to their profile in the web app, the actor's `url`"
           },
           "404": {
             "description": "nobody here by that name is on the fediverse"

@@ -3,6 +3,7 @@ package handlers
 import (
 	"anahita-libs/responses"
 	"net/http"
+	"strings"
 
 	"activitypub/ap"
 	"activitypub/data/repositories"
@@ -206,4 +207,29 @@ func activityJSON(c echo.Context, body any) error {
 	c.Response().Header().Set(echo.HeaderContentType, ap.ContentType)
 	c.Response().Header().Set("Vary", "Accept")
 	return c.JSON(http.StatusOK, body)
+}
+
+// forBrowser says whether a request comes from a person's browser, asking
+// for a page, rather than from a server asking for ActivityPub. A server
+// names an ActivityPub or a JSON type; a browser names text/html and none
+// of them.
+func forBrowser(c echo.Context) bool {
+	accept := strings.ToLower(c.Request().Header.Get(echo.HeaderAccept))
+	if strings.Contains(accept, "activity+json") || strings.Contains(accept, "ld+json") ||
+		strings.Contains(accept, "application/json") {
+		return false
+	}
+	return strings.Contains(accept, "text/html")
+}
+
+// pageOrActivity answers a browser that opened an actor's or a post's
+// address with its page in the web app, and a server with its ActivityPub,
+// as Mastodon does: software that links to an actor by its address, as
+// Bonfire does, then leads people to the profile and not to its JSON.
+func pageOrActivity(c echo.Context, page string, body any) error {
+	if page != "" && forBrowser(c) {
+		c.Response().Header().Set("Vary", "Accept")
+		return c.Redirect(http.StatusFound, page)
+	}
+	return activityJSON(c, body)
 }

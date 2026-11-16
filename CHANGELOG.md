@@ -10,6 +10,18 @@ made.
 Releases before v1.0.17 are described on GitHub, under
 [Releases](https://github.com/anahitasocial/anahita-services/releases).
 
+## Embryo
+
+### Fixed
+
+1. **A browser that opens a profile's or a post's ActivityPub address
+   lands on its page,** as on Mastodon, not on its JSON: `/ap/users/<uuid>`
+   and `/ap/notes/<uuid>` send a request for `text/html` on to the page in
+   the web app, the actor's or the note's `url`. Software that links to a
+   profile by its address, as Bonfire does, leads to the profile. Servers
+   asking for ActivityPub get the JSON as before
+   ([Federation](docs/federation.md#what-other-servers-are-told)).
+
 ## v1.3.4 Birth, 2026-11-16
 
 ### Added

@@ -36,8 +36,9 @@ func (h *Handlers) Actor(c echo.Context) error {
 		return c.NoContent(http.StatusServiceUnavailable)
 	}
 
+	described := h.actorDescribed(person, publicKey)
 	c.Response().Header().Set("Cache-Control", "public, max-age=180")
-	return activityJSON(c, h.actorDescribed(person, publicKey))
+	return pageOrActivity(c, described.URL, described)
 }
 
 // Followers says how many follow a person, and not who.

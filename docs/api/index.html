@@ -10798,6 +10798,7 @@ who may call it: anyone, signed in or not.">
 <table class="answers">
 <tbody>
 <tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-activitypub.Note">activitypub.Note</a> <span class="media">application/activity+json</span></div></td></tr>
+<tr><td class="status s3">302</td><td>a browser, asking for text/html, is sent to the post&#39;s page in the web app, the note&#39;s <code>url</code></td></tr>
 <tr><td class="status s4">404</td><td>there is no such post that went out</td></tr>
 </tbody>
 </table>
@@ -10909,6 +10910,7 @@ who may call it: anyone, signed in or not.">
 <table class="answers">
 <tbody>
 <tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-activitypub.Actor">activitypub.Actor</a> <span class="media">application/activity+json</span></div></td></tr>
+<tr><td class="status s3">302</td><td>a browser, asking for text/html, is sent to their profile in the web app, the actor&#39;s <code>url</code></td></tr>
 <tr><td class="status s4">404</td><td>nobody here by that name is on the fediverse</td></tr>
 <tr><td class="status s5">503</td><td>their key cannot be read now</td></tr>
 </tbody>

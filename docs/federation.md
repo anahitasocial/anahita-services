@@ -415,6 +415,13 @@ own domain (`ana@api.example.org` as well as `ana@example.org`), and says in
 its answer which is the real one. A server that first met somebody by their
 address asks the host in that address who they are.
 
+A person's browser that opens `/ap/users/<uuid>` or `/ap/notes/<uuid>`,
+asking for `text/html` and no ActivityPub or JSON type, is sent with a 302
+to the profile's or the post's page in the web app, its `url`, as Mastodon
+does. Some software links to a profile by its address (Bonfire does), and
+its readers land on the page, not on the JSON. Servers get the JSON as
+before; `Vary: Accept` keeps the two apart in caches.
+
 ## Listed and found
 
 Two choices of each person's own, in their Fediverse settings, apart from being

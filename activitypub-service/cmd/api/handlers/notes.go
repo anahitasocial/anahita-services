@@ -486,8 +486,9 @@ func (h *Handlers) Note(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
+	described := h.described(note, author, answering)
 	c.Response().Header().Set("Cache-Control", "public, max-age=180")
-	return activityJSON(c, h.described(note, author, answering).WithContext())
+	return pageOrActivity(c, described.URL, described.WithContext())
 }
 
 // Outbox says how many posts a person has sent out, and not which. A server
