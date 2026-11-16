@@ -34,6 +34,7 @@ func applyEditableActorFields(node *entities.AnahitaNode, req *graphpb.Node) {
 
 	node.Enabled = req.Enabled
 	node.Access = req.Access
+	node.GraphAccess = req.GraphAccess
 	node.Name = req.Name
 	node.Body = req.Body
 	node.Alias = req.Alias

@@ -171,8 +171,11 @@ type Node struct {
 	Warning            string `protobuf:"bytes,101,opt,name=warning,proto3" json:"warning,omitempty"`
 	WarningText        string `protobuf:"bytes,102,opt,name=warning_text,json=warningText,proto3" json:"warning_text,omitempty"`
 	WarningByModerator bool   `protobuf:"varint,103,opt,name=warning_by_moderator,json=warningByModerator,proto3" json:"warning_by_moderator,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	// Who may see a profile's followers and whom it follows (roadmap row
+	// 151): an access level, or empty for whoever may see the profile.
+	GraphAccess   string `protobuf:"bytes,104,opt,name=graph_access,json=graphAccess,proto3" json:"graph_access,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Node) Reset() {
@@ -798,6 +801,13 @@ func (x *Node) GetWarningByModerator() bool {
 		return x.WarningByModerator
 	}
 	return false
+}
+
+func (x *Node) GetGraphAccess() string {
+	if x != nil {
+		return x.GraphAccess
+	}
+	return ""
 }
 
 type Nodes struct {
@@ -3225,7 +3235,7 @@ var File_proto_graphpb_node_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\n" +
-	"\x18proto/graphpb/node.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa0\x19\n" +
+	"\x18proto/graphpb/node.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xc3\x19\n" +
 	"\x04Node\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12\x18\n" +
@@ -3331,7 +3341,8 @@ const file_proto_graphpb_node_proto_rawDesc = "" +
 	"threadNext\x12\x18\n" +
 	"\awarning\x18e \x01(\tR\awarning\x12!\n" +
 	"\fwarning_text\x18f \x01(\tR\vwarningText\x120\n" +
-	"\x14warning_by_moderator\x18g \x01(\bR\x12warningByModeratorJ\x04\b\t\x10\n" +
+	"\x14warning_by_moderator\x18g \x01(\bR\x12warningByModerator\x12!\n" +
+	"\fgraph_access\x18h \x01(\tR\vgraphAccessJ\x04\b\t\x10\n" +
 	"J\x04\b\x1e\x10\x1fJ\x04\b\f\x10\rJ\x04\b\x12\x10\x13J\x04\b\x17\x10\x18J\x04\b/\x103J\x04\b5\x106J\x04\b@\x10AJ\x04\bB\x10CJ\x04\bD\x10HJ\x04\bI\x10JR\aexcerpt\"*\n" +
 	"\x05Nodes\x12!\n" +
 	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes\"\xd9\x03\n" +

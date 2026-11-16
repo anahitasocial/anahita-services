@@ -58,9 +58,9 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <p class="group">Profiles</p>
 <ul>
 <li><a href="#profiles">Profiles</a> <span class="count">1</span></li>
-<li><a href="#people">People</a> <span class="count">21</span></li>
-<li><a href="#groups">Groups</a> <span class="count">24</span></li>
-<li><a href="#events">Events</a> <span class="count">26</span></li>
+<li><a href="#people">People</a> <span class="count">22</span></li>
+<li><a href="#groups">Groups</a> <span class="count">25</span></li>
+<li><a href="#events">Events</a> <span class="count">27</span></li>
 <li><a href="#websites">Websites</a> <span class="count">13</span></li>
 </ul>
 <p class="group">Accounts and the graph</p>
@@ -679,6 +679,38 @@ who may call it: somebody signed in.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>actor/cmd/api/handlers.(*personHandler).EditFeatures</code></p>
+</details>
+<details class="route" id="patchPeopleByIdGraphAccess" data-search="patch /people/{id}/graph-access change who may see its followers and whom it follows an access level, or empty for whoever may see the profile; never wider than the profile. groups and events have no `leaders` or `mutuals`.
+
+who may call it: somebody signed in.">
+<summary><span class="method patch">PATCH</span> <code class="path">/people/{id}/graph-access</code> <span class="summary">Change who may see its followers and whom it follows</span></summary>
+<div class="description"><p>An access level, or empty for whoever may see the profile; never wider than the profile. Groups and events have no <code>leaders</code> or <code>mutuals</code>.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code> or <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>graph_access</code></td><td>string</td><td>An access level: <code>public</code>, <code>registered</code>, <code>followers</code>, <code>leaders</code> (people it follows) or <code>mutuals</code>, for a person only, or <code>admins</code>; empty for whoever may see the profile. Never wider than the profile. One of <code>public</code>, <code>registered</code>, <code>followers</code>, <code>leaders</code>, <code>mutuals</code>, <code>admins</code>.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-actor.PersonNode">actor.PersonNode</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>graph_access_invalid</code>, or a level that is not one<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not change it</td></tr>
+<tr><td class="status s4">404</td><td>there is no such profile</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*personHandler).EditGraphAccess</code></p>
 </details>
 <details class="route" id="deletePeopleByIdPurge" data-search="delete /people/{id}/purge destroy a person for good everything of it, at once and with no thirty days. super administrators only, never on their own profile. queued, and done by the sweeper.
 
@@ -1363,6 +1395,38 @@ who may call it: somebody signed in.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).EditFeatures</code></p>
+</details>
+<details class="route" id="patchGroupsByIdGraphAccess" data-search="patch /groups/{id}/graph-access change who may see its followers and whom it follows an access level, or empty for whoever may see the profile; never wider than the profile. groups and events have no `leaders` or `mutuals`.
+
+who may call it: somebody signed in.">
+<summary><span class="method patch">PATCH</span> <code class="path">/groups/{id}/graph-access</code> <span class="summary">Change who may see its followers and whom it follows</span></summary>
+<div class="description"><p>An access level, or empty for whoever may see the profile; never wider than the profile. Groups and events have no <code>leaders</code> or <code>mutuals</code>.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code> or <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>graph_access</code></td><td>string</td><td>An access level: <code>public</code>, <code>registered</code>, <code>followers</code>, <code>leaders</code> (people it follows) or <code>mutuals</code>, for a person only, or <code>admins</code>; empty for whoever may see the profile. Never wider than the profile. One of <code>public</code>, <code>registered</code>, <code>followers</code>, <code>leaders</code>, <code>mutuals</code>, <code>admins</code>.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-actor.GroupNode">actor.GroupNode</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>graph_access_invalid</code>, or a level that is not one<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not change it</td></tr>
+<tr><td class="status s4">404</td><td>there is no such profile</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).EditGraphAccess</code></p>
 </details>
 <details class="route" id="deleteGroupsByIdPurge" data-search="delete /groups/{id}/purge destroy a group for good everything of it, at once and with no thirty days. super administrators only, never on their own profile. queued, and done by the sweeper.
 
@@ -2114,6 +2178,38 @@ who may call it: somebody signed in.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).EditFeatures</code></p>
+</details>
+<details class="route" id="patchEventsByIdGraphAccess" data-search="patch /events/{id}/graph-access change who may see its followers and whom it follows an access level, or empty for whoever may see the profile; never wider than the profile. groups and events have no `leaders` or `mutuals`.
+
+who may call it: somebody signed in.">
+<summary><span class="method patch">PATCH</span> <code class="path">/events/{id}/graph-access</code> <span class="summary">Change who may see its followers and whom it follows</span></summary>
+<div class="description"><p>An access level, or empty for whoever may see the profile; never wider than the profile. Groups and events have no <code>leaders</code> or <code>mutuals</code>.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code> or <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>graph_access</code></td><td>string</td><td>An access level: <code>public</code>, <code>registered</code>, <code>followers</code>, <code>leaders</code> (people it follows) or <code>mutuals</code>, for a person only, or <code>admins</code>; empty for whoever may see the profile. Never wider than the profile. One of <code>public</code>, <code>registered</code>, <code>followers</code>, <code>leaders</code>, <code>mutuals</code>, <code>admins</code>.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-actor.EventNode">actor.EventNode</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>graph_access_invalid</code>, or a level that is not one<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not change it</td></tr>
+<tr><td class="status s4">404</td><td>there is no such profile</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).EditGraphAccess</code></p>
 </details>
 <details class="route" id="deleteEventsByIdPurge" data-search="delete /events/{id}/purge destroy an event for good everything of it, at once and with no thirty days. super administrators only, never on their own profile. queued, and done by the sweeper.
 
@@ -11184,7 +11280,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-ActorNodeItem" data-search="actornodeitem access alias allow_download allow_follow_request archived_at author avatar_urls body cover_urls created_at deleted_at enabled event featured_at follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer leader_count moved_to mute_ends_at mute_hides_notifications name origin_domain quote_policy show_reposts_on_profile type uri verified website_url">
+<div class="route schema" id="schema-ActorNodeItem" data-search="actornodeitem access alias allow_download allow_follow_request archived_at author avatar_urls body cover_urls created_at deleted_at enabled event featured_at follower_count graph_access id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer leader_count moved_to mute_ends_at mute_hides_notifications name origin_domain quote_policy show_reposts_on_profile type uri verified website_url">
 <h3>ActorNodeItem</h3>
 <p>A profile: a person, a group or an event.</p>
 <table>
@@ -11205,6 +11301,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>event</code></td><td><a href="#schema-Event">Event</a></td><td>On an event: when it is, how many may go and are going, and what the viewer answered. Left out on anything else.</td></tr>
 <tr><td><code>featured_at</code></td><td>time</td><td>Set only while the installation features this actor, so a super administrator&#39;s profile menu can show the toggle&#39;s state.</td></tr>
 <tr><td><code>follower_count</code></td><td>integer</td><td>How many follow it.</td></tr>
+<tr><td><code>graph_access</code> <span class="required">always</span></td><td>string</td><td>Who may see its followers and whom it follows (roadmap row 151): an access level, or empty for whoever may see it.</td></tr>
 <tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td>Its id.</td></tr>
 <tr><td><code>is_admined_by_viewer</code></td><td>boolean</td><td>Whether the viewer is one of its administrators.</td></tr>
 <tr><td><code>is_blocked_by_viewer</code></td><td>boolean</td><td>Whether the viewer has blocked it.</td></tr>
@@ -12378,7 +12475,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-actor.EventNode" data-search="actor.eventnode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled event featured_at features follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer leader_count moved_to mute_ends_at mute_hides_notifications name origin_domain permissions show_reposts_on_profile type updated_at uri verified website_url">
+<div class="route schema" id="schema-actor.EventNode" data-search="actor.eventnode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled event featured_at features follower_count graph_access id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer leader_count moved_to mute_ends_at mute_hides_notifications name origin_domain permissions show_reposts_on_profile type updated_at uri verified website_url">
 <h3>actor.EventNode</h3>
 <p>An event, as it is sent: a group with a time and a place, and <code>event</code> saying when it is, how many may go and are going, and what the viewer answered.</p>
 <table>
@@ -12403,6 +12500,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>featured_at</code></td><td>time</td><td>Set only while the installation features this actor, so a super administrator&#39;s profile menu can show the toggle&#39;s state.</td></tr>
 <tr><td><code>features</code></td><td>list of <a href="#schema-NodeFeature">NodeFeature</a></td><td></td></tr>
 <tr><td><code>follower_count</code></td><td>integer</td><td>How many follow it.</td></tr>
+<tr><td><code>graph_access</code> <span class="required">always</span></td><td>string</td><td>Who may see its followers and whom it follows (roadmap row 151): an access level, or empty for whoever may see it.</td></tr>
 <tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td>Its id.</td></tr>
 <tr><td><code>is_admined_by_viewer</code></td><td>boolean</td><td>Whether the viewer is one of its administrators.</td></tr>
 <tr><td><code>is_blocked_by_viewer</code></td><td>boolean</td><td>Whether the viewer has blocked it.</td></tr>
@@ -12441,7 +12539,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-actor.GroupNode" data-search="actor.groupnode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer leader_count moved_to mute_ends_at mute_hides_notifications name origin_domain permissions show_reposts_on_profile type updated_at uri verified website_url">
+<div class="route schema" id="schema-actor.GroupNode" data-search="actor.groupnode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count graph_access id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer leader_count moved_to mute_ends_at mute_hides_notifications name origin_domain permissions show_reposts_on_profile type updated_at uri verified website_url">
 <h3>actor.GroupNode</h3>
 <p>A group, as it is sent: followed by people, looked after by its admins, and able to host events.</p>
 <table>
@@ -12465,6 +12563,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>featured_at</code></td><td>time</td><td>Set only while the installation features this actor, so a super administrator&#39;s profile menu can show the toggle&#39;s state.</td></tr>
 <tr><td><code>features</code></td><td>list of <a href="#schema-NodeFeature">NodeFeature</a></td><td></td></tr>
 <tr><td><code>follower_count</code></td><td>integer</td><td>How many follow it.</td></tr>
+<tr><td><code>graph_access</code> <span class="required">always</span></td><td>string</td><td>Who may see its followers and whom it follows (roadmap row 151): an access level, or empty for whoever may see it.</td></tr>
 <tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td>Its id.</td></tr>
 <tr><td><code>is_admined_by_viewer</code></td><td>boolean</td><td>Whether the viewer is one of its administrators.</td></tr>
 <tr><td><code>is_blocked_by_viewer</code></td><td>boolean</td><td>Whether the viewer has blocked it.</td></tr>
@@ -12516,7 +12615,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-actor.PersonNode" data-search="actor.personnode access alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer language leader_count moved_to mute_ends_at mute_hides_notifications name origin_domain permissions person_pronouns person_type quote_policy show_reposts_on_profile type updated_at uri verified website_url">
+<div class="route schema" id="schema-actor.PersonNode" data-search="actor.personnode access alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count graph_access id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer language leader_count moved_to mute_ends_at mute_hides_notifications name origin_domain permissions person_pronouns person_type quote_policy show_reposts_on_profile type updated_at uri verified website_url">
 <h3>actor.PersonNode</h3>
 <p>A person, as they are sent: what every profile has, and their account type, pronouns and language.</p>
 <table>
@@ -12539,6 +12638,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>featured_at</code></td><td>time</td><td>Set only while the installation features this actor, so a super administrator&#39;s profile menu can show the toggle&#39;s state.</td></tr>
 <tr><td><code>features</code></td><td>list of <a href="#schema-NodeFeature">NodeFeature</a></td><td></td></tr>
 <tr><td><code>follower_count</code></td><td>integer</td><td>How many follow it.</td></tr>
+<tr><td><code>graph_access</code> <span class="required">always</span></td><td>string</td><td>Who may see its followers and whom it follows (roadmap row 151): an access level, or empty for whoever may see it.</td></tr>
 <tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td>Its id.</td></tr>
 <tr><td><code>is_admined_by_viewer</code></td><td>boolean</td><td>Whether the viewer is one of its administrators.</td></tr>
 <tr><td><code>is_blocked_by_viewer</code></td><td>boolean</td><td>Whether the viewer has blocked it.</td></tr>
@@ -12602,7 +12702,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-actor.WebsiteNode" data-search="actor.websitenode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer leader_count moved_to mute_ends_at mute_hides_notifications name origin_domain permissions show_reposts_on_profile type updated_at uri verified website_url">
+<div class="route schema" id="schema-actor.WebsiteNode" data-search="actor.websitenode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count graph_access id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer leader_count moved_to mute_ends_at mute_hides_notifications name origin_domain permissions show_reposts_on_profile type updated_at uri verified website_url">
 <h3>actor.WebsiteNode</h3>
 <p>A website, as it is sent: a site&#39;s feed, followed as a profile, whose domain was proved when it was connected.</p>
 <table>
@@ -12626,6 +12726,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>featured_at</code></td><td>time</td><td>Set only while the installation features this actor, so a super administrator&#39;s profile menu can show the toggle&#39;s state.</td></tr>
 <tr><td><code>features</code></td><td>list of <a href="#schema-NodeFeature">NodeFeature</a></td><td></td></tr>
 <tr><td><code>follower_count</code></td><td>integer</td><td>How many follow it.</td></tr>
+<tr><td><code>graph_access</code> <span class="required">always</span></td><td>string</td><td>Who may see its followers and whom it follows (roadmap row 151): an access level, or empty for whoever may see it.</td></tr>
 <tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td>Its id.</td></tr>
 <tr><td><code>is_admined_by_viewer</code></td><td>boolean</td><td>Whether the viewer is one of its administrators.</td></tr>
 <tr><td><code>is_blocked_by_viewer</code></td><td>boolean</td><td>Whether the viewer has blocked it.</td></tr>

@@ -191,6 +191,10 @@
             "format": "int64",
             "type": "integer"
           },
+          "graph_access": {
+            "description": "Who may see its followers and whom it follows (roadmap row 151): an access level, or empty for whoever may see it.",
+            "type": "string"
+          },
           "id": {
             "description": "Its id.",
             "format": "int64",
@@ -282,6 +286,7 @@
           "access",
           "allow_follow_request",
           "show_reposts_on_profile",
+          "graph_access",
           "allow_download",
           "created_at"
         ],
@@ -1726,6 +1731,10 @@
             "format": "int64",
             "type": "integer"
           },
+          "graph_access": {
+            "description": "Who may see its followers and whom it follows (roadmap row 151): an access level, or empty for whoever may see it.",
+            "type": "string"
+          },
           "id": {
             "description": "Its id.",
             "format": "int64",
@@ -1823,6 +1832,7 @@
           "access",
           "allow_follow_request",
           "show_reposts_on_profile",
+          "graph_access",
           "allow_download",
           "created_at"
         ],
@@ -1952,6 +1962,10 @@
             "format": "int64",
             "type": "integer"
           },
+          "graph_access": {
+            "description": "Who may see its followers and whom it follows (roadmap row 151): an access level, or empty for whoever may see it.",
+            "type": "string"
+          },
           "id": {
             "description": "Its id.",
             "format": "int64",
@@ -2049,6 +2063,7 @@
           "access",
           "allow_follow_request",
           "show_reposts_on_profile",
+          "graph_access",
           "allow_download",
           "created_at"
         ],
@@ -2202,6 +2217,10 @@
             "format": "int64",
             "type": "integer"
           },
+          "graph_access": {
+            "description": "Who may see its followers and whom it follows (roadmap row 151): an access level, or empty for whoever may see it.",
+            "type": "string"
+          },
           "id": {
             "description": "Its id.",
             "format": "int64",
@@ -2313,6 +2332,7 @@
           "access",
           "allow_follow_request",
           "show_reposts_on_profile",
+          "graph_access",
           "allow_download",
           "created_at"
         ],
@@ -2484,6 +2504,10 @@
             "format": "int64",
             "type": "integer"
           },
+          "graph_access": {
+            "description": "Who may see its followers and whom it follows (roadmap row 151): an access level, or empty for whoever may see it.",
+            "type": "string"
+          },
           "id": {
             "description": "Its id.",
             "format": "int64",
@@ -2581,6 +2605,7 @@
           "access",
           "allow_follow_request",
           "show_reposts_on_profile",
+          "graph_access",
           "allow_download",
           "created_at"
         ],
@@ -4610,6 +4635,129 @@
           "events"
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).EditFeatures",
+        "x-shared": "profiles",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/events/{id}/graph-access": {
+      "patch": {
+        "description": "An access level, or empty for whoever may see the profile; never wider than the profile. Groups and events have no `leaders` or `mutuals`.\n\nWho may call it: somebody signed in.",
+        "operationId": "patchEventsByIdGraphAccess",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "graph_access": {
+                    "description": "An access level: `public`, `registered`, `followers`, `leaders` (people it follows) or `mutuals`, for a person only, or `admins`; empty for whoever may see the profile. Never wider than the profile.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "graph_access": {
+                    "description": "An access level: `public`, `registered`, `followers`, `leaders` (people it follows) or `mutuals`, for a person only, or `admins`; empty for whoever may see the profile. Never wider than the profile.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "graph_access": {
+                    "description": "An access level: `public`, `registered`, `followers`, `leaders` (people it follows) or `mutuals`, for a person only, or `admins`; empty for whoever may see the profile. Never wider than the profile.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/actor.EventNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`graph_access_invalid`, or a level that is not one"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change who may see its followers and whom it follows",
+        "tags": [
+          "events"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).EditGraphAccess",
         "x-shared": "profiles",
         "x-viewer": "signed_in"
       }
@@ -6694,6 +6842,129 @@
         "x-viewer": "signed_in"
       }
     },
+    "/groups/{id}/graph-access": {
+      "patch": {
+        "description": "An access level, or empty for whoever may see the profile; never wider than the profile. Groups and events have no `leaders` or `mutuals`.\n\nWho may call it: somebody signed in.",
+        "operationId": "patchGroupsByIdGraphAccess",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "graph_access": {
+                    "description": "An access level: `public`, `registered`, `followers`, `leaders` (people it follows) or `mutuals`, for a person only, or `admins`; empty for whoever may see the profile. Never wider than the profile.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "graph_access": {
+                    "description": "An access level: `public`, `registered`, `followers`, `leaders` (people it follows) or `mutuals`, for a person only, or `admins`; empty for whoever may see the profile. Never wider than the profile.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "graph_access": {
+                    "description": "An access level: `public`, `registered`, `followers`, `leaders` (people it follows) or `mutuals`, for a person only, or `admins`; empty for whoever may see the profile. Never wider than the profile.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/actor.GroupNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`graph_access_invalid`, or a level that is not one"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change who may see its followers and whom it follows",
+        "tags": [
+          "groups"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).EditGraphAccess",
+        "x-shared": "profiles",
+        "x-viewer": "signed_in"
+      }
+    },
     "/groups/{id}/purge": {
       "delete": {
         "description": "Everything of it, at once and with no thirty days. Super administrators only, never on their own profile. Queued, and done by the sweeper.\n\nWho may call it: a super administrator, who has just proved who they are again.",
@@ -7996,6 +8267,129 @@
           "people"
         ],
         "x-handler": "actor/cmd/api/handlers.(*personHandler).EditFeatures",
+        "x-shared": "profiles",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/people/{id}/graph-access": {
+      "patch": {
+        "description": "An access level, or empty for whoever may see the profile; never wider than the profile. Groups and events have no `leaders` or `mutuals`.\n\nWho may call it: somebody signed in.",
+        "operationId": "patchPeopleByIdGraphAccess",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "graph_access": {
+                    "description": "An access level: `public`, `registered`, `followers`, `leaders` (people it follows) or `mutuals`, for a person only, or `admins`; empty for whoever may see the profile. Never wider than the profile.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "graph_access": {
+                    "description": "An access level: `public`, `registered`, `followers`, `leaders` (people it follows) or `mutuals`, for a person only, or `admins`; empty for whoever may see the profile. Never wider than the profile.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "graph_access": {
+                    "description": "An access level: `public`, `registered`, `followers`, `leaders` (people it follows) or `mutuals`, for a person only, or `admins`; empty for whoever may see the profile. Never wider than the profile.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/actor.PersonNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`graph_access_invalid`, or a level that is not one"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change who may see its followers and whom it follows",
+        "tags": [
+          "people"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).EditGraphAccess",
         "x-shared": "profiles",
         "x-viewer": "signed_in"
       }

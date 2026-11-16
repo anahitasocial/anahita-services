@@ -111,6 +111,8 @@ func (d *fakeDismissals) Forget(actorID int64) error {
 type fakeGraph struct {
 	an_services.GraphNodeGRPCInterface
 	hidden map[int64]bool
+	// Who may see whom each follows, when they chose (roadmap row 151).
+	graphAccess map[int64]string
 }
 
 func (g *fakeGraph) FilterVisible(ids []int64, viewer *entities.Viewer) ([]int64, error) {
@@ -135,9 +137,25 @@ func node(id int64) *entities.AnahitaNode {
 func (g *fakeGraph) BatchRead(req *an_services.GraphNodeBatchReadRequest) ([]*entities.AnahitaNode, error) {
 	list := []*entities.AnahitaNode{}
 	for _, id := range req.IDs {
-		list = append(list, node(id))
+		n := node(id)
+		n.GraphAccess = g.graphAccess[id]
+		list = append(list, n)
 	}
 	return list, nil
+}
+
+// fakeRelations says the viewer follows everybody asked about, and is
+// followed by nobody.
+type fakeRelations struct {
+	an_services.SocialgraphGRPCInterface
+}
+
+func (r *fakeRelations) Browse(ids []int64, viewerID int64) (map[int64]*entities.ActorRelation, error) {
+	rels := map[int64]*entities.ActorRelation{}
+	for _, id := range ids {
+		rels[id] = &entities.ActorRelation{ActorAId: id, ActorBId: viewerID, IsLeading: true}
+	}
+	return rels, nil
 }
 
 type fakeActors struct {
@@ -180,7 +198,7 @@ func newFixture(t *testing.T) *fixture {
 	f.echo.Validator = validators.NewRequestValidator(validator.New())
 	f.handlers = NewHandlers(&Env{
 		Repos: &repositories.Repositories{Signals: f.signals, Preferences: f.prefs, Dismissals: f.dismiss},
-		Srv:   &services.Services{GraphNodeGRPC: f.graph, ActorsGRPC: f.actors},
+		Srv:   &services.Services{GraphNodeGRPC: f.graph, ActorsGRPC: f.actors, SocialgraphGRPC: &fakeRelations{}},
 	})
 
 	return f
@@ -447,5 +465,34 @@ func TestWeightsAreTheViewersToSet(t *testing.T) {
 	_, answer = f.call(f.handlers.Actors.Browse, http.MethodGet, "/", person(1), "")
 	if got := suggested(answer); got != "[4 5]" {
 		t.Errorf("suggested %s after the weights were put back", got)
+	}
+}
+
+// THE RULE THIS GUARDS (roadmap row 151): "followed by people you follow"
+// names only those who let the viewer see whom they follow; the others
+// still count.
+func TestPeopleWhoHideWhomTheyFollowAreNotNamed(t *testing.T) {
+	f := newFixture(t)
+	f.signals.found = map[string][]scoring.Hit{
+		constants.ReasonFollowedByLeaders: {{ID: 4, Count: 3, IDs: []int64{2, 3, 8}}},
+	}
+	// 2 shows whom it follows to nobody else; 8 to its followers, which the
+	// viewer is; 3 never chose.
+	f.graph.graphAccess = map[int64]string{2: "admins", 8: "followers"}
+
+	status, answer := f.call(f.handlers.Actors.Browse, http.MethodGet, "/?limit=5", person(1), "")
+	if status != http.StatusOK {
+		t.Fatalf("answered %d", status)
+	}
+	named := map[int64]bool{}
+	for _, each := range answer["related"].([]any) {
+		named[int64(each.(map[string]any)["id"].(float64))] = true
+	}
+	if named[2] || !named[3] || !named[8] {
+		t.Errorf("named %v, want 3 and 8 and not 2", named)
+	}
+	reason := answer["items"].([]any)[0].(map[string]any)["reasons"].([]any)[0].(map[string]any)
+	if reason["count"] != float64(3) {
+		t.Errorf("the reason still counts all three: %v", reason)
 	}
 }

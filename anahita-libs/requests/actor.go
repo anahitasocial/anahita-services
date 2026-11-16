@@ -179,6 +179,17 @@ type ActorDeleteRequest struct {
 // ActorEditRepostsOnProfileRequest says whether what a person reposts is
 // also shown among the posts on their profile. People only: nothing else
 // reposts.
+// ActorEditGraphAccessRequest is who may see a profile's followers and whom
+// it follows (roadmap row 151).
+type ActorEditGraphAccessRequest struct {
+	// The profile's id.
+	ID int64 `param:"id" validate:"required,numeric"`
+	// An access level: `public`, `registered`, `followers`, `leaders` (people
+	// it follows) or `mutuals`, for a person only, or `admins`; empty for
+	// whoever may see the profile. Never wider than the profile.
+	GraphAccess string `json:"graph_access" form:"graph_access" validate:"omitempty,oneof=public registered followers leaders mutuals admins"`
+}
+
 type ActorEditRepostsOnProfileRequest struct {
 	// The person's id.
 	ID int64 `param:"id" validate:"required,numeric"`

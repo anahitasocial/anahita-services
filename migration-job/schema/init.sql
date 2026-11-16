@@ -107,6 +107,9 @@ CREATE TABLE nodes (
   `mimetype` varchar(100) NOT NULL DEFAULT '',
   `language` varchar(50) NOT NULL DEFAULT '',
   `access` varchar(255) NOT NULL,
+  -- Who may see its followers and whom it follows (roadmap row 151): an
+  -- access level, or empty for whoever may see the profile.
+  `graph_access` varchar(32) NOT NULL DEFAULT '',
   -- The per-node-type optional feature set, as JSON. Named `features` because
   -- that is what the code selects; this file called it
   -- `enabled_optional_features`, which nothing has ever read.

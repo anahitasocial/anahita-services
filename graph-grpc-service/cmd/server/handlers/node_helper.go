@@ -37,6 +37,7 @@ func nodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		Service:                   node.Service,
 		Enabled:                   node.Enabled,
 		Access:                    node.Access,
+		GraphAccess:               node.GraphAccess,
 		Name:                      node.Name,
 		Alias:                     node.Alias,
 		Body:                      node.Body,

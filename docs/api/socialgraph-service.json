@@ -113,6 +113,10 @@
             "format": "int64",
             "type": "integer"
           },
+          "graph_access": {
+            "description": "Who may see its followers and whom it follows (roadmap row 151): an access level, or empty for whoever may see it.",
+            "type": "string"
+          },
           "id": {
             "description": "Its id.",
             "format": "int64",
@@ -204,6 +208,7 @@
           "access",
           "allow_follow_request",
           "show_reposts_on_profile",
+          "graph_access",
           "allow_download",
           "created_at"
         ],

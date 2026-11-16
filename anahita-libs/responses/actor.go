@@ -64,6 +64,9 @@ type ActorNodeItem struct {
 	AllowFollowRequest bool `json:"allow_follow_request"`
 	// Whether what this actor reposts is also among its profile's posts.
 	ShowRepostsOnProfile bool `json:"show_reposts_on_profile"`
+	// Who may see its followers and whom it follows (roadmap row 151): an
+	// access level, or empty for whoever may see it.
+	GraphAccess string `json:"graph_access"`
 	// On a person: who may quote their posts, when a post does not say.
 	// "anyone", "followers" or "nobody"; left out when they have not said,
 	// which is anyone.
@@ -199,6 +202,7 @@ func (r *ActorResponse) MapNodeItem(node *entities.AnahitaNode) *ActorNodeItem {
 		Access:               node.Access,
 		AllowFollowRequest:   node.AllowFollowRequest,
 		ShowRepostsOnProfile: node.ShowRepostsOnProfile,
+		GraphAccess:          node.GraphAccess,
 		QuotePolicy:          node.QuotePolicy,
 		AllowDownload:        node.AllowDownload,
 		ArchivedAt:           node.ArchivedAt,

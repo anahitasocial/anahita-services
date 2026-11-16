@@ -52,33 +52,7 @@ func (p *ActorsPermissions) CanRead(ctx *ActorAccessContext) (bool, error) {
 		return false, errors.New(ErrActorBlockedByActor)
 	}
 
-	if ctx.Actor.GetAccess() == constants.AnahitaAccessPublic {
-		return true, nil
-	}
-
-	if ctx.Actor.GetAccess() == constants.AnahitaAccessRegistered && ctx.Viewer.ID > 0 {
-		return true, nil
-	}
-
-	if ctx.Actor.GetAccess() == constants.AnahitaAccessFollowers {
-		if ctx.ActorViewerRel.IsLeading || ctx.ActorViewerRel.IsFollowing || ctx.ActorViewerRel.IsMutual || ctx.ActorViewerRel.HasAdmin {
-			return true, nil
-		}
-	}
-
-	if ctx.Actor.GetAccess() == constants.AnahitaAccessLeaders {
-		if ctx.ActorViewerRel.IsFollowing || ctx.ActorViewerRel.IsMutual || ctx.ActorViewerRel.HasAdmin {
-			return true, nil
-		}
-	}
-
-	if ctx.Actor.GetAccess() == constants.AnahitaAccessMutuals {
-		if ctx.ActorViewerRel.IsMutual || ctx.ActorViewerRel.HasAdmin {
-			return true, nil
-		}
-	}
-
-	if ctx.Actor.GetAccess() == constants.AnahitaAccessAdmins && ctx.ActorViewerRel.HasAdmin {
+	if MeetsAccessLevel(ctx.Actor.GetAccess(), ctx) {
 		return true, nil
 	}
 
@@ -194,4 +168,49 @@ func (p *ActorsPermissions) CanDeleteAdmin(ctx *ActorAccessContext, admin *entit
 	}
 
 	return false, errors.New(ErrActorDeleteAdminNotAllowed)
+}
+
+// MeetsAccessLevel says whether the viewer is admitted by an access level of
+// this actor's: anybody for public, anybody signed in for registered, and
+// for the rest how the viewer stands with it. A profile's administrators
+// meet every level. The viewer's being the actor, an administrator of the
+// site, or blocked, is for whoever asks to settle first.
+func MeetsAccessLevel(level string, ctx *ActorAccessContext) bool {
+	rel := ctx.ActorViewerRel
+	if rel == nil {
+		rel = &entities.ActorRelation{}
+	}
+	switch level {
+	case constants.AnahitaAccessPublic:
+		return true
+	case constants.AnahitaAccessRegistered:
+		return ctx.Viewer.ID > 0
+	case constants.AnahitaAccessFollowers:
+		return rel.IsLeading || rel.IsFollowing || rel.IsMutual || rel.HasAdmin
+	case constants.AnahitaAccessLeaders:
+		return rel.IsFollowing || rel.IsMutual || rel.HasAdmin
+	case constants.AnahitaAccessMutuals:
+		return rel.IsMutual || rel.HasAdmin
+	case constants.AnahitaAccessAdmins:
+		return rel.HasAdmin
+	}
+	return false
+}
+
+// CanSeeFollows says whether the viewer may see an actor's followers and
+// whom it follows (roadmap row 151): whoever may see the actor, narrowed by
+// its graph access when it has one. Never wider than the actor itself. Its
+// own administrators, itself and the site's administrators always may.
+func CanSeeFollows(ctx *ActorAccessContext) bool {
+	if ok, _ := NewActorPermissions().CanRead(ctx); !ok {
+		return false
+	}
+	level := ctx.Actor.GetGraphAccess()
+	if level == "" || ctx.Viewer.IsAdmin() || ctx.Viewer.ID == ctx.Actor.GetID() {
+		return true
+	}
+	if ctx.ActorViewerRel != nil && ctx.ActorViewerRel.HasAdmin {
+		return true
+	}
+	return MeetsAccessLevel(level, ctx)
 }

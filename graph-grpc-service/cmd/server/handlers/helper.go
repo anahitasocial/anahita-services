@@ -63,6 +63,7 @@ func ProtoNodeToAnahitaNode(n *graphpb.Node) *entities.AnahitaNode {
 	node.ParentID = n.ParentId
 	node.ParentType = n.ParentType
 	node.Access = n.Access
+	node.GraphAccess = n.GraphAccess
 	node.Filename = n.Filename
 	node.AvatarFilename = n.AvatarFilename
 	node.RootID = n.RootId

@@ -1,4 +1,4 @@
-# Who sees your followers and who you follow (roadmap row 151)
+# Who sees your followers and who you follow (roadmap row 151, done 2026-11-15)
 
 Asked for by the user on 2026-11-15: "people should have standard privacy
 settings for who gets to see their followers and followings without having
@@ -20,7 +20,7 @@ shows both to anybody.
 
 1. **One choice for both lists,** under Settings › Privacy: "Who can see
    your followers and who you follow". The access levels a profile already
-   uses ([Permissions](../permissions.md#access-levels)): anyone, anyone
+   uses ([Permissions](../../permissions.md#access-levels)): anyone, anyone
    signed in, followers, people I follow, mutuals, only me. People I follow
    and mutuals for people only, as everywhere.
 2. **It never widens.** Somebody refused the profile is refused its lists
@@ -65,6 +65,6 @@ shows both to anybody.
 
 | Phase | What | Status |
 | --- | --- | --- |
-| 1 | `graph_access` stored, checked by socialgraph-service and activitypub-service; recommendations' reasons checked | ⬜ |
-| 2 | Settings › Privacy, the counts without a list, every language base | ⬜ |
-| 3 | The docs; tried at both sizes and from a Mastodon account; changelogs | ⬜ |
+| 1 | `graph_access` stored, checked by socialgraph-service; the fediverse's collections already said how many and never who; recommendations' reasons checked | ✅ 2026-11-15 |
+| 2 | Settings › Privacy, the counts without a list, every language base | ✅ 2026-11-15 |
+| 3 | The docs; tried at both sizes; changelogs. Not tried from a Mastodon account: its collections are unchanged | ✅ 2026-11-15 |

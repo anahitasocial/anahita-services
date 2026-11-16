@@ -146,6 +146,9 @@ func (r *nodesRepo) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, err
 	// Written whichever way it is, so that it can be turned off again. An
 	// edit of anything else carries what was read, and leaves it as it was.
 	query = query.Set("show_reposts_on_profile", node.ShowRepostsOnProfile)
+	// Who may see its followers and whom it follows: the same, so that it
+	// can be set back to the profile's own (roadmap row 151).
+	query = query.Set("graph_access", node.GraphAccess)
 	// The same: written whichever way it is, so that it can be turned off.
 	query = query.Set("allow_download", node.AllowDownload)
 	// A post's content warning: the same, so that it can be taken off.

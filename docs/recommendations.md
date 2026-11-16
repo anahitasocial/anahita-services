@@ -62,7 +62,7 @@ and answers:
 
 - `actor` is the profile as the viewer is sent it anywhere else.
 - `reasons` is why, the one that counted most first. `count` is how strongly, and `ids` up to three of what it was found through.
-- `related` is what the reasons name, to say them in words: the people who follow somebody suggested, the hashtags shared. Only the ones the viewer may see.
+- `related` is what the reasons name, to say them in words: the people who follow somebody suggested, the hashtags shared. Only the ones the viewer may see, and of the people named for whom they follow, only those who let the viewer see whom they follow ([Permissions](permissions.md#who-sees-a-profiles-followers-and-whom-it-follows)); the reason's `count` counts them all.
 
 ## Why somebody is suggested
 

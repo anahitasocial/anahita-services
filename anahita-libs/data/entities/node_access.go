@@ -14,6 +14,13 @@ func (a *AnahitaNode) GetAccess() string {
 	return a.Access
 }
 
+// GetGraphAccess is who may see the profile's followers and whom it
+// follows (roadmap row 151): an access level, or "" for whoever may see the
+// profile.
+func (a *AnahitaNode) GetGraphAccess() string {
+	return a.GraphAccess
+}
+
 // SetAccess sets the access of the node
 func (a *AnahitaNode) SetAccess(access string) {
 	a.Access = access

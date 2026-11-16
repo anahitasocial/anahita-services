@@ -52,6 +52,7 @@ func grpcToGraphNode(m *graphpb.Node) *entities.AnahitaNode {
 	n.Service = m.Service
 	n.Enabled = m.Enabled
 	n.Access = m.Access
+	n.GraphAccess = m.GraphAccess
 	n.Name = m.Name
 	n.Alias = m.Alias
 	n.Body = m.Body
@@ -267,6 +268,7 @@ func graphNodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		Service:                   node.Service,
 		Enabled:                   node.Enabled,
 		Access:                    node.Access,
+		GraphAccess:               node.GraphAccess,
 		Name:                      node.Name,
 		Alias:                     node.Alias,
 		Body:                      node.Body,

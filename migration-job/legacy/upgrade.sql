@@ -526,6 +526,10 @@ ALTER TABLE nodes
     ADD COLUMN `warning_text` varchar(100) NOT NULL DEFAULT '' AFTER `warning`,
     ADD COLUMN `warning_by_moderator` tinyint(1) NOT NULL DEFAULT 0 AFTER `warning_text`;
 
+-- nodes.graph_access: who may see a profile's followers and whom it follows
+-- (20261122000019_graph_access). Empty for all, as the profile's own access.
+ALTER TABLE nodes ADD COLUMN `graph_access` varchar(32) NOT NULL DEFAULT '' AFTER `access`;
+
 -- nodes.citation_count.
 -- Nothing on the PHP site cited anything, so every count starts at 0.
 ALTER TABLE nodes ADD COLUMN `citation_count` int(11) unsigned NOT NULL DEFAULT 0 AFTER `quote_count`;

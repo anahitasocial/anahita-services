@@ -11,6 +11,7 @@ import (
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	an_handlers "anahita-libs/handlers"
+	"anahita-libs/permissions"
 	"anahita-libs/responses"
 
 	"github.com/labstack/echo/v4"
@@ -280,12 +281,19 @@ func (h *actorsHandler) readRelated(items []*SuggestionItem, viewer *entities.Vi
 
 	seen := map[int64]bool{}
 	ids := []int64{}
+	// Named for whom they follow: "followed by people you follow" says
+	// whom each of those people follows, which is theirs to show or not
+	// (roadmap row 151).
+	throughFollows := map[int64]bool{}
 	for _, item := range items {
 		for _, reason := range item.Reasons {
 			for _, id := range reason.IDs {
 				if !seen[id] {
 					seen[id] = true
 					ids = append(ids, id)
+				}
+				if reason.Type == constants.ReasonFollowedByLeaders {
+					throughFollows[id] = true
 				}
 			}
 		}
@@ -306,13 +314,51 @@ func (h *actorsHandler) readRelated(items []*SuggestionItem, viewer *entities.Vi
 	}
 
 	nodes := h.withPictures(list)
+	hidden := h.followsHidden(nodes, throughFollows, viewer)
 	for _, id := range visible {
-		if node, ok := nodes[id]; ok {
+		if node, ok := nodes[id]; ok && !hidden[id] {
 			related = append(related, responses.NewActorBrief(node))
 		}
 	}
 
 	return related
+}
+
+// followsHidden is the people named for whom they follow who do not let
+// the viewer see it: they are left unnamed, and the reason still counts
+// them. Only those with a choice of their own are asked about; when the
+// asking fails, all of those are left unnamed.
+func (h *actorsHandler) followsHidden(nodes map[int64]*entities.AnahitaNode, throughFollows map[int64]bool, viewer *entities.Viewer) map[int64]bool {
+	hidden := map[int64]bool{}
+	ask := []int64{}
+	for id := range throughFollows {
+		if node, ok := nodes[id]; ok && node.GraphAccess != "" {
+			ask = append(ask, id)
+		}
+	}
+	if len(ask) == 0 {
+		return hidden
+	}
+	var rels map[int64]*entities.ActorRelation
+	if h.Srv.SocialgraphGRPC != nil {
+		var err error
+		if rels, err = h.Srv.SocialgraphGRPC.Browse(ask, viewer.ID); err != nil {
+			log.Println("recommendations: how the viewer stands with the people named:", err)
+			rels = nil
+		}
+	}
+	for _, id := range ask {
+		rel, ok := rels[id]
+		if !ok || rel == nil {
+			hidden[id] = true
+			continue
+		}
+		ctx := &permissions.ActorAccessContext{Viewer: viewer, Actor: nodes[id], ActorViewerRel: rel}
+		if !permissions.CanSeeFollows(ctx) {
+			hidden[id] = true
+		}
+	}
+	return hidden
 }
 
 // dismissedActors reads the profiles somebody turned down, to list them

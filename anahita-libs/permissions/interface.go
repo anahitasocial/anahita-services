@@ -5,6 +5,7 @@ import "anahita-libs/data/entities"
 type ActorNodeInterface interface {
 	GetID() int64
 	GetAccess() string
+	GetGraphAccess() string
 	HasAddPermission(service string, entity string, access string) bool
 	IsPerson() bool
 }

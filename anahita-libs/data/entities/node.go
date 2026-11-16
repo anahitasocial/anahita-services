@@ -204,6 +204,9 @@ type AnahitaNode struct {
 	Mimetype       string
 	Language       string
 	Access         string
+	// Who may see its followers and whom it follows (roadmap row 151):
+	// an access level, or "" for whoever may see the profile.
+	GraphAccess string
 	PermissionsRaw string
 	Permissions    map[string]string
 	Features       []*AnahitaNodeFeature

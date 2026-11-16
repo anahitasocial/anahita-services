@@ -23,19 +23,15 @@ func (p *leadersPermissions) CanBrowse(actor *entities.AnahitaNode, viewer *enti
 		return false, err
 	}
 
-	actorPerm := permissions.NewActorPermissions()
 	ctx := &permissions.ActorAccessContext{
 		Viewer:         viewer,
 		Actor:          actor,
 		ActorViewerRel: rel,
 	}
 
-	ok, err := actorPerm.CanRead(ctx)
-	if err != nil {
-		return false, err
-	}
-
-	if ok {
+	// Whoever may see the profile, narrowed by who it lets see its
+	// followers and whom it follows (roadmap row 151).
+	if permissions.CanSeeFollows(ctx) {
 		return true, nil
 	}
 

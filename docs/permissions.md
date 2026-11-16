@@ -453,6 +453,37 @@ done inside the graph (`restrictUnseen`), before the actor leaves it, and the
 response is a `LimitedActor`, a written-out list of fields. It is not the
 ordinary item with fields blanked.
 
+### Who sees a profile's followers and whom it follows
+
+Whoever may see a profile may see its lists of followers, of whom it
+follows, and of who is in common, unless the profile chooses fewer (roadmap
+row 151): `graph_access`, one of the [access levels](#access-levels), or
+empty for whoever may see the profile, which is where every profile starts.
+
+| Level | Who may see the lists |
+| --- | --- |
+| empty | Whoever may see the profile |
+| `public`, `registered` | Anybody, or anybody signed in, who may see the profile |
+| `followers` | Its followers |
+| `leaders`, `mutuals` | People it follows, or people it follows who follow it back. People only |
+| `admins` | Nobody but itself (a person) or its admins (a group, an event) |
+
+1. **It never widens.** Somebody refused the profile is refused its lists
+   whatever this says.
+2. **The counts stay,** on the profile and on the fediverse, whose
+   collections say how many and never who ([Federation](federation.md)).
+3. **The profile itself, its admins and the site's administrators** always
+   see its lists.
+4. **Set with `PATCH /people|groups|events/:id/graph-access`** (`graph_access`),
+   by whoever may edit the profile; a group or an event refuses `leaders`
+   and `mutuals` with 400 `graph_access_invalid`. A list refused is 403.
+5. **Recommendations** name the people you follow who follow somebody
+   suggested only when each of them lets you see whom they follow; the
+   reason counts them all the same ([Recommendations](recommendations.md)).
+
+The rule is `permissions.CanSeeFollows`, over `MeetsAccessLevel`, which a
+profile's own access is measured with too.
+
 ## Invitations
 
 Nobody is made a follower of a group without saying yes. They are invited,

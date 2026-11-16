@@ -12,6 +12,9 @@ func NewServices(config *config.Config) *Services {
 		EventsGRPC:    services.NewEventsGRPC(config),
 		FilesGRPC:     services.NewFilesGRPC(config),
 		GraphNodeGRPC: services.NewGraphNodeGRPC(config),
+		// How the viewer stands with the people a reason names, for who
+		// may see whom they follow (roadmap row 151).
+		SocialgraphGRPC: services.NewSocialgraphGRPC(config),
 	}
 }
 
@@ -26,4 +29,6 @@ type Services struct {
 	// Says which of the profiles found the viewer may see, and reads what a
 	// reason names: a hashtag, the people who follow somebody.
 	GraphNodeGRPC services.GraphNodeGRPCInterface
+	// Reads how the viewer stands with the people a reason names.
+	SocialgraphGRPC services.SocialgraphGRPCInterface
 }

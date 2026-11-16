@@ -236,6 +236,21 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 				Refuses(http.StatusNotFound, "there is no such profile to restore")
 		}
 	}
+	// Who may see a profile's followers and whom it follows (roadmap row
+	// 151), on people, groups and events alike.
+	graphAccess := func(sends any) func(*apidoc.Route) {
+		return func(route *apidoc.Route) {
+			route.Shared("profiles").
+				Summary("Change who may see its followers and whom it follows").
+				Describe("An access level, or empty for whoever may see the profile; never wider than the profile. Groups and events have no `leaders` or `mutuals`.").
+				Viewer(apidoc.SignedIn).
+				Takes(&requests.ActorEditGraphAccessRequest{}).
+				Sends(http.StatusOK, sends).
+				Sends(http.StatusBadRequest, libs_responses.Refusal{}, "`graph_access_invalid`, or a level that is not one").
+				Refuses(http.StatusForbidden, "the viewer may not change it").
+				Refuses(http.StatusNotFound, "there is no such profile")
+		}
+	}
 	access := func(takes any, sends any) func(*apidoc.Route) {
 		return func(route *apidoc.Route) {
 			route.Shared("profiles").
@@ -383,6 +398,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 
 	// Edit access
 	people.PATCH("/:id/access", r.handler.Person.EditAccess, r.authorize).With(access(personReq.EditAccess, responses.PersonNode{}))
+	people.PATCH("/:id/graph-access", r.handler.Person.EditGraphAccess, r.authorize).With(graphAccess(responses.PersonNode{}))
 	people.PATCH("/:id/reposts-on-profile", r.handler.Person.EditRepostsOnProfile, r.authorize).
 		Summary("Show reposts among a person's posts, or not").
 		Describe("They are always in the Reposts tab of the profile.").
@@ -489,6 +505,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 
 	// group edit access
 	groups.PATCH("/:id/access", r.handler.Group.EditAccess, r.authorize).With(access(actorReq.EditAccess, responses.GroupNode{}))
+	groups.PATCH("/:id/graph-access", r.handler.Group.EditGraphAccess, r.authorize).With(graphAccess(responses.GroupNode{}))
 	groups.PATCH("/:id/download-default", r.handler.Group.EditDownloadDefault, r.authorize).With(downloads(responses.GroupNode{}))
 
 	// group edit features
@@ -618,6 +635,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	events.PATCH("/:id/featured", r.handler.Event.SetFeatured, r.authorize).With(featured)
 	events.POST("/:id/restore", r.handler.Event.Restore, r.authorize).With(restore("event"))
 	events.PATCH("/:id/access", r.handler.Event.EditAccess, r.authorize).With(access(actorReq.EditAccess, responses.EventNode{}))
+	events.PATCH("/:id/graph-access", r.handler.Event.EditGraphAccess, r.authorize).With(graphAccess(responses.EventNode{}))
 	events.GET("/:id/rules", r.handler.Event.ReadRules, r.setViewer).With(readRules("event"))
 	events.PUT("/:id/rules", r.handler.Event.SetRules, r.authorize).With(setRules("event"))
 	events.POST("/:id/rules/agree", r.handler.Event.AgreeRules, r.authorize).With(agreeRules("event"))
