@@ -52,7 +52,7 @@ is gathered at the end, [for planning](#not-built).
 | Content warnings | yes | An author's or the administrators', on any post, shown behind the warning, sent with it to both networks and read from them; each reader chooses Show, Warn or Hide for each kind; Made with AI as a sixth kind ([Content warnings](content-warnings.md)) |
 | Formatted text in posts | yes | |
 | Write in Markdown | yes | Posts are kept as Markdown |
-| Posts over 500 characters | no | 500, as Mastodon and Threads, a link counted as 23; longer is a thread, an article or a topic (roadmap row 144) |
+| Posts over 500 characters | yes | Articles and topics up to 8,000 characters; notes up to 500, as Mastodon and Threads, a link counted as 23 (roadmap row 144) |
 | Admin-configurable post length | no | |
 | Polls | no | |
 | Scheduled posts | no | |
@@ -87,7 +87,7 @@ is gathered at the end, [for planning](#not-built).
 | More than four attachments per post | yes | Up to 20, set by the operator |
 | Image descriptions (alt text) | yes | |
 | Image focal point | no | |
-| Sensitive media | yes | Pictures blurred behind a post's warning, here, as sent to both networks, and as received from them ([Content warnings](content-warnings.md)); each reader's own choices are planned |
+| Sensitive media | yes | Pictures blurred behind a post's warning, here, as sent to both networks, and as received from them and each reader's choice of Show, Warn or Hide for each kind ([Content warnings](content-warnings.md#what-each-reader-chooses)) |
 | Removes location data from photos | yes | Every image is written out again without its metadata |
 | Albums or collections | planned | [Collections](plans/collections.md) |
 | Photo filters | no | |
@@ -133,9 +133,9 @@ is gathered at the end, [for planning](#not-built).
 | Unlisted posts | no | |
 | Block accounts | yes | |
 | Mute accounts | yes | For a day, a week, a month or until lifted, with their notifications or without ([Permissions](permissions.md#mutes)) |
-| Block whole servers (personal) | no | |
+| Block whole servers (personal) | yes | Nothing from the server, or one under it, is shown; follows with people there end both ways ([Permissions](permissions.md#blocking-a-server)) |
 | Word filters | no | |
-| Hide follower and following lists | no | |
+| Hide follower and following lists | yes | Who may see them, never wider than the profile; the counts stay ([Permissions](permissions.md#who-sees-a-profiles-followers-and-whom-it-follows)) |
 | Choose whether posts are searchable | yes | Whether other servers may find them ([Federation](federation.md)) |
 | Hide from search engines | no | |
 | Signed fetches required (secure mode) | no | |
@@ -243,7 +243,7 @@ Every **no** and **planned** above, gathered for planning.
    streaming; chapters; playlists; podcast feeds; peer-to-peer delivery.
 5. **Interactions:** emoji reactions; downvotes; lists; joining groups on
    other servers; interacting from another server.
-6. **Privacy and safety:** unlisted posts; blocking a server for oneself; word filters; hiding one's follower lists; hiding from search
+6. **Privacy and safety:** unlisted posts; word filters; hiding from search
    engines; requiring signed fetches.
 7. **Moderation:** forwarding reports to other servers; limiting servers;
    federating only with a list; appeals.
