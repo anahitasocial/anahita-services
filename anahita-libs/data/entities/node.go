@@ -200,13 +200,13 @@ type AnahitaNode struct {
 	// An article or a topic still being written: seen by its author alone,
 	// listed nowhere but their drafts, announced to nobody. Only ever
 	// cleared, by publishing it.
-	Draft          bool
-	Mimetype       string
-	Language       string
-	Access         string
+	Draft    bool
+	Mimetype string
+	Language string
+	Access   string
 	// Who may see its followers and whom it follows (roadmap row 151):
 	// an access level, or "" for whoever may see the profile.
-	GraphAccess string
+	GraphAccess    string
 	PermissionsRaw string
 	Permissions    map[string]string
 	Features       []*AnahitaNodeFeature

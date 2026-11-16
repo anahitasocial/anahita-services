@@ -41,6 +41,8 @@ func main() {
 			Media:   services.NewMediaGRPC(config),
 			Graph:   services.NewGraphGRPC(config),
 			Edges:   services.NewGraphEdgeGRPC(config),
+			// The servers each person blocked (roadmap row 152).
+			ServerBlocks: services.NewSocialgraphServerBlockGRPC(config),
 		},
 		Files:     &worker.StoredFiles{Transfers: transfers},
 		Transfers: transfers,

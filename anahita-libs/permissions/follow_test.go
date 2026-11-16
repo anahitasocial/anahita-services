@@ -57,6 +57,7 @@ func TestCanFollow(t *testing.T) {
 		{"yourself, a public group", &FollowContext{viewer, me, groupNode("public", "admins"), none, none}, true},
 		{"yourself, a profile you cannot see", &FollowContext{viewer, me, personNode(followTargetID, "followers"), none, none}, false},
 		{"yourself, somebody who blocked you", &FollowContext{viewer, me, personNode(followTargetID, "public"), blocked, blocked}, false},
+		{"yourself, across a server blocked", &FollowContext{viewer, me, personNode(followTargetID, "public"), &entities.ActorRelation{IsServerBlocked: true}, &entities.ActorRelation{IsServerBlocked: true}}, false},
 		// The hole this closes: a stranger made to follow a stranger.
 		{"somebody else, a person", &FollowContext{viewer, other, personNode(followTargetID, "public"), none, none}, false},
 		{"somebody else, a person, as a site administrator", &FollowContext{viewerWith(constants.PersonTypeAdmin), other, personNode(followTargetID, "public"), none, none}, false},
@@ -133,6 +134,7 @@ func TestCanRequestToFollow(t *testing.T) {
 		{"a private profile that may not", &FollowContext{viewer, me, personNode(followTargetID, "followers"), none, none}, false},
 		{"one you already follow", &FollowContext{viewer, me, asked(), none, &entities.ActorRelation{IsLeading: true}}, false},
 		{"one that blocked you", &FollowContext{viewer, me, asked(), none, &entities.ActorRelation{IsBlocking: true}}, false},
+		{"across a server blocked", &FollowContext{viewer, me, asked(), none, &entities.ActorRelation{IsServerBlocked: true}}, false},
 		{"on somebody else's behalf", &FollowContext{viewer, other, asked(), none, none}, false},
 		{"on somebody else's behalf, as a site administrator", &FollowContext{viewerWith(constants.PersonTypeAdmin), other, asked(), none, none}, false},
 		{"a guest", &FollowContext{entities.NewViewer(), me, asked(), none, none}, false},

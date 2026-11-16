@@ -62,6 +62,12 @@ func CanFollow(ctx *FollowContext) bool {
 		return false
 	}
 
+	// Across a server one of the two blocked, nobody follows (roadmap row
+	// 152).
+	if relationOrEmpty(ctx.TargetSourceRel).IsServerBlocked {
+		return false
+	}
+
 	// Somebody elsewhere who approves their followers is asked, never
 	// followed outright: their server would hold the follow until they
 	// answered, and it would read here as one already made (roadmap row
@@ -119,7 +125,8 @@ func CanRequestToFollow(ctx *FollowContext) bool {
 	rel := relationOrEmpty(ctx.TargetSourceRel)
 
 	// IsLeading: the source already follows the target.
-	return !rel.IsBlocking && !rel.IsLeading
+	// Not across a server one of the two blocked (roadmap row 152).
+	return !rel.IsBlocking && !rel.IsServerBlocked && !rel.IsLeading
 }
 
 // CanAcceptFollowRequest reports whether the viewer may turn a request to

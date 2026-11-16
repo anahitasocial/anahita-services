@@ -53,6 +53,9 @@ type Source interface {
 	Saved(personID int64, offset uint64) ([]*entities.AnahitaNode, error)
 	// Mutes is how each of their mutes was made, by whom is muted.
 	Mutes(personID int64) (map[int64]Mute, error)
+	// BlockedServers is the servers they blocked for themselves (roadmap
+	// row 152), by domain.
+	BlockedServers(personID int64) ([]string, error)
 }
 
 // Mute is how a mute was made: whether it hides the muted person's
@@ -370,6 +373,15 @@ func (b *Builder) Write(ctx context.Context, w io.Writer, personID int64) (*Summ
 	}
 	page.Saved = saved
 	if err := writeJSON(z, "data/saved.json", saved); err != nil {
+		return nil, err
+	}
+
+	servers, err := b.Source.BlockedServers(personID)
+	if err != nil {
+		return nil, err
+	}
+	page.BlockedServers = servers
+	if err := writeJSON(z, "data/blocked_servers.json", servers); err != nil {
 		return nil, err
 	}
 

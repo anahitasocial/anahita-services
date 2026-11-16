@@ -1,10 +1,10 @@
-# Blocking a server yourself (roadmap row 152)
+# Blocking a server yourself (roadmap row 152, done 2026-11-16)
 
 Asked for by the user on 2026-11-15, from FediDB's list of features: "A
 person should be able to block a whole server from their own profile and
 feed; right now only the super admins can block a whole server from the
 site settings." Today a server is refused for everybody, by a super
-administrator (`federation_domain_blocks`, [Federation](../federation.md)),
+administrator (`federation_domain_blocks`, [Federation](../../federation.md)),
 and one person can block or mute one profile at a time (row 133).
 
 ## Contents
@@ -65,6 +65,6 @@ and in a person's download, as Mastodon's `domain_blocks.csv`, which row
 
 | Phase | What | Status |
 | --- | --- | --- |
-| 1 | The table, the routes, and every query a mute reaches; follows ended and refused | ⬜ |
-| 2 | Block server in a profile's menu; servers in Settings › Blocked | ⬜ |
-| 3 | The download; the docs; tried from a Mastodon account at both sizes; changelogs | ⬜ |
+| 1 | The table, the routes, and every query a mute reaches; follows ended and refused | ✅ 2026-11-16 |
+| 2 | Block server in a profile's menu; servers in Settings › Blocked | ✅ 2026-11-16 |
+| 3 | The download; the docs; tried at both sizes; changelogs. Not tried from a Mastodon account: dev cannot federate | ✅ 2026-11-16 |

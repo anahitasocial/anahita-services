@@ -30,6 +30,7 @@ func NewRepositories(db *sql.DB) *Repositories {
 		Search:             NewSearchRepo(db),
 		HashtagSuggestions: NewHashtagSuggestionsRepo(db),
 		SocialgraphRel:     NewSocialgraphRelRepo(db),
+		ServerBlocks:       NewServerBlocksRepo(db),
 		SocialGraphCounts:  NewSocialGraphCountsRepo(db),
 		SubscriptionsRel:   NewSubscriptionsRelRepo(db),
 		Tags:               NewTagsRepo(db),
@@ -61,7 +62,9 @@ type Repositories struct {
 	Search             SearchRepoInterface
 	HashtagSuggestions HashtagSuggestionsRepoInterface
 	SocialgraphRel     SocialgraphRelInterface
-	SocialGraphCounts  SocialGraphCountsInterface
-	SubscriptionsRel   SubscriptionsRelInterface
-	Tags               TagsRepoInterface
+	// The servers each person blocked for themselves (roadmap row 152).
+	ServerBlocks      ServerBlocksInterface
+	SocialGraphCounts SocialGraphCountsInterface
+	SubscriptionsRel  SubscriptionsRelInterface
+	Tags              TagsRepoInterface
 }

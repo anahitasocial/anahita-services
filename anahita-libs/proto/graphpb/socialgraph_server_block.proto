@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package graph;
+
+option go_package = "/graphpb";
+
+// The servers a person blocked for themselves (roadmap row 152). Nothing
+// from such a server, or from one under it, is shown to them; no follow
+// crosses between them and anybody there; nobody there is told.
+message ServerBlock {
+    // Lowercase, without a scheme or a port.
+    string domain = 1;
+    // In Unix seconds.
+    int64 created_at = 2;
+}
+
+message ServerBlockAddRequest {
+    int64 person_id = 1;
+    string domain = 2;
+}
+
+message ServerBlockAddResponse {
+    bool success = 1;
+}
+
+message ServerBlockDeleteRequest {
+    int64 person_id = 1;
+    string domain = 2;
+}
+
+message ServerBlockDeleteResponse {
+    bool success = 1;
+}
+
+message ServerBlockBrowseRequest {
+    int64 person_id = 1;
+    int64 start = 2;
+    int64 limit = 3;
+}
+
+message ServerBlockBrowseResponse {
+    repeated ServerBlock blocks = 1;
+    int64 total = 2;
+}
+
+// A follow between the person and somebody on a server: who follows whom.
+message ServerFollow {
+    int64 source_id = 1;
+    int64 target_id = 2;
+}
+
+message ServerFollowsRequest {
+    int64 person_id = 1;
+    string domain = 2;
+}
+
+message ServerFollowsResponse {
+    repeated ServerFollow follows = 1;
+}
+
+service SocialgraphServerBlockService {
+    // Blocks a server, or does nothing when it is blocked already.
+    rpc Add(ServerBlockAddRequest) returns (ServerBlockAddResponse);
+    rpc Delete(ServerBlockDeleteRequest) returns (ServerBlockDeleteResponse);
+    // The person's blocked servers, the latest first.
+    rpc Browse(ServerBlockBrowseRequest) returns (ServerBlockBrowseResponse);
+    // The follows, either way, between the person and anybody on the
+    // server or one under it: the ones a block ends.
+    rpc Follows(ServerFollowsRequest) returns (ServerFollowsResponse);
+}

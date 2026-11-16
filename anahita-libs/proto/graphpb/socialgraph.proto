@@ -25,6 +25,9 @@ message Socialgraph {
     bool mute_hides_notifications = 12;
     // When the mute ends, in Unix seconds; 0 for until unmuted.
     int64 mute_ends_at = 13;
+    // One of the two blocked the server the other is on, or one above it
+    // (roadmap row 152): nothing is shown, and no follow crosses.
+    bool is_server_blocked = 14;
 }
 
 message SocialgraphReadRequest {

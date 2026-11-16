@@ -253,6 +253,20 @@ func (h *mediumHandler) withoutMuted(rootID int64, replies []*entities.AnahitaNo
 	if err != nil {
 		return nil, err
 	}
+	// A server the viewer blocked is as a muted person (roadmap row 152):
+	// its replies go, and what is under them.
+	blocked, err := h.env.Repos.ServerBlocks.Domains(viewer.ID)
+	if err != nil {
+		return nil, err
+	}
+	if repositories.OnBlockedServer(root.OriginDomain, blocked) {
+		return replies, nil
+	}
+	for _, reply := range replies {
+		if repositories.OnBlockedServer(reply.OriginDomain, blocked) {
+			muted[reply.CreatedBy] = true
+		}
+	}
 	if muted[root.OwnerID] || muted[root.CreatedBy] {
 		return replies, nil
 	}

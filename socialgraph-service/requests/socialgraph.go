@@ -75,3 +75,31 @@ type MuteAddRequest struct {
 	// unmuted.
 	For string `json:"for" validate:"omitempty,oneof=day week month"`
 }
+
+// ServerBlockBrowseRequest lists the servers a person blocked for
+// themselves (roadmap row 152).
+type ServerBlockBrowseRequest struct {
+	// The person's id: the viewer.
+	ActorID int64 `param:"actor_id" validate:"required,numeric"`
+	// How many to pass over.
+	Offset int64 `query:"start" validate:"omitempty,min=0"`
+	// The most to send, up to 100.
+	Limit int64 `query:"limit" validate:"omitempty,min=0,max=100"`
+}
+
+// ServerBlockAddRequest blocks a server for the viewer.
+type ServerBlockAddRequest struct {
+	// The person's id: the viewer.
+	ActorID int64 `param:"actor_id" validate:"required,numeric"`
+	// The server: a domain (`tycho.example`), or a handle or an address on
+	// it, from which its domain is taken.
+	Domain string `json:"domain" validate:"required,max=255"`
+}
+
+// ServerBlockDeleteRequest unblocks a server for the viewer.
+type ServerBlockDeleteRequest struct {
+	// The person's id: the viewer.
+	ActorID int64 `param:"actor_id" validate:"required,numeric"`
+	// The server's domain, as it is listed.
+	Domain string `param:"domain" validate:"required,max=255"`
+}

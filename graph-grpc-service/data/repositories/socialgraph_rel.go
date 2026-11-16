@@ -206,6 +206,51 @@ func (r *socialgraphRelRepo) getRelations(actorAIDs []int64, actorBID int64) (ma
 		}
 	}
 
+	// 3c) one of the two blocked the server the other is on, or one above
+	// it (IsServerBlocked, roadmap row 152). Only a person blocks servers,
+	// and only somebody elsewhere is on one, so either way it is the same
+	// pair: nothing shown, no follow.
+	{
+		in := sq.Placeholders(len(actorAIDs))
+		q := `
+SELECT b.person_id AS actor_id
+FROM person_domain_blocks b
+JOIN nodes nb ON nb.id = ?
+WHERE b.person_id IN (` + in + `)
+  AND ` + onBlockedServer("nb.origin_domain") + `
+UNION
+SELECT na.id AS actor_id
+FROM nodes na
+JOIN person_domain_blocks b ON b.person_id = ?
+WHERE na.id IN (` + in + `)
+  AND ` + onBlockedServer("na.origin_domain")
+		args := []any{actorBID}
+		for _, id := range actorAIDs {
+			args = append(args, id)
+		}
+		args = append(args, actorBID)
+		for _, id := range actorAIDs {
+			args = append(args, id)
+		}
+		rows, err := r.db.QueryContext(ctx, q, args...)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+		for rows.Next() {
+			var actorID int64
+			if err := rows.Scan(&actorID); err != nil {
+				return nil, err
+			}
+			if rel, ok := rels[actorID]; ok {
+				rel.IsServerBlocked = true
+			}
+		}
+		if err := rows.Err(); err != nil {
+			return nil, err
+		}
+	}
+
 	// 4) actorB administers actorA (HasAdmin)
 	//
 	// READ THE DIRECTION CAREFULLY — it is the opposite of the three relations

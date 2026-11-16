@@ -198,6 +198,30 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Refuses(http.StatusForbidden, "the viewer may not lift this block").
 		Refuses(http.StatusNotFound, "there is no such profile")
 
+	// The servers a person blocked for themselves (roadmap row 152).
+	socialgraph.GET("/:actor_id/blocked-servers/", r.handler.ServerBlock.Browse, r.authorize).
+		Summary("Which servers a person has blocked").
+		Describe("Theirs alone, most lately blocked first. Nothing from a server blocked, or one under it, is shown to them, and no follow crosses (permissions.md, Blocking a server).").
+		Viewer(apidoc.SignedIn).
+		Takes(&requests.ServerBlockBrowseRequest{}).
+		Sends(http.StatusOK, responses.List[*handlers.ServerBlock]{}).
+		Refuses(http.StatusForbidden, "the viewer is not this person")
+	socialgraph.POST("/:actor_id/blocked-servers", r.handler.ServerBlock.Add, r.authorize).
+		Summary("Block a server").
+		Describe("For the viewer alone: its posts, replies and notifications leave their sight, and every follow between them and anybody there ends, either way, as when a follow is removed. Nobody there is told of the block. A server on Bluesky cannot be told apart; accounts there are blocked one by one.").
+		Viewer(apidoc.SignedIn).
+		Takes(&requests.ServerBlockAddRequest{}).
+		Sends(http.StatusCreated, handlers.ServerBlock{}).
+		Sends(http.StatusUnprocessableEntity, responses.Refusal{}, "`server_invalid`, or `server_on_bluesky`").
+		Refuses(http.StatusForbidden, "the viewer is not this person")
+	socialgraph.DELETE("/:actor_id/blocked-servers/:domain", r.handler.ServerBlock.Delete, r.authorize).
+		Summary("Unblock a server").
+		Describe("The follows it ended are not made again.").
+		Viewer(apidoc.SignedIn).
+		Takes(&requests.ServerBlockDeleteRequest{}).
+		Sends(http.StatusNoContent, nil).
+		Refuses(http.StatusForbidden, "the viewer is not this person")
+
 	socialgraph.GET("/:actor_id/mutes/", r.handler.Mute.Browse, r.authorize).
 		Summary("Whom a person has muted").
 		Describe("Theirs alone, most lately muted first, each with `mute_ends_at` (absent for until unmuted) and `mute_hides_notifications`. A mute that has ended is not in it.").

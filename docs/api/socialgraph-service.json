@@ -625,6 +625,25 @@
           "result"
         ],
         "type": "object"
+      },
+      "socialgraph.ServerBlock": {
+        "description": "ServerBlock is a blocked server as it is listed.",
+        "properties": {
+          "created_at": {
+            "description": "When it was blocked.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "domain": {
+            "description": "The server's domain, lowercase.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "domain",
+          "created_at"
+        ],
+        "type": "object"
       }
     },
     "securitySchemes": {
@@ -723,6 +742,230 @@
           "socialgraph-service"
         ],
         "x-handler": "socialgraph/cmd/api/handlers.(*inviteHandler).Mine",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/socialgraph/{actor_id}/blocked-servers": {
+      "post": {
+        "description": "For the viewer alone: its posts, replies and notifications leave their sight, and every follow between them and anybody there ends, either way, as when a follow is removed. Nobody there is told of the block. A server on Bluesky cannot be told apart; accounts there are blocked one by one.\n\nWho may call it: somebody signed in.",
+        "operationId": "postSocialgraphByActorIdBlockedServers",
+        "parameters": [
+          {
+            "description": "The person's id: the viewer.",
+            "in": "path",
+            "name": "actor_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "domain": {
+                    "description": "The server: a domain (`tycho.example`), or a handle or an address on it, from which its domain is taken.",
+                    "maxLength": 255,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "domain"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/socialgraph.ServerBlock"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer is not this person"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`server_invalid`, or `server_on_bluesky`"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Block a server",
+        "tags": [
+          "socialgraph-service"
+        ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*serverBlockHandler).Add",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/socialgraph/{actor_id}/blocked-servers/": {
+      "get": {
+        "description": "Theirs alone, most lately blocked first. Nothing from a server blocked, or one under it, is shown to them, and no follow crosses (permissions.md, Blocking a server).\n\nWho may call it: somebody signed in.",
+        "operationId": "getSocialgraphByActorIdBlockedServers",
+        "parameters": [
+          {
+            "description": "The person's id: the viewer.",
+            "in": "path",
+            "name": "actor_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send, up to 100.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "format": "int64",
+              "maximum": 100,
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/socialgraph.ServerBlock"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer is not this person"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Which servers a person has blocked",
+        "tags": [
+          "socialgraph-service"
+        ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*serverBlockHandler).Browse",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/socialgraph/{actor_id}/blocked-servers/{domain}": {
+      "delete": {
+        "description": "The follows it ended are not made again.\n\nWho may call it: somebody signed in.",
+        "operationId": "deleteSocialgraphByActorIdBlockedServersByDomain",
+        "parameters": [
+          {
+            "description": "The person's id: the viewer.",
+            "in": "path",
+            "name": "actor_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The server's domain, as it is listed.",
+            "in": "path",
+            "name": "domain",
+            "required": true,
+            "schema": {
+              "maxLength": 255,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer is not this person"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Unblock a server",
+        "tags": [
+          "socialgraph-service"
+        ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*serverBlockHandler).Delete",
         "x-viewer": "signed_in"
       }
     },

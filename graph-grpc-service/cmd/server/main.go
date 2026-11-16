@@ -119,6 +119,7 @@ func startGrpcServer(h *handlers.Handlers) error {
 	graphpb.RegisterEventServiceServer(s, h.Event)
 	graphpb.RegisterSocialgraphBlockServiceServer(s, h.SocialgraphBlock)
 	graphpb.RegisterSocialgraphMuteServiceServer(s, h.SocialgraphMute)
+	graphpb.RegisterSocialgraphServerBlockServiceServer(s, h.SocialgraphServerBlock)
 	graphpb.RegisterSubscriptionServiceServer(s, h.Subscription)
 	typespb.RegisterTypesServiceServer(s, h.Ping)
 

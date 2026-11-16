@@ -1203,8 +1203,10 @@ server it knows.
 
 ## Servers that are refused
 
-A list kept by super administrators (`federation_domain_blocks`). A server
-on it:
+A list kept by super administrators (`federation_domain_blocks`), for the
+whole site. Each person may also block a server for themselves alone
+([Permissions](permissions.md#blocking-a-server)). A server on the site's
+list:
 
 - is not listened to: what it sends is answered `403` before its key is
   even fetched;

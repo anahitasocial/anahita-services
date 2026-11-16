@@ -456,6 +456,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | --- | --- | --- |
 | [Recommendation service](plans/done/recommendation-service.md) | 3 | built 2026-10-11 |
 | [Who sees your followers and who you follow](plans/done/who-sees-your-follows.md) | row 151 | done 2026-11-15 |
+| [Blocking a server yourself](plans/done/blocking-a-server.md) | row 152 | done 2026-11-16 |
 | [Notifications: right, then worth acting on](plans/done/notifications.md) | 79, 80 | done 2026-10-19 |
 | [Sign in with a code; codes instead of links](plans/done/login-code.md) | 6, 6b | done 2026-10-03 (step-up by code left out by decision) |
 | [Notes as replies](plans/done/notes-as-replies.md) | 7 | done 2026-10-05: every comment is a reply, a post's author chooses who can reply, and comment-service is removed |

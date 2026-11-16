@@ -38,6 +38,8 @@ func GrpcToRelationEntity(relation *graphpb.Socialgraph) *entities.ActorRelation
 		IsMuting:               relation.IsMuting,
 		MuteHidesNotifications: relation.MuteHidesNotifications,
 		MuteEndsAt:             unixToTime(relation.MuteEndsAt),
+
+		IsServerBlocked: relation.IsServerBlocked,
 	}
 }
 
@@ -55,6 +57,8 @@ func RelationEntityToGrpc(relation *entities.ActorRelation) *graphpb.Socialgraph
 		IsMuting:               relation.IsMuting,
 		MuteHidesNotifications: relation.MuteHidesNotifications,
 		MuteEndsAt:             timeToUnix(relation.MuteEndsAt),
+
+		IsServerBlocked: relation.IsServerBlocked,
 	}
 }
 

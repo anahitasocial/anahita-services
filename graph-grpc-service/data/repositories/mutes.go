@@ -40,7 +40,9 @@ const muteEdgeLasting = `m.type = ? AND m.node_a_id = ? AND (m.ends_at IS NULL O
 //     profile it is on;
 //   - a repost, unless the viewer muted the reposter, or who wrote the post
 //     it repeats or whose profile that is on;
-//   - a profile, always: a muted person is still found, to be unmuted.
+//   - a profile, always: a muted person is still found, to be unmuted;
+//   - and nothing from a server the viewer blocked, or of a profile there
+//     (roadmap row 152, fromBlockedServer), as for a muted person.
 //
 // One way only, unlike a block: the muted person's lists are untouched.
 func mutedCondition(viewerID int64) sq.Sqlizer {
@@ -61,6 +63,7 @@ func mutedCondition(viewerID int64) sq.Sqlizer {
 		sq.Like{"node.type": constants.NodeActorPrefixEntityType + "%"},
 		sq.And{
 			mine,
+			fromBlockedServer(viewerID),
 			sq.Or{
 				sq.NotEq{"node.type": constants.NodeBaseRepostType},
 				repeated,

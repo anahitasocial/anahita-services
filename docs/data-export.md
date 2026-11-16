@@ -61,8 +61,9 @@ Where the request came from, its address and browser, is kept on the row.
 | `data/profile.json` | The profile, and `format`, the version of the files in `data/`: 2 since 2026-11-08, when entries began to say their `address` and `uri` |
 | `data/posts.ndjson` | Everything written, one post on each line: notes, articles, topics, photos, videos, replies, reposts and custom feeds, wherever each was posted, **including what only its author may see** |
 | `data/following.json`, `followers.json`, `blocked.json`, `muted.json` | Who they follow, who follows them, who they blocked, who they muted while the mute lasts |
+| `data/blocked_servers.json` | The servers they blocked for themselves, by domain |
 | `data/liked.json`, `saved.json` | What they liked and saved, by name and address |
-| `mastodon/` | Who they follow, block and mute, and what they saved, in Mastodon's own files, which Mastodon, Misskey, GoToSocial and others import: `following_accounts.csv`, `blocked_accounts.csv`, `muted_accounts.csv` and `bookmarks.csv`. People on the fediverse only, by their handle |
+| `mastodon/` | Who they follow, block and mute, and what they saved, in Mastodon's own files, which Mastodon, Misskey, GoToSocial and others import: `following_accounts.csv`, `blocked_accounts.csv`, `muted_accounts.csv`, `domain_blocks.csv` (the servers they blocked) and `bookmarks.csv`. People on the fediverse only, by their handle |
 | `actor.json`, `outbox.json` | The profile and the posts as ActivityStreams, the form other fediverse software reads. What was not public is addressed to nobody |
 | `media/<post id>/` | Each post's pictures at the largest size kept, a video at its largest size, an article's cover |
 | `media/profile/` | The avatar and the cover |

@@ -236,8 +236,9 @@ func (h *Handlers) followed(ctx context.Context, from *remote.Actor, activity *a
 		return err
 	}
 
-	// Somebody the person here has blocked is told no.
-	if relation != nil && relation.IsBlocking {
+	// Somebody the person here has blocked is told no, and so is somebody
+	// on a server they blocked (roadmap row 152).
+	if relation != nil && (relation.IsBlocking || relation.IsServerBlocked) {
 		return h.send(ctx, person.ID, from.Inbox,
 			ap.NewReject(h.addresses.Activity(newUUID()), actor, from.ID, activity.ID), "reject:"+activity.ID)
 	}

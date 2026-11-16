@@ -63,6 +63,13 @@ const eligibleCandidate = `(c.type = ?{{elsewhere}})
   )
   AND NOT EXISTS (
       SELECT 1
+      FROM person_domain_blocks AS server
+      WHERE server.person_id = ?
+        AND (SUBSTRING_INDEX(c.origin_domain, ':', 1) = server.domain
+          OR SUBSTRING_INDEX(c.origin_domain, ':', 1) LIKE CONCAT('%.', server.domain))
+  )
+  AND NOT EXISTS (
+      SELECT 1
       FROM recommendation_preferences AS hidden
       WHERE hidden.person_id = c.id
         AND hidden.discoverable = 0
@@ -139,6 +146,8 @@ func eligibleArgs(kindType string, viewerID int64) []any {
 		an_const.EdgeMuteEntityType,
 		an_const.EdgeBlockEntityType,
 		viewerID, viewerID,
+		viewerID,
+		// Nobody on a server the viewer blocked (roadmap row 152).
 		viewerID,
 		constants.PersonType,
 	}

@@ -42,9 +42,12 @@ type Socialgraph struct {
 	// Actor A, muting actor B, is not told of what actor B does.
 	MuteHidesNotifications bool `protobuf:"varint,12,opt,name=mute_hides_notifications,json=muteHidesNotifications,proto3" json:"mute_hides_notifications,omitempty"`
 	// When the mute ends, in Unix seconds; 0 for until unmuted.
-	MuteEndsAt    int64 `protobuf:"varint,13,opt,name=mute_ends_at,json=muteEndsAt,proto3" json:"mute_ends_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	MuteEndsAt int64 `protobuf:"varint,13,opt,name=mute_ends_at,json=muteEndsAt,proto3" json:"mute_ends_at,omitempty"`
+	// One of the two blocked the server the other is on, or one above it
+	// (roadmap row 152): nothing is shown, and no follow crosses.
+	IsServerBlocked bool `protobuf:"varint,14,opt,name=is_server_blocked,json=isServerBlocked,proto3" json:"is_server_blocked,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *Socialgraph) Reset() {
@@ -166,6 +169,13 @@ func (x *Socialgraph) GetMuteEndsAt() int64 {
 		return x.MuteEndsAt
 	}
 	return 0
+}
+
+func (x *Socialgraph) GetIsServerBlocked() bool {
+	if x != nil {
+		return x.IsServerBlocked
+	}
+	return false
 }
 
 type SocialgraphReadRequest struct {
@@ -364,7 +374,7 @@ var File_proto_graphpb_socialgraph_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_socialgraph_proto_rawDesc = "" +
 	"\n" +
-	"\x1fproto/graphpb/socialgraph.proto\x12\x05graph\"\xbe\x03\n" +
+	"\x1fproto/graphpb/socialgraph.proto\x12\x05graph\"\xea\x03\n" +
 	"\vSocialgraph\x12\x1c\n" +
 	"\n" +
 	"actor_a_id\x18\x01 \x01(\x03R\bactorAId\x12\x1c\n" +
@@ -385,7 +395,8 @@ const file_proto_graphpb_socialgraph_proto_rawDesc = "" +
 	"\tis_muting\x18\v \x01(\bR\bisMuting\x128\n" +
 	"\x18mute_hides_notifications\x18\f \x01(\bR\x16muteHidesNotifications\x12 \n" +
 	"\fmute_ends_at\x18\r \x01(\x03R\n" +
-	"muteEndsAt\"T\n" +
+	"muteEndsAt\x12*\n" +
+	"\x11is_server_blocked\x18\x0e \x01(\bR\x0fisServerBlocked\"T\n" +
 	"\x16SocialgraphReadRequest\x12\x1c\n" +
 	"\n" +
 	"actor_a_id\x18\x01 \x01(\x03R\bactorAId\x12\x1c\n" +

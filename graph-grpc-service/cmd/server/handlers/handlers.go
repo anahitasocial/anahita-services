@@ -46,30 +46,33 @@ type Handlers struct {
 	Event             *eventGrpcHandler
 	SocialgraphBlock  *socialgraphBlockGrpcHandler
 	SocialgraphMute   *socialgraphMuteGrpcHandler
-	Subscription      *subscriptionGrpcHandler
+	// The servers each person blocked for themselves (roadmap row 152).
+	SocialgraphServerBlock *socialgraphServerBlockGrpcHandler
+	Subscription           *subscriptionGrpcHandler
 }
 
 func NewHandlers(env *Env) *Handlers {
 	return &Handlers{
-		Actor:             NewActorHandler(env),
-		ActorAdmin:        NewActorAdminHandler(env),
-		FeedActor:         NewFeedActorHandler(env),
-		FeedCustom:        NewFeedCustomHandler(env),
-		FeedLeaders:       NewFeedLeadersHandler(env),
-		Graph:             NewGraphHandler(env),
-		Like:              NewLikeGrpcHandler(env),
-		Medium:            NewMediumHandler(env),
-		Node:              NewNodeHandler(env),
-		Edge:              NewEdgeHandler(env),
-		Ping:              NewPingHandler(env),
-		Repost:            NewRepostHandler(env),
-		Search:            NewSearchHandler(env),
-		Hashtag:           NewHashtagHandler(env),
-		Socialgraph:       NewSocialgraphGrpcHandler(env),
-		SocialgraphFollow: NewSocialgraphFollowGrpcHandler(env),
-		Event:             NewEventGrpcHandler(env),
-		SocialgraphBlock:  NewSocialgraphBlockGrpcHandler(env),
-		SocialgraphMute:   NewSocialgraphMuteGrpcHandler(env),
-		Subscription:      NewSubscriptionGrpcHandler(env),
+		Actor:                  NewActorHandler(env),
+		ActorAdmin:             NewActorAdminHandler(env),
+		FeedActor:              NewFeedActorHandler(env),
+		FeedCustom:             NewFeedCustomHandler(env),
+		FeedLeaders:            NewFeedLeadersHandler(env),
+		Graph:                  NewGraphHandler(env),
+		Like:                   NewLikeGrpcHandler(env),
+		Medium:                 NewMediumHandler(env),
+		Node:                   NewNodeHandler(env),
+		Edge:                   NewEdgeHandler(env),
+		Ping:                   NewPingHandler(env),
+		Repost:                 NewRepostHandler(env),
+		Search:                 NewSearchHandler(env),
+		Hashtag:                NewHashtagHandler(env),
+		Socialgraph:            NewSocialgraphGrpcHandler(env),
+		SocialgraphFollow:      NewSocialgraphFollowGrpcHandler(env),
+		Event:                  NewEventGrpcHandler(env),
+		SocialgraphBlock:       NewSocialgraphBlockGrpcHandler(env),
+		SocialgraphMute:        NewSocialgraphMuteGrpcHandler(env),
+		SocialgraphServerBlock: NewSocialgraphServerBlockGrpcHandler(env),
+		Subscription:           NewSubscriptionGrpcHandler(env),
 	}
 }

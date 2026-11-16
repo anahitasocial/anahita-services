@@ -16,6 +16,9 @@ type ActorRelation struct {
 	// When actorA's mute of actorB ends; zero for until unmuted
 	MuteEndsAt time.Time
 	HasAdmin   bool // actorA has actorB as admin
+	// one of the two blocked the server the other is on, or one above it
+	// (roadmap row 152): nothing is shown, and no follow crosses
+	IsServerBlocked bool
 	// actorB has asked to follow actorA, and has not been answered
 	HasRequested bool
 	// actorB has been invited to follow actorA, and has not answered

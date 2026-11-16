@@ -563,8 +563,15 @@ DELETE FROM search_preferences
 WHERE person_id = ?
 LIMIT ?`
 
+	// The servers they blocked for themselves (roadmap row 152).
+	const deleteServerBlocks = `
+DELETE FROM person_domain_blocks
+WHERE person_id = ?
+LIMIT ?`
+
 	for _, query := range []string{
 		deleteSearchPreferences,
+		deleteServerBlocks,
 		deleteEdgesFromActor,
 		deleteEdgesToActor,
 		deleteNotificationsToActor,

@@ -35,6 +35,12 @@ func (b *Builder) writeMastodon(z *zip.Writer, page *pageData) error {
 		muted = append(muted, []string{ref.Address, strconv.FormatBool(hide)})
 	}
 
+	// Mastodon's file of blocked servers: a domain a line, no heading.
+	servers := [][]string{}
+	for _, domain := range page.BlockedServers {
+		servers = append(servers, []string{domain})
+	}
+
 	bookmarks := [][]string{}
 	for _, ref := range page.Saved {
 		if ref.URI != "" {
@@ -49,6 +55,7 @@ func (b *Builder) writeMastodon(z *zip.Writer, page *pageData) error {
 		{"mastodon/following_accounts.csv", following},
 		{"mastodon/blocked_accounts.csv", blocked},
 		{"mastodon/muted_accounts.csv", muted},
+		{"mastodon/domain_blocks.csv", servers},
 		{"mastodon/bookmarks.csv", bookmarks},
 	} {
 		if err := writeCSV(z, file.name, file.rows); err != nil {

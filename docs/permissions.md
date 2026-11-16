@@ -35,17 +35,18 @@ What each route answers when the viewer may not is in the [API reference](api/in
 15. [Quotes](#quotes)
 16. [Saved posts](#saved-posts)
 17. [Mutes](#mutes)
-18. [Pinned posts](#pinned-posts)
-19. [Downloading photos and videos](#downloading-photos-and-videos)
-20. [Custom feeds](#custom-feeds)
-21. [Suggestions](#suggestions)
-22. [Reporting](#reporting)
-23. [Account types](#account-types)
-24. [Removing accounts](#removing-accounts)
-25. [The defaults](#the-defaults)
-26. [What profile owners can change](#what-profile-owners-can-change)
-27. [Accepted values](#accepted-values)
-28. [Where the code is](#where-the-code-is)
+18. [Blocking a server](#blocking-a-server)
+19. [Pinned posts](#pinned-posts)
+20. [Downloading photos and videos](#downloading-photos-and-videos)
+21. [Custom feeds](#custom-feeds)
+22. [Suggestions](#suggestions)
+23. [Reporting](#reporting)
+24. [Account types](#account-types)
+25. [Removing accounts](#removing-accounts)
+26. [The defaults](#the-defaults)
+27. [What profile owners can change](#what-profile-owners-can-change)
+28. [Accepted values](#accepted-values)
+29. [Where the code is](#where-the-code-is)
 
 ## Two separate settings
 
@@ -753,6 +754,34 @@ block hides more.
 
 A profile read by somebody signed in says `is_muted_by_viewer`, with
 `mute_ends_at` (absent for until unmuted) and `mute_hides_notifications`.
+
+## Blocking a server
+
+A person may block a whole server for themselves (roadmap row 152), as a
+super administrator refuses one for the site
+([Federation](federation.md#servers-that-are-refused)). For them alone:
+
+1. **Nothing from it is shown:** posts, replies, reposts and quotes from
+   anybody on it, or on a server under it, leave their feeds, custom
+   feeds, search, hashtag and location pages, and the replies under posts,
+   as a muted person's do (`fromBlockedServer` in the graph's mute
+   condition). A post they open by its address is shown, with its replies.
+2. **No notifications** come from anybody on it.
+3. **Follows end, both ways,** with everybody there, through the ordinary
+   removal of a follow, so their server is told as for any follow that
+   ends; new ones are refused, here and from there (`IsServerBlocked` on
+   the relation, either way).
+4. **Nobody there is told** of the block. Unblocking does not make the
+   follows again.
+5. **Not Bluesky:** its posts are all kept as from `bsky.app`, so one
+   server there cannot be told from another; a person blocks accounts on
+   Bluesky one by one (`422` `server_on_bluesky`).
+
+A server is its domain, lowercase, without a scheme or a port; a handle or
+an address on it names it too. The list is `person_domain_blocks`, theirs
+alone: `GET`, `POST /socialgraph/:actor_id/blocked-servers`, and `DELETE
+…/blocked-servers/:domain`, for the person themselves. It goes with a purge,
+and is in their download ([Data export](data-export.md)).
 
 ## Pinned posts
 

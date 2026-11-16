@@ -21,6 +21,29 @@ type GraphSource struct {
 	Media   services.MediaGRPCInterface
 	Graph   services.GraphGRPCInterface
 	Edges   services.GraphEdgeGRPCInterface
+	// The servers each person blocked for themselves (roadmap row 152).
+	ServerBlocks services.SocialgraphServerBlockGRPCInterface
+}
+
+// BlockedServers is every server the person blocked, a page at a time.
+func (g *GraphSource) BlockedServers(personID int64) ([]string, error) {
+	domains := []string{}
+	if g.ServerBlocks == nil {
+		return domains, nil
+	}
+	const page = 100
+	for start := int64(0); ; start += page {
+		blocks, total, err := g.ServerBlocks.Browse(personID, start, page)
+		if err != nil {
+			return nil, err
+		}
+		for _, b := range blocks {
+			domains = append(domains, b.Domain)
+		}
+		if len(blocks) < page || int64(len(domains)) >= total {
+			return domains, nil
+		}
+	}
 }
 
 // as is the person, for the calls that ask who is looking.

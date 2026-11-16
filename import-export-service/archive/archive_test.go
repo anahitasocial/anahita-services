@@ -28,10 +28,13 @@ type fakeSource struct {
 	connected map[string][]*entities.AnahitaNode
 	saved     []*entities.AnahitaNode
 	mutes     map[int64]Mute
+	servers   []string
 	pages     int
 }
 
 func (f *fakeSource) Mutes(id int64) (map[int64]Mute, error) { return f.mutes, nil }
+
+func (f *fakeSource) BlockedServers(id int64) ([]string, error) { return f.servers, nil }
 
 func (f *fakeSource) Profile(id int64) (*entities.AnahitaNode, error) { return f.profile, nil }
 
@@ -204,12 +207,20 @@ func build(t *testing.T, source *fakeSource, files fakeFiles) (map[string]string
 
 func TestAnArchiveHasEverythingAPersonWroteAndTheirFiles(t *testing.T) {
 	source, files := account()
+	source.servers = []string{"tycho.example"}
 	entries, summary := build(t, source, files)
+
+	// The servers they blocked (roadmap row 152): theirs, and Mastodon's.
+	if !strings.Contains(entries["data/blocked_servers.json"], "tycho.example") ||
+		strings.TrimSpace(entries["mastodon/domain_blocks.csv"]) != "tycho.example" {
+		t.Errorf("blocked servers: %q, %q", entries["data/blocked_servers.json"], entries["mastodon/domain_blocks.csv"])
+	}
 
 	for _, name := range []string{
 		"index.html", "README.txt", "actor.json", "outbox.json",
 		"data/profile.json", "data/posts.ndjson", "data/following.json",
 		"data/followers.json", "data/blocked.json", "data/muted.json", "data/liked.json", "data/saved.json",
+		"data/blocked_servers.json", "mastodon/domain_blocks.csv",
 	} {
 		if _, ok := entries[name]; !ok {
 			t.Errorf("%s is not in the archive", name)

@@ -140,5 +140,7 @@ func (h *eventHandler) mutedBy(recipientID int64, subject *an_entities.AnahitaNo
 		log.Println("whether the recipient mutes the subject:", err)
 		return false
 	}
-	return rel != nil && rel.IsMuting && rel.MuteHidesNotifications
+	// A server the recipient blocked is as a person muted with their
+	// notifications hidden (roadmap row 152).
+	return rel != nil && (rel.IsServerBlocked || (rel.IsMuting && rel.MuteHidesNotifications))
 }

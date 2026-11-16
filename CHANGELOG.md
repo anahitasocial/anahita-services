@@ -14,16 +14,23 @@ Releases before v1.0.17 are described on GitHub, under
 
 ### Added
 
-1. **Who sees a profile's followers and whom it follows** (roadmap row
+1. **Blocking a server yourself** (roadmap row 152): `GET`, `POST
+   /socialgraph/:actor_id/blocked-servers`, `DELETE …/:domain`. Nothing
+   from the server, or one under it, is shown to the person; no
+   notifications; follows with people there end both ways, their server
+   told as for any follow that ends, and new ones are refused. Bluesky is
+   refused (`server_on_bluesky`). In the download as `domain_blocks.csv`.
+   Migration `20261122000020_person_domain_blocks`.
+2. **Who sees a profile's followers and whom it follows** (roadmap row
    151): `PATCH /people|groups|events/:id/graph-access`, an access level or
    none, never wider than the profile; the lists answer 403 to anybody
    else, the counts stay, and recommendations name only those who let the
    viewer see whom they follow. Migration `20261122000019_graph_access`.
-2. **Mailpit in the development stack:** every message is caught and read
+3. **Mailpit in the development stack:** every message is caught and read
    at http://localhost:8025, nothing sent anywhere. Point `.env` at it
    (`SMTP_HOST="mailpit"`, `SMTP_PORT="1025"`, no user or password); see
    Getting started, Mail in development.
-3. **Removing a follower who is on another server tells their server**
+4. **Removing a follower who is on another server tells their server**
    (roadmap row 150), with a `Reject` of their follow, so that it stops
    delivering one's posts to them. It is not a block, and they may follow
    again.

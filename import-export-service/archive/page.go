@@ -26,9 +26,11 @@ type pageData struct {
 	Followers []*Ref
 	Blocked   []*Ref
 	Muted     []*Ref
-	Liked     []*Ref
-	Saved     []*Ref
-	Summary   *Summary
+	// The servers they blocked for themselves, by domain (roadmap row 152).
+	BlockedServers []string
+	Liked          []*Ref
+	Saved          []*Ref
+	Summary        *Summary
 }
 
 // Profile is the profile as it is in data/profile.json.
