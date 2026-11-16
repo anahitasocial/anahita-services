@@ -160,7 +160,7 @@ type NodeInfoDocument struct {
 	OpenRegistrations bool `json:"openRegistrations"`
 	// How much it is used.
 	Usage nodeInfoUsage `json:"usage"`
-	// What the web app reads of the installation: `nodeName`, `nodeDescription`, `logoUrl`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `websitesFrom`, `locationsFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `siteRules`, `spamRemovalMaxDays`, `accountGraceDays`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `audioMaxBytes`, `audioMaxSeconds`, `audioUploads`, `audioRecording`, `postMaxLength`, `postLinkLength`, `offers` (what the instance offers: `profiles` and `posts`), `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.
+	// What the web app reads of the installation: `nodeName`, `nodeDescription`, `logoUrl`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `channelsFrom`, `locationsFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `siteRules`, `spamRemovalMaxDays`, `accountGraceDays`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `audioMaxBytes`, `audioMaxSeconds`, `audioUploads`, `audioRecording`, `postMaxLength`, `postLinkLength`, `offers` (what the instance offers: `profiles` and `posts`), `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.
 	Metadata map[string]any `json:"metadata"`
 }
 
@@ -281,10 +281,10 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 			// installation says otherwise. actor-service enforces it.
 			"eventsFrom": h.Config.GetEventsFrom(),
 
-			// The same for connecting a website as a website (WEBSITES_FROM):
+			// The same for connecting a website as a channel (CHANNELS_FROM):
 			// administrators unless the installation says otherwise.
-			// Website-service enforces it.
-			"websitesFrom": h.Config.GetWebsitesFrom(),
+			// Channel-service enforces it.
+			"channelsFrom": h.Config.GetChannelsFrom(),
 
 			// The same for adding a location (LOCATIONS_FROM):
 			// administrators unless the installation says otherwise.

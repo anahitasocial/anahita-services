@@ -52,6 +52,10 @@ func fullyPopulatedNode() *entities.AnahitaNode {
 	n.Access = "followers"
 	n.AllowFollowRequest = true
 	n.ShowRepostsOnProfile = true
+	// Who may see its follows (row 151), and whether the viewer is told of
+	// its posts (row 146).
+	n.GraphAccess = "followers"
+	n.IsSubscribedByViewer = true
 	n.QuotePolicy = "followers"
 	n.AllowDownload = true
 	archived := time.Now()

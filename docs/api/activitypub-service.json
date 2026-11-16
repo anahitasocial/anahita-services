@@ -1861,7 +1861,7 @@
         "operationId": "getActivitypubSettings",
         "parameters": [
           {
-            "description": "The person's id, or a website's for one of its administrators. The viewer when left out.",
+            "description": "The person's id, or a channel's for one of its administrators. The viewer when left out.",
             "in": "query",
             "name": "person_id",
             "schema": {
@@ -1895,7 +1895,7 @@
             "description": "no token, or one that has expired"
           },
           "403": {
-            "description": "somebody else's, and the viewer is not a site administrator, nor an administrator of the website asked about"
+            "description": "somebody else's, and the viewer is not a site administrator, nor an administrator of the channel asked about"
           },
           "404": {
             "description": "there is no such person"
@@ -1914,7 +1914,7 @@
         "x-viewer": "signed_in"
       },
       "put": {
-        "description": "It is each person's own choice, off until they make it, and only for somebody whose profile is open to everybody. A website's is its administrators' (`?person_id=` with its id).\n\nWho may call it: somebody signed in.",
+        "description": "It is each person's own choice, off until they make it, and only for somebody whose profile is open to everybody. A channel's is its administrators' (`?person_id=` with its id).\n\nWho may call it: somebody signed in.",
         "operationId": "putActivitypubSettings",
         "requestBody": {
           "content": {
@@ -1965,7 +1965,7 @@
             "description": "no token, or one that has expired"
           },
           "403": {
-            "description": "somebody else's, and the viewer is not an administrator of the website asked about"
+            "description": "somebody else's, and the viewer is not an administrator of the channel asked about"
           },
           "409": {
             "content": {
@@ -2194,7 +2194,7 @@
     },
     "/ap/users/{uuid}": {
       "get": {
-        "description": "For other servers, in ActivityStreams (https://www.w3.org/TR/activitystreams-vocabulary/). A `Person`, or an `Organization` for a Website, with their public key.\n\nWho may call it: anyone, signed in or not.",
+        "description": "For other servers, in ActivityStreams (https://www.w3.org/TR/activitystreams-vocabulary/). A `Person`, or an `Organization` for a Channel, with their public key.\n\nWho may call it: anyone, signed in or not.",
         "operationId": "getApUsersByUuid",
         "parameters": [
           {

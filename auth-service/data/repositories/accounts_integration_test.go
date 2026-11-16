@@ -22,7 +22,7 @@ const (
 	accLostGroup = 9211 // nobody administers it, nothing in it
 	accEvent     = 9212 // an event, with its administrator
 	accGoneEvent = 9213 // an event deleted, waiting out the thirty days
-	accGoneSite  = 9214 // a website deleted, waiting out the thirty days
+	accGoneSite  = 9214 // a channel deleted, waiting out the thirty days
 )
 
 func seedAccounts(t *testing.T) *accounts {
@@ -49,7 +49,7 @@ func seedAccounts(t *testing.T) *accounts {
 	const group = "'node.actor.group-service.group.v1','group-service'"
 	const note = "'node.medium.text-service.note.v1','text-service'"
 	const event = "'node.actor.actor-service.event.v1','actor-service'"
-	const website = "'node.actor.actor-service.website.v1','actor-service'"
+	const channel = "'node.actor.actor-service.channel.v1','actor-service'"
 
 	for _, stmt := range []string{
 		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,person_type,follower_count,leader_count,created_at,updated_at,last_visited_at) VALUES
@@ -63,7 +63,7 @@ func seedAccounts(t *testing.T) *accounts {
 		 (9211,` + group + `,'Lost Group','acc-lost','public',1,'',1,0,NOW() - INTERVAL 5 YEAR,NOW(),NULL),
 		 (9212,` + event + `,'Kept Event','acc-event','public',1,'',1,0,NOW() - INTERVAL 1 MONTH,NOW(),NULL),
 		 (9213,` + event + `,'Gone Event','acc-gone-event','public',0,'',1,0,NOW() - INTERVAL 1 MONTH,NOW(),NULL),
-		 (9214,` + website + `,'Gone Site','acc-gone-site','public',0,'',1,0,NOW() - INTERVAL 1 MONTH,NOW(),NULL)`,
+		 (9214,` + channel + `,'Gone Site','acc-gone-site','public',0,'',1,0,NOW() - INTERVAL 1 MONTH,NOW(),NULL)`,
 		`UPDATE nodes SET deleted_at = NOW() WHERE id IN (9205, 9206, 9213, 9214)`,
 		`UPDATE nodes SET purged_at = NOW() WHERE id = 9206`,
 
@@ -296,20 +296,20 @@ func TestRealEventAccounts(t *testing.T) {
 	}
 }
 
-// Websites are listed too: every kind of profile here can be scheduled for
+// Channels are listed too: every kind of profile here can be scheduled for
 // deletion, and a super administrator finds it in this list (the user,
 // 2026-10-18).
-func TestRealWebsiteAccounts(t *testing.T) {
+func TestRealChannelAccounts(t *testing.T) {
 	repo := seedAccounts(t)
 
 	filter := people()
-	filter.Kind = AccountKindWebsite
+	filter.Kind = AccountKindChannel
 	filter.State = AccountStateDeleted
 	found, err := repo.Browse(filter)
 	if err != nil {
 		t.Fatalf("browse: %v", err)
 	}
 	if got, want := accountIDs(found), fmt.Sprint([]int64{accGoneSite}); got != want {
-		t.Errorf("deleted websites: %s, want %s", got, want)
+		t.Errorf("deleted channels: %s, want %s", got, want)
 	}
 }

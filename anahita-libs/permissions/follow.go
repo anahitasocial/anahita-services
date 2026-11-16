@@ -117,8 +117,8 @@ func CanRequestToFollow(ctx *FollowContext) bool {
 		return false
 	}
 
-	// A website is public, and followed outright: there is nothing to ask.
-	if !ctx.Target.AllowFollowRequest || ctx.Target.Type == constants.NodeActorWebsiteEntityType {
+	// A channel is public, and followed outright: there is nothing to ask.
+	if !ctx.Target.AllowFollowRequest || ctx.Target.Type == constants.NodeActorChannelEntityType {
 		return false
 	}
 

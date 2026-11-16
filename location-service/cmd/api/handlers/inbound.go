@@ -226,7 +226,7 @@ func (h *inboundHandler) Delete(c echo.Context) error {
 }
 
 // administers says whether the viewer is one of the administrators of a
-// profile that is not a person: a group, a website or an event, whose
+// profile that is not a person: a group, a channel or an event, whose
 // locations its administrators look after as its owner would. Only the
 // one who made it is its author; the others are known by the graph.
 func (h *inboundHandler) administers(viewer *entities.Viewer, source *entities.AnahitaNode) bool {

@@ -235,8 +235,8 @@ func (h *mediumHandler) newReply(c echo.Context, parentID int64, req *ReplyAddRe
 
 	// A reply belongs to whoever wrote it, wherever the thread is. That is
 	// what lets them edit it and take it down, and what a reply is on the
-	// networks this federates with. Under a website's own post, one by its
-	// administrator is the website's.
+	// networks this federates with. Under a channel's own post, one by its
+	// administrator is the channel's.
 	an_handlers.OwnReply(thread, reply, viewer)
 
 	return reply, thread, nil

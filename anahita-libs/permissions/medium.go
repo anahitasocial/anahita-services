@@ -115,19 +115,19 @@ func (m *MediumPermissions) CanRead(ctx *MediumAccessContext) (bool, error) {
 	return false, errors.New("you are not allowed to read this medium node")
 }
 
-// IsWebsiteItem says whether a post is one a website made of its feed: its
+// IsChannelFeedItem says whether a post is one a channel made of its feed: its
 // own post, not a reply under one. Nobody changes its words or narrows who
 // sees it, its administrators included: it follows the site, which is
-// where it is written, and is public (docs/websites.md). Deleting it,
+// where it is written, and is public (docs/channels.md). Deleting it,
 // hiding replies under it, and who may reply or quote stay as for any
 // post.
-func IsWebsiteItem(medium *entities.AnahitaNode) bool {
-	return medium != nil && medium.OwnerType == constants.NodeActorWebsiteEntityType &&
+func IsChannelFeedItem(medium *entities.AnahitaNode) bool {
+	return medium != nil && medium.OwnerType == constants.NodeActorChannelEntityType &&
 		medium.RootID == 0 && medium.ParentID == 0
 }
 
-// WebsiteItemRefusal is why changing a website's own post is refused.
-const WebsiteItemRefusal = "follows_its_website"
+// ChannelFeedItemRefusal is why changing a channel's own post is refused.
+const ChannelFeedItemRefusal = "follows_its_website"
 
 // CanEdit returns true if the viewer is allowed to edit the medium node
 func (m *MediumPermissions) CanEdit(ctx *MediumAccessContext) (bool, error) {

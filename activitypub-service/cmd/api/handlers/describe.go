@@ -51,7 +51,7 @@ type PostPicturesRequest struct {
 // SettingsQuery asks whose settings: the viewer's, or, for a site
 // administrator, somebody else's, to read and not to change.
 type SettingsQuery struct {
-	// The person's id, or a website's for one of its administrators. The
+	// The person's id, or a channel's for one of its administrators. The
 	// viewer when left out.
 	PersonID int64 `query:"person_id"`
 }

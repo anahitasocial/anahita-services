@@ -26,9 +26,9 @@ const (
 	// Events, so a super administrator can find one that was deleted, which
 	// no other list shows (the user, 2026-10-18).
 	AccountKindEvent = "event"
-	// Websites too, for the same reason: every kind of profile here can be
+	// Channels too, for the same reason: every kind of profile here can be
 	// scheduled for deletion, and this is where a super administrator finds it.
-	AccountKindWebsite = "website"
+	AccountKindChannel = "channel"
 
 	AccountTierEmpty   = "empty"
 	AccountTierDormant = "dormant"
@@ -46,7 +46,7 @@ const (
 	accountPersonType  = "node.actor.person-service.person.v1"
 	accountGroupType   = "node.actor.group-service.group.v1"
 	accountEventType   = "node.actor.actor-service.event.v1"
-	accountWebsiteType = "node.actor.actor-service.website.v1"
+	accountChannelType = "node.actor.actor-service.channel.v1"
 	accountAdminEdge   = "edge.actor.admin.v1"
 
 	accountsTimeout = 10 * time.Second
@@ -81,7 +81,7 @@ type Account struct {
 // filter on this".
 type AccountFilter struct {
 	// Kind is AccountKindPerson, AccountKindGroup, AccountKindEvent or
-	// AccountKindWebsite. Required.
+	// AccountKindChannel. Required.
 	Kind string
 
 	Search string
@@ -293,9 +293,9 @@ func (filter *AccountFilter) statement(outer string) (string, []any) {
 		// Like a group: what was posted in it, and one follower, whoever
 		// is holding it, going.
 		actorType, content, emptyFollowers = accountEventType, accountContentOwned, 1
-	case AccountKindWebsite:
+	case AccountKindChannel:
 		// What it posted from its feed, and one follower, whoever connected it.
-		actorType, content, emptyFollowers = accountWebsiteType, accountContentOwned, 1
+		actorType, content, emptyFollowers = accountChannelType, accountContentOwned, 1
 	}
 
 	rows := strings.Replace(accountRows, "%s", content, 1)

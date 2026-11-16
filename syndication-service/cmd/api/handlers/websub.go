@@ -13,17 +13,17 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// Where a WebSub hub calls back for a website: to check that a subscription
+// Where a WebSub hub calls back for a channel: to check that a subscription
 // was asked for, and to say that its feed changed. See package websub. Not
 // signed in: a hub has no account here. The address's signature is what
-// says the call is about this website.
+// says the call is about this channel.
 type websubHandler struct {
 	*Env
 }
 
 // WebSubRequest is a hub's call.
 type WebSubRequest struct {
-	// The website's id, and the signature that came with it.
+	// The channel's id, and the signature that came with it.
 	ID        int64  `param:"id"`
 	Signature string `param:"signature"`
 	// What the hub checks: `subscribe`, `unsubscribe`, or `denied`.
@@ -34,7 +34,7 @@ type WebSubRequest struct {
 	LeaseSeconds int64 `query:"hub.lease_seconds"`
 }
 
-func (h *websubHandler) websiteOf(c echo.Context, req *WebSubRequest) (string, int) {
+func (h *websubHandler) channelOf(c echo.Context, req *WebSubRequest) (string, int) {
 	// Read from the address alone: what a hub sends with a change is the
 	// feed, in whatever it is written in, and is not looked at.
 	req.ID, _ = strconv.ParseInt(c.Param("id"), 10, 64)
@@ -48,7 +48,7 @@ func (h *websubHandler) websiteOf(c echo.Context, req *WebSubRequest) (string, i
 	if !websub.Signed(req.ID, h.Config.GetSecureCookieKey(), req.Signature) {
 		return "", http.StatusNotFound
 	}
-	_, hubURL, err := h.Srv.Websites.Feed(c.Request().Context(), req.ID)
+	_, hubURL, err := h.Srv.Channels.Feed(c.Request().Context(), req.ID)
 	if errors.Is(err, repositories.ErrNotFound) || (err == nil && hubURL == "") {
 		return "", http.StatusNotFound
 	}
@@ -61,10 +61,10 @@ func (h *websubHandler) websiteOf(c echo.Context, req *WebSubRequest) (string, i
 
 // Verify answers a hub checking a subscription.
 //
-// GET /websites/_websub/:id/:signature
+// GET /channels/_websub/:id/:signature
 func (h *websubHandler) Verify(c echo.Context) error {
 	req := &WebSubRequest{}
-	if _, status := h.websiteOf(c, req); status != 0 {
+	if _, status := h.channelOf(c, req); status != 0 {
 		return c.NoContent(status)
 	}
 
@@ -77,7 +77,7 @@ func (h *websubHandler) Verify(c echo.Context) error {
 		if lease <= 0 || lease > websub.Lease {
 			lease = websub.Lease
 		}
-		if err := h.Srv.Websites.HubVerified(c.Request().Context(), req.ID, time.Now().Add(lease)); err != nil {
+		if err := h.Srv.Channels.HubVerified(c.Request().Context(), req.ID, time.Now().Add(lease)); err != nil {
 			log.Println(err)
 			return c.NoContent(http.StatusInternalServerError)
 		}
@@ -94,13 +94,13 @@ func (h *websubHandler) Verify(c echo.Context) error {
 // Notify takes a hub's word that the feed changed: it is read now, from the
 // site, as any time it is read. What the hub sends is not read.
 //
-// POST /websites/_websub/:id/:signature
+// POST /channels/_websub/:id/:signature
 func (h *websubHandler) Notify(c echo.Context) error {
 	req := &WebSubRequest{}
-	if _, status := h.websiteOf(c, req); status != 0 {
+	if _, status := h.channelOf(c, req); status != 0 {
 		return c.NoContent(status)
 	}
-	if err := h.Srv.Websites.ReadSoon(c.Request().Context(), req.ID); err != nil {
+	if err := h.Srv.Channels.ReadSoon(c.Request().Context(), req.ID); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}

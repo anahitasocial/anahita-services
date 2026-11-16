@@ -117,7 +117,7 @@ func TestNoInstanceFileOffersEverything(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !slices.Equal(profiles, []string{"person", "group", "event", "website"}) {
+	if !slices.Equal(profiles, []string{"person", "group", "event", "channel"}) {
 		t.Errorf("profiles: %v", profiles)
 	}
 	for _, kind := range []string{"note", "article", "topic", "photo", "video", "audio"} {

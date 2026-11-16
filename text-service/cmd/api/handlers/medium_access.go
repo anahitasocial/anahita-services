@@ -41,9 +41,9 @@ func (h *mediumHandler) EditAccess(c echo.Context) error {
 		return c.JSON(http.StatusUnprocessableEntity, responses.Refusal{Error: "reply_follows_its_thread"})
 	}
 
-	// A website's own post is public, whoever asks.
-	if permissions.IsWebsiteItem(medium) {
-		return c.JSON(http.StatusForbidden, responses.Refusal{Error: permissions.WebsiteItemRefusal})
+	// A channel's own post is public, whoever asks.
+	if permissions.IsChannelFeedItem(medium) {
+		return c.JSON(http.StatusForbidden, responses.Refusal{Error: permissions.ChannelFeedItemRefusal})
 	}
 
 	mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)

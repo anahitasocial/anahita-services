@@ -35,9 +35,9 @@ type actorsHandler struct {
 
 // ActorsRequest asks who the viewer might follow.
 type ActorsRequest struct {
-	// Only people, only groups, only events or only websites. People when
+	// Only people, only groups, only events or only channels. People when
 	// left out.
-	Kind string `query:"kind" validate:"omitempty,oneof=person group event website"`
+	Kind string `query:"kind" validate:"omitempty,oneof=person group event channel"`
 	// `home` (the default), or `onboarding` for somebody who has just joined
 	// and follows nobody: nothing worked out from who they follow is used.
 	Context string `query:"context" validate:"omitempty,oneof=home onboarding"`
@@ -99,7 +99,7 @@ func (h *actorsHandler) Browse(c echo.Context) error {
 	if (req.Kind == constants.KindPerson && !prefs.SuggestPeople) ||
 		(req.Kind == constants.KindGroup && !prefs.SuggestGroups) ||
 		(req.Kind == constants.KindEvent && !prefs.SuggestEvents) ||
-		(req.Kind == constants.KindWebsite && !prefs.SuggestWebsites) {
+		(req.Kind == constants.KindChannel && !prefs.SuggestChannels) {
 		return c.JSON(http.StatusOK, resp)
 	}
 

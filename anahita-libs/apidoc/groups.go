@@ -19,7 +19,7 @@ var Groups = []Group{
 		"people",
 		"groups",
 		"events",
-		"websites",
+		"channels",
 	}},
 	{"Accounts and the graph", []string{
 		"auth-service",

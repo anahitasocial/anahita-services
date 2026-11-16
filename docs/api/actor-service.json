@@ -1643,6 +1643,205 @@
         ],
         "type": "object"
       },
+      "actor.ChannelNode": {
+        "description": "ChannelNode is a channel, as it is sent: a site's feed, followed as a profile, whose domain was proved when it was connected.",
+        "properties": {
+          "access": {
+            "description": "Who may see it: `public`, `registered`, `followers`, `leaders`, `mutuals`, `admins` or `myself` (permissions.md).",
+            "type": "string"
+          },
+          "administrators": {
+            "items": {
+              "$ref": "#/components/schemas/Admin"
+            },
+            "type": "array"
+          },
+          "alias": {
+            "description": "Its handle (`ana`, or `ana@mastodon.social` for somebody on another server).",
+            "type": "string"
+          },
+          "allow_download": {
+            "description": "What this actor's new photos and videos start with: whether they may be downloaded.",
+            "type": "boolean"
+          },
+          "allow_follow_request": {
+            "description": "Whether people its profile is not open to may ask to follow it.",
+            "type": "boolean"
+          },
+          "archived_at": {
+            "description": "Permanent, and set only once archived, so the settings page can show the state rather than offering an action that no longer applies.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "author": {
+            "$ref": "#/components/schemas/Author",
+            "description": "Author information"
+          },
+          "authorized": {
+            "$ref": "#/components/schemas/NodeAuthorized"
+          },
+          "avatar_urls": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Image"
+            },
+            "description": "Its picture, in each size there is: `small`, `medium`, `large`, `square`.",
+            "type": "object"
+          },
+          "body": {
+            "description": "Its description.",
+            "type": "string"
+          },
+          "cover_urls": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Image"
+            },
+            "description": "Its cover picture, in each size there is: `medium`, `large`.",
+            "type": "object"
+          },
+          "created_at": {
+            "description": "When it was made.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "deleted_at": {
+            "description": "Present only while the actor is scheduled for deletion, so the settings page can offer Restore instead of the delete form. Deleting also clears Enabled, and a client reading only that cannot tell an account on its way out from one an administrator disabled.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "editor": {
+            "$ref": "#/components/schemas/Editor"
+          },
+          "enabled": {
+            "description": "Whether it is enabled: false when a site administrator has disabled it, or while it is being deleted.",
+            "type": "boolean"
+          },
+          "featured_at": {
+            "description": "Set only while the installation features this actor, so a super administrator's profile menu can show the toggle's state.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "features": {
+            "items": {
+              "$ref": "#/components/schemas/NodeFeature"
+            },
+            "type": "array"
+          },
+          "follower_count": {
+            "description": "How many follow it.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "graph_access": {
+            "description": "Who may see its followers and whom it follows (roadmap row 151): an access level, or empty for whoever may see it.",
+            "type": "string"
+          },
+          "id": {
+            "description": "Its id.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "is_admined_by_viewer": {
+            "description": "Whether the viewer is one of its administrators.",
+            "type": "boolean"
+          },
+          "is_blocked_by_viewer": {
+            "description": "Whether the viewer has blocked it.",
+            "type": "boolean"
+          },
+          "is_follow_requested_by_viewer": {
+            "description": "Whether the viewer has asked to follow it and is waiting for an answer: a profile that approves its followers, here or elsewhere.",
+            "type": "boolean"
+          },
+          "is_following_viewer": {
+            "description": "Whether it follows the viewer.",
+            "type": "boolean"
+          },
+          "is_invited": {
+            "description": "Whether the viewer has been invited to follow this actor and is yet to answer.",
+            "type": "boolean"
+          },
+          "is_leading_viewer": {
+            "description": "Whether the viewer follows it.",
+            "type": "boolean"
+          },
+          "is_muted_by_viewer": {
+            "description": "Whether the viewer has muted it.",
+            "type": "boolean"
+          },
+          "is_subscribed_by_viewer": {
+            "description": "Whether the viewer, following it, is told of its new posts (roadmap row 146).",
+            "type": "boolean"
+          },
+          "leader_count": {
+            "description": "How many it follows.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "moved_to": {
+            "$ref": "#/components/schemas/MovedTo",
+            "description": "The profile its person moved to, for somebody from another server who moved their account (roadmap row 124, part 2); absent otherwise."
+          },
+          "mute_ends_at": {
+            "description": "When the viewer's mute of it ends; absent for until unmuted.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "mute_hides_notifications": {
+            "description": "Whether the viewer, muting it, is not told of what it does.",
+            "type": "boolean"
+          },
+          "name": {
+            "description": "Its name.",
+            "type": "string"
+          },
+          "origin_domain": {
+            "description": "The server it came from, when it came from another.",
+            "type": "string"
+          },
+          "permissions": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "show_reposts_on_profile": {
+            "description": "Whether what this actor reposts is also among its profile's posts.",
+            "type": "boolean"
+          },
+          "type": {
+            "description": "What kind of profile it is: `node.actor.actor-service.person.v1`, `...group.v1` or `...event.v1`, or one of another server's.",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "uri": {
+            "description": "What it is called on the server it came from, and that server, when it came from another. Left out of everything made here.",
+            "type": "string"
+          },
+          "verified": {
+            "description": "A mark kept from earlier versions of Anahita. Nothing sets it yet.",
+            "type": "boolean"
+          },
+          "website_url": {
+            "description": "One link on the profile. Rendered as an anchor, so the value is validated to http(s) on the way in — see requests/actor.go.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "enabled",
+          "access",
+          "allow_follow_request",
+          "show_reposts_on_profile",
+          "graph_access",
+          "allow_download",
+          "created_at"
+        ],
+        "type": "object"
+      },
       "actor.EventNode": {
         "description": "EventNode is an event, as it is sent: a group with a time and a place, and `event` saying when it is, how many may go and are going, and what the viewer answered.",
         "properties": {
@@ -2431,205 +2630,6 @@
           "pending"
         ],
         "type": "object"
-      },
-      "actor.WebsiteNode": {
-        "description": "WebsiteNode is a website, as it is sent: a site's feed, followed as a profile, whose domain was proved when it was connected.",
-        "properties": {
-          "access": {
-            "description": "Who may see it: `public`, `registered`, `followers`, `leaders`, `mutuals`, `admins` or `myself` (permissions.md).",
-            "type": "string"
-          },
-          "administrators": {
-            "items": {
-              "$ref": "#/components/schemas/Admin"
-            },
-            "type": "array"
-          },
-          "alias": {
-            "description": "Its handle (`ana`, or `ana@mastodon.social` for somebody on another server).",
-            "type": "string"
-          },
-          "allow_download": {
-            "description": "What this actor's new photos and videos start with: whether they may be downloaded.",
-            "type": "boolean"
-          },
-          "allow_follow_request": {
-            "description": "Whether people its profile is not open to may ask to follow it.",
-            "type": "boolean"
-          },
-          "archived_at": {
-            "description": "Permanent, and set only once archived, so the settings page can show the state rather than offering an action that no longer applies.",
-            "format": "date-time",
-            "type": "string"
-          },
-          "author": {
-            "$ref": "#/components/schemas/Author",
-            "description": "Author information"
-          },
-          "authorized": {
-            "$ref": "#/components/schemas/NodeAuthorized"
-          },
-          "avatar_urls": {
-            "additionalProperties": {
-              "$ref": "#/components/schemas/Image"
-            },
-            "description": "Its picture, in each size there is: `small`, `medium`, `large`, `square`.",
-            "type": "object"
-          },
-          "body": {
-            "description": "Its description.",
-            "type": "string"
-          },
-          "cover_urls": {
-            "additionalProperties": {
-              "$ref": "#/components/schemas/Image"
-            },
-            "description": "Its cover picture, in each size there is: `medium`, `large`.",
-            "type": "object"
-          },
-          "created_at": {
-            "description": "When it was made.",
-            "format": "date-time",
-            "type": "string"
-          },
-          "deleted_at": {
-            "description": "Present only while the actor is scheduled for deletion, so the settings page can offer Restore instead of the delete form. Deleting also clears Enabled, and a client reading only that cannot tell an account on its way out from one an administrator disabled.",
-            "format": "date-time",
-            "type": "string"
-          },
-          "editor": {
-            "$ref": "#/components/schemas/Editor"
-          },
-          "enabled": {
-            "description": "Whether it is enabled: false when a site administrator has disabled it, or while it is being deleted.",
-            "type": "boolean"
-          },
-          "featured_at": {
-            "description": "Set only while the installation features this actor, so a super administrator's profile menu can show the toggle's state.",
-            "format": "date-time",
-            "type": "string"
-          },
-          "features": {
-            "items": {
-              "$ref": "#/components/schemas/NodeFeature"
-            },
-            "type": "array"
-          },
-          "follower_count": {
-            "description": "How many follow it.",
-            "format": "int64",
-            "type": "integer"
-          },
-          "graph_access": {
-            "description": "Who may see its followers and whom it follows (roadmap row 151): an access level, or empty for whoever may see it.",
-            "type": "string"
-          },
-          "id": {
-            "description": "Its id.",
-            "format": "int64",
-            "type": "integer"
-          },
-          "is_admined_by_viewer": {
-            "description": "Whether the viewer is one of its administrators.",
-            "type": "boolean"
-          },
-          "is_blocked_by_viewer": {
-            "description": "Whether the viewer has blocked it.",
-            "type": "boolean"
-          },
-          "is_follow_requested_by_viewer": {
-            "description": "Whether the viewer has asked to follow it and is waiting for an answer: a profile that approves its followers, here or elsewhere.",
-            "type": "boolean"
-          },
-          "is_following_viewer": {
-            "description": "Whether it follows the viewer.",
-            "type": "boolean"
-          },
-          "is_invited": {
-            "description": "Whether the viewer has been invited to follow this actor and is yet to answer.",
-            "type": "boolean"
-          },
-          "is_leading_viewer": {
-            "description": "Whether the viewer follows it.",
-            "type": "boolean"
-          },
-          "is_muted_by_viewer": {
-            "description": "Whether the viewer has muted it.",
-            "type": "boolean"
-          },
-          "is_subscribed_by_viewer": {
-            "description": "Whether the viewer, following it, is told of its new posts (roadmap row 146).",
-            "type": "boolean"
-          },
-          "leader_count": {
-            "description": "How many it follows.",
-            "format": "int64",
-            "type": "integer"
-          },
-          "moved_to": {
-            "$ref": "#/components/schemas/MovedTo",
-            "description": "The profile its person moved to, for somebody from another server who moved their account (roadmap row 124, part 2); absent otherwise."
-          },
-          "mute_ends_at": {
-            "description": "When the viewer's mute of it ends; absent for until unmuted.",
-            "format": "date-time",
-            "type": "string"
-          },
-          "mute_hides_notifications": {
-            "description": "Whether the viewer, muting it, is not told of what it does.",
-            "type": "boolean"
-          },
-          "name": {
-            "description": "Its name.",
-            "type": "string"
-          },
-          "origin_domain": {
-            "description": "The server it came from, when it came from another.",
-            "type": "string"
-          },
-          "permissions": {
-            "additionalProperties": {
-              "type": "string"
-            },
-            "type": "object"
-          },
-          "show_reposts_on_profile": {
-            "description": "Whether what this actor reposts is also among its profile's posts.",
-            "type": "boolean"
-          },
-          "type": {
-            "description": "What kind of profile it is: `node.actor.actor-service.person.v1`, `...group.v1` or `...event.v1`, or one of another server's.",
-            "type": "string"
-          },
-          "updated_at": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "uri": {
-            "description": "What it is called on the server it came from, and that server, when it came from another. Left out of everything made here.",
-            "type": "string"
-          },
-          "verified": {
-            "description": "A mark kept from earlier versions of Anahita. Nothing sets it yet.",
-            "type": "boolean"
-          },
-          "website_url": {
-            "description": "One link on the profile. Rendered as an anchor, so the value is validated to http(s) on the way in — see requests/actor.go.",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "type",
-          "enabled",
-          "access",
-          "allow_follow_request",
-          "show_reposts_on_profile",
-          "graph_access",
-          "allow_download",
-          "created_at"
-        ],
-        "type": "object"
       }
     },
     "securitySchemes": {
@@ -2642,7 +2642,7 @@
     }
   },
   "info": {
-    "description": "People, groups, events and websites: reading and changing them, who may see them and what may be posted on them, their admins, and deleting, archiving and purging them (account-lifecycle.md).",
+    "description": "People, groups, events and channels: reading and changing them, who may see them and what may be posted on them, their admins, and deleting, archiving and purging them (account-lifecycle.md).",
     "license": {
       "identifier": "AGPL-3.0-only",
       "name": "GNU Affero General Public License v3.0 only"
@@ -2694,6 +2694,1033 @@
         ],
         "x-handler": "actor/cmd/api/handlers.(*personHandler).Handle",
         "x-viewer": "anyone"
+      }
+    },
+    "/channels/": {
+      "get": {
+        "description": "Those the viewer may see. Each a full profile, or, for one the viewer may only ask to follow, what a stranger is shown of it (`restricted`).\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getChannels",
+        "parameters": [
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Words the name, the handle or the description holds.",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "maxLength": 100,
+              "type": "string",
+              "x-validate": "search_query"
+            }
+          },
+          {
+            "description": "What they are ordered by.",
+            "in": "query",
+            "name": "ordering",
+            "schema": {
+              "default": "updated_at",
+              "enum": [
+                "created_at",
+                "updated_at",
+                "enabled"
+              ],
+              "maxLength": 15,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Which way the order runs.",
+            "in": "query",
+            "name": "dir",
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "maxLength": 4,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Disabled ones as well, for whoever may see them.",
+            "in": "query",
+            "name": "disabled",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Only the actors the installation features — what onboarding offers a new member to follow. Ordered most recently featured first unless the caller asks for an ordering; see the browse handlers.",
+            "in": "query",
+            "name": "featured",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {},
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "403": {
+            "description": "the viewer may not list channels"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Channels",
+        "tags": [
+          "channels"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Browse",
+        "x-viewer": "anyone"
+      }
+    },
+    "/channels/{id}": {
+      "delete": {
+        "description": "It is out of sight at once and destroyed after thirty days, unless it is restored before then.\n\nWho may call it: somebody signed in, who has just proved who they are again.",
+        "operationId": "deleteChannelsById",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "it will be deleted"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`step_up_required`: the viewer must prove who they are again first; or the viewer may not, without a body"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a channel",
+        "tags": [
+          "channels"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Delete",
+        "x-shared": "profiles",
+        "x-step-up": true,
+        "x-viewer": "signed_in"
+      },
+      "get": {
+        "description": "To somebody it is not open to, but who may ask to follow it, what a stranger is shown of it.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getChannelsById",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/actor.ChannelNode"
+                }
+              }
+            },
+            "description": "it, or what a stranger is shown of it (LimitedActor)"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "403": {
+            "description": "the viewer may not see it"
+          },
+          "404": {
+            "description": "there is no such channel"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "One channel",
+        "tags": [
+          "channels"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Read",
+        "x-viewer": "anyone"
+      },
+      "patch": {
+        "description": "Its name and its description. Its handle and its site stay as they were connected.\n\nWho may call it: somebody signed in.",
+        "operationId": "patchChannelsById",
+        "parameters": [
+          {
+            "description": "The channel's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "body": {
+                    "description": "What it is, shown in its About card.",
+                    "maxLength": 500,
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "Its name.",
+                    "maxLength": 64,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "body": {
+                    "description": "What it is, shown in its About card.",
+                    "maxLength": 500,
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "Its name.",
+                    "maxLength": 64,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "body": {
+                    "description": "What it is, shown in its About card.",
+                    "maxLength": 500,
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "Its name.",
+                    "maxLength": 64,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/actor.ChannelNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such channel"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change a channel",
+        "tags": [
+          "channels"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*channelHandler).Edit",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/channels/{id}/admins/": {
+      "get": {
+        "description": "Who may call it: somebody signed in.",
+        "operationId": "getChannelsByIdAdmins",
+        "parameters": [
+          {
+            "description": "The group's or the event's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Which way the order runs.",
+            "in": "query",
+            "name": "dir",
+            "schema": {
+              "default": "asc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "maxLength": 4,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What there is.",
+                      "items": {
+                        "$ref": "#/components/schemas/ActorNodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not see them"
+          },
+          "404": {
+            "description": "there is no such channel"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A channel's admins",
+        "tags": [
+          "channels"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*adminHandler).Browse",
+        "x-shared": "profiles",
+        "x-viewer": "signed_in"
+      },
+      "post": {
+        "description": "By one of its admins. Answers with them.\n\nWho may call it: somebody signed in.",
+        "operationId": "postChannelsByIdAdmins",
+        "parameters": [
+          {
+            "description": "The group's or the event's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "admin_id": {
+                    "description": "The person to make an administrator.",
+                    "format": "int64",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "admin_id"
+                ],
+                "type": "object"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "admin_id": {
+                    "description": "The person to make an administrator.",
+                    "format": "int64",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "admin_id"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActorNodeItem"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not"
+          },
+          "404": {
+            "description": "there is no such channel or person"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Make somebody an admin of a channel",
+        "tags": [
+          "channels"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*adminHandler).Add",
+        "x-shared": "profiles",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/channels/{id}/admins/{admin_id}": {
+      "delete": {
+        "description": "Who may call it: somebody signed in.",
+        "operationId": "deleteChannelsByIdAdminsByAdminId",
+        "parameters": [
+          {
+            "description": "The group's or the event's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The administrator to remove.",
+            "in": "path",
+            "name": "admin_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "removed"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not"
+          },
+          "404": {
+            "description": "there is no such channel or admin"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove an admin of a channel",
+        "tags": [
+          "channels"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*adminHandler).Delete",
+        "x-shared": "profiles",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/channels/{id}/deletion-counts": {
+      "get": {
+        "description": "For the Danger zone, for whoever may delete it.\n\nWho may call it: somebody signed in.",
+        "operationId": "getChannelsByIdDeletionCounts",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/actor.GroupDeletionCounts"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not delete it"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "What deleting a channel would take with it",
+        "tags": [
+          "channels"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).DeletionCounts",
+        "x-shared": "profiles",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/channels/{id}/download-default": {
+      "patch": {
+        "description": "What a post starts with; each post can say otherwise.\n\nWho may call it: somebody signed in.",
+        "operationId": "patchChannelsByIdDownloadDefault",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "allow": {
+                    "description": "Whether its new photos and videos start out downloadable.",
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "allow": {
+                    "description": "Whether its new photos and videos start out downloadable.",
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "allow": {
+                    "description": "Whether its new photos and videos start out downloadable.",
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/actor.ChannelNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change whether new photos and videos may be downloaded",
+        "tags": [
+          "channels"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).EditDownloadDefault",
+        "x-shared": "profiles",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/channels/{id}/enabled": {
+      "patch": {
+        "description": "Reversible, site administrators only. Off, it is out of sight and may not act; nothing is deleted.\n\nWho may call it: somebody signed in.",
+        "operationId": "patchChannelsByIdEnabled",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "enabled": {
+                    "description": "Whether it is shown and may act. Off, it is out of sight until it is turned on again; nothing is deleted.",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "enabled"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "done"
+          },
+          "204": {
+            "description": "it was so already"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Turn a profile on or off",
+        "tags": [
+          "channels"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).SetEnabled",
+        "x-shared": "profiles",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/channels/{id}/featured": {
+      "patch": {
+        "description": "What onboarding offers new members to follow. Super administrators only.\n\nWho may call it: somebody signed in.",
+        "operationId": "patchChannelsByIdFeatured",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "featured": {
+                    "description": "Whether onboarding offers it to follow.",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "featured"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "done"
+          },
+          "204": {
+            "description": "it was so already"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not"
+          },
+          "404": {
+            "description": "there is no such profile"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`not_featurable`: it is disabled, archived or deleted"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Feature a profile, or stop",
+        "tags": [
+          "channels"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).SetFeatured",
+        "x-shared": "profiles",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/channels/{id}/purge": {
+      "delete": {
+        "description": "Everything of it, at once and with no thirty days. Super administrators only, never on their own profile. Queued, and done by the sweeper.\n\nWho may call it: a super administrator, who has just proved who they are again.",
+        "operationId": "deleteChannelsByIdPurge",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurgeQueued"
+                }
+              }
+            },
+            "description": "purged or queued already"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurgeQueued"
+                }
+              }
+            },
+            "description": "queued"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`step_up_required`: the viewer must prove who they are again first; or the viewer may not, without a body"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurgeRefused"
+                }
+              }
+            },
+            "description": "it cannot be purged; nothing was queued"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Destroy a channel for good",
+        "tags": [
+          "channels"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Purge",
+        "x-shared": "profiles",
+        "x-step-up": true,
+        "x-viewer": "super_admin"
+      }
+    },
+    "/channels/{id}/restore": {
+      "post": {
+        "description": "Within the thirty days. Answers with it.\n\nWho may call it: somebody signed in.",
+        "operationId": "postChannelsByIdRestore",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/actor.ChannelNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not"
+          },
+          "404": {
+            "description": "there is no such profile to restore"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Restore a deleted channel",
+        "tags": [
+          "channels"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Restore",
+        "x-shared": "profiles",
+        "x-viewer": "signed_in"
       }
     },
     "/events/": {
@@ -9172,1033 +10199,6 @@
         "x-handler": "actor/cmd/api/handlers.(*personHandler).Edit",
         "x-viewer": "signed_in"
       }
-    },
-    "/websites/": {
-      "get": {
-        "description": "Those the viewer may see. Each a full profile, or, for one the viewer may only ask to follow, what a stranger is shown of it (`restricted`).\n\nWho may call it: anyone, signed in or not.",
-        "operationId": "getWebsites",
-        "parameters": [
-          {
-            "description": "How many to pass over.",
-            "in": "query",
-            "name": "start",
-            "schema": {
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            }
-          },
-          {
-            "description": "The most to send.",
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "default": 20,
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            }
-          },
-          {
-            "description": "Words the name, the handle or the description holds.",
-            "in": "query",
-            "name": "q",
-            "schema": {
-              "maxLength": 100,
-              "type": "string",
-              "x-validate": "search_query"
-            }
-          },
-          {
-            "description": "What they are ordered by.",
-            "in": "query",
-            "name": "ordering",
-            "schema": {
-              "default": "updated_at",
-              "enum": [
-                "created_at",
-                "updated_at",
-                "enabled"
-              ],
-              "maxLength": 15,
-              "type": "string"
-            }
-          },
-          {
-            "description": "Which way the order runs.",
-            "in": "query",
-            "name": "dir",
-            "schema": {
-              "default": "desc",
-              "enum": [
-                "asc",
-                "desc"
-              ],
-              "maxLength": 4,
-              "type": "string"
-            }
-          },
-          {
-            "description": "Disabled ones as well, for whoever may see them.",
-            "in": "query",
-            "name": "disabled",
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
-            "description": "Only the actors the installation features — what onboarding offers a new member to follow. Ordered most recently featured first unless the caller asks for an ordering; see the browse handlers.",
-            "in": "query",
-            "name": "featured",
-            "schema": {
-              "type": "boolean"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "properties": {
-                    "data": {
-                      "description": "What is on this page.",
-                      "items": {},
-                      "type": [
-                        "array",
-                        "null"
-                      ]
-                    },
-                    "pagination": {
-                      "$ref": "#/components/schemas/Pagination",
-                      "description": "Where this page is among everything there is."
-                    }
-                  },
-                  "required": [
-                    "data",
-                    "pagination"
-                  ],
-                  "type": "object"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
-          },
-          "403": {
-            "description": "the viewer may not list websites"
-          }
-        },
-        "security": [
-          {},
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Websites",
-        "tags": [
-          "websites"
-        ],
-        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Browse",
-        "x-viewer": "anyone"
-      }
-    },
-    "/websites/{id}": {
-      "delete": {
-        "description": "It is out of sight at once and destroyed after thirty days, unless it is restored before then.\n\nWho may call it: somebody signed in, who has just proved who they are again.",
-        "operationId": "deleteWebsitesById",
-        "parameters": [
-          {
-            "description": "The profile's id.",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "it will be deleted"
-          },
-          "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
-          },
-          "401": {
-            "description": "no token, or one that has expired"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Refusal"
-                }
-              }
-            },
-            "description": "`step_up_required`: the viewer must prove who they are again first; or the viewer may not, without a body"
-          },
-          "404": {
-            "description": "there is no such profile"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Delete a website",
-        "tags": [
-          "websites"
-        ],
-        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Delete",
-        "x-shared": "profiles",
-        "x-step-up": true,
-        "x-viewer": "signed_in"
-      },
-      "get": {
-        "description": "To somebody it is not open to, but who may ask to follow it, what a stranger is shown of it.\n\nWho may call it: anyone, signed in or not.",
-        "operationId": "getWebsitesById",
-        "parameters": [
-          {
-            "description": "The profile's id.",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/actor.WebsiteNode"
-                }
-              }
-            },
-            "description": "it, or what a stranger is shown of it (LimitedActor)"
-          },
-          "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
-          },
-          "403": {
-            "description": "the viewer may not see it"
-          },
-          "404": {
-            "description": "there is no such website"
-          }
-        },
-        "security": [
-          {},
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "One website",
-        "tags": [
-          "websites"
-        ],
-        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Read",
-        "x-viewer": "anyone"
-      },
-      "patch": {
-        "description": "Its name and its description. Its handle and its site stay as they were connected.\n\nWho may call it: somebody signed in.",
-        "operationId": "patchWebsitesById",
-        "parameters": [
-          {
-            "description": "The website's id.",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "properties": {
-                  "body": {
-                    "description": "What it is, shown in its About card.",
-                    "maxLength": 500,
-                    "type": "string"
-                  },
-                  "name": {
-                    "description": "Its name.",
-                    "maxLength": 64,
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "name"
-                ],
-                "type": "object"
-              }
-            },
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "properties": {
-                  "body": {
-                    "description": "What it is, shown in its About card.",
-                    "maxLength": 500,
-                    "type": "string"
-                  },
-                  "name": {
-                    "description": "Its name.",
-                    "maxLength": 64,
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "name"
-                ],
-                "type": "object"
-              }
-            },
-            "multipart/form-data": {
-              "schema": {
-                "properties": {
-                  "body": {
-                    "description": "What it is, shown in its About card.",
-                    "maxLength": 500,
-                    "type": "string"
-                  },
-                  "name": {
-                    "description": "Its name.",
-                    "maxLength": 64,
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "name"
-                ],
-                "type": "object"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/actor.WebsiteNode"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
-          },
-          "401": {
-            "description": "no token, or one that has expired"
-          },
-          "403": {
-            "description": "the viewer may not change it"
-          },
-          "404": {
-            "description": "there is no such website"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Change a website",
-        "tags": [
-          "websites"
-        ],
-        "x-handler": "actor/cmd/api/handlers.(*websiteHandler).Edit",
-        "x-viewer": "signed_in"
-      }
-    },
-    "/websites/{id}/admins/": {
-      "get": {
-        "description": "Who may call it: somebody signed in.",
-        "operationId": "getWebsitesByIdAdmins",
-        "parameters": [
-          {
-            "description": "The group's or the event's id.",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          },
-          {
-            "description": "How many to pass over.",
-            "in": "query",
-            "name": "start",
-            "schema": {
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            }
-          },
-          {
-            "description": "The most to send.",
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "default": 20,
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            }
-          },
-          {
-            "description": "Which way the order runs.",
-            "in": "query",
-            "name": "dir",
-            "schema": {
-              "default": "asc",
-              "enum": [
-                "asc",
-                "desc"
-              ],
-              "maxLength": 4,
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "properties": {
-                    "data": {
-                      "description": "What there is.",
-                      "items": {
-                        "$ref": "#/components/schemas/ActorNodeItem"
-                      },
-                      "type": [
-                        "array",
-                        "null"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ],
-                  "type": "object"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
-          },
-          "401": {
-            "description": "no token, or one that has expired"
-          },
-          "403": {
-            "description": "the viewer may not see them"
-          },
-          "404": {
-            "description": "there is no such website"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "A website's admins",
-        "tags": [
-          "websites"
-        ],
-        "x-handler": "actor/cmd/api/handlers.(*adminHandler).Browse",
-        "x-shared": "profiles",
-        "x-viewer": "signed_in"
-      },
-      "post": {
-        "description": "By one of its admins. Answers with them.\n\nWho may call it: somebody signed in.",
-        "operationId": "postWebsitesByIdAdmins",
-        "parameters": [
-          {
-            "description": "The group's or the event's id.",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "properties": {
-                  "admin_id": {
-                    "description": "The person to make an administrator.",
-                    "format": "int64",
-                    "type": "integer"
-                  }
-                },
-                "required": [
-                  "admin_id"
-                ],
-                "type": "object"
-              }
-            },
-            "multipart/form-data": {
-              "schema": {
-                "properties": {
-                  "admin_id": {
-                    "description": "The person to make an administrator.",
-                    "format": "int64",
-                    "type": "integer"
-                  }
-                },
-                "required": [
-                  "admin_id"
-                ],
-                "type": "object"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ActorNodeItem"
-                }
-              }
-            },
-            "description": "Created"
-          },
-          "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
-          },
-          "401": {
-            "description": "no token, or one that has expired"
-          },
-          "403": {
-            "description": "the viewer may not"
-          },
-          "404": {
-            "description": "there is no such website or person"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Make somebody an admin of a website",
-        "tags": [
-          "websites"
-        ],
-        "x-handler": "actor/cmd/api/handlers.(*adminHandler).Add",
-        "x-shared": "profiles",
-        "x-viewer": "signed_in"
-      }
-    },
-    "/websites/{id}/admins/{admin_id}": {
-      "delete": {
-        "description": "Who may call it: somebody signed in.",
-        "operationId": "deleteWebsitesByIdAdminsByAdminId",
-        "parameters": [
-          {
-            "description": "The group's or the event's id.",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          },
-          {
-            "description": "The administrator to remove.",
-            "in": "path",
-            "name": "admin_id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "removed"
-          },
-          "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
-          },
-          "401": {
-            "description": "no token, or one that has expired"
-          },
-          "403": {
-            "description": "the viewer may not"
-          },
-          "404": {
-            "description": "there is no such website or admin"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Remove an admin of a website",
-        "tags": [
-          "websites"
-        ],
-        "x-handler": "actor/cmd/api/handlers.(*adminHandler).Delete",
-        "x-shared": "profiles",
-        "x-viewer": "signed_in"
-      }
-    },
-    "/websites/{id}/deletion-counts": {
-      "get": {
-        "description": "For the Danger zone, for whoever may delete it.\n\nWho may call it: somebody signed in.",
-        "operationId": "getWebsitesByIdDeletionCounts",
-        "parameters": [
-          {
-            "description": "The profile's id.",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/actor.GroupDeletionCounts"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
-          },
-          "401": {
-            "description": "no token, or one that has expired"
-          },
-          "403": {
-            "description": "the viewer may not delete it"
-          },
-          "404": {
-            "description": "there is no such profile"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "What deleting a website would take with it",
-        "tags": [
-          "websites"
-        ],
-        "x-handler": "actor/cmd/api/handlers.(*groupHandler).DeletionCounts",
-        "x-shared": "profiles",
-        "x-viewer": "signed_in"
-      }
-    },
-    "/websites/{id}/download-default": {
-      "patch": {
-        "description": "What a post starts with; each post can say otherwise.\n\nWho may call it: somebody signed in.",
-        "operationId": "patchWebsitesByIdDownloadDefault",
-        "parameters": [
-          {
-            "description": "The profile's id.",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "properties": {
-                  "allow": {
-                    "description": "Whether its new photos and videos start out downloadable.",
-                    "type": "boolean"
-                  }
-                },
-                "type": "object"
-              }
-            },
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "properties": {
-                  "allow": {
-                    "description": "Whether its new photos and videos start out downloadable.",
-                    "type": "boolean"
-                  }
-                },
-                "type": "object"
-              }
-            },
-            "multipart/form-data": {
-              "schema": {
-                "properties": {
-                  "allow": {
-                    "description": "Whether its new photos and videos start out downloadable.",
-                    "type": "boolean"
-                  }
-                },
-                "type": "object"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/actor.WebsiteNode"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
-          },
-          "401": {
-            "description": "no token, or one that has expired"
-          },
-          "403": {
-            "description": "the viewer may not change it"
-          },
-          "404": {
-            "description": "there is no such profile"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Change whether new photos and videos may be downloaded",
-        "tags": [
-          "websites"
-        ],
-        "x-handler": "actor/cmd/api/handlers.(*groupHandler).EditDownloadDefault",
-        "x-shared": "profiles",
-        "x-viewer": "signed_in"
-      }
-    },
-    "/websites/{id}/enabled": {
-      "patch": {
-        "description": "Reversible, site administrators only. Off, it is out of sight and may not act; nothing is deleted.\n\nWho may call it: somebody signed in.",
-        "operationId": "patchWebsitesByIdEnabled",
-        "parameters": [
-          {
-            "description": "The profile's id.",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "properties": {
-                  "enabled": {
-                    "description": "Whether it is shown and may act. Off, it is out of sight until it is turned on again; nothing is deleted.",
-                    "type": "boolean"
-                  }
-                },
-                "required": [
-                  "enabled"
-                ],
-                "type": "object"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "done"
-          },
-          "204": {
-            "description": "it was so already"
-          },
-          "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
-          },
-          "401": {
-            "description": "no token, or one that has expired"
-          },
-          "403": {
-            "description": "the viewer may not"
-          },
-          "404": {
-            "description": "there is no such profile"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Turn a profile on or off",
-        "tags": [
-          "websites"
-        ],
-        "x-handler": "actor/cmd/api/handlers.(*groupHandler).SetEnabled",
-        "x-shared": "profiles",
-        "x-viewer": "signed_in"
-      }
-    },
-    "/websites/{id}/featured": {
-      "patch": {
-        "description": "What onboarding offers new members to follow. Super administrators only.\n\nWho may call it: somebody signed in.",
-        "operationId": "patchWebsitesByIdFeatured",
-        "parameters": [
-          {
-            "description": "The profile's id.",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "properties": {
-                  "featured": {
-                    "description": "Whether onboarding offers it to follow.",
-                    "type": "boolean"
-                  }
-                },
-                "required": [
-                  "featured"
-                ],
-                "type": "object"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "done"
-          },
-          "204": {
-            "description": "it was so already"
-          },
-          "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
-          },
-          "401": {
-            "description": "no token, or one that has expired"
-          },
-          "403": {
-            "description": "the viewer may not"
-          },
-          "404": {
-            "description": "there is no such profile"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Refusal"
-                }
-              }
-            },
-            "description": "`not_featurable`: it is disabled, archived or deleted"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Feature a profile, or stop",
-        "tags": [
-          "websites"
-        ],
-        "x-handler": "actor/cmd/api/handlers.(*groupHandler).SetFeatured",
-        "x-shared": "profiles",
-        "x-viewer": "signed_in"
-      }
-    },
-    "/websites/{id}/purge": {
-      "delete": {
-        "description": "Everything of it, at once and with no thirty days. Super administrators only, never on their own profile. Queued, and done by the sweeper.\n\nWho may call it: a super administrator, who has just proved who they are again.",
-        "operationId": "deleteWebsitesByIdPurge",
-        "parameters": [
-          {
-            "description": "The profile's id.",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PurgeQueued"
-                }
-              }
-            },
-            "description": "purged or queued already"
-          },
-          "202": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PurgeQueued"
-                }
-              }
-            },
-            "description": "queued"
-          },
-          "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
-          },
-          "401": {
-            "description": "no token, or one that has expired"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Refusal"
-                }
-              }
-            },
-            "description": "`step_up_required`: the viewer must prove who they are again first; or the viewer may not, without a body"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PurgeRefused"
-                }
-              }
-            },
-            "description": "it cannot be purged; nothing was queued"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Destroy a website for good",
-        "tags": [
-          "websites"
-        ],
-        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Purge",
-        "x-shared": "profiles",
-        "x-step-up": true,
-        "x-viewer": "super_admin"
-      }
-    },
-    "/websites/{id}/restore": {
-      "post": {
-        "description": "Within the thirty days. Answers with it.\n\nWho may call it: somebody signed in.",
-        "operationId": "postWebsitesByIdRestore",
-        "parameters": [
-          {
-            "description": "The profile's id.",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/actor.WebsiteNode"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
-          },
-          "401": {
-            "description": "no token, or one that has expired"
-          },
-          "403": {
-            "description": "the viewer may not"
-          },
-          "404": {
-            "description": "there is no such profile to restore"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Restore a deleted website",
-        "tags": [
-          "websites"
-        ],
-        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Restore",
-        "x-shared": "profiles",
-        "x-viewer": "signed_in"
-      }
     }
   },
   "servers": [
@@ -10217,7 +10217,7 @@
     {
       "description": "Profiles",
       "name": "profiles",
-      "x-about": "What every profile has, whatever its kind (profiles.md): who may see it and what may be posted on it, its admins, being turned off, archived, deleted and restored, being featured, and what its photos and videos start with about being downloaded. Each kind has these at its own address, `/people/`, `/groups/`, `/events/` or `/websites/`, and they are listed under each kind as every profile's. Here as well: which profile an alias is, of any kind.",
+      "x-about": "What every profile has, whatever its kind (profiles.md): who may see it and what may be posted on it, its admins, being turned off, archived, deleted and restored, being featured, and what its photos and videos start with about being downloaded. Each kind has these at its own address, `/people/`, `/groups/`, `/events/` or `/channels/`, and they are listed under each kind as every profile's. Here as well: which profile an alias is, of any kind.",
       "x-service": "actor-service"
     },
     {
@@ -10239,9 +10239,9 @@
       "x-service": "actor-service"
     },
     {
-      "description": "Websites",
-      "name": "websites",
-      "x-about": "A website's feed as a profile (websites.md), followed here and from the fediverse, and looked after by its admins. It is made by connecting the site, which proves its domain (syndication-service, `POST /websites/_connect`), so it has no route here to make one.",
+      "description": "Channels",
+      "name": "channels",
+      "x-about": "A channel's feed as a profile (channels.md), followed here and from the fediverse, and looked after by its admins. It is made by connecting the site, which proves its domain (syndication-service, `POST /channels/_connect`), so it has no route here to make one.",
       "x-service": "actor-service"
     }
   ]

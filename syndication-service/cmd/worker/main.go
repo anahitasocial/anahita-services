@@ -1,4 +1,4 @@
-// syndication-worker reads the feeds of websites and posts what is new in them as
+// syndication-worker reads the feeds of channels and posts what is new in them as
 // their notes, and checks every day that their domains are still proved.
 package main
 
@@ -40,7 +40,7 @@ func main() {
 	}
 
 	w := &worker.Worker{
-		Websites: repositories.NewWebsites(db),
+		Channels: repositories.NewChannels(db),
 		Items:    repositories.NewItems(db),
 		Domains:  repositories.NewDomains(db),
 		Feeds:    feeds.NewReader(),
@@ -88,15 +88,15 @@ type graph struct {
 	media  services.MediaGRPCInterface
 }
 
-// The website is read as nobody in particular: it is public.
-func (g *graph) Website(id int64) (*entities.AnahitaNode, error) {
-	return g.actors.ReadOfType(id, an_const.NodeActorWebsiteEntityType, entities.NewViewer())
+// The channel is read as nobody in particular: it is public.
+func (g *graph) Channel(id int64) (*entities.AnahitaNode, error) {
+	return g.actors.ReadOfType(id, an_const.NodeActorChannelEntityType, entities.NewViewer())
 }
 
 // FirstAdmin is the administrator its notes are made as: the one who
 // has been one longest.
-func (g *graph) FirstAdmin(websiteID int64) (int64, error) {
-	admins, err := g.admins.Browse(websiteID)
+func (g *graph) FirstAdmin(channelID int64) (int64, error) {
+	admins, err := g.admins.Browse(channelID)
 	if err != nil {
 		return 0, err
 	}
@@ -107,7 +107,7 @@ func (g *graph) FirstAdmin(websiteID int64) (int64, error) {
 		}
 	}
 	if first == 0 {
-		return 0, errors.New("the Website has no administrator")
+		return 0, errors.New("the Channel has no administrator")
 	}
 	return first, nil
 }

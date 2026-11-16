@@ -18,7 +18,7 @@
         "type": "object"
       },
       "syndication.Connection": {
-        "description": "Connection is a website being connected: its feed, and the token with both places it may be put.",
+        "description": "Connection is a channel being connected: its feed, and the token with both places it may be put.",
         "properties": {
           "domain": {
             "description": "The domain to prove, and the host the file is read from.",
@@ -41,7 +41,7 @@
             "type": "string"
           },
           "id": {
-            "description": "The connection's id, for checking the proof and making the website.",
+            "description": "The connection's id, for checking the proof and making the channel.",
             "format": "int64",
             "type": "integer"
           },
@@ -80,7 +80,7 @@
         "type": "object"
       },
       "syndication.Made": {
-        "description": "Made is the website as it was made: where to go to see it.",
+        "description": "Made is the channel as it was made: where to go to see it.",
         "properties": {
           "alias": {
             "type": "string"
@@ -107,20 +107,20 @@
     }
   },
   "info": {
-    "description": "Connecting a website: its feed found, its domain proved, and a Website made of it, a profile whose posts are the feed's items (websites.md). Who may is WEBSITES_FROM, administrators unless the installation says otherwise.",
+    "description": "Connecting a channel: its feed found, its domain proved, and a channel made of it, a profile whose posts are the feed's items (channels.md). Who may is CHANNELS_FROM, administrators unless the installation says otherwise.",
     "license": {
       "identifier": "AGPL-3.0-only",
       "name": "GNU Affero General Public License v3.0 only"
     },
-    "title": "Websites",
+    "title": "Channels",
     "version": "dev"
   },
   "openapi": "3.1.0",
   "paths": {
-    "/websites/_connect": {
+    "/channels/_connect": {
       "post": {
         "description": "The site's feed is found: the address itself, or the feed the page names with `<link rel=\"alternate\">`. It must be on the site's domain. The answer is the token, to be put in a TXT record or a file, with a name and a handle to begin with.\n\nWho may call it: somebody signed in.",
-        "operationId": "postWebsitesConnect",
+        "operationId": "postChannelsConnect",
         "requestBody": {
           "content": {
             "application/json": {
@@ -153,16 +153,16 @@
             "description": "Created"
           },
           "400": {
-            "description": "`not_a_domain`, `no_feed`, `unreadable`, `feed_not_on_domain` or `private_feed` (behind a login, or a secret in its address: a website is public), as `error`"
+            "description": "`not_a_domain`, `no_feed`, `unreadable`, `feed_not_on_domain` or `private_feed` (behind a login, or a secret in its address: a channel is public), as `error`"
           },
           "401": {
             "description": "the viewer is not signed in"
           },
           "403": {
-            "description": "the viewer may not connect a website: see WEBSITES_FROM"
+            "description": "the viewer may not connect a channel: see CHANNELS_FROM"
           },
           "409": {
-            "description": "`feed_taken`: the feed already has a Website"
+            "description": "`feed_taken`: the feed already has a Channel"
           },
           "429": {
             "description": "the viewer has begun too many lately"
@@ -173,7 +173,7 @@
             "bearer": []
           }
         ],
-        "summary": "Begin connecting a website",
+        "summary": "Begin connecting a channel",
         "tags": [
           "syndication-service"
         ],
@@ -181,10 +181,10 @@
         "x-viewer": "signed_in"
       }
     },
-    "/websites/_connect/{id}": {
+    "/channels/_connect/{id}": {
       "post": {
         "description": "Once its domain is proved. Whoever proved it is its first administrator and its first follower; its feed's ten newest items are posted, the rest marked seen, and what is published afterwards is posted as it comes.\n\nWho may call it: somebody signed in.",
-        "operationId": "postWebsitesConnectById",
+        "operationId": "postChannelsConnectById",
         "parameters": [
           {
             "description": "The connection's id.",
@@ -255,7 +255,7 @@
             "description": "the viewer is not signed in"
           },
           "403": {
-            "description": "the viewer may not connect a website: see WEBSITES_FROM"
+            "description": "the viewer may not connect a channel: see CHANNELS_FROM"
           },
           "404": {
             "description": "there is no such connection begun by the viewer"
@@ -269,7 +269,7 @@
             "bearer": []
           }
         ],
-        "summary": "Make the Website",
+        "summary": "Make the Channel",
         "tags": [
           "syndication-service"
         ],
@@ -277,10 +277,10 @@
         "x-viewer": "signed_in"
       }
     },
-    "/websites/_connect/{id}/check": {
+    "/channels/_connect/{id}/check": {
       "post": {
         "description": "In the TXT record at `_anahita.<domain>`, then in `https://<host>/.well-known/anahita-verification.txt`. Asked as often as the one connecting likes.\n\nWho may call it: somebody signed in.",
-        "operationId": "postWebsitesConnectByIdCheck",
+        "operationId": "postChannelsConnectByIdCheck",
         "parameters": [
           {
             "description": "The connection's id, as starting it answered.",
@@ -312,7 +312,7 @@
             "description": "the viewer is not signed in"
           },
           "403": {
-            "description": "the viewer may not connect a website: see WEBSITES_FROM"
+            "description": "the viewer may not connect a channel: see CHANNELS_FROM"
           },
           "404": {
             "description": "there is no such connection begun by the viewer"
@@ -331,13 +331,13 @@
         "x-viewer": "signed_in"
       }
     },
-    "/websites/_websub/{id}/{signature}": {
+    "/channels/_websub/{id}/{signature}": {
       "get": {
-        "description": "WebSub: the hub a Website's feed names asks whether its subscription was asked for here, and is answered with its challenge.\n\nWho may call it: anyone, signed in or not.",
-        "operationId": "getWebsitesWebsubByIdBySignature",
+        "description": "WebSub: the hub a Channel's feed names asks whether its subscription was asked for here, and is answered with its challenge.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getChannelsWebsubByIdBySignature",
         "parameters": [
           {
-            "description": "The website's id, and the signature that came with it.",
+            "description": "The channel's id, and the signature that came with it.",
             "in": "path",
             "name": "id",
             "required": true,
@@ -395,7 +395,7 @@
             "description": "it is not a check this answers"
           },
           "404": {
-            "description": "there is no such Website, or no subscription was asked for"
+            "description": "there is no such Channel, or no subscription was asked for"
           }
         },
         "security": [
@@ -412,11 +412,11 @@
         "x-viewer": "anyone"
       },
       "post": {
-        "description": "The Website's feed is read from its site at once, at most once a minute; what the hub sends is not read.\n\nWho may call it: anyone, signed in or not.",
-        "operationId": "postWebsitesWebsubByIdBySignature",
+        "description": "The Channel's feed is read from its site at once, at most once a minute; what the hub sends is not read.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "postChannelsWebsubByIdBySignature",
         "parameters": [
           {
-            "description": "The website's id, and the signature that came with it.",
+            "description": "The channel's id, and the signature that came with it.",
             "in": "path",
             "name": "id",
             "required": true,
@@ -464,7 +464,7 @@
             "description": "it will be read"
           },
           "404": {
-            "description": "there is no such Website, or no subscription was asked for"
+            "description": "there is no such Channel, or no subscription was asked for"
           }
         },
         "security": [
@@ -496,7 +496,7 @@
   ],
   "tags": [
     {
-      "description": "Websites",
+      "description": "Channels",
       "name": "syndication-service"
     }
   ]

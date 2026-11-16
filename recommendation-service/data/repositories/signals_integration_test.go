@@ -54,7 +54,7 @@ const (
 	inviteeY  = 24 // the viewer invited them
 	groupP    = 20
 	groupZ    = 25 // archived
-	websiteW  = 26 // B and C follow it; it posts about the garden
+	channelW  = 26 // B and C follow it; it posts about the garden
 
 	tagGarden = 100
 )
@@ -86,7 +86,7 @@ func seed(t *testing.T, db *sql.DB) {
 	const (
 		person  = "'node.actor.person-service.person.v1','person-service'"
 		group   = "'node.actor.group-service.group.v1','group-service'"
-		website = "'node.actor.actor-service.website.v1','actor-service'"
+		channel = "'node.actor.actor-service.channel.v1','actor-service'"
 		note    = "'node.medium.text-service.note.v1','text-service'"
 		aPerson = "'node.actor.person-service.person.v1'"
 		follow  = "'edge.actor.follow.v1'"
@@ -127,8 +127,8 @@ func seed(t *testing.T, db *sql.DB) {
 			if pair[1] == groupP || pair[1] == groupZ {
 				kind = "'node.actor.group-service.group.v1'"
 			}
-			if pair[1] == websiteW {
-				kind = "'node.actor.actor-service.website.v1'"
+			if pair[1] == channelW {
+				kind = "'node.actor.actor-service.channel.v1'"
 			}
 			rows += fmt.Sprintf("(%s,%d,%s,%d,%s,NOW()),", follow, pair[0], aPerson, pair[1], kind)
 		}
@@ -145,7 +145,7 @@ func seed(t *testing.T, db *sql.DB) {
 		`INSERT INTO nodes (id,type,service,name,alias,access,body,enabled,created_at,updated_at) VALUES
 		 (20,` + group + `,'Gardeners','gardeners','public','We garden',1,NOW(),NOW()),
 		 (25,` + group + `,'Gone quiet','gone-quiet','public','We did',1,NOW(),NOW()),
-		 (26,` + website + `,'Garden News','garden-news','public','Notes from the allotment',1,NOW(),NOW()),
+		 (26,` + channel + `,'Garden News','garden-news','public','Notes from the allotment',1,NOW(),NOW()),
 		 (100,'node.tag.hashtag-service.hashtag.v1','hashtag-service','garden','garden','public','',1,NOW(),NOW())`,
 		`INSERT INTO auth_accounts (node_id,email,email_verified_at) VALUES ` + accounts,
 
@@ -165,7 +165,7 @@ func seed(t *testing.T, db *sql.DB) {
 			[2]int{leaderB, hiddenL}, [2]int{leaderB, turnedM}, [2]int{leaderC, askedN},
 			[2]int{leaderB, blockedV}, [2]int{leaderB, disabledW}, [2]int{leaderB, deletedX},
 			[2]int{leaderB, groupP}, [2]int{leaderC, groupP}, [2]int{leaderB, groupZ},
-			[2]int{leaderB, websiteW}, [2]int{leaderC, websiteW},
+			[2]int{leaderB, channelW}, [2]int{leaderC, channelW},
 			[2]int{followerH, viewer},
 			[2]int{30, popularT}, [2]int{31, popularT}, [2]int{32, popularT},
 		),
@@ -184,7 +184,7 @@ func seed(t *testing.T, db *sql.DB) {
 		 (201,` + note + `,'Tomatoes #garden','public',1,15,` + aPerson + `,15,NOW(),NOW()),
 		 (202,` + note + `,'For my followers #garden','followers',1,16,` + aPerson + `,16,NOW(),NOW()),
 		 (203,` + note + `,'Something else','public',1,17,` + aPerson + `,17,NOW(),NOW()),
-		 (204,` + note + `,'This week #garden','public',1,26,'node.actor.actor-service.website.v1',2,NOW(),NOW())`,
+		 (204,` + note + `,'This week #garden','public',1,26,'node.actor.actor-service.channel.v1',2,NOW(),NOW())`,
 		`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,created_at) VALUES
 		 ('edge.tag.hashtag.v1',100,'node.tag.hashtag-service.hashtag.v1',200,'node.medium.text-service.note.v1',NOW()),
 		 ('edge.tag.hashtag.v1',100,'node.tag.hashtag-service.hashtag.v1',201,'node.medium.text-service.note.v1',NOW()),
@@ -301,34 +301,34 @@ func TestSignalsFindGroups(t *testing.T) {
 	}
 }
 
-// Websites (anahita-web roadmap row 111): for the reasons that fit a site,
-// and only websites.
-func TestSignalsFindWebsites(t *testing.T) {
+// Channels (anahita-web roadmap row 111): for the reasons that fit a site,
+// and only channels.
+func TestSignalsFindChannels(t *testing.T) {
 	db := testDB(t)
 	seed(t, db)
 
-	found, err := NewSignals(db).Find(viewer, constants.KindWebsite, true, false, time.Now())
+	found, err := NewSignals(db).Find(viewer, constants.KindChannel, true, false, time.Now())
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if hit := hitFor(found[constants.ReasonFollowedByLeaders], websiteW); hit == nil || hit.Count != 2 {
-		t.Errorf("the website B and C follow: %+v", hit)
+	if hit := hitFor(found[constants.ReasonFollowedByLeaders], channelW); hit == nil || hit.Count != 2 {
+		t.Errorf("the channel B and C follow: %+v", hit)
 	}
-	if hitFor(found[constants.ReasonSharedInterest], websiteW) == nil {
-		t.Errorf("the website posting about the garden is not a shared interest: %v", found)
+	if hitFor(found[constants.ReasonSharedInterest], channelW) == nil {
+		t.Errorf("the channel posting about the garden is not a shared interest: %v", found)
 	}
 	for reason, hits := range found {
 		for _, hit := range hits {
-			if hit.ID != websiteW {
-				t.Errorf("%s found %d among websites", reason, hit.ID)
+			if hit.ID != channelW {
+				t.Errorf("%s found %d among channels", reason, hit.ID)
 			}
 		}
 	}
-	// A website does not follow back, invite, or appear in photos.
+	// A channel does not follow back, invite, or appear in photos.
 	for _, reason := range []string{constants.ReasonFollowsYou, constants.ReasonInviter, constants.ReasonPicturedWithYou} {
 		if len(found[reason]) != 0 {
-			t.Errorf("a website was found for %s", reason)
+			t.Errorf("a channel was found for %s", reason)
 		}
 	}
 
@@ -336,8 +336,8 @@ func TestSignalsFindWebsites(t *testing.T) {
 	for _, kind := range []string{constants.KindPerson, constants.KindGroup} {
 		others, _ := NewSignals(db).Find(viewer, kind, true, false, time.Now())
 		for reason, hits := range others {
-			if hitFor(hits, websiteW) != nil {
-				t.Errorf("the website was found among %s for %s", kind, reason)
+			if hitFor(hits, channelW) != nil {
+				t.Errorf("the channel was found among %s for %s", kind, reason)
 			}
 		}
 	}
@@ -437,15 +437,15 @@ func TestPreferencesAndDismissalsAreKept(t *testing.T) {
 		t.Errorf("read back %+v (%v)", read, err)
 	}
 
-	// Their own weights, and whether to be suggested events and websites.
+	// Their own weights, and whether to be suggested events and channels.
 	read.Weights = map[string]float64{constants.ReasonPopular: 7.5, constants.ReasonFollowsYou: 0}
 	read.SuggestEvents = false
-	read.SuggestWebsites = false
+	read.SuggestChannels = false
 	if err := repos.Preferences.Write(viewer, read); err != nil {
 		t.Fatal(err)
 	}
 	again, err := repos.Preferences.Read(viewer)
-	if err != nil || again.SuggestEvents || again.SuggestWebsites || again.Weights[constants.ReasonPopular] != 7.5 || len(again.Weights) != 2 {
+	if err != nil || again.SuggestEvents || again.SuggestChannels || again.Weights[constants.ReasonPopular] != 7.5 || len(again.Weights) != 2 {
 		t.Errorf("weights read back %+v (%v)", again, err)
 	}
 
@@ -668,7 +668,7 @@ func TestInterestsPickedAreRecommendedBy(t *testing.T) {
 		t.Error("R posts about it for followers only, and was recommended for it")
 	}
 
-	// Offered: #garden is on three public posts, the website's among them;
+	// Offered: #garden is on three public posts, the channel's among them;
 	// the fourth is for followers.
 	interests, err := signals.Interests(time.Now().Add(-24*time.Hour), 2, 10)
 	if err != nil {

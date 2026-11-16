@@ -173,9 +173,9 @@ services:
       # administrators or super-administrators. Enforced by actor-service
       # and published by auth-service, from this one entry.
       EVENTS_FROM: ${EVENTS_FROM:-}
-      # Who may connect a website as a website: administrators unless set.
+      # Who may connect a website as a channel: administrators unless set.
       # Enforced by syndication-service and published by auth-service.
-      WEBSITES_FROM: ${WEBSITES_FROM:-}
+      CHANNELS_FROM: ${CHANNELS_FROM:-${WEBSITES_FROM:-}}
       # Who may add a location: administrators unless set. Enforced by
       # location-service and published by auth-service.
       LOCATIONS_FROM: ${LOCATIONS_FROM:-}
@@ -833,9 +833,9 @@ services:
       anahita-network:
         ipv4_address: 172.20.1.38
 
-# syndication-service - connecting a website: its feed found, its domain proved,
-# and a website made of it. It goes out to the internet for what somebody
-# names, only to public addresses. Left out, there are no websites.
+# syndication-service - connecting a channel: its feed found, its domain proved,
+# and a channel made of it. It goes out to the internet for what somebody
+# names, only to public addresses. Left out, there are no channels.
   syndication-service:
     build:
       context: .
@@ -863,16 +863,16 @@ services:
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
       OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
-      # Who may connect a website: administrators unless set. See
+      # Who may connect a channel: administrators unless set. See
       # docs/configuration.md, Who may make what.
-      WEBSITES_FROM: ${WEBSITES_FROM:-}
+      CHANNELS_FROM: ${CHANNELS_FROM:-${WEBSITES_FROM:-}}
     volumes:
       - ./grpc-certs:/run/secrets/grpc:ro
     networks:
       anahita-network:
         ipv4_address: 172.20.1.52
 
-# syndication-worker - reads the feeds of websites and posts what is new in them,
+# syndication-worker - reads the feeds of channels and posts what is new in them,
 # and checks every day that their domains are still proved. Answers no
 # requests. Left out with syndication-service.
   syndication-worker:
@@ -893,10 +893,10 @@ services:
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       # For the card of each item's original. Unset, articles have none.
       LINK_PREVIEW_URL: ${LINK_PREVIEW_URL:-http://link-preview-service:80}
-      # The most posts a website makes in an hour, and how often, in minutes,
-      # a feed is read. See docs/websites.md.
-      WEBSITE_HOURLY_CAP: ${WEBSITE_HOURLY_CAP:-10}
-      WEBSITE_READ_EVERY: ${WEBSITE_READ_EVERY:-30}
+      # The most posts a channel makes in an hour, and how often, in minutes,
+      # a feed is read. See docs/channels.md.
+      CHANNEL_FEED_HOURLY_CAP: ${CHANNEL_FEED_HOURLY_CAP:-${WEBSITE_HOURLY_CAP:-10}}
+      CHANNEL_FEED_READ_EVERY: ${CHANNEL_FEED_READ_EVERY:-${WEBSITE_READ_EVERY:-30}}
       # For WebSub: the address hubs call back at, and the key its
       # signature is made with, the same as syndication-service's. On a machine
       # no hub can reach, feeds are read on the clock alone.

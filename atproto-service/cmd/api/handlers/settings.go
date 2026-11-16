@@ -96,18 +96,18 @@ func (h *Handlers) ReadSettings(c echo.Context) error {
 }
 
 // SettingsRequest says whose Bluesky account is meant: the viewer's own,
-// or, with `profile_id`, a website's the viewer looks after.
+// or, with `profile_id`, a channel's the viewer looks after.
 type SettingsRequest struct {
-	// A website the viewer is an administrator of. Left out, the viewer.
+	// A channel the viewer is an administrator of. Left out, the viewer.
 	ProfileID int64 `query:"profile_id"`
 }
 
 // errConnectNotYours is a profile whose account the viewer may not see or
-// connect: not a website they look after.
+// connect: not a channel they look after.
 const errConnectNotYours = "bluesky_not_yours"
 
-// whose is the profile a settings call is about: the viewer, or a website
-// they are an administrator of (docs/websites.md), whose notes then go to
+// whose is the profile a settings call is about: the viewer, or a channel
+// they are an administrator of (docs/channels.md), whose notes then go to
 // Bluesky as its own account. A refusal's status otherwise.
 func (h *Handlers) whose(c echo.Context) (int64, int) {
 	viewer := getViewer(c)
@@ -115,20 +115,20 @@ func (h *Handlers) whose(c echo.Context) (int64, int) {
 	if id <= 0 || id == viewer.ID {
 		return viewer.ID, 0
 	}
-	website, err := h.Nodes.Read(id)
-	if err != nil || website == nil || website.ID == 0 || website.IsRemote() ||
-		website.Type != constants.NodeActorWebsiteEntityType {
+	channel, err := h.Nodes.Read(id)
+	if err != nil || channel == nil || channel.ID == 0 || channel.IsRemote() ||
+		channel.Type != constants.NodeActorChannelEntityType {
 		return 0, http.StatusNotFound
 	}
 	if h.Relations == nil {
 		return 0, http.StatusForbidden
 	}
 	// Read(actor, viewer).HasAdmin: the viewer administers the actor.
-	rel, err := h.Relations.Read(website.ID, viewer.ID)
+	rel, err := h.Relations.Read(channel.ID, viewer.ID)
 	if err != nil || rel == nil || !rel.HasAdmin {
 		return 0, http.StatusForbidden
 	}
-	return website.ID, 0
+	return channel.ID, 0
 }
 
 // ConnectRequest connects the viewer's Bluesky account.
@@ -168,7 +168,7 @@ func (h *Handlers) EditSettings(c echo.Context) error {
 	if err != nil || person == nil || person.ID == 0 || person.IsRemote() {
 		return refuse(c, http.StatusForbidden, errConnectUnreadable)
 	}
-	// Their own, or a website's they look after.
+	// Their own, or a channel's they look after.
 	profileID, status := h.whose(c)
 	if status != 0 {
 		return refuse(c, status, errConnectNotYours)

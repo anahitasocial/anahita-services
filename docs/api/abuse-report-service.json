@@ -1100,7 +1100,7 @@
           },
           "written_by": {
             "$ref": "#/components/schemas/NodeItem",
-            "description": "Who wrote it, when it is a reply one of a website's administrators made as the website. Sent only here, to those who handle reports."
+            "description": "Who wrote it, when it is a reply one of a channel's administrators made as the channel. Sent only here, to those who handle reports."
           }
         },
         "required": [
@@ -1213,7 +1213,7 @@
           },
           "written_by": {
             "$ref": "#/components/schemas/NodeItem",
-            "description": "Who wrote it, when it is a reply one of a website's administrators made as the website. Sent only here, to those who handle reports."
+            "description": "Who wrote it, when it is a reply one of a channel's administrators made as the channel. Sent only here, to those who handle reports."
           }
         },
         "required": [

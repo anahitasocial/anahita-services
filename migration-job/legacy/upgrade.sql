@@ -719,7 +719,7 @@ ALTER TABLE nodes ADD INDEX `archived_at` (`archived_at`);
 ALTER TABLE nodes ADD COLUMN `featured_at` datetime DEFAULT NULL;
 ALTER TABLE nodes ADD INDEX `featured_at` (`featured_at`);
 
--- One link on an actor profile. A migrated install has the legacy website,
+-- One link on an actor profile. A migrated install has the legacy channel,
 -- contact and phone values inside `meta`; they are deliberately NOT carried
 -- across — nothing in the Go stack ever read that map, so they have been
 -- invisible since the port and are not worth reviving.
@@ -1440,11 +1440,11 @@ CREATE TABLE IF NOT EXISTS search_preferences (
 
 CREATE TABLE IF NOT EXISTS recommendation_preferences (
     `person_id` bigint unsigned NOT NULL,
-    -- Whether to be suggested people, groups, events and websites.
+    -- Whether to be suggested people, groups, events and channels.
     `suggest_people` tinyint(1) NOT NULL DEFAULT 1,
     `suggest_groups` tinyint(1) NOT NULL DEFAULT 1,
     `suggest_events` tinyint(1) NOT NULL DEFAULT 1,
-    `suggest_websites` tinyint(1) NOT NULL DEFAULT 1,
+    `suggest_channels` tinyint(1) NOT NULL DEFAULT 1,
     -- Whether what they liked and wrote may be used to choose for them.
     `use_activity` tinyint(1) NOT NULL DEFAULT 1,
     -- Whether they may be suggested to other people.
@@ -1945,7 +1945,7 @@ CREATE TABLE IF NOT EXISTS verified_domains (
     token varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
     -- Who is proving it.
     person_id bigint unsigned NOT NULL,
-    -- The profile it is proved for: a website, and later a person or a
+    -- The profile it is proved for: a channel, and later a person or a
     -- group. NULL until that profile is made.
     profile_id bigint unsigned DEFAULT NULL,
     -- dns or file: where the token was last found.
@@ -1965,18 +1965,18 @@ CREATE TABLE IF NOT EXISTS verified_domains (
     KEY checked_at (checked_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Websites: websites' feeds as profiles.
-CREATE TABLE IF NOT EXISTS websites (
-    -- The website's node: node.actor.actor-service.website.v1.
+-- Channels: channels' feeds as profiles.
+CREATE TABLE IF NOT EXISTS channel_feeds (
+    -- The channel's node: node.actor.actor-service.channel.v1.
     node_id bigint unsigned NOT NULL,
-    -- Where its feed is read, one website to a feed, and the site it is of.
+    -- Where its feed is read, one channel to a feed, and the site it is of.
     feed_url varchar(2000) NOT NULL,
     feed_hash char(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
     site_url varchar(2000) NOT NULL,
     -- The domain proved for it.
     domain_id bigint unsigned NOT NULL,
     -- active, or paused: its proof gone for a week, or its administrators
-    -- stopped it. A paused website's feed is not read.
+    -- stopped it. A paused channel's feed is not read.
     state varchar(16) NOT NULL DEFAULT 'active',
     -- What the feed's server said the last time, sent back so that an
     -- unchanged feed is not sent again.
@@ -2005,12 +2005,12 @@ CREATE TABLE IF NOT EXISTS websites (
     KEY domain_id (domain_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE IF NOT EXISTS website_items (
-    website_id bigint unsigned NOT NULL,
+CREATE TABLE IF NOT EXISTS channel_feed_items (
+    channel_id bigint unsigned NOT NULL,
     -- The item's id, or its address when it has none, hashed.
     item_key char(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
     -- The article it became. NULL for an item marked seen and not posted:
-    -- what the feed held when the website was made, or what waits for the
+    -- what the feed held when the channel was made, or what waits for the
     -- next hour.
     node_id bigint unsigned DEFAULT NULL,
     -- A hash of its title and its excerpt, so that a changed item changes
@@ -2021,9 +2021,9 @@ CREATE TABLE IF NOT EXISTS website_items (
     state varchar(16) NOT NULL,
     created_at datetime NOT NULL,
     updated_at datetime NOT NULL,
-    PRIMARY KEY (website_id, item_key),
+    PRIMARY KEY (channel_id, item_key),
     KEY node_id (node_id),
-    KEY website_state (website_id, state)
+    KEY channel_state (channel_id, state)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
@@ -2339,12 +2339,12 @@ UPDATE video_uploads SET
 ALTER TABLE video_uploads
     MODIFY `body` text NOT NULL DEFAULT ('');
 
-UPDATE websites SET
+UPDATE channel_feeds SET
     `etag` = COALESCE(`etag`, ''),
     `last_modified` = COALESCE(`last_modified`, ''),
     `hub_url` = COALESCE(`hub_url`, ''),
     `last_error` = COALESCE(`last_error`, '');
-ALTER TABLE websites
+ALTER TABLE channel_feeds
     MODIFY `etag` varchar(255) NOT NULL DEFAULT '',
     MODIFY `last_modified` varchar(64) NOT NULL DEFAULT '',
     MODIFY `hub_url` varchar(2000) NOT NULL DEFAULT '',

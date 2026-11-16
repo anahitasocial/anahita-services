@@ -11,7 +11,7 @@ import "strings"
 // person type Anahita does not have.
 //
 // These settings use this scale: INVITES_FROM, read by auth-service;
-// GROUPS_FROM and EVENTS_FROM, read by actor-service; WEBSITES_FROM, read by
+// GROUPS_FROM and EVENTS_FROM, read by actor-service; CHANNELS_FROM, read by
 // syndication-service; and LOCATIONS_FROM, read by location-service. auth-
 // service republishes the last four in NodeInfo. They share the scale so they
 // cannot drift apart.

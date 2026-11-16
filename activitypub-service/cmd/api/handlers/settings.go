@@ -54,7 +54,7 @@ type SettingsRequest struct {
 // An administrator may ask it of somebody else (?person_id=), to read and
 // not to change: they can change that person's profile in ways that take
 // them off the fediverse, and have to be able to see that it would. A
-// website's administrators may ask it of the website, which they turn on
+// channel's administrators may ask it of the channel, which they turn on
 // and off as a person does for themselves.
 func (h *Handlers) ReadSettings(c echo.Context) error {
 	viewer := getViewer(c)
@@ -65,7 +65,7 @@ func (h *Handlers) ReadSettings(c echo.Context) error {
 		if err != nil || id <= 0 {
 			return refuse(c, http.StatusBadRequest, "person_unreadable")
 		}
-		if id != viewer.ID && !viewer.IsAdmin() && !h.administersWebsite(viewer.ID, id) {
+		if id != viewer.ID && !viewer.IsAdmin() && !h.administersChannel(viewer.ID, id) {
 			return c.NoContent(http.StatusForbidden)
 		}
 		personID = id
@@ -83,7 +83,7 @@ func (h *Handlers) ReadSettings(c echo.Context) error {
 }
 
 // EditSettings turns it on or off for the viewer, or, for one of its
-// administrators, a website (?person_id=). Nobody else's: a site
+// administrators, a channel (?person_id=). Nobody else's: a site
 // administrator reads a person's choice, and never makes it for them.
 func (h *Handlers) EditSettings(c echo.Context) error {
 	viewer := getViewer(c)
@@ -94,7 +94,7 @@ func (h *Handlers) EditSettings(c echo.Context) error {
 		if err != nil || id <= 0 {
 			return refuse(c, http.StatusBadRequest, "person_unreadable")
 		}
-		if id != viewer.ID && !h.administersWebsite(viewer.ID, id) {
+		if id != viewer.ID && !h.administersChannel(viewer.ID, id) {
 			return c.NoContent(http.StatusForbidden)
 		}
 		personID = id
@@ -190,19 +190,19 @@ func (h *Handlers) changeListing(personID int64, settings *Settings, req *Settin
 	return nil
 }
 
-// administersWebsite says whether the viewer is one of a website's
-// administrators. Anything that is not a website here is not theirs to ask
+// administersChannel says whether the viewer is one of a channel's
+// administrators. Anything that is not a channel here is not theirs to ask
 // about.
-func (h *Handlers) administersWebsite(viewerID, id int64) bool {
+func (h *Handlers) administersChannel(viewerID, id int64) bool {
 	if h.Relations == nil {
 		return false
 	}
-	website, err := h.Nodes.Read(id)
-	if err != nil || !isWebsite(website) || website.IsRemote() {
+	channel, err := h.Nodes.Read(id)
+	if err != nil || !isChannel(channel) || channel.IsRemote() {
 		return false
 	}
 	// Read(actor, viewer).HasAdmin: the viewer administers the actor.
-	rel, err := h.Relations.Read(website.ID, viewerID)
+	rel, err := h.Relations.Read(channel.ID, viewerID)
 	return err == nil && rel != nil && rel.HasAdmin
 }
 

@@ -258,7 +258,7 @@ profile:
 | --- | --- |
 | `PATCH /people/:id/featured` | `{ "featured": true }` or `false` |
 | `PATCH /groups/:id/featured` | The same, for a group |
-| `PATCH /websites/:id/featured` | The same, for a website |
+| `PATCH /channels/:id/featured` | The same, for a website |
 | `PATCH /events/:id/featured` | The same, for an event |
 
 Super administrators only; anybody else gets `403`. The answer is `200` when
@@ -267,7 +267,7 @@ deleted account cannot be featured (`409`). Featured profiles carry
 `featured_at` in their JSON.
 
 `GET /people/?featured=1`, `GET /groups/?featured=1`,
-`GET /websites/?featured=1` and `GET /events/featured` list them (events
+`GET /channels/?featured=1` and `GET /events/featured` list them (events
 have no list of every one, so theirs has an address of its own), most
 recently featured first unless `ordering` is given, through the ordinary
 browse:

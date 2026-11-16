@@ -51,19 +51,19 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Sends(http.StatusTooManyRequests, responses.Refusal{}, "`too_many_requests`").
 		Sends(http.StatusBadGateway, responses.Refusal{}, "`media_failed`: Bluesky could not be asked")
 	// A person's own Bluesky account, connected or not; or, with
-	// profile_id, a website's the viewer looks after (docs/websites.md).
-	notYours := "`bluesky_not_yours`: profile_id is not a website the viewer is an administrator of"
+	// profile_id, a channel's the viewer looks after (docs/channels.md).
+	notYours := "`bluesky_not_yours`: profile_id is not a channel the viewer is an administrator of"
 	atproto.GET("/settings", r.handler.ReadSettings).
 		Summary("The viewer's Bluesky account").
-		Describe("Or a website's, with `profile_id`, for one of its administrators.").
+		Describe("Or a channel's, with `profile_id`, for one of its administrators.").
 		Viewer(apidoc.SignedIn).
 		Takes(&handlers.SettingsRequest{}).
 		Sends(http.StatusOK, handlers.Settings{}).
 		Sends(http.StatusForbidden, responses.Refusal{}, notYours).
-		Sends(http.StatusNotFound, responses.Refusal{}, off+"; `bluesky_not_yours`, there is no such website")
+		Sends(http.StatusNotFound, responses.Refusal{}, off+"; `bluesky_not_yours`, there is no such channel")
 	atproto.PUT("/settings", r.handler.EditSettings).
 		Summary("Connect the viewer's Bluesky account").
-		Describe("With an app password, which is exchanged for a token and not kept. Ten tries in ten minutes. With `profile_id`, a website's account, for one of its administrators: its notes then go to Bluesky as that account, and what the account posts there itself is not made a post of the website.").
+		Describe("With an app password, which is exchanged for a token and not kept. Ten tries in ten minutes. With `profile_id`, a channel's account, for one of its administrators: its notes then go to Bluesky as that account, and what the account posts there itself is not made a post of the channel.").
 		Viewer(apidoc.SignedIn).
 		Takes(&handlers.SettingsRequest{}).
 		Takes(&handlers.ConnectRequest{}).
@@ -76,7 +76,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Sends(http.StatusBadGateway, responses.Refusal{}, "`bluesky_failed`")
 	atproto.DELETE("/settings", r.handler.DeleteSettings).
 		Summary("Disconnect it").
-		Describe("The token is forgotten. What was written stays on Bluesky. With `profile_id`, a website's.").
+		Describe("The token is forgotten. What was written stays on Bluesky. With `profile_id`, a channel's.").
 		Viewer(apidoc.SignedIn).
 		Takes(&handlers.SettingsRequest{}).
 		Sends(http.StatusOK, handlers.Settings{}).

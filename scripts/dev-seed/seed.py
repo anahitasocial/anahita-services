@@ -368,10 +368,10 @@ def main():
     together((lambda a, b: a.api('POST', f'/socialgraph/{b.id}/followers/{a.id}', ok=(200, 201, 204, 409)), a, b) for a, b in edges)
     print(f'{len(edges)} follows.')
 
-    # The real profiles and the websites here are followed as anybody is.
+    # The real profiles and the channels here are followed as anybody is.
     others = [int(r[0]) for r in mysql(
         f"SELECT id FROM nodes WHERE deleted_at IS NULL AND purged_at IS NULL AND uri IS NULL AND ("
-        f"(type = {q(PERSON)} AND id NOT IN ({','.join(str(p.id) for p in crew)})) OR type = 'node.actor.actor-service.website.v1')")]
+        f"(type = {q(PERSON)} AND id NOT IN ({','.join(str(p.id) for p in crew)})) OR type = 'node.actor.actor-service.channel.v1')")]
     jobs = []
     for target in others:
         for p in rng.sample(crew, min(len(crew), rng.randint(4, 14))):

@@ -71,8 +71,8 @@ type Case struct {
 	TargetGone bool `json:"target_gone"`
 	// The profile it is on.
 	TargetOwner *libs_responses.NodeItem `json:"target_owner,omitempty"`
-	// Who wrote it, when it is a reply one of a website's administrators made
-	// as the website. Sent only here, to those who handle reports.
+	// Who wrote it, when it is a reply one of a channel's administrators made
+	// as the channel. Sent only here, to those who handle reports.
 	WrittenBy *libs_responses.NodeItem `json:"written_by,omitempty"`
 
 	// The reasons given, with how many gave each.
@@ -203,7 +203,7 @@ func (m *Mapper) node(id int64) *libs_responses.NodeItem {
 	return (&libs_responses.NodeResponse{}).MapNodeItem(node)
 }
 
-// writer is who wrote a reply made as a website, or nil.
+// writer is who wrote a reply made as a channel, or nil.
 func (m *Mapper) writer(targetID int64) *libs_responses.NodeItem {
 	target, ok := m.Nodes[targetID]
 	if !ok || target == nil {

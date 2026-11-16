@@ -50,7 +50,7 @@ twice.
 | --- | --- | --- | --- |
 | `/@<alias>` and its tabs: a person, a group, an event or a website at its alias | Its name | Its bio, or what it says of itself | Its avatar |
 | `/people/<alias>` and its tabs | The person's name | Their bio | Their avatar |
-| `/groups/<id>`, `/events/<id>`, `/websites/<id>` and their tabs | Its name | What it says of itself | Its avatar |
+| `/groups/<id>`, `/events/<id>`, `/channels/<id>` and their tabs | Its name | What it says of itself | Its avatar |
 | `/photos/<id>` | The photo's title | Its text | The photo |
 | `/videos/<id>` | The video's title | Its text | Its poster: for a GIF, its first picture |
 | `/articles/<id>`, `/topics/<id>` | Its title | The start of its text | Its cover |

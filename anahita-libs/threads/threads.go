@@ -64,7 +64,7 @@ func EachSaysSomething(parts []Part) bool {
 
 // Next is a note after the first: a reply to the one before, written by
 // whoever writes the thread. It belongs to them, as any reply does; or, in
-// a website's thread written as the website, to the website, as the first
+// a channel's thread written as the channel, to the channel, as the first
 // part does. ok is false for a language that is not one.
 //
 // The thread's content warning goes on: a thread's is every note's.
@@ -83,7 +83,7 @@ func Next(first *entities.AnahitaNode, each Part, writerID int64) (*entities.Ana
 	part.Warning = first.Warning
 	part.WarningText = first.WarningText
 	part.ModifiedBy = writerID
-	if first.OwnerType == constants.NodeActorWebsiteEntityType {
+	if first.OwnerType == constants.NodeActorChannelEntityType {
 		part.OwnerID = first.OwnerID
 		part.OwnerType = first.OwnerType
 		part.CreatedBy = first.OwnerID

@@ -3,6 +3,7 @@ package features
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"slices"
@@ -56,6 +57,9 @@ func LoadInstance(dir string) (*Instance, error) {
 	}
 	instance := &Instance{services: map[string]*FeatureOverride{}}
 	for _, each := range listed {
+		if each != nil && each.Service == profilesService {
+			each.NodeTypes = channelsNamedOld(each.NodeTypes)
+		}
 		if each != nil && each.Service != "" {
 			instance.services[each.Service] = each
 		}
@@ -159,7 +163,7 @@ var profileKinds = []struct{ Name, Type string }{
 	{"person", constants.NodeActorPersonEntityType},
 	{"group", constants.NodeActorGroupEntityType},
 	{"event", constants.NodeActorEventEntityType},
-	{"website", constants.NodeActorWebsiteEntityType},
+	{"channel", constants.NodeActorChannelEntityType},
 }
 
 // Offered is what the installation offers, for ReadInstance: the kinds of
@@ -188,4 +192,24 @@ func (fl *FeatureLoader) Offered() (profiles, posts []string, err error) {
 		}
 	}
 	return profiles, posts, nil
+}
+
+// oldChannelKind is what a channel was called in instance.json before
+// roadmap row 147. Read as channel for one release, and said in the log.
+const oldChannelKind = "website"
+
+// channelsNamedOld reads the profile kinds of instance.json with website
+// taken for channel.
+func channelsNamedOld(kinds []string) []string {
+	out := make([]string, 0, len(kinds))
+	for _, kind := range kinds {
+		if kind == oldChannelKind {
+			log.Printf("%s: the kind website is channel now (roadmap row 147); it is read as channel for one release", InstanceFile)
+			kind = "channel"
+		}
+		if !slices.Contains(out, kind) {
+			out = append(out, kind)
+		}
+	}
+	return out
 }

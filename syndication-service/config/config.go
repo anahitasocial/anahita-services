@@ -16,7 +16,7 @@ const (
 	ErrMissingGraphAddr         = "Graph gRPC service address is missing"
 	ErrMissingOAuthIssuer       = "OAuth issuer is missing"
 	ErrMissingOAuthJWKSURL      = "OAuth JWKS URL is missing"
-	ErrInvalidWebsitesFrom      = "WEBSITES_FROM must be one of: "
+	ErrInvalidChannelsFrom      = "CHANNELS_FROM must be one of: "
 )
 
 // Config is what syndication-service is told from its environment. The API and
@@ -32,17 +32,17 @@ type Config struct {
 	OAuthIssuer      string
 	OAuthJWKSURL     string
 	DomainName       string
-	// The database, for the websites, their feeds' items and the domains
+	// The database, for the channels, their feeds' items and the domains
 	// proved for them.
 	DSN string
-	// Who may connect a website. See GetWebsitesFrom.
-	WebsitesFrom string
+	// Who may connect a channel. See GetChannelsFrom.
+	ChannelsFrom string
 
 	// The worker's. Where link-preview-service is asked for the card of an
 	// item's original; unset, articles have no card.
 	LinkPreviewURL string
-	// The most posts a website makes in an hour (WEBSITE_HOURLY_CAP, 10), and
-	// how often a feed is read, in minutes (WEBSITE_READ_EVERY, 30).
+	// The most posts a channel makes in an hour (CHANNEL_FEED_HOURLY_CAP, 10), and
+	// how often a feed is read, in minutes (CHANNEL_FEED_READ_EVERY, 30).
 	HourlyCap int
 	ReadEvery int
 }
@@ -60,10 +60,12 @@ func NewConfig() *Config {
 		OAuthJWKSURL:     os.Getenv("OAUTH_JWKS_URL"),
 		DomainName:       os.Getenv("DOMAIN_NAME"),
 		DSN:              os.Getenv("DSN"),
-		WebsitesFrom:     os.Getenv("WEBSITES_FROM"),
-		LinkPreviewURL:   os.Getenv("LINK_PREVIEW_URL"),
-		HourlyCap:        getenv.Int("WEBSITE_HOURLY_CAP", 10),
-		ReadEvery:        getenv.Int("WEBSITE_READ_EVERY", 30),
+		// WEBSITES_FROM, WEBSITE_HOURLY_CAP and WEBSITE_READ_EVERY until
+		// roadmap row 147, read for one release.
+		ChannelsFrom:   getenv.Renamed("CHANNELS_FROM", "WEBSITES_FROM"),
+		LinkPreviewURL: os.Getenv("LINK_PREVIEW_URL"),
+		HourlyCap:      getenv.RenamedInt("CHANNEL_FEED_HOURLY_CAP", "WEBSITE_HOURLY_CAP", 10),
+		ReadEvery:      getenv.RenamedInt("CHANNEL_FEED_READ_EVERY", "WEBSITE_READ_EVERY", 30),
 	}
 
 	if config.OAuthJWKSURL == "" && config.OAuthIssuer != "" {
@@ -98,10 +100,10 @@ func (config *Config) Validate() error {
 		return errors.New("missing fields: " + strings.Join(missing, ", "))
 	}
 
-	// A value nobody recognises is a typo, and would refuse every website with
+	// A value nobody recognises is a typo, and would refuse every channel with
 	// no hint as to why.
-	if config.WebsitesFrom != "" && !constants.IsRoleLevel(constants.NormalizeRoleLevel(config.WebsitesFrom)) {
-		return errors.New(ErrInvalidWebsitesFrom + strings.Join(constants.RoleLevelValues, ", "))
+	if config.ChannelsFrom != "" && !constants.IsRoleLevel(constants.NormalizeRoleLevel(config.ChannelsFrom)) {
+		return errors.New(ErrInvalidChannelsFrom + strings.Join(constants.RoleLevelValues, ", "))
 	}
 
 	return nil
@@ -120,7 +122,7 @@ func (config *Config) ValidateWorker() error {
 		return errors.New("missing fields: " + strings.Join(missing, ", "))
 	}
 	if config.HourlyCap < 1 || config.ReadEvery < 15 {
-		return errors.New("WEBSITE_HOURLY_CAP must be at least 1, and WEBSITE_READ_EVERY at least 15 minutes")
+		return errors.New("CHANNEL_FEED_HOURLY_CAP must be at least 1, and CHANNEL_FEED_READ_EVERY at least 15 minutes")
 	}
 	return nil
 }
@@ -183,13 +185,13 @@ func (config *Config) GetDomainName() string {
 	return config.DomainName
 }
 
-// GetWebsitesFrom is the least role that may connect a website.
+// GetChannelsFrom is the least role that may connect a channel.
 //
 // Administrators unless an installation says otherwise, as for groups: a
-// Website is a standing profile with a name others will look for, and posts
+// Channel is a standing profile with a name others will look for, and posts
 // to the fediverse in the installation's name.
-func (config *Config) GetWebsitesFrom() string {
-	value := constants.NormalizeRoleLevel(config.WebsitesFrom)
+func (config *Config) GetChannelsFrom() string {
+	value := constants.NormalizeRoleLevel(config.ChannelsFrom)
 	if value == "" {
 		return constants.RoleLevelAdministrators
 	}
@@ -199,5 +201,5 @@ func (config *Config) GetWebsitesFrom() string {
 // MayConnect says whether somebody of this person type meets it. Compared
 // by rank, never by equality: see constants.MeetsRoleLevel.
 func (config *Config) MayConnect(personType string) bool {
-	return constants.MeetsRoleLevel(personType, config.GetWebsitesFrom())
+	return constants.MeetsRoleLevel(personType, config.GetChannelsFrom())
 }

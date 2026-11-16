@@ -181,11 +181,11 @@ WHERE note.type IN (?, ?, ?, ?, ?)
 ORDER BY note.id
 LIMIT ?`
 
-// A website's notes, the items of its feed and its replies, that should have
+// A channel's notes, the items of its feed and its replies, that should have
 // gone out and did not, once its administrators have put it on the
-// fediverse. Its items are made by the website itself, and dated as on its
+// fediverse. Its items are made by the channel itself, and dated as on its
 // site, so they are taken by when they were made here.
-const websiteNotesNotSent = `
+const channelNotesNotSent = `
 SELECT note.id
 FROM nodes AS note
 JOIN activitypub_accounts AS account
@@ -209,7 +209,7 @@ WHERE note.owner_type = ?
 ORDER BY note.id
 LIMIT ?`
 
-// NotesNotSent is people's posts and websites' that should have gone out and
+// NotesNotSent is people's posts and channels' that should have gone out and
 // did not, the oldest first.
 func (repo *Missed) NotesNotSent(since, olderThan time.Time, limit int) ([]int64, error) {
 	people, err := repo.ids(notesNotSent,
@@ -218,13 +218,13 @@ func (repo *Missed) NotesNotSent(since, olderThan time.Time, limit int) ([]int64
 	if err != nil {
 		return nil, err
 	}
-	websites, err := repo.ids(websiteNotesNotSent,
-		constants.NodeActorWebsiteEntityType, constants.NodeMediumNoteEntityType,
+	channels, err := repo.ids(channelNotesNotSent,
+		constants.NodeActorChannelEntityType, constants.NodeMediumNoteEntityType,
 		constants.AnahitaAccessPublic, since, olderThan, limit)
 	if err != nil {
 		return nil, err
 	}
-	both := append(people, websites...)
+	both := append(people, channels...)
 	slices.Sort(both)
 	if len(both) > limit {
 		both = both[:limit]

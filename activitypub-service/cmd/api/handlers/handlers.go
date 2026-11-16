@@ -149,7 +149,7 @@ func (h *Handlers) siteFederates() (bool, string) {
 }
 
 // mayFederate says whether a node is somebody who could be on the
-// fediverse: a person or a website, made here, whose profile anybody may see.
+// fediverse: a person or a channel, made here, whose profile anybody may see.
 //
 // Whether anybody may see it is asked of the graph, as a visitor: it knows
 // whether they are disabled, archived or on their way to being deleted. And
@@ -179,7 +179,7 @@ func (h *Handlers) federating(person *entities.AnahitaNode) *entities.AnahitaNod
 	if !h.mayFederate(person) {
 		return nil
 	}
-	// A person chooses it for themselves, and a website's administrators
+	// A person chooses it for themselves, and a channel's administrators
 	// for it.
 	account, err := h.Accounts.Read(person.ID)
 	if err != nil || account == nil || !account.Enabled {
@@ -189,13 +189,13 @@ func (h *Handlers) federating(person *entities.AnahitaNode) *entities.AnahitaNod
 }
 
 // isFederatingType is the kinds of profile here that may be on the
-// fediverse: a person, and a website, when they choose to be.
+// fediverse: a person, and a channel, when they choose to be.
 func isFederatingType(nodeType string) bool {
-	return nodeType == constants.NodeActorPersonEntityType || nodeType == constants.NodeActorWebsiteEntityType
+	return nodeType == constants.NodeActorPersonEntityType || nodeType == constants.NodeActorChannelEntityType
 }
 
-func isWebsite(node *entities.AnahitaNode) bool {
-	return node != nil && node.Type == constants.NodeActorWebsiteEntityType
+func isChannel(node *entities.AnahitaNode) bool {
+	return node != nil && node.Type == constants.NodeActorChannelEntityType
 }
 
 // activityJSON answers in the type a server asked for.

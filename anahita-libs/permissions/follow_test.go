@@ -144,10 +144,10 @@ func TestCanRequestToFollow(t *testing.T) {
 		{"somebody elsewhere who does not", &FollowContext{viewer, me, elsewhere(false), none, none}, false},
 		{"somebody elsewhere you already follow", &FollowContext{viewer, me, elsewhere(true), none, &entities.ActorRelation{IsLeading: true}}, false},
 		// Public, and followed outright, whatever its column says.
-		{"a Website", &FollowContext{viewer, me, func() *entities.AnahitaNode {
-			website := asked()
-			website.Type = constants.NodeActorWebsiteEntityType
-			return website
+		{"a Channel", &FollowContext{viewer, me, func() *entities.AnahitaNode {
+			channel := asked()
+			channel.Type = constants.NodeActorChannelEntityType
+			return channel
 		}(), none, none}, false},
 	}
 

@@ -202,8 +202,8 @@ func CanEditReply(ctx *ReplyAccessContext) bool {
 		return false
 	}
 
-	// The website's own replies are changed by whoever replies as it.
-	if ctx.Viewer.ID != ctx.Reply.GetAuthorID() && !isWebsiteReply(ctx) {
+	// The channel's own replies are changed by whoever replies as it.
+	if ctx.Viewer.ID != ctx.Reply.GetAuthorID() && !isChannelReply(ctx) {
 		return false
 	}
 
@@ -211,8 +211,8 @@ func CanEditReply(ctx *ReplyAccessContext) bool {
 }
 
 // RepliesAs is the profile a reply the viewer writes in this thread belongs
-// to, when it is not the viewer: the website, in a thread under one of its own
-// posts, for one of its administrators (docs/plans/done/website.md). The site
+// to, when it is not the viewer: the channel, in a thread under one of its own
+// posts, for one of its administrators (docs/plans/done/channel.md). The site
 // answers its readers as itself. Nil anywhere else: a reply is its
 // writer's.
 func RepliesAs(ctx *ReplyAccessContext) *entities.AnahitaNode {
@@ -220,7 +220,7 @@ func RepliesAs(ctx *ReplyAccessContext) *entities.AnahitaNode {
 		return nil
 	}
 	owner := ctx.Root.GetOwner()
-	if owner.GetType() != constants.NodeActorWebsiteEntityType {
+	if owner.GetType() != constants.NodeActorChannelEntityType {
 		return nil
 	}
 	if !relationOrEmpty(ctx.RootOwnerViewerRel).HasAdmin {
@@ -229,11 +229,11 @@ func RepliesAs(ctx *ReplyAccessContext) *entities.AnahitaNode {
 	return owner
 }
 
-// isWebsiteReply says whether the reply is the website's own, in its own
+// isChannelReply says whether the reply is the channel's own, in its own
 // thread, and the viewer one of those who reply as it.
-func isWebsiteReply(ctx *ReplyAccessContext) bool {
-	website := RepliesAs(ctx)
-	return website != nil && ctx.Reply.GetAuthorID() == website.GetID()
+func isChannelReply(ctx *ReplyAccessContext) bool {
+	channel := RepliesAs(ctx)
+	return channel != nil && ctx.Reply.GetAuthorID() == channel.GetID()
 }
 
 // CanDeleteReply reports whether the viewer may remove a reply for good: its

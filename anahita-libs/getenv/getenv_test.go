@@ -30,3 +30,22 @@ func TestInt(t *testing.T) {
 		}
 	}
 }
+
+// THE RULE THIS GUARDS (roadmap row 147): a renamed setting is read by its
+// new name, and by its old one for a release when only that is set.
+func TestRenamed(t *testing.T) {
+	t.Setenv("CHANNELS_FROM", "")
+	t.Setenv("WEBSITES_FROM", "admin")
+	if got := Renamed("CHANNELS_FROM", "WEBSITES_FROM"); got != "admin" {
+		t.Errorf("the old name alone: got %q", got)
+	}
+	t.Setenv("CHANNELS_FROM", "registered")
+	if got := Renamed("CHANNELS_FROM", "WEBSITES_FROM"); got != "registered" {
+		t.Errorf("the new name first: got %q", got)
+	}
+	t.Setenv("CHANNEL_FEED_READ_EVERY", "")
+	t.Setenv("WEBSITE_READ_EVERY", "45")
+	if got := RenamedInt("CHANNEL_FEED_READ_EVERY", "WEBSITE_READ_EVERY", 30); got != 45 {
+		t.Errorf("a number by its old name: got %d", got)
+	}
+}

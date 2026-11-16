@@ -156,7 +156,7 @@ var actorTypes = map[string][]string{
 	},
 	"group":   {"node.actor.group-service.group.v1"},
 	"event":   {constants.NodeActorEventEntityType},
-	"website": {constants.NodeActorWebsiteEntityType},
+	"channel": {constants.NodeActorChannelEntityType},
 }
 
 // Why a definition was refused, as a word the web app has wording for.
@@ -261,6 +261,13 @@ func (d *Definition) Check() error {
 	for _, kind := range d.Filters.MediaTypes {
 		if _, ok := mediaTypes[kind]; !ok {
 			return RefusedMediaType
+		}
+	}
+	// A channel was a website until roadmap row 147: a definition that
+	// says website is read, and kept, as channel.
+	for i, kind := range d.Filters.ActorTypes {
+		if kind == "website" {
+			d.Filters.ActorTypes[i] = "channel"
 		}
 	}
 	d.Filters.ActorTypes = uniqueWords(d.Filters.ActorTypes)

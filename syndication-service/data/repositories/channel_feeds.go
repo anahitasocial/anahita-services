@@ -10,17 +10,17 @@ import (
 	"time"
 )
 
-// ErrFeedTaken is a feed that already has a website.
+// ErrFeedTaken is a feed that already has a channel.
 var ErrFeedTaken = errors.New("feed already connected")
 
-// The states of a website.
+// The states of a channel.
 const (
 	StateActive = "active"
 	StatePaused = "paused"
 )
 
-// Website is how a website's feed is read: a row of websites.
-type Website struct {
+// Channel is how a channel's feed is read: a row of channels.
+type Channel struct {
 	NodeID   int64
 	FeedURL  string
 	SiteURL  string
@@ -35,8 +35,8 @@ func FeedHash(feedURL string) string {
 	return hex.EncodeToString(sum[:])
 }
 
-const websiteAdd = `
-INSERT INTO websites (
+const channelAdd = `
+INSERT INTO channel_feeds (
     node_id,
     feed_url,
     feed_hash,
@@ -49,12 +49,12 @@ INSERT INTO websites (
 )
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
-const websiteFeedTaken = `
+const channelFeedTaken = `
 SELECT COUNT(*)
-FROM websites
+FROM channel_feeds
 WHERE feed_hash = ?`
 
-// Due is a website whose feed is to be read now, as a worker took it.
+// Due is a channel whose feed is to be read now, as a worker took it.
 type Due struct {
 	NodeID       int64
 	FeedURL      string
@@ -79,21 +79,21 @@ type Read struct {
 	NextReadAt   time.Time
 }
 
-// WebsitesInterface is what is kept of each website's feed.
-type WebsitesInterface interface {
-	Add(ctx context.Context, p *Website) error
+// ChannelsInterface is what is kept of each channel's feed.
+type ChannelsInterface interface {
+	Add(ctx context.Context, p *Channel) error
 	FeedTaken(ctx context.Context, feedURL string) (bool, error)
 
-	// Claim takes the website whose feed is most overdue, for one worker
+	// Claim takes the channel whose feed is most overdue, for one worker
 	// alone; nil when none is due.
 	Claim(ctx context.Context) (*Due, error)
-	// Read keeps how reading went and lets the website go.
+	// Read keeps how reading went and lets the channel go.
 	Read(ctx context.Context, nodeID int64, read Read) error
 	// Failed counts a read that failed and puts the next one off.
 	Failed(ctx context.Context, nodeID int64, failures int, next time.Time, why string) error
-	// Pause stops a website's feed being read, saying why.
+	// Pause stops a channel's feed being read, saying why.
 	Pause(ctx context.Context, nodeID int64, why string) error
-	// PauseForProof pauses the websites resting on a domain whose proof is
+	// PauseForProof pauses the channels resting on a domain whose proof is
 	// gone; ResumeAfterProof starts again those it paused.
 	PauseForProof(ctx context.Context, domainID int64) error
 	ResumeAfterProof(ctx context.Context, domainID int64) error
@@ -103,10 +103,10 @@ type WebsitesInterface interface {
 	// that off to when the hub's lease ends.
 	Hub(ctx context.Context, nodeID int64, hubURL string, askAgain time.Time) error
 	HubVerified(ctx context.Context, nodeID int64, until time.Time) error
-	// Feed is the feed a website reads and the hub it asked, for a hub's
+	// Feed is the feed a channel reads and the hub it asked, for a hub's
 	// check.
 	Feed(ctx context.Context, nodeID int64) (feedURL, hubURL string, err error)
-	// PausedFor is the websites paused for this reason, a page at a time;
+	// PausedFor is the channels paused for this reason, a page at a time;
 	// Resume starts one again, its feed read at once.
 	PausedFor(ctx context.Context, why string, limit int) ([]int64, error)
 	Resume(ctx context.Context, nodeID int64) error
@@ -115,7 +115,7 @@ type WebsitesInterface interface {
 	ReadSoon(ctx context.Context, nodeID int64) error
 }
 
-// Why a website was paused, in last_error.
+// Why a channel was paused, in last_error.
 const (
 	// Its domain's proof has been gone a week.
 	PausedProofGone = "proof_gone"
@@ -127,10 +127,10 @@ const (
 // let it go: it stopped while reading.
 const claimHeld = 10 * time.Minute
 
-// The most overdue feed of an active website that no worker holds.
-const websiteNextDue = `
+// The most overdue feed of an active channel that no worker holds.
+const channelNextDue = `
 SELECT node_id
-FROM websites
+FROM channel_feeds
 WHERE state = 'active'
   AND next_read_at <= ?
   AND (claimed_at IS NULL OR claimed_at < ?)
@@ -138,12 +138,12 @@ ORDER BY next_read_at
 LIMIT 1
 FOR UPDATE SKIP LOCKED`
 
-const websiteClaim = `
-UPDATE websites
+const channelClaim = `
+UPDATE channel_feeds
 SET claimed_at = ?
 WHERE node_id = ?`
 
-const websiteDue = `
+const channelDue = `
 SELECT
     node_id,
     feed_url,
@@ -154,33 +154,33 @@ SELECT
     hour_began_at,
     hub_url,
     hub_until
-FROM websites
+FROM channel_feeds
 WHERE node_id = ?`
 
-const websiteHub = `
-UPDATE websites
+const channelHub = `
+UPDATE channel_feeds
 SET hub_url = ?,
     hub_until = ?,
     updated_at = ?
 WHERE node_id = ?`
 
-const websiteHubVerified = `
-UPDATE websites
+const channelHubVerified = `
+UPDATE channel_feeds
 SET hub_until = ?,
     updated_at = ?
 WHERE node_id = ?
   AND hub_url <> ''`
 
-const websitesPausedFor = `
+const channelsPausedFor = `
 SELECT node_id
-FROM websites
+FROM channel_feeds
 WHERE state = 'paused'
   AND last_error = ?
 ORDER BY updated_at
 LIMIT ?`
 
-const websiteResume = `
-UPDATE websites
+const channelResume = `
+UPDATE channel_feeds
 SET state = 'active',
     last_error = '',
     next_read_at = ?,
@@ -188,25 +188,25 @@ SET state = 'active',
 WHERE node_id = ?
   AND state = 'paused'`
 
-const websiteFeed = `
+const channelFeed = `
 SELECT
     feed_url,
     hub_url
-FROM websites
+FROM channel_feeds
 WHERE node_id = ?`
 
-// Not a website that is paused, and not one read in the last minute: a hub
+// Not a channel that is paused, and not one read in the last minute: a hub
 // that says so over and over brings nothing forward.
-const websiteReadSoon = `
-UPDATE websites
+const channelReadSoon = `
+UPDATE channel_feeds
 SET next_read_at = ?,
     updated_at = ?
 WHERE node_id = ?
   AND state = 'active'
   AND (read_at IS NULL OR read_at < ?)`
 
-const websiteRead = `
-UPDATE websites
+const channelRead = `
+UPDATE channel_feeds
 SET etag = ?,
     last_modified = ?,
     hour_posts = ?,
@@ -219,8 +219,8 @@ SET etag = ?,
     updated_at = ?
 WHERE node_id = ?`
 
-const websiteFailed = `
-UPDATE websites
+const channelFailed = `
+UPDATE channel_feeds
 SET failures = ?,
     next_read_at = ?,
     last_error = ?,
@@ -228,25 +228,25 @@ SET failures = ?,
     updated_at = ?
 WHERE node_id = ?`
 
-const websitePause = `
-UPDATE websites
+const channelPause = `
+UPDATE channel_feeds
 SET state = 'paused',
     last_error = ?,
     claimed_at = NULL,
     updated_at = ?
 WHERE node_id = ?`
 
-const websitePauseForProof = `
-UPDATE websites
+const channelPauseForProof = `
+UPDATE channel_feeds
 SET state = 'paused',
     last_error = 'proof_gone',
     updated_at = ?
 WHERE domain_id = ?
   AND state = 'active'`
 
-// Only what the proof paused: a website paused for another reason stays so.
-const websiteResumeAfterProof = `
-UPDATE websites
+// Only what the proof paused: a channel paused for another reason stays so.
+const channelResumeAfterProof = `
+UPDATE channel_feeds
 SET state = 'active',
     last_error = '',
     next_read_at = ?,
@@ -255,20 +255,20 @@ WHERE domain_id = ?
   AND state = 'paused'
   AND last_error = 'proof_gone'`
 
-type websitesRepo struct {
+type channelsRepo struct {
 	db  *sql.DB
 	now func() time.Time
 }
 
-func NewWebsites(db *sql.DB) WebsitesInterface {
-	return &websitesRepo{db: db, now: time.Now}
+func NewChannels(db *sql.DB) ChannelsInterface {
+	return &channelsRepo{db: db, now: time.Now}
 }
 
-// Add keeps a new website's feed, to be read from the next hour: what it
+// Add keeps a new channel's feed, to be read from the next hour: what it
 // holds now has been marked seen.
-func (r *websitesRepo) Add(ctx context.Context, p *Website) error {
+func (r *channelsRepo) Add(ctx context.Context, p *Channel) error {
 	now := r.now().UTC()
-	_, err := r.db.ExecContext(ctx, websiteAdd,
+	_, err := r.db.ExecContext(ctx, channelAdd,
 		p.NodeID,
 		p.FeedURL,
 		FeedHash(p.FeedURL),
@@ -285,20 +285,20 @@ func (r *websitesRepo) Add(ctx context.Context, p *Website) error {
 	return err
 }
 
-func (r *websitesRepo) FeedTaken(ctx context.Context, feedURL string) (bool, error) {
+func (r *channelsRepo) FeedTaken(ctx context.Context, feedURL string) (bool, error) {
 	var count int
-	err := r.db.QueryRowContext(ctx, websiteFeedTaken, FeedHash(feedURL)).Scan(&count)
+	err := r.db.QueryRowContext(ctx, channelFeedTaken, FeedHash(feedURL)).Scan(&count)
 	return count > 0, err
 }
 
-// A new website's feed is read at once, to post its first items.
+// A new channel's feed is read at once, to post its first items.
 const firstRead = 0
 
 func isDuplicate(err error) bool {
 	return err != nil && strings.Contains(err.Error(), "Error 1062")
 }
 
-func (r *websitesRepo) Claim(ctx context.Context) (*Due, error) {
+func (r *channelsRepo) Claim(ctx context.Context) (*Due, error) {
 	now := r.now().UTC()
 
 	tx, err := r.db.BeginTx(ctx, nil)
@@ -308,14 +308,14 @@ func (r *websitesRepo) Claim(ctx context.Context) (*Due, error) {
 	defer func() { _ = tx.Rollback() }()
 
 	var nodeID int64
-	err = tx.QueryRowContext(ctx, websiteNextDue, now, now.Add(-claimHeld)).Scan(&nodeID)
+	err = tx.QueryRowContext(ctx, channelNextDue, now, now.Add(-claimHeld)).Scan(&nodeID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	if _, err := tx.ExecContext(ctx, websiteClaim, now, nodeID); err != nil {
+	if _, err := tx.ExecContext(ctx, channelClaim, now, nodeID); err != nil {
 		return nil, err
 	}
 
@@ -324,7 +324,7 @@ func (r *websitesRepo) Claim(ctx context.Context) (*Due, error) {
 		began    sql.NullTime
 		hubUntil sql.NullTime
 	)
-	err = tx.QueryRowContext(ctx, websiteDue, nodeID).Scan(
+	err = tx.QueryRowContext(ctx, channelDue, nodeID).Scan(
 		&due.NodeID,
 		&due.FeedURL,
 		&due.ETag,
@@ -344,9 +344,9 @@ func (r *websitesRepo) Claim(ctx context.Context) (*Due, error) {
 	return &due, tx.Commit()
 }
 
-func (r *websitesRepo) Read(ctx context.Context, nodeID int64, read Read) error {
+func (r *channelsRepo) Read(ctx context.Context, nodeID int64, read Read) error {
 	now := r.now().UTC()
-	_, err := r.db.ExecContext(ctx, websiteRead,
+	_, err := r.db.ExecContext(ctx, channelRead,
 		read.ETag,
 		read.LastModified,
 		read.HourPosts,
@@ -359,57 +359,57 @@ func (r *websitesRepo) Read(ctx context.Context, nodeID int64, read Read) error 
 	return err
 }
 
-func (r *websitesRepo) Failed(ctx context.Context, nodeID int64, failures int, next time.Time, why string) error {
+func (r *channelsRepo) Failed(ctx context.Context, nodeID int64, failures int, next time.Time, why string) error {
 	if len(why) > 500 {
 		why = why[:500]
 	}
-	_, err := r.db.ExecContext(ctx, websiteFailed, failures, next.UTC(), why, r.now().UTC(), nodeID)
+	_, err := r.db.ExecContext(ctx, channelFailed, failures, next.UTC(), why, r.now().UTC(), nodeID)
 	return err
 }
 
-func (r *websitesRepo) Pause(ctx context.Context, nodeID int64, why string) error {
-	_, err := r.db.ExecContext(ctx, websitePause, why, r.now().UTC(), nodeID)
+func (r *channelsRepo) Pause(ctx context.Context, nodeID int64, why string) error {
+	_, err := r.db.ExecContext(ctx, channelPause, why, r.now().UTC(), nodeID)
 	return err
 }
 
-func (r *websitesRepo) PauseForProof(ctx context.Context, domainID int64) error {
-	_, err := r.db.ExecContext(ctx, websitePauseForProof, r.now().UTC(), domainID)
+func (r *channelsRepo) PauseForProof(ctx context.Context, domainID int64) error {
+	_, err := r.db.ExecContext(ctx, channelPauseForProof, r.now().UTC(), domainID)
 	return err
 }
 
-func (r *websitesRepo) ResumeAfterProof(ctx context.Context, domainID int64) error {
+func (r *channelsRepo) ResumeAfterProof(ctx context.Context, domainID int64) error {
 	now := r.now().UTC()
-	_, err := r.db.ExecContext(ctx, websiteResumeAfterProof, now, now, domainID)
+	_, err := r.db.ExecContext(ctx, channelResumeAfterProof, now, now, domainID)
 	return err
 }
 
-func (r *websitesRepo) Hub(ctx context.Context, nodeID int64, hubURL string, askAgain time.Time) error {
-	_, err := r.db.ExecContext(ctx, websiteHub, hubURL, askAgain.UTC(), r.now().UTC(), nodeID)
+func (r *channelsRepo) Hub(ctx context.Context, nodeID int64, hubURL string, askAgain time.Time) error {
+	_, err := r.db.ExecContext(ctx, channelHub, hubURL, askAgain.UTC(), r.now().UTC(), nodeID)
 	return err
 }
 
-func (r *websitesRepo) HubVerified(ctx context.Context, nodeID int64, until time.Time) error {
-	_, err := r.db.ExecContext(ctx, websiteHubVerified, until.UTC(), r.now().UTC(), nodeID)
+func (r *channelsRepo) HubVerified(ctx context.Context, nodeID int64, until time.Time) error {
+	_, err := r.db.ExecContext(ctx, channelHubVerified, until.UTC(), r.now().UTC(), nodeID)
 	return err
 }
 
-func (r *websitesRepo) Feed(ctx context.Context, nodeID int64) (string, string, error) {
+func (r *channelsRepo) Feed(ctx context.Context, nodeID int64) (string, string, error) {
 	var feedURL, hubURL string
-	err := r.db.QueryRowContext(ctx, websiteFeed, nodeID).Scan(&feedURL, &hubURL)
+	err := r.db.QueryRowContext(ctx, channelFeed, nodeID).Scan(&feedURL, &hubURL)
 	if errors.Is(err, sql.ErrNoRows) {
 		return "", "", ErrNotFound
 	}
 	return feedURL, hubURL, err
 }
 
-func (r *websitesRepo) ReadSoon(ctx context.Context, nodeID int64) error {
+func (r *channelsRepo) ReadSoon(ctx context.Context, nodeID int64) error {
 	now := r.now().UTC()
-	_, err := r.db.ExecContext(ctx, websiteReadSoon, now, now, nodeID, now.Add(-time.Minute))
+	_, err := r.db.ExecContext(ctx, channelReadSoon, now, now, nodeID, now.Add(-time.Minute))
 	return err
 }
 
-func (r *websitesRepo) PausedFor(ctx context.Context, why string, limit int) ([]int64, error) {
-	rows, err := r.db.QueryContext(ctx, websitesPausedFor, why, limit)
+func (r *channelsRepo) PausedFor(ctx context.Context, why string, limit int) ([]int64, error) {
+	rows, err := r.db.QueryContext(ctx, channelsPausedFor, why, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -426,8 +426,8 @@ func (r *websitesRepo) PausedFor(ctx context.Context, why string, limit int) ([]
 	return ids, rows.Err()
 }
 
-func (r *websitesRepo) Resume(ctx context.Context, nodeID int64) error {
+func (r *channelsRepo) Resume(ctx context.Context, nodeID int64) error {
 	now := r.now().UTC()
-	_, err := r.db.ExecContext(ctx, websiteResume, now, now, nodeID)
+	_, err := r.db.ExecContext(ctx, channelResume, now, now, nodeID)
 	return err
 }

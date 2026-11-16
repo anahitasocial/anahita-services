@@ -175,11 +175,11 @@ func (config *Config) GetEventsFrom() string {
 	return value
 }
 
-// GetWebsitesFrom returns the minimum role that may connect a website.
+// GetChannelsFrom returns the minimum role that may connect a channel.
 //
 // Defaults to administrators, matching syndication-service, which enforces it.
-func (config *Config) GetWebsitesFrom() string {
-	value := libs_constants.NormalizeRoleLevel(config.WebsitesFrom)
+func (config *Config) GetChannelsFrom() string {
+	value := libs_constants.NormalizeRoleLevel(config.ChannelsFrom)
 	if value == "" {
 		return libs_constants.RoleLevelAdministrators
 	}
@@ -302,7 +302,8 @@ func (config *Config) bootstrapFromEnv() {
 	config.SiteRules = os.Getenv("SITE_RULES")
 	config.GroupsFrom = os.Getenv("GROUPS_FROM")
 	config.EventsFrom = os.Getenv("EVENTS_FROM")
-	config.WebsitesFrom = os.Getenv("WEBSITES_FROM")
+	// WEBSITES_FROM until roadmap row 147, read for one release.
+	config.ChannelsFrom = getenv.Renamed("CHANNELS_FROM", "WEBSITES_FROM")
 	config.LocationsFrom = os.Getenv("LOCATIONS_FROM")
 	config.InvitePendingMax = getenv.Int("INVITE_PENDING_MAX", 0)
 	config.InvitePendingMaxAdmin = getenv.Int("INVITE_PENDING_MAX_ADMIN", 0)
@@ -353,11 +354,11 @@ func (config *Config) validateBootstrap(missingFields []string) []string {
 			strings.Join(libs_constants.RoleLevelValues, ", "), config.EventsFrom))
 	}
 
-	if config.WebsitesFrom != "" &&
-		!libs_constants.IsRoleLevel(config.GetWebsitesFrom()) {
+	if config.ChannelsFrom != "" &&
+		!libs_constants.IsRoleLevel(config.GetChannelsFrom()) {
 		missingFields = append(missingFields, fmt.Sprintf(
-			"WEBSITES_FROM must be one of %s (got %q)",
-			strings.Join(libs_constants.RoleLevelValues, ", "), config.WebsitesFrom))
+			"CHANNELS_FROM must be one of %s (got %q)",
+			strings.Join(libs_constants.RoleLevelValues, ", "), config.ChannelsFrom))
 	}
 
 	if config.LocationsFrom != "" &&

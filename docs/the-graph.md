@@ -155,7 +155,7 @@ what it reposts.
 | Actors | `node.actor.person-service.person.v1` | A person with an account here |
 | | `node.actor.group-service.group.v1` | A group, which people follow and post in |
 | | `node.actor.actor-service.event.v1` | An event, which people say they are going to; often hosted by a group |
-| | `node.actor.actor-service.website.v1` | A website's feed, verified, as a profile to follow ([Websites](websites.md)) |
+| | `node.actor.actor-service.channel.v1` | A website's feed, verified, as a profile to follow ([Websites](channels.md)) |
 | | `node.actor.activitypub-service.person.v1` | Somebody on a server of the fediverse |
 | | `node.actor.atproto-service.person.v1` | Somebody on Bluesky |
 | Media | `node.medium.text-service.note.v1` | A note: a short post, and the kind that arrives from another server |

@@ -15,7 +15,7 @@ import (
 const ErrOff = "off"
 
 // ProfileOffered is whether the instance offers a kind of profile ("group",
-// "event", "website"), asked of the graph. Where it cannot be asked, it is:
+// "event", "channel"), asked of the graph. Where it cannot be asked, it is:
 // whatever made it unreachable stops the request anyway.
 func ProfileOffered(graph services.GraphGRPCInterface, kind string) bool {
 	if graph == nil {

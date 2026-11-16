@@ -37,13 +37,13 @@ func whoseAs(h *Handlers, viewerID int64, profile string) (int64, int) {
 	return h.whose(c)
 }
 
-// A website's own Bluesky account is connected by one of its administrators,
+// A channel's own Bluesky account is connected by one of its administrators,
 // and its notes then go there as that account; what the account posts on
-// Bluesky itself is not made a post of the website here.
-func TestAWebsitesBlueskyAccount(t *testing.T) {
+// Bluesky itself is not made a post of the channel here.
+func TestAChannelsBlueskyAccount(t *testing.T) {
 	w, _ := writingWorld(t)
 	w.nodes.kept = append(w.nodes.kept, &entities.AnahitaNode{
-		ID: gardenID, Type: constants.NodeActorWebsiteEntityType, Alias: "garden", Enabled: true, Access: "public",
+		ID: gardenID, Type: constants.NodeActorChannelEntityType, Alias: "garden", Enabled: true, Access: "public",
 	})
 	w.h.Relations = adminRelations{admins: map[int64]int64{gardenID: anaID}}
 
@@ -51,25 +51,25 @@ func TestAWebsitesBlueskyAccount(t *testing.T) {
 		t.Errorf("her own: %d %d", id, status)
 	}
 	if id, status := whoseAs(w.h, anaID, "900"); id != gardenID || status != 0 {
-		t.Errorf("the website she looks after: %d %d", id, status)
+		t.Errorf("the channel she looks after: %d %d", id, status)
 	}
 	if _, status := whoseAs(w.h, 8, "900"); status != http.StatusForbidden {
 		t.Errorf("somebody who does not look after it: %d", status)
 	}
 	if _, status := whoseAs(w.h, 8, "7"); status != http.StatusNotFound {
-		t.Errorf("a person who is not a website: %d", status)
+		t.Errorf("a person who is not a channel: %d", status)
 	}
 
 	w.accounts.kept[gardenID] = &repositories.Account{PersonID: gardenID, DID: "did:plc:garden", Handle: "garden.example.org", PDS: anaPDS, Refresh: "enc(refresh)"}
 
 	note := &entities.AnahitaNode{
 		ID: 70, Type: constants.NodeMediumNoteEntityType, Enabled: true, OwnerID: gardenID, CreatedBy: gardenID,
-		OwnerType: constants.NodeActorWebsiteEntityType, Access: "public", Body: "**Beans**\n\nhttps://garden.example/beans",
+		OwnerType: constants.NodeActorChannelEntityType, Access: "public", Body: "**Beans**\n\nhttps://garden.example/beans",
 	}
 	w.nodes.kept = append(w.nodes.kept, note)
 	w.heard("node.medium.text-service.note.added.v1", event.EventPayload{ObjectID: 70, ObjectType: constants.NodeMediumNoteEntityType})
 	if len(w.queue.waiting) != 1 {
-		t.Errorf("queued %d: a website's note goes to its Bluesky account", len(w.queue.waiting))
+		t.Errorf("queued %d: a channel's note goes to its Bluesky account", len(w.queue.waiting))
 	}
 
 	w.h.Media = &fakeMedia{nodes: w.nodes}
@@ -78,11 +78,11 @@ func TestAWebsitesBlueskyAccount(t *testing.T) {
 		t.Fatal(err)
 	}
 	if len(w.nodes.kept) != before {
-		t.Errorf("what the website's account posted on Bluesky became a post of it")
+		t.Errorf("what the channel's account posted on Bluesky became a post of it")
 	}
 
 	// Somebody's own, the same way, is theirs here: the rule is the
-	// website's alone.
+	// channel's alone.
 	w.connect()
 	if err := w.h.ownPosted(w.accounts.kept[anaID], "3l3ana", aPost(t, `{"text":"Ana on Bluesky"}`)); err != nil {
 		t.Fatal(err)

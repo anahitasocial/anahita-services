@@ -32,7 +32,7 @@ func newAccountsHandler(env *Env) *accountsHandler {
 type AccountItem struct {
 	// The profile's id.
 	ID int64 `json:"id"`
-	// `person`, `group`, `event` or `website`.
+	// `person`, `group`, `event` or `channel`.
 	Kind string `json:"kind"`
 	// The username.
 	Alias string `json:"alias"`
@@ -68,14 +68,14 @@ type AccountItem struct {
 	// How many it follows.
 	LeaderCount int64 `json:"leader_count"`
 
-	// Groups, events and websites only: how many administrators it has.
+	// Groups, events and channels only: how many administrators it has.
 	AdminCount *int64 `json:"admin_count,omitempty"`
 }
 
 // Browse lists the site's people or groups for cleanup, least recently active
 // first.
 //
-//	GET /accounts?kind=person|group|event|website
+//	GET /accounts?kind=person|group|event|channel
 //
 // Filters, all optional: q, tier (empty, dormant, active), state (active,
 // disabled, archived, deleted), last_active_before and created_before
@@ -175,10 +175,10 @@ func (h *accountsHandler) Browse(c echo.Context) error {
 }
 
 // hasAdministrators is a kind of profile run by administrators of its own,
-// with no sign-in: a group, an event or a website.
+// with no sign-in: a group, an event or a channel.
 func hasAdministrators(kind string) bool {
 	switch kind {
-	case repositories.AccountKindGroup, repositories.AccountKindEvent, repositories.AccountKindWebsite:
+	case repositories.AccountKindGroup, repositories.AccountKindEvent, repositories.AccountKindChannel:
 		return true
 	}
 	return false

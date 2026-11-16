@@ -136,9 +136,9 @@ func (h *Handlers) personByAlias(alias string) *entities.AnahitaNode {
 		return nil
 	}
 
-	// A person, or a website: the two kinds of profile here on the fediverse.
+	// A person, or a channel: the two kinds of profile here on the fediverse.
 	// They share the space of handles, so one alias is one or the other.
-	for _, nodeType := range []string{constants.NodeActorPersonEntityType, constants.NodeActorWebsiteEntityType} {
+	for _, nodeType := range []string{constants.NodeActorPersonEntityType, constants.NodeActorChannelEntityType} {
 		req := services.NewGraphNodeRequest().ReadByAlias
 		req.Alias = alias
 		req.NodeType = nodeType

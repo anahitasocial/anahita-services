@@ -49,8 +49,8 @@ func (h *mediumHandler) EditWarning(c echo.Context) error {
 			return c.NoContent(refused)
 		}
 	} else {
-		if permissions.IsWebsiteItem(medium) {
-			return c.JSON(http.StatusForbidden, responses.Refusal{Error: permissions.WebsiteItemRefusal})
+		if permissions.IsChannelFeedItem(medium) {
+			return c.JSON(http.StatusForbidden, responses.Refusal{Error: permissions.ChannelFeedItemRefusal})
 		}
 		mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)
 		if err != nil {

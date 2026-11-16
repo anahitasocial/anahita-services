@@ -514,7 +514,7 @@ func trendingCutoff(window string) time.Time {
 // trendingUse is a use of a tag that counts towards its trending, of the
 // items tagged with it as `tagged` by `edge`: a public post written in the
 // window, on a profile anybody may see; or a public profile (a person, a
-// group, an event, a website) tagged with it in the window. A post is dated
+// group, an event, a channel) tagged with it in the window. A post is dated
 // by when it was written, not when it came here, so that a profile's older
 // posts fetched when it is followed do not trend that day; and only what
 // anybody may see counts, so that what trends says nothing of what is kept
@@ -531,7 +531,7 @@ const trendingUse = `tagged.enabled = 1
 // trendingProfile is the profile a use of a tag counts for: a post's
 // writer, or the profile tagged. Each profile is counted once, however many
 // of its posts carry the tag, so that one profile cannot make a tag trend;
-// and every kind of profile counts, people, groups, events and websites,
+// and every kind of profile counts, people, groups, events and channels,
 // here and elsewhere (the user, 2026-10-18).
 const trendingProfile = `CASE WHEN tagged.type LIKE 'node.medium.%' THEN tagged.created_by ELSE tagged.id END`
 

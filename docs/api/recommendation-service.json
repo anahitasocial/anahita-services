@@ -1106,6 +1106,10 @@
               "null"
             ]
           },
+          "suggest_channels": {
+            "description": "To be suggested channels.",
+            "type": "boolean"
+          },
           "suggest_events": {
             "description": "To be suggested events.",
             "type": "boolean"
@@ -1116,10 +1120,6 @@
           },
           "suggest_people": {
             "description": "To be suggested people, and groups.",
-            "type": "boolean"
-          },
-          "suggest_websites": {
-            "description": "To be suggested websites.",
             "type": "boolean"
           },
           "use_activity": {
@@ -1141,7 +1141,7 @@
           "suggest_people",
           "suggest_groups",
           "suggest_events",
-          "suggest_websites",
+          "suggest_channels",
           "use_activity",
           "discoverable",
           "active_within_days",
@@ -1250,7 +1250,7 @@
         "operationId": "getRecommendationsActors",
         "parameters": [
           {
-            "description": "Only people, only groups, only events or only websites. People when left out.",
+            "description": "Only people, only groups, only events or only channels. People when left out.",
             "in": "query",
             "name": "kind",
             "schema": {
@@ -1258,7 +1258,7 @@
                 "person",
                 "group",
                 "event",
-                "website"
+                "channel"
               ],
               "type": "string"
             }
@@ -1568,6 +1568,10 @@
                     "description": "Back to the service's own weights, and its own limit on how lately somebody was here. Before any sent with it.",
                     "type": "boolean"
                   },
+                  "suggest_channels": {
+                    "description": "To be suggested channels.",
+                    "type": "boolean"
+                  },
                   "suggest_events": {
                     "description": "To be suggested events.",
                     "type": "boolean"
@@ -1578,10 +1582,6 @@
                   },
                   "suggest_people": {
                     "description": "To be suggested people.",
-                    "type": "boolean"
-                  },
-                  "suggest_websites": {
-                    "description": "To be suggested websites.",
                     "type": "boolean"
                   },
                   "use_activity": {

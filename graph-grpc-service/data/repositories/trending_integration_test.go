@@ -24,7 +24,7 @@ func TestTrendingCountsEachProfileOnce(t *testing.T) {
 
 	const person = "'node.actor.person-service.person.v1','person-service'"
 	const remote = "'node.actor.activitypub-service.person.v1','activitypub-service'"
-	const website = "'node.actor.actor-service.website.v1','actor-service'"
+	const channel = "'node.actor.actor-service.channel.v1','actor-service'"
 	const group = "'node.actor.group-service.group.v1','group-service'"
 	const note = "'node.medium.text-service.note.v1','text-service'"
 	const noteType = "'node.medium.text-service.note.v1'"
@@ -49,13 +49,13 @@ func TestTrendingCountsEachProfileOnce(t *testing.T) {
 				`DELETE FROM nodes`,
 
 				// Kira and Odo here, Garak on another server, Quark's
-				// website, the Bajor group, and Section 31, a group nobody
+				// channel, the Bajor group, and Section 31, a group nobody
 				// may see.
 				`INSERT INTO nodes (id,type,service,name,alias,access,enabled,created_by,created_at,updated_at) VALUES
 				 (1,` + person + `,'Kira','kira','public',1,NULL,NOW() - INTERVAL 3 YEAR,NOW()),
 				 (2,` + person + `,'Odo','odo','public',1,NULL,NOW() - INTERVAL 3 YEAR,NOW()),
 				 (3,` + remote + `,'Garak','garak','public',1,NULL,NOW(),NOW()),
-				 (4,` + website + `,'Quark''s','quarks','public',1,1,NOW(),NOW()),
+				 (4,` + channel + `,'Quark''s','quarks','public',1,1,NOW(),NOW()),
 				 (5,` + group + `,'Bajor','bajor','public',1,1,NOW() - INTERVAL 3 YEAR,NOW()),
 				 (6,` + group + `,'Section 31','section-31','followers',1,1,NOW(),NOW())`,
 
@@ -70,13 +70,13 @@ func TestTrendingCountsEachProfileOnce(t *testing.T) {
 				 (101,` + note + `,'','kira again','p101','public',1,1,` + personType + `,1,NOW(),NOW()),
 				 (102,` + note + `,'','odo','p102','public',1,2,` + personType + `,2,NOW(),NOW()),
 				 (103,` + note + `,'','garak','p103','public',1,3,` + personType + `,3,NOW(),NOW()),
-				 (104,` + note + `,'','from the feed','p104','public',1,4,'node.actor.actor-service.website.v1',4,NOW(),NOW()),
+				 (104,` + note + `,'','from the feed','p104','public',1,4,'node.actor.actor-service.channel.v1',4,NOW(),NOW()),
 				 (105,` + note + `,'','odo again','p105','public',1,2,` + personType + `,2,NOW(),NOW()),
 				 (106,` + note + `,'','only odo','p106','myself',1,2,` + personType + `,2,NOW(),NOW()),
 				 (107,` + note + `,'','long ago','p107','public',1,1,` + personType + `,1,NOW() - INTERVAL 2 YEAR,NOW())`,
 
 				// Promenade: three people's posts, Kira's twice. Ops: a
-				// website's post and the Bajor group, made long ago but
+				// channel's post and the Bajor group, made long ago but
 				// tagged today. Deep Space Nine: Odo's profile and Odo's
 				// post, one profile. Terok Nor: only what does not count,
 				// a post nobody else may see, a post from long ago, a
@@ -127,7 +127,7 @@ func TestTrendingCountsEachProfileOnce(t *testing.T) {
 				t.Errorf("Promenade: %d profiles; want Kira once, Odo and Garak", profiles[10])
 			}
 			if profiles[11] != 2 {
-				t.Errorf("Ops: %d profiles; want the website and the group", profiles[11])
+				t.Errorf("Ops: %d profiles; want the channel and the group", profiles[11])
 			}
 			if profiles[12] != 1 {
 				t.Errorf("Deep Space Nine: %d profiles; want Odo once, for his profile and his post", profiles[12])

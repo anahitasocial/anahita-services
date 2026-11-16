@@ -13,7 +13,7 @@ import (
 // what).
 
 // peopleBehind is who is told for what a profile wrote: the person, or, for
-// a website (a channel, row 147), each of its admins, who write as it. A
+// a channel (roadmap row 147), each of its admins, who write as it. A
 // profile on another server is told by its own server: nobody here.
 func (h *eventHandler) peopleBehind(actorID int64) []int64 {
 	if actorID <= 0 {
@@ -23,7 +23,7 @@ func (h *eventHandler) peopleBehind(actorID int64) []int64 {
 	if err != nil || node == nil || node.ID == 0 || node.IsRemote() {
 		return nil
 	}
-	if node.Type != constants.NodeActorWebsiteEntityType {
+	if node.Type != constants.NodeActorChannelEntityType {
 		return []int64{node.ID}
 	}
 	admins, err := h.Srv.ActorAdminsGRPC.Browse(node.ID)

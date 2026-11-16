@@ -11,7 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// A website is a site's feed as a profile (docs/plans/done/website.md): followed,
+// A channel is a site's feed as a profile (docs/plans/done/channel.md): followed,
 // looked after by administrators, read and deleted as a group is, so it is
 // served by the same handler told a different kind.
 //
@@ -20,24 +20,24 @@ import (
 // connected it and stays as it was, and its site is the domain proved for
 // it: changing one is changing its name and its description only.
 
-type websiteHandler struct {
+type channelHandler struct {
 	*groupHandler
 }
 
-// NewWebsiteHandler serves websites.
-func NewWebsiteHandler(env *Env) *websiteHandler {
-	return &websiteHandler{
+// NewChannelHandler serves channels.
+func NewChannelHandler(env *Env) *channelHandler {
+	return &channelHandler{
 		groupHandler: &groupHandler{
 			Env:      env,
-			nodeType: an_constants.NodeActorWebsiteEntityType,
+			nodeType: an_constants.NodeActorChannelEntityType,
 			service:  an_constants.ActorService,
 		},
 	}
 }
 
-// WebsiteEditRequest is what may be changed of a website.
-type WebsiteEditRequest struct {
-	// The website's id.
+// ChannelEditRequest is what may be changed of a channel.
+type ChannelEditRequest struct {
+	// The channel's id.
 	ID int64 `param:"id" validate:"required,numeric"`
 	// Its name.
 	Name string `form:"name" json:"name" validate:"required,max=64"`
@@ -45,10 +45,10 @@ type WebsiteEditRequest struct {
 	Body string `form:"body" json:"body" validate:"omitempty,max=500"`
 }
 
-// Edit changes a website's name and description.
-func (h *websiteHandler) Edit(c echo.Context) error {
+// Edit changes a channel's name and description.
+func (h *channelHandler) Edit(c echo.Context) error {
 	var (
-		req    = &WebsiteEditRequest{}
+		req    = &ChannelEditRequest{}
 		viewer = getViewer(c)
 	)
 
@@ -61,13 +61,13 @@ func (h *websiteHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	website, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, h.nodeType, viewer)
+	channel, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, h.nodeType, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	accessCtx, err := h.getActorAccessContext(website, viewer)
+	accessCtx, err := h.getActorAccessContext(channel, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -77,26 +77,26 @@ func (h *websiteHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	website.Name = req.Name
-	website.Body = req.Body
-	website.ModifiedBy = viewer.ID
-	if _, err = h.Srv.ActorsGRPC.Edit(website, viewer); err != nil {
+	channel.Name = req.Name
+	channel.Body = req.Body
+	channel.ModifiedBy = viewer.ID
+	if _, err = h.Srv.ActorsGRPC.Edit(channel, viewer); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	website, err = h.Srv.ActorsGRPC.ReadOfType(req.ID, h.nodeType, viewer)
+	channel, err = h.Srv.ActorsGRPC.ReadOfType(req.ID, h.nodeType, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
 	}
-	if err = h.onAfterFetched(c, website); err != nil {
+	if err = h.onAfterFetched(c, channel); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	batchPresignPaths(h.Env, []*entities.AnahitaNode{website})
-	batchPresignPaths(h.Env, website.Administrators)
+	batchPresignPaths(h.Env, []*entities.AnahitaNode{channel})
+	batchPresignPaths(h.Env, channel.Administrators)
 
-	return c.JSON(http.StatusOK, (&responses.ActorResponse{}).MapNode(website))
+	return c.JSON(http.StatusOK, (&responses.ActorResponse{}).MapNode(channel))
 }

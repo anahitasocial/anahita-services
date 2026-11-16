@@ -42,6 +42,32 @@ Releases before v1.0.17 are described on GitHub, under
    delivering one's posts to them. It is not a block, and they may follow
    again.
 
+### Changed
+
+1. **Websites are channels** (roadmap row 147, phase 1: the rename alone;
+   nothing else about them changes yet). Migration
+   `20261122000021_channels` renames the type to
+   `node.actor.actor-service.channel.v1` everywhere it is stored, the
+   tables to `channel_feeds` and `channel_feed_items`, and
+   `suggest_websites` to `suggest_channels`, and rewrites custom feeds that
+   name the kind. What an operator renames:
+   - `WEBSITES_FROM` → `CHANNELS_FROM`, `WEBSITE_HOURLY_CAP` →
+     `CHANNEL_FEED_HOURLY_CAP`, `WEBSITE_READ_EVERY` →
+     `CHANNEL_FEED_READ_EVERY`; the old names are still read for this
+     release, and say so in the log (on Kubernetes, rename the ConfigMap's
+     keys);
+   - `website` → `channel` among actor-service's kinds in `instance.json`,
+     still read as channel for this release;
+   - a site's own `website.json` beside the defaults → `channel.json`.
+
+   The API's `/websites/…` addresses are `/channels/…`, connecting one
+   included (`/channels/_connect`, and WebSub's callbacks at
+   `/channels/_websub/…`: a hub given the old address before the upgrade
+   is asked again when its lease runs out); NodeInfo's `websitesFrom` is
+   `channelsFrom`; the kind is `channel` in custom feeds, recommendations
+   and the accounts list. A web app from before this release does not work
+   with it.
+
 ### Fixed
 
 1. **A new sound posted (`audio_add`)** can be turned off with the other

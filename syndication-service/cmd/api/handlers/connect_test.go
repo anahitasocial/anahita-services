@@ -73,16 +73,16 @@ func (f *fakeDomains) ForProfile(_ context.Context, id, profileID int64) error {
 	return nil
 }
 
-type fakeWebsites struct {
-	repositories.WebsitesInterface
-	added []*repositories.Website
+type fakeChannels struct {
+	repositories.ChannelsInterface
+	added []*repositories.Channel
 }
 
-func (f *fakeWebsites) Add(_ context.Context, p *repositories.Website) error {
+func (f *fakeChannels) Add(_ context.Context, p *repositories.Channel) error {
 	f.added = append(f.added, p)
 	return nil
 }
-func (f *fakeWebsites) FeedTaken(_ context.Context, feedURL string) (bool, error) {
+func (f *fakeChannels) FeedTaken(_ context.Context, feedURL string) (bool, error) {
 	for _, p := range f.added {
 		if p.FeedURL == feedURL {
 			return true, nil
@@ -158,7 +158,7 @@ type fixture struct {
 	feeds    *fakeFeeds
 	checker  *fakeChecker
 	domains  *fakeDomains
-	websites *fakeWebsites
+	channels *fakeChannels
 	items    *fakeItems
 	actors   *fakeActors
 	admins   *fakeAdmins
@@ -172,7 +172,7 @@ func newFixture() *fixture {
 			items: []feeds.Item{{Key: "k1", Title: "Beans"}, {Key: "k2", Title: "Peas"}}},
 		checker:  &fakeChecker{},
 		domains:  &fakeDomains{rows: map[int64]*repositories.Domain{}},
-		websites: &fakeWebsites{},
+		channels: &fakeChannels{},
 		items:    &fakeItems{},
 		actors:   &fakeActors{},
 		admins:   &fakeAdmins{},
@@ -184,7 +184,7 @@ func newFixture() *fixture {
 		Config: &config.Config{},
 		Srv: &services.Services{
 			ActorsGRPC: f.actors, ActorAdminsGRPC: f.admins, SocialgraphFollowGRPC: f.follows,
-			Domains: f.domains, Websites: f.websites, Items: f.items,
+			Domains: f.domains, Channels: f.channels, Items: f.items,
 		},
 		Feeds:   f.feeds,
 		Domains: f.checker,
@@ -224,7 +224,7 @@ func refusedWith(t *testing.T, rec *httptest.ResponseRecorder, status int, reaso
 	}
 }
 
-func TestAWebsiteIsConnectedInThreeSteps(t *testing.T) {
+func TestAChannelIsConnectedInThreeSteps(t *testing.T) {
 	f := newFixture()
 	ana := admin(7)
 
@@ -256,15 +256,15 @@ func TestAWebsiteIsConnectedInThreeSteps(t *testing.T) {
 		t.Fatalf("made: %d %s", rec.Code, rec.Body.String())
 	}
 	p := f.actors.made
-	if p.Type != an_constants.NodeActorWebsiteEntityType || p.Service != an_constants.ActorService ||
+	if p.Type != an_constants.NodeActorChannelEntityType || p.Service != an_constants.ActorService ||
 		p.Access != an_constants.AnahitaAccessPublic || p.CreatedBy != 7 || p.WebsiteURL != "https://www.example.com/" {
-		t.Errorf("the Website: %+v", p)
+		t.Errorf("the Channel: %+v", p)
 	}
 	if f.admins.added != 1 || f.follows.added != 1 {
 		t.Errorf("its maker is its administrator (%d) and follower (%d)", f.admins.added, f.follows.added)
 	}
-	if len(f.websites.added) != 1 || f.websites.added[0].NodeID != 900 || len(f.items.waiting) != 2 || len(f.items.seen) != 0 || f.domains.rows[1].ProfileID != 900 {
-		t.Errorf("kept: %+v, %d to post, %d seen, domain for %d", f.websites.added, len(f.items.waiting), len(f.items.seen), f.domains.rows[1].ProfileID)
+	if len(f.channels.added) != 1 || f.channels.added[0].NodeID != 900 || len(f.items.waiting) != 2 || len(f.items.seen) != 0 || f.domains.rows[1].ProfileID != 900 {
+		t.Errorf("kept: %+v, %d to post, %d seen, domain for %d", f.channels.added, len(f.items.waiting), len(f.items.seen), f.domains.rows[1].ProfileID)
 	}
 
 	// Once made, the connection is done with.
@@ -293,7 +293,7 @@ func TestWhatIsRefusedOnTheWay(t *testing.T) {
 	refusedWith(t, f.call(f.h.Start, ana, "", `{"site_url": "example.com"}`), http.StatusBadRequest, refusedPrivateFeed)
 
 	f.feeds.found = &feeds.Found{FeedURL: "https://example.com/feed.xml"}
-	f.websites.added = []*repositories.Website{{FeedURL: "https://example.com/feed.xml"}}
+	f.channels.added = []*repositories.Channel{{FeedURL: "https://example.com/feed.xml"}}
 	refusedWith(t, f.call(f.h.Start, ana, "", `{"site_url": "example.com"}`), http.StatusConflict, refusedFeedTaken)
 }
 
@@ -309,18 +309,18 @@ func TestATakenHandleIsSaidSo(t *testing.T) {
 	refusedWith(t, rec, http.StatusConflict, refusedHandleTaken)
 }
 
-func TestOnlyWhoWebsitesFromNamesMayConnect(t *testing.T) {
+func TestOnlyWhoChannelsFromNamesMayConnect(t *testing.T) {
 	f := newFixture()
 
 	member := admin(8)
 	member.PersonType = an_constants.PersonTypeRegistered
 	if rec := f.call(f.h.Start, member, "", `{"site_url": "example.com"}`); rec.Code != http.StatusForbidden {
-		t.Errorf("a member, with WEBSITES_FROM unset: %d", rec.Code)
+		t.Errorf("a member, with CHANNELS_FROM unset: %d", rec.Code)
 	}
 
-	f.h.Config.WebsitesFrom = an_constants.RoleLevelRegistered
+	f.h.Config.ChannelsFrom = an_constants.RoleLevelRegistered
 	if rec := f.call(f.h.Start, member, "", `{"site_url": "example.com"}`); rec.Code != http.StatusCreated {
-		t.Errorf("a member, with WEBSITES_FROM=registered: %d", rec.Code)
+		t.Errorf("a member, with CHANNELS_FROM=registered: %d", rec.Code)
 	}
 
 	// Somebody else's connection is not theirs to check.
@@ -346,7 +346,7 @@ func TestAHandleIsSuggestedFromTheDomain(t *testing.T) {
 	}
 }
 
-func TestANewWebsitePostsItsNewestTen(t *testing.T) {
+func TestANewChannelPostsItsNewestTen(t *testing.T) {
 	var items []feeds.Item
 	for n := 1; n <= 13; n++ {
 		items = append(items, feeds.Item{Key: fmt.Sprintf("k%d", n), Title: "t", Published: time.Date(2026, 1, n, 0, 0, 0, 0, time.UTC)})

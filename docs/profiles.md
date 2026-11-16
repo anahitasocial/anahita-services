@@ -17,7 +17,7 @@ is on its own page:
 | A person | An account, an account type, pronouns, tags in photos, who may quote them | [People](people.md) | `/people/` |
 | A group | Made by members, rules to agree to, events it hosts | [Groups](groups.md) | `/groups/` |
 | An event | A time, a place, going or maybe, a calendar file, being called off | [Events](events.md) | `/events/` |
-| A website | A site's feed, its proved domain, replies as the site | [Websites](websites.md) | `/websites/` |
+| A website | A site's feed, its proved domain, replies as the site | [Websites](channels.md) | `/channels/` |
 
 All four are served by actor-service, and kept in the graph as nodes of the
 types in [The graph](the-graph.md).

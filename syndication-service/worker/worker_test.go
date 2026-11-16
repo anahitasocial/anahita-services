@@ -19,8 +19,8 @@ import (
 
 var start = time.Date(2026, 10, 16, 12, 0, 0, 0, time.UTC)
 
-type memWebsites struct {
-	repositories.WebsitesInterface
+type memChannels struct {
+	repositories.ChannelsInterface
 	due      *repositories.Due
 	read     *repositories.Read
 	failures int
@@ -32,39 +32,39 @@ type memWebsites struct {
 	hubAgain time.Time
 }
 
-func (m *memWebsites) Claim(context.Context) (*repositories.Due, error) {
+func (m *memChannels) Claim(context.Context) (*repositories.Due, error) {
 	due := m.due
 	m.due = nil
 	return due, nil
 }
-func (m *memWebsites) Read(_ context.Context, _ int64, r repositories.Read) error {
+func (m *memChannels) Read(_ context.Context, _ int64, r repositories.Read) error {
 	m.read = &r
 	return nil
 }
-func (m *memWebsites) Failed(_ context.Context, _ int64, failures int, next time.Time, _ string) error {
+func (m *memChannels) Failed(_ context.Context, _ int64, failures int, next time.Time, _ string) error {
 	m.failures, m.nextAt = failures, next
 	return nil
 }
-func (m *memWebsites) Pause(_ context.Context, _ int64, why string) error {
+func (m *memChannels) Pause(_ context.Context, _ int64, why string) error {
 	m.paused = why
 	return nil
 }
-func (m *memWebsites) PauseForProof(_ context.Context, id int64) error {
+func (m *memChannels) PauseForProof(_ context.Context, id int64) error {
 	m.pausedOn = append(m.pausedOn, id)
 	return nil
 }
-func (m *memWebsites) PausedFor(context.Context, string, int) ([]int64, error) {
+func (m *memChannels) PausedFor(context.Context, string, int) ([]int64, error) {
 	return []int64{900}, nil
 }
-func (m *memWebsites) Resume(_ context.Context, id int64) error {
+func (m *memChannels) Resume(_ context.Context, id int64) error {
 	m.resumed = append(m.resumed, id)
 	return nil
 }
-func (m *memWebsites) Hub(_ context.Context, _ int64, hub string, again time.Time) error {
+func (m *memChannels) Hub(_ context.Context, _ int64, hub string, again time.Time) error {
 	m.hub, m.hubAgain = hub, again
 	return nil
 }
-func (m *memWebsites) ResumeAfterProof(_ context.Context, id int64) error {
+func (m *memChannels) ResumeAfterProof(_ context.Context, id int64) error {
 	m.resumed = append(m.resumed, id)
 	return nil
 }
@@ -132,13 +132,13 @@ func (m *memFeed) Read(_ context.Context, _ string, etag, _ string) (*feeds.Read
 }
 
 type memGraph struct {
-	website *entities.AnahitaNode
+	channel *entities.AnahitaNode
 	posted  []*entities.AnahitaNode
 	edited  []*entities.AnahitaNode
 	poster  int64
 }
 
-func (m *memGraph) Website(int64) (*entities.AnahitaNode, error) { return m.website, nil }
+func (m *memGraph) Channel(int64) (*entities.AnahitaNode, error) { return m.channel, nil }
 func (m *memGraph) FirstAdmin(int64) (int64, error)              { return 7, nil }
 func (m *memGraph) Post(a *entities.AnahitaNode, v *entities.Viewer) (*entities.AnahitaNode, error) {
 	a.ID = int64(1000 + len(m.posted))
@@ -168,7 +168,7 @@ func (memCards) Preview(_ context.Context, address string) *linkpreviews.Preview
 
 type fixture struct {
 	w        *Worker
-	websites *memWebsites
+	channels *memChannels
 	items    *memItems
 	feed     *memFeed
 	graph    *memGraph
@@ -176,17 +176,17 @@ type fixture struct {
 }
 
 func newFixture() *fixture {
-	website := entities.NewAnahitaNode()
-	website.ID, website.Type, website.Enabled = 900, an_const.NodeActorWebsiteEntityType, true
+	channel := entities.NewAnahitaNode()
+	channel.ID, channel.Type, channel.Enabled = 900, an_const.NodeActorChannelEntityType, true
 	f := &fixture{
-		websites: &memWebsites{},
+		channels: &memChannels{},
 		items:    &memItems{kept: map[string]repositories.Known{}},
 		feed:     &memFeed{},
-		graph:    &memGraph{website: website},
+		graph:    &memGraph{channel: channel},
 		clock:    start,
 	}
 	f.w = &Worker{
-		Websites: f.websites, Items: f.items, Feeds: f.feed, Graph: f.graph, Cards: memCards{},
+		Channels: f.channels, Items: f.items, Feeds: f.feed, Graph: f.graph, Cards: memCards{},
 		Now: func() time.Time { return f.clock },
 	}
 	return f
@@ -197,10 +197,10 @@ func newFixture() *fixture {
 func (f *fixture) round(t *testing.T) {
 	t.Helper()
 	due := &repositories.Due{NodeID: 900, FeedURL: "https://example.com/feed.xml"}
-	if f.websites.read != nil {
-		due.HourPosts, due.HourBeganAt = f.websites.read.HourPosts, f.websites.read.HourBeganAt
+	if f.channels.read != nil {
+		due.HourPosts, due.HourBeganAt = f.channels.read.HourPosts, f.channels.read.HourBeganAt
 	}
-	f.websites.due = due
+	f.channels.due = due
 	if did, err := f.w.Once(context.Background()); !did || err != nil {
 		t.Fatalf("a round: %v, %v", did, err)
 	}
@@ -217,7 +217,7 @@ func item(n int) feeds.Item {
 	}
 }
 
-func TestANewItemIsPostedAsANoteOfTheWebsite(t *testing.T) {
+func TestANewItemIsPostedAsANoteOfTheChannel(t *testing.T) {
 	f := newFixture()
 	f.items.kept["key-1"] = repositories.Known{State: repositories.ItemSeen}
 	f.feed.items = []feeds.Item{item(1), item(2)}
@@ -225,11 +225,11 @@ func TestANewItemIsPostedAsANoteOfTheWebsite(t *testing.T) {
 	f.round(t)
 
 	if len(f.graph.posted) != 1 {
-		t.Fatalf("posted %d: what was seen when the Website was made is never posted", len(f.graph.posted))
+		t.Fatalf("posted %d: what was seen when the Channel was made is never posted", len(f.graph.posted))
 	}
 	a := f.graph.posted[0]
 	if a.Type != an_const.NodeMediumNoteEntityType || a.Service != an_const.TextService ||
-		a.OwnerID != 900 || a.OwnerType != an_const.NodeActorWebsiteEntityType ||
+		a.OwnerID != 900 || a.OwnerType != an_const.NodeActorChannelEntityType ||
 		a.CreatedBy != 900 || a.ModifiedBy != 7 || f.graph.poster != 7 || a.Access != an_const.AnahitaAccessPublic {
 		t.Errorf("the note: %+v", a)
 	}
@@ -245,8 +245,8 @@ func TestANewItemIsPostedAsANoteOfTheWebsite(t *testing.T) {
 	if f.items.kept["key-2"].State != repositories.ItemPosted || f.items.kept["key-2"].NodeID != a.ID {
 		t.Errorf("the item: %+v", f.items.kept["key-2"])
 	}
-	if f.websites.read == nil || f.websites.read.ETag != `"v2"` || !f.websites.read.NextReadAt.Equal(start.Add(DefaultReadEvery)) {
-		t.Errorf("kept: %+v", f.websites.read)
+	if f.channels.read == nil || f.channels.read.ETag != `"v2"` || !f.channels.read.NextReadAt.Equal(start.Add(DefaultReadEvery)) {
+		t.Errorf("kept: %+v", f.channels.read)
 	}
 
 	f.round(t)
@@ -301,20 +301,20 @@ func TestAFeedThatFailsIsAskedLessOften(t *testing.T) {
 	f := newFixture()
 	f.feed.err = errors.New("answered 503")
 
-	f.websites.due = &repositories.Due{NodeID: 900, Failures: 2}
+	f.channels.due = &repositories.Due{NodeID: 900, Failures: 2}
 	_, _ = f.w.Once(context.Background())
-	if f.websites.failures != 3 || !f.websites.nextAt.Equal(start.Add(time.Hour)) {
-		t.Errorf("after the third failure: %d, next at %v", f.websites.failures, f.websites.nextAt)
+	if f.channels.failures != 3 || !f.channels.nextAt.Equal(start.Add(time.Hour)) {
+		t.Errorf("after the third failure: %d, next at %v", f.channels.failures, f.channels.nextAt)
 	}
 
-	f.websites.due = &repositories.Due{NodeID: 900, Failures: 20}
+	f.channels.due = &repositories.Due{NodeID: 900, Failures: 20}
 	_, _ = f.w.Once(context.Background())
-	if !f.websites.nextAt.Equal(start.Add(longestWait)) {
-		t.Errorf("never less than once a day: next at %v", f.websites.nextAt)
+	if !f.channels.nextAt.Equal(start.Add(longestWait)) {
+		t.Errorf("never less than once a day: next at %v", f.channels.nextAt)
 	}
 }
 
-func TestAWebsiteSwitchedOffOrDeletedIsPaused(t *testing.T) {
+func TestAChannelSwitchedOffOrDeletedIsPaused(t *testing.T) {
 	deleted := start
 	for why, change := range map[string]func(*entities.AnahitaNode){
 		"switched off": func(p *entities.AnahitaNode) { p.Enabled = false },
@@ -322,11 +322,11 @@ func TestAWebsiteSwitchedOffOrDeletedIsPaused(t *testing.T) {
 		"archived":     func(p *entities.AnahitaNode) { p.ArchivedAt = &deleted },
 	} {
 		f := newFixture()
-		change(f.graph.website)
+		change(f.graph.channel)
 		f.feed.items = []feeds.Item{item(1)}
 		f.round(t)
-		if f.websites.paused != repositories.PausedProfileGone || len(f.graph.posted) != 0 {
-			t.Errorf("%s: paused %q, posted %d", why, f.websites.paused, len(f.graph.posted))
+		if f.channels.paused != repositories.PausedProfileGone || len(f.graph.posted) != 0 {
+			t.Errorf("%s: paused %q, posted %d", why, f.channels.paused, len(f.graph.posted))
 		}
 	}
 }
@@ -358,7 +358,7 @@ func (t tokens) Check(_ context.Context, site domains.Site, _ string) (string, e
 	return "", domains.ErrNotFound
 }
 
-func TestAProofGoneAWeekPausesItsWebsites(t *testing.T) {
+func TestAProofGoneAWeekPausesItsChannels(t *testing.T) {
 	f := newFixture()
 	failed := start.Add(-2 * 24 * time.Hour)
 	d := &memDomains{
@@ -376,14 +376,14 @@ func TestAProofGoneAWeekPausesItsWebsites(t *testing.T) {
 	if fmt.Sprint(d.proved) != "[1 2]" || fmt.Sprint(d.failing) != "[3]" {
 		t.Errorf("proved %v, failing %v", d.proved, d.failing)
 	}
-	if fmt.Sprint(f.websites.resumed) != "[2]" || fmt.Sprint(f.websites.pausedOn) != "[3]" {
-		t.Errorf("resumed %v, paused %v", f.websites.resumed, f.websites.pausedOn)
+	if fmt.Sprint(f.channels.resumed) != "[2]" || fmt.Sprint(f.channels.pausedOn) != "[3]" {
+		t.Errorf("resumed %v, paused %v", f.channels.resumed, f.channels.pausedOn)
 	}
 
-	d.since, f.websites.pausedOn = start.Add(-3*24*time.Hour), nil
+	d.since, f.channels.pausedOn = start.Add(-3*24*time.Hour), nil
 	d.due = d.due[2:]
 	f.w.CheckProofs(context.Background())
-	if len(f.websites.pausedOn) != 0 {
+	if len(f.channels.pausedOn) != 0 {
 		t.Errorf("paused after three days")
 	}
 }
@@ -396,19 +396,19 @@ func TestAFeedsHubIsAskedToCallBack(t *testing.T) {
 		asked = append(asked, hub+" "+topic+" "+callback)
 		return nil
 	}
-	f.w.Callback = func(id int64) string { return fmt.Sprintf("https://api.example.org/websites/_websub/%d/sig", id) }
+	f.w.Callback = func(id int64) string { return fmt.Sprintf("https://api.example.org/channels/_websub/%d/sig", id) }
 
 	f.round(t)
-	if len(asked) != 1 || asked[0] != "https://hub.example/ https://example.com/feed/ https://api.example.org/websites/_websub/900/sig" {
+	if len(asked) != 1 || asked[0] != "https://hub.example/ https://example.com/feed/ https://api.example.org/channels/_websub/900/sig" {
 		t.Fatalf("asked %v", asked)
 	}
-	if f.websites.hub != "https://hub.example/" || !f.websites.hubAgain.Equal(start.Add(48*time.Hour)) {
-		t.Errorf("kept %q until %v", f.websites.hub, f.websites.hubAgain)
+	if f.channels.hub != "https://hub.example/" || !f.channels.hubAgain.Equal(start.Add(48*time.Hour)) {
+		t.Errorf("kept %q until %v", f.channels.hub, f.channels.hubAgain)
 	}
 
 	// Asked, and checked until ten days on: not asked again for nine.
 	until := start.Add(10 * 24 * time.Hour)
-	f.websites.due = &repositories.Due{NodeID: 900, HubURL: "https://hub.example/", HubUntil: &until}
+	f.channels.due = &repositories.Due{NodeID: 900, HubURL: "https://hub.example/", HubUntil: &until}
 	_, _ = f.w.Once(context.Background())
 	if len(asked) != 1 {
 		t.Errorf("asked again: %v", asked)
@@ -416,24 +416,24 @@ func TestAFeedsHubIsAskedToCallBack(t *testing.T) {
 
 	// Where no hub could call back, none is asked.
 	f.w.Callback = nil
-	f.websites.due = &repositories.Due{NodeID: 900}
+	f.channels.due = &repositories.Due{NodeID: 900}
 	_, _ = f.w.Once(context.Background())
 	if len(asked) != 1 {
 		t.Errorf("asked with nowhere to call back")
 	}
 }
 
-func TestAWebsiteBackIsStartedAgain(t *testing.T) {
+func TestAChannelBackIsStartedAgain(t *testing.T) {
 	f := newFixture()
-	f.graph.website.Enabled = false
+	f.graph.channel.Enabled = false
 	f.w.CheckProfiles(context.Background())
-	if len(f.websites.resumed) != 0 {
+	if len(f.channels.resumed) != 0 {
 		t.Fatal("started again while still switched off")
 	}
-	f.graph.website.Enabled = true
+	f.graph.channel.Enabled = true
 	f.w.CheckProfiles(context.Background())
-	if fmt.Sprint(f.websites.resumed) != "[900]" {
-		t.Errorf("resumed %v", f.websites.resumed)
+	if fmt.Sprint(f.channels.resumed) != "[900]" {
+		t.Errorf("resumed %v", f.channels.resumed)
 	}
 }
 
@@ -458,8 +458,8 @@ func TestWhatWaitsIsPostedThoughTheFeedHasNotChanged(t *testing.T) {
 	// The next hour, the feed unchanged: the two held back are posted all
 	// the same.
 	f.clock = start.Add(61 * time.Minute)
-	due := &repositories.Due{NodeID: 900, ETag: `"v2"`, HourPosts: f.websites.read.HourPosts, HourBeganAt: f.websites.read.HourBeganAt}
-	f.websites.due = due
+	due := &repositories.Due{NodeID: 900, ETag: `"v2"`, HourPosts: f.channels.read.HourPosts, HourBeganAt: f.channels.read.HourBeganAt}
+	f.channels.due = due
 	if _, err := f.w.Once(context.Background()); err != nil {
 		t.Fatal(err)
 	}

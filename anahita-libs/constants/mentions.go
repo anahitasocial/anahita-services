@@ -5,12 +5,12 @@ const NodeActorGroupEntityType = "node.actor.group-service.group.v1"
 
 // ProfileTypes are the kinds of profile a post can name: by its @handle, or
 // by its address on a line of its own, embedded. People here, groups,
-// events, websites, and people elsewhere, by each protocol.
+// events, channels, and people elsewhere, by each protocol.
 var ProfileTypes = []string{
 	NodeActorPersonEntityType,
 	NodeActorGroupEntityType,
 	NodeActorEventEntityType,
-	NodeActorWebsiteEntityType,
+	NodeActorChannelEntityType,
 	NodeActorActivityPubPersonEntityType,
 	NodeActorATProtoPersonEntityType,
 }

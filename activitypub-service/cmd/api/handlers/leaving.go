@@ -84,7 +84,7 @@ func (h *Handlers) leave(ctx context.Context, person *entities.AnahitaNode) erro
 	return h.Accounts.Set(person.ID, false)
 }
 
-// profileChanged is something having happened to a person or a website here:
+// profileChanged is something having happened to a person or a channel here:
 // their profile edited, or their account disabled, archived, deleted or
 // purged. Other servers are told what follows from it.
 func (h *Handlers) profileChanged(ctx context.Context, personID int64) error {
@@ -96,7 +96,7 @@ func (h *Handlers) profileChanged(ctx context.Context, personID int64) error {
 		return nil
 	}
 
-	// On the fediverse only once they choose to be, a website by its
+	// On the fediverse only once they choose to be, a channel by its
 	// administrators.
 	account, err := h.Accounts.Read(personID)
 	if err != nil || account == nil || !account.Enabled {

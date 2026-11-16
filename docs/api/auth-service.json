@@ -143,7 +143,7 @@
       "auth.AccountItem": {
         "properties": {
           "admin_count": {
-            "description": "Groups, events and websites only: how many administrators it has.",
+            "description": "Groups, events and channels only: how many administrators it has.",
             "format": "int64",
             "type": "integer"
           },
@@ -181,7 +181,7 @@
             "type": "integer"
           },
           "kind": {
-            "description": "`person`, `group`, `event` or `website`.",
+            "description": "`person`, `group`, `event` or `channel`.",
             "type": "string"
           },
           "last_active_at": {
@@ -465,7 +465,7 @@
         "properties": {
           "metadata": {
             "additionalProperties": {},
-            "description": "What the web app reads of the installation: `nodeName`, `nodeDescription`, `logoUrl`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `websitesFrom`, `locationsFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `siteRules`, `spamRemovalMaxDays`, `accountGraceDays`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `audioMaxBytes`, `audioMaxSeconds`, `audioUploads`, `audioRecording`, `postMaxLength`, `postLinkLength`, `offers` (what the instance offers: `profiles` and `posts`), `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.",
+            "description": "What the web app reads of the installation: `nodeName`, `nodeDescription`, `logoUrl`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `channelsFrom`, `locationsFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `siteRules`, `spamRemovalMaxDays`, `accountGraceDays`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `audioMaxBytes`, `audioMaxSeconds`, `audioUploads`, `audioRecording`, `postMaxLength`, `postLinkLength`, `offers` (what the instance offers: `profiles` and `posts`), `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.",
             "type": [
               "object",
               "null"
@@ -1639,7 +1639,7 @@
         "operationId": "getAccounts",
         "parameters": [
           {
-            "description": "`person`, the default, `group`, `event` or `website`.",
+            "description": "`person`, the default, `group`, `event` or `channel`.",
             "in": "query",
             "name": "kind",
             "schema": {
@@ -1647,7 +1647,7 @@
                 "person",
                 "group",
                 "event",
-                "website"
+                "channel"
               ],
               "type": "string"
             }
@@ -1843,7 +1843,7 @@
             ]
           }
         ],
-        "summary": "People, groups, events or websites, for cleaning up a site",
+        "summary": "People, groups, events or channels, for cleaning up a site",
         "tags": [
           "auth-service"
         ],

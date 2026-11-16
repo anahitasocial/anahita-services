@@ -110,7 +110,7 @@ func (h *Handlers) HandleEvent(payload *event.EventPayload) error {
 		err = h.relocated(ctx, payload.ObjectID)
 
 	// A post made, changed or deleted. Notes, photo posts, video posts and
-	// articles go out, a website's among them; the rest of what decides is
+	// articles go out, a channel's among them; the rest of what decides is
 	// asked of the post itself. Topics stay here.
 	case strings.HasPrefix(payload.Name, "node.medium.") && goesOutKind(payload.ObjectType):
 		if strings.HasSuffix(payload.Name, ".deleted.v1") {

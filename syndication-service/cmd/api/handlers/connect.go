@@ -23,10 +23,10 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// Connecting a website: "Connect your website", never "create". Three
+// Connecting a channel: "Connect your website", never "create". Three
 // calls: the site's address, to find its feed and be given a token; a check
-// that the token is where it should be; and the website made, with a name and
-// a handle. See docs/plans/done/website.md.
+// that the token is where it should be; and the channel made, with a name and
+// a handle. See docs/plans/done/channel.md.
 type connectHandler struct {
 	*Env
 }
@@ -46,7 +46,7 @@ const (
 // Finding a feed fetches somebody else's site: a few times an hour each.
 var connectLimit = ratelimit.Limit{Max: 20, Window: time.Hour}
 
-// ConnectStartRequest is a website to connect.
+// ConnectStartRequest is a channel to connect.
 type ConnectStartRequest struct {
 	// The site's address, `example.com` or `https://example.com/blog/`, or
 	// its feed's.
@@ -59,7 +59,7 @@ type ConnectIDRequest struct {
 	ID int64 `param:"id" validate:"required,min=1"`
 }
 
-// ConnectMakeRequest is the website, once the domain is proved.
+// ConnectMakeRequest is the channel, once the domain is proved.
 type ConnectMakeRequest struct {
 	// The connection's id.
 	ID int64 `param:"id" validate:"required,min=1"`
@@ -73,10 +73,10 @@ type ConnectMakeRequest struct {
 	Body string `json:"body" validate:"omitempty,max=500"`
 }
 
-// Connection is a website being connected: its feed, and the token with
+// Connection is a channel being connected: its feed, and the token with
 // both places it may be put.
 type Connection struct {
-	// The connection's id, for checking the proof and making the website.
+	// The connection's id, for checking the proof and making the channel.
 	ID int64 `json:"id"`
 	// The domain to prove, and the host the file is read from.
 	Domain string `json:"domain"`
@@ -105,7 +105,7 @@ type Checked struct {
 	Method string `json:"method,omitempty"`
 }
 
-// Made is the website as it was made: where to go to see it.
+// Made is the channel as it was made: where to go to see it.
 type Made struct {
 	ID    int64  `json:"id"`
 	Alias string `json:"alias"`
@@ -115,15 +115,15 @@ type refusal struct {
 	Error string `json:"error"`
 }
 
-// Start finds a website's feed and gives a token to prove its domain with.
+// Start finds a channel's feed and gives a token to prove its domain with.
 //
-// POST /websites/_connect
+// POST /channels/_connect
 func (h *connectHandler) Start(c echo.Context) error {
 	viewer := getViewer(c)
-	// Not where the instance does not offer websites (instance.json,
+	// Not where the instance does not offer channels (instance.json,
 	// roadmap row 139).
-	if !an_handlers.ProfileOffered(h.Srv.GraphGRPC, "website") {
-		return an_handlers.RefuseOff(c, "website")
+	if !an_handlers.ProfileOffered(h.Srv.GraphGRPC, "channel") {
+		return an_handlers.RefuseOff(c, "channel")
 	}
 	if status := h.mayConnect(viewer); status != 0 {
 		return c.NoContent(status)
@@ -137,7 +137,7 @@ func (h *connectHandler) Start(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	if ratelimit.Exceeded(h.Limiter, "website_connect", fmt.Sprint(viewer.ID), connectLimit) {
+	if ratelimit.Exceeded(h.Limiter, "channel_connect", fmt.Sprint(viewer.ID), connectLimit) {
 		return c.NoContent(http.StatusTooManyRequests)
 	}
 
@@ -163,7 +163,7 @@ func (h *connectHandler) Start(c echo.Context) error {
 	if !site.Covers(found.FeedURL) {
 		return c.JSON(http.StatusBadRequest, refusal{refusedFeedOffSite})
 	}
-	if taken, err := h.Srv.Websites.FeedTaken(ctx, found.FeedURL); err != nil {
+	if taken, err := h.Srv.Channels.FeedTaken(ctx, found.FeedURL); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	} else if taken {
@@ -213,7 +213,7 @@ func (h *connectHandler) Start(c echo.Context) error {
 
 // Check looks for the token in both places.
 //
-// POST /websites/_connect/:id/check
+// POST /channels/_connect/:id/check
 func (h *connectHandler) Check(c echo.Context) error {
 	viewer := getViewer(c)
 	if status := h.mayConnect(viewer); status != 0 {
@@ -246,17 +246,17 @@ func (h *connectHandler) Check(c echo.Context) error {
 	return c.JSON(http.StatusOK, Checked{Proved: true, Method: method})
 }
 
-// Make makes the website, once its domain is proved: whoever proved it is its
+// Make makes the channel, once its domain is proved: whoever proved it is its
 // first administrator and its first follower, and what the feed holds now
 // is marked seen, not posted.
 //
-// POST /websites/_connect/:id
+// POST /channels/_connect/:id
 func (h *connectHandler) Make(c echo.Context) error {
 	viewer := getViewer(c)
-	// Not where the instance does not offer websites (instance.json,
+	// Not where the instance does not offer channels (instance.json,
 	// roadmap row 139).
-	if !an_handlers.ProfileOffered(h.Srv.GraphGRPC, "website") {
-		return an_handlers.RefuseOff(c, "website")
+	if !an_handlers.ProfileOffered(h.Srv.GraphGRPC, "channel") {
+		return an_handlers.RefuseOff(c, "channel")
 	}
 	if status := h.mayConnect(viewer); status != 0 {
 		return c.NoContent(status)
@@ -299,26 +299,26 @@ func (h *connectHandler) Make(c echo.Context) error {
 	case err != nil:
 		return c.JSON(http.StatusBadRequest, refusal{refusedUnreadable})
 	}
-	if taken, err := h.Srv.Websites.FeedTaken(ctx, req.FeedURL); err != nil {
+	if taken, err := h.Srv.Channels.FeedTaken(ctx, req.FeedURL); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	} else if taken {
 		return c.JSON(http.StatusConflict, refusal{refusedFeedTaken})
 	}
 
-	website := entities.NewAnahitaNode()
-	website.Type = an_constants.NodeActorWebsiteEntityType
-	website.Service = an_constants.ActorService
-	website.Name = req.Name
-	website.Alias = req.Alias
-	website.Body = req.Body
-	website.WebsiteURL = "https://" + domain.Host + "/"
-	website.Access = an_constants.AnahitaAccessPublic
-	website.Enabled = true
-	website.CreatedBy = viewer.ID
-	website.ModifiedBy = viewer.ID
+	channel := entities.NewAnahitaNode()
+	channel.Type = an_constants.NodeActorChannelEntityType
+	channel.Service = an_constants.ActorService
+	channel.Name = req.Name
+	channel.Alias = req.Alias
+	channel.Body = req.Body
+	channel.WebsiteURL = "https://" + domain.Host + "/"
+	channel.Access = an_constants.AnahitaAccessPublic
+	channel.Enabled = true
+	channel.CreatedBy = viewer.ID
+	channel.ModifiedBy = viewer.ID
 
-	website, err = h.Srv.ActorsGRPC.Add(website, viewer)
+	channel, err = h.Srv.ActorsGRPC.Add(channel, viewer)
 	if isDuplicateHandle(err) {
 		return c.JSON(http.StatusConflict, refusal{refusedHandleTaken})
 	}
@@ -327,14 +327,14 @@ func (h *connectHandler) Make(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	if status := h.lookAfter(website, viewer); status != 0 {
+	if status := h.lookAfter(channel, viewer); status != 0 {
 		return c.NoContent(status)
 	}
 
-	err = h.Srv.Websites.Add(ctx, &repositories.Website{
-		NodeID:   website.ID,
+	err = h.Srv.Channels.Add(ctx, &repositories.Channel{
+		NodeID:   channel.ID,
 		FeedURL:  req.FeedURL,
-		SiteURL:  website.WebsiteURL,
+		SiteURL:  channel.WebsiteURL,
 		DomainID: domain.ID,
 	})
 	if errors.Is(err, repositories.ErrFeedTaken) {
@@ -347,27 +347,27 @@ func (h *connectHandler) Make(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	// Its newest few are posted, so that a new website does not open empty;
+	// Its newest few are posted, so that a new channel does not open empty;
 	// the rest are marked seen, so that its first followers are not sent
 	// the site's whole past (the user, 2026-10-16).
 	waiting, seen := firstPosts(read.Items)
-	if err := h.Srv.Items.AddWaiting(ctx, website.ID, waiting); err != nil {
+	if err := h.Srv.Items.AddWaiting(ctx, channel.ID, waiting); err != nil {
 		log.Println(err)
 	}
-	if err := h.Srv.Items.MarkSeen(ctx, website.ID, seen); err != nil {
+	if err := h.Srv.Items.MarkSeen(ctx, channel.ID, seen); err != nil {
 		log.Println(err)
 	}
-	if err := h.Srv.Domains.ForProfile(ctx, domain.ID, website.ID); err != nil {
+	if err := h.Srv.Domains.ForProfile(ctx, domain.ID, channel.ID); err != nil {
 		log.Println(err)
 	}
 
-	return c.JSON(http.StatusCreated, Made{ID: website.ID, Alias: website.Alias})
+	return c.JSON(http.StatusCreated, Made{ID: channel.ID, Alias: channel.Alias})
 }
 
-// FirstPosts is how many of a feed's items a new website posts: its newest.
+// FirstPosts is how many of a feed's items a new channel posts: its newest.
 const FirstPosts = 10
 
-// firstPosts splits a feed as a new website takes it: its newest FirstPosts
+// firstPosts splits a feed as a new channel takes it: its newest FirstPosts
 // items to post, and the rest seen.
 func firstPosts(items []feeds.Item) (waiting, seen []repositories.ItemSeenAs) {
 	newest := append([]feeds.Item(nil), items...)
@@ -383,22 +383,22 @@ func firstPosts(items []feeds.Item) (waiting, seen []repositories.ItemSeenAs) {
 	return waiting, seen
 }
 
-// lookAfter makes the viewer the website's first administrator and its first
+// lookAfter makes the viewer the channel's first administrator and its first
 // follower, as a group's maker is.
-func (h *connectHandler) lookAfter(website *entities.AnahitaNode, viewer *entities.Viewer) int {
+func (h *connectHandler) lookAfter(channel *entities.AnahitaNode, viewer *entities.Viewer) int {
 	admin, err := h.Srv.ActorsGRPC.ReadOfType(viewer.ID, an_constants.NodeActorPersonEntityType, viewer)
 	if err != nil {
 		log.Println(err)
 		return http.StatusInternalServerError
 	}
-	if _, err := h.Srv.ActorAdminsGRPC.Add(website, admin, viewer); err != nil {
+	if _, err := h.Srv.ActorAdminsGRPC.Add(channel, admin, viewer); err != nil {
 		log.Println(err)
 		return http.StatusInternalServerError
 	}
 
 	follow := services.NewSocialgraphFollowRequest().Add
 	follow.Source = admin
-	follow.Target = website
+	follow.Target = channel
 	follow.Viewer = viewer
 	if err := h.Srv.SocialgraphFollowGRPC.Add(follow); err != nil {
 		log.Println(err)
@@ -407,8 +407,8 @@ func (h *connectHandler) lookAfter(website *entities.AnahitaNode, viewer *entiti
 	return 0
 }
 
-// mayConnect is whether the viewer may connect a website at all: signed in,
-// allowed to write profiles, and of the role WEBSITES_FROM names.
+// mayConnect is whether the viewer may connect a channel at all: signed in,
+// allowed to write profiles, and of the role CHANNELS_FROM names.
 func (h *connectHandler) mayConnect(viewer *entities.Viewer) int {
 	if viewer == nil || !viewer.Authenticated || viewer.ID <= 0 {
 		return http.StatusUnauthorized
@@ -419,7 +419,7 @@ func (h *connectHandler) mayConnect(viewer *entities.Viewer) int {
 	return 0
 }
 
-// connectionOf is a connection the viewer began, not yet made into a website.
+// connectionOf is a connection the viewer began, not yet made into a channel.
 // Anybody else's is not there, as far as they are told.
 func (h *connectHandler) connectionOf(c echo.Context, id int64, viewer *entities.Viewer) (*repositories.Domain, int) {
 	domain, err := h.Srv.Domains.Read(c.Request().Context(), id)

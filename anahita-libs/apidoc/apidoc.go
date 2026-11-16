@@ -61,7 +61,7 @@ type Service struct {
 
 // Section is a part of a service's routes that is shown as its own: one kind
 // of thing among several that one service serves, as actor-service serves
-// people, groups, events and websites. Each is a tag of its own in the
+// people, groups, events and channels. Each is a tag of its own in the
 // document, in place of the service's, so the reference has an entry for
 // each.
 type Section struct {

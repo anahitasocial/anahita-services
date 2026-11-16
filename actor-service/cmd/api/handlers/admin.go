@@ -30,9 +30,9 @@ func NewEventAdminHandler(env *Env) *adminHandler {
 	return &adminHandler{Env: env, nodeType: an_constants.NodeActorEventEntityType}
 }
 
-// NewWebsiteAdminHandler serves the administrators of websites.
-func NewWebsiteAdminHandler(env *Env) *adminHandler {
-	return &adminHandler{Env: env, nodeType: an_constants.NodeActorWebsiteEntityType}
+// NewChannelAdminHandler serves the administrators of channels.
+func NewChannelAdminHandler(env *Env) *adminHandler {
+	return &adminHandler{Env: env, nodeType: an_constants.NodeActorChannelEntityType}
 }
 
 // Browse returns a list of admins

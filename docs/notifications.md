@@ -47,7 +47,7 @@ part in tells you of the people you follow, and of whoever answers you**
 | The post | You are told of | Unless |
 | --- | --- | --- |
 | Yours, a post or a reply | Everyone who likes, reposts, quotes or answers it | You turn that kind off in Settings › Notifications |
-| A website's (a channel's) you look after | Everyone, as if it were yours | You turn that kind off |
+| A channel's you look after | Everyone, as if it were yours | You turn that kind off |
 | Somebody else's that you replied to, reposted, or chose Follow post on | The people you follow who like, repost or reply to it, and whoever answers you | You choose Unfollow post, or turn the kind off |
 | A new post from a profile you follow | Each one, from the day you follow it | You choose Turn off on its notification, or Turn off notifications in Following's menu on the profile |
 
@@ -66,7 +66,7 @@ Unfollow post does.
 | `repost_add` | A post is reposted | Its author, and its subscribers who follow whoever reposted |
 | `voteup` | A post is liked | Its author, and its subscribers who follow whoever liked |
 
-For a website's post or reply, its author is each of its admins, who
+For a channel's post or reply, its author is each of its admins, who
 write as it. Somebody whose post came from another server is told by
 their own server, never here.
 | `actor_mention`, `actor_mention_reply` | A post or a reply names a person | The person, when they may see it ([Permissions](permissions.md)) |

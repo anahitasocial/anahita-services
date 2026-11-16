@@ -525,8 +525,8 @@ func KindType(kind string) string {
 		return constants.GroupType
 	case constants.KindEvent:
 		return constants.EventType
-	case constants.KindWebsite:
-		return constants.WebsiteType
+	case constants.KindChannel:
+		return constants.ChannelType
 	}
 	return ""
 }

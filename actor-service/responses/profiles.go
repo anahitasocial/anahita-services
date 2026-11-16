@@ -25,9 +25,9 @@ type EventNode struct {
 	_ struct{} `json:"-" apidoc:"omit=quote_policy"`
 }
 
-// WebsiteNode is a website, as it is sent: a site's feed, followed as a
+// ChannelNode is a channel, as it is sent: a site's feed, followed as a
 // profile, whose domain was proved when it was connected.
-type WebsiteNode struct {
+type ChannelNode struct {
 	responses.ActorNode
 
 	_ struct{} `json:"-" apidoc:"omit=event,quote_policy"`

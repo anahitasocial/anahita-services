@@ -354,11 +354,11 @@
     },
     "/atproto/settings": {
       "delete": {
-        "description": "The token is forgotten. What was written stays on Bluesky. With `profile_id`, a website's.\n\nWho may call it: somebody signed in.",
+        "description": "The token is forgotten. What was written stays on Bluesky. With `profile_id`, a channel's.\n\nWho may call it: somebody signed in.",
         "operationId": "deleteAtprotoSettings",
         "parameters": [
           {
-            "description": "A website the viewer is an administrator of. Left out, the viewer.",
+            "description": "A channel the viewer is an administrator of. Left out, the viewer.",
             "in": "query",
             "name": "profile_id",
             "schema": {
@@ -408,11 +408,11 @@
         "x-viewer": "signed_in"
       },
       "get": {
-        "description": "Or a website's, with `profile_id`, for one of its administrators.\n\nWho may call it: somebody signed in.",
+        "description": "Or a channel's, with `profile_id`, for one of its administrators.\n\nWho may call it: somebody signed in.",
         "operationId": "getAtprotoSettings",
         "parameters": [
           {
-            "description": "A website the viewer is an administrator of. Left out, the viewer.",
+            "description": "A channel the viewer is an administrator of. Left out, the viewer.",
             "in": "query",
             "name": "profile_id",
             "schema": {
@@ -446,7 +446,7 @@
                 }
               }
             },
-            "description": "`bluesky_not_yours`: profile_id is not a website the viewer is an administrator of"
+            "description": "`bluesky_not_yours`: profile_id is not a channel the viewer is an administrator of"
           },
           "404": {
             "content": {
@@ -456,7 +456,7 @@
                 }
               }
             },
-            "description": "`bluesky_writing_off`: this installation does not write to Bluesky; `bluesky_not_yours`, there is no such website"
+            "description": "`bluesky_writing_off`: this installation does not write to Bluesky; `bluesky_not_yours`, there is no such channel"
           }
         },
         "security": [
@@ -472,7 +472,7 @@
         "x-viewer": "signed_in"
       },
       "put": {
-        "description": "With an app password, which is exchanged for a token and not kept. Ten tries in ten minutes. With `profile_id`, a website's account, for one of its administrators: its notes then go to Bluesky as that account, and what the account posts there itself is not made a post of the website.\n\nWho may call it: somebody signed in.",
+        "description": "With an app password, which is exchanged for a token and not kept. Ten tries in ten minutes. With `profile_id`, a channel's account, for one of its administrators: its notes then go to Bluesky as that account, and what the account posts there itself is not made a post of the channel.\n\nWho may call it: somebody signed in.",
         "operationId": "putAtprotoSettings",
         "requestBody": {
           "content": {

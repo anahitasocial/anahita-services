@@ -301,11 +301,11 @@ spec:
                   name: anahita-config
                   key: EVENTS_FROM
                   optional: true
-            - name: WEBSITES_FROM
+            - name: CHANNELS_FROM
               valueFrom:
                 configMapKeyRef:
                   name: anahita-config
-                  key: WEBSITES_FROM
+                  key: CHANNELS_FROM
                   optional: true
             - name: LOCATIONS_FROM
               valueFrom:

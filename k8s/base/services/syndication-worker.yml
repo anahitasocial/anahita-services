@@ -1,4 +1,4 @@
-# syndication-worker: Reads the feeds of websites and posts what is new in them, and checks every day that their domains are still proved. Answers no requests. A website is read by one replica at a time, so more may run.
+# syndication-worker: Reads the feeds of channels and posts what is new in them, and checks every day that their domains are still proved. Answers no requests. A channel is read by one replica at a time, so more may run.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -43,19 +43,19 @@ spec:
             # For the card of each item's original. Unset, articles have none.
             - name: LINK_PREVIEW_URL
               value: http://link-preview-service:80
-            # The most posts a website makes in an hour, and how often, in
+            # The most posts a channel makes in an hour, and how often, in
             # minutes, a feed is read.
-            - name: WEBSITE_HOURLY_CAP
+            - name: CHANNEL_FEED_HOURLY_CAP
               valueFrom:
                 configMapKeyRef:
                   name: anahita-config
-                  key: WEBSITE_HOURLY_CAP
+                  key: CHANNEL_FEED_HOURLY_CAP
                   optional: true
-            - name: WEBSITE_READ_EVERY
+            - name: CHANNEL_FEED_READ_EVERY
               valueFrom:
                 configMapKeyRef:
                   name: anahita-config
-                  key: WEBSITE_READ_EVERY
+                  key: CHANNEL_FEED_READ_EVERY
                   optional: true
             # For WebSub: the address hubs call back at, worked out as
             # activitypub-service's is, and the key its signature is made

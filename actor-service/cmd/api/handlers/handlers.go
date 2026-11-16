@@ -42,9 +42,9 @@ type Handlers struct {
 	// Events, and the administrators of events.
 	Event      *eventHandler
 	EventAdmin *adminHandler
-	// Websites, made by syndication-service, and their administrators.
-	Website      *websiteHandler
-	WebsiteAdmin *adminHandler
+	// Channels, made by syndication-service, and their administrators.
+	Channel      *channelHandler
+	ChannelAdmin *adminHandler
 }
 
 func NewHandlers(env *Env) *Handlers {
@@ -54,7 +54,7 @@ func NewHandlers(env *Env) *Handlers {
 		Admin:        NewAdminHandler(env),
 		Event:        NewEventHandler(env),
 		EventAdmin:   NewEventAdminHandler(env),
-		Website:      NewWebsiteHandler(env),
-		WebsiteAdmin: NewWebsiteAdminHandler(env),
+		Channel:      NewChannelHandler(env),
+		ChannelAdmin: NewChannelAdminHandler(env),
 	}
 }

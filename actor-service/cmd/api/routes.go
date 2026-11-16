@@ -37,20 +37,20 @@ func NewRoutes(
 // the descriptions: docs/api/actor-service.json is made of them.
 func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	doc := apidoc.NewService("actor-service", "Profiles",
-		"People, groups, events and websites: reading and changing them, who may see them and what may be posted on them, their admins, and deleting, archiving and purging them (account-lifecycle.md).").
+		"People, groups, events and channels: reading and changing them, who may see them and what may be posted on them, their admins, and deleting, archiving and purging them (account-lifecycle.md).").
 		// The reference shows each kind apart, and what every kind has in a
 		// section of its own: the routes each kind has at its own address,
 		// alike, are marked Shared, and listed under each kind after its own.
 		Section("profiles", "Profiles",
-			"What every profile has, whatever its kind (profiles.md): who may see it and what may be posted on it, its admins, being turned off, archived, deleted and restored, being featured, and what its photos and videos start with about being downloaded. Each kind has these at its own address, `/people/`, `/groups/`, `/events/` or `/websites/`, and they are listed under each kind as every profile's. Here as well: which profile an alias is, of any kind.").
+			"What every profile has, whatever its kind (profiles.md): who may see it and what may be posted on it, its admins, being turned off, archived, deleted and restored, being featured, and what its photos and videos start with about being downloaded. Each kind has these at its own address, `/people/`, `/groups/`, `/events/` or `/channels/`, and they are listed under each kind as every profile's. Here as well: which profile an alias is, of any kind.").
 		Section("people", "People",
 			"Somebody with an account, at their username (people.md): their own posts and replies, who may quote them, the photos and videos they are tagged in, and what they show of their reposts. A person is made by signing up (auth-service), not here.").
 		Section("groups", "Groups",
 			"Made by somebody signed in, looked after by its admins, and followed by people (groups.md): its rules, agreed to before following it, and the events it hosts.").
 		Section("events", "Events",
 			"A group with a time and a place (events.md): going or maybe, who is going, a file for a calendar, calling it off, its rules, and what is on for everybody.").
-		Section("websites", "Websites",
-			"A website's feed as a profile (websites.md), followed here and from the fediverse, and looked after by its admins. It is made by connecting the site, which proves its domain (syndication-service, `POST /websites/_connect`), so it has no route here to make one.")
+		Section("channels", "Channels",
+			"A channel's feed as a profile (channels.md), followed here and from the fediverse, and looked after by its admins. It is made by connecting the site, which proves its domain (syndication-service, `POST /channels/_connect`), so it has no route here to make one.")
 	api := doc.On(e)
 	actorReq := requests.NewActorRequest()
 	personReq := requests.NewPersonRequest()
@@ -222,7 +222,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	shapes := map[string]any{
 		"group":   responses.GroupNode{},
 		"event":   responses.EventNode{},
-		"website": responses.WebsiteNode{},
+		"channel": responses.ChannelNode{},
 	}
 	restore := func(kind string) func(*apidoc.Route) {
 		return func(route *apidoc.Route) {
@@ -328,7 +328,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	}
 	groupAdmins, addGroupAdmin, removeGroupAdmin := admins("group")
 	eventAdmins, addEventAdmin, removeEventAdmin := admins("event")
-	websiteAdmins, addWebsiteAdmin, removeWebsiteAdmin := admins("website")
+	channelAdmins, addChannelAdmin, removeChannelAdmin := admins("channel")
 
 	// Each kind of actor keeps its own address: /people/ and /groups/. The
 	// gateway sends both here.
@@ -528,39 +528,39 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	groups.POST("/:id/admins/", r.handler.Admin.Add, r.authorize).With(addGroupAdmin)
 	groups.DELETE("/:id/admins/:admin_id", r.handler.Admin.Delete, r.authorize).With(removeGroupAdmin)
 
-	// Websites — a site's feed as a profile, read and looked after as a
+	// Channels — a site's feed as a profile, read and looked after as a
 	// group is. Made by syndication-service once its domain is proved
-	// (POST /websites/_connect), so there is no POST /websites/ here; nobody
+	// (POST /channels/_connect), so there is no POST /channels/ here; nobody
 	// posts on one, so it has no features to choose and no audience to
 	// change: it is public.
-	websites := api.In("websites").Group("websites")
-	websites.GET("/", r.handler.Website.Browse, r.setViewer).
-		Summary("Websites").
+	channels := api.In("channels").Group("channels")
+	channels.GET("/", r.handler.Channel.Browse, r.setViewer).
+		Summary("Channels").
 		Describe("Those the viewer may see. "+someOrLimited).
 		Viewer(apidoc.Anyone).
 		Takes(actorReq.Browse).
 		Sends(http.StatusOK, libs_responses.List[any]{}).
-		Refuses(http.StatusForbidden, "the viewer may not list websites")
-	websites.GET("/:id", r.handler.Website.Read, r.setViewer).With(readGroup("website"))
-	websites.PATCH("/:id", r.handler.Website.Edit, r.authorize).
-		Summary("Change a website").
+		Refuses(http.StatusForbidden, "the viewer may not list channels")
+	channels.GET("/:id", r.handler.Channel.Read, r.setViewer).With(readGroup("channel"))
+	channels.PATCH("/:id", r.handler.Channel.Edit, r.authorize).
+		Summary("Change a channel").
 		Describe("Its name and its description. Its handle and its site stay as they were connected.").
 		Viewer(apidoc.SignedIn).
-		Takes(&handlers.WebsiteEditRequest{}).
-		Sends(http.StatusOK, responses.WebsiteNode{}).
+		Takes(&handlers.ChannelEditRequest{}).
+		Sends(http.StatusOK, responses.ChannelNode{}).
 		Refuses(http.StatusForbidden, "the viewer may not change it").
-		Refuses(http.StatusNotFound, "there is no such website")
-	websites.DELETE("/:id", r.handler.Website.Delete, r.authorize).With(remove("website", actorReq.Delete))
-	websites.GET("/:id/deletion-counts", r.handler.Website.DeletionCounts, r.authorize).With(counts("website", handlers.GroupDeletionCounts{}))
-	websites.DELETE("/:id/purge", r.handler.Website.Purge, r.authorize).With(purge("website"))
-	websites.PATCH("/:id/enabled", r.handler.Website.SetEnabled, r.authorize).With(enabled)
-	websites.PATCH("/:id/featured", r.handler.Website.SetFeatured, r.authorize).With(featured)
-	websites.POST("/:id/restore", r.handler.Website.Restore, r.authorize).With(restore("website"))
-	websites.PATCH("/:id/download-default", r.handler.Website.EditDownloadDefault, r.authorize).With(downloads(responses.WebsiteNode{}))
+		Refuses(http.StatusNotFound, "there is no such channel")
+	channels.DELETE("/:id", r.handler.Channel.Delete, r.authorize).With(remove("channel", actorReq.Delete))
+	channels.GET("/:id/deletion-counts", r.handler.Channel.DeletionCounts, r.authorize).With(counts("channel", handlers.GroupDeletionCounts{}))
+	channels.DELETE("/:id/purge", r.handler.Channel.Purge, r.authorize).With(purge("channel"))
+	channels.PATCH("/:id/enabled", r.handler.Channel.SetEnabled, r.authorize).With(enabled)
+	channels.PATCH("/:id/featured", r.handler.Channel.SetFeatured, r.authorize).With(featured)
+	channels.POST("/:id/restore", r.handler.Channel.Restore, r.authorize).With(restore("channel"))
+	channels.PATCH("/:id/download-default", r.handler.Channel.EditDownloadDefault, r.authorize).With(downloads(responses.ChannelNode{}))
 
-	websites.GET("/:id/admins/", r.handler.WebsiteAdmin.Browse, r.authorize).With(websiteAdmins)
-	websites.POST("/:id/admins/", r.handler.WebsiteAdmin.Add, r.authorize).With(addWebsiteAdmin)
-	websites.DELETE("/:id/admins/:admin_id", r.handler.WebsiteAdmin.Delete, r.authorize).With(removeWebsiteAdmin)
+	channels.GET("/:id/admins/", r.handler.ChannelAdmin.Browse, r.authorize).With(channelAdmins)
+	channels.POST("/:id/admins/", r.handler.ChannelAdmin.Add, r.authorize).With(addChannelAdmin)
+	channels.DELETE("/:id/admins/:admin_id", r.handler.ChannelAdmin.Delete, r.authorize).With(removeChannelAdmin)
 
 	// events — an actor like a group, with a time and a place. Everything
 	// a group has, an event has, from the same handler told a different

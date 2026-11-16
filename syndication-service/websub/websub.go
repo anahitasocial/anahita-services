@@ -1,10 +1,10 @@
-// Package websub subscribes a website to the hub its feed names, so that the
+// Package websub subscribes a channel to the hub its feed names, so that the
 // hub says the moment something is published (WebSub, W3C 2018).
 //
 // What a hub sends is taken only as a sign to read the feed now: the feed is
 // always read from the site itself, as it is on every other read, so nothing
 // a hub says is believed. The address it calls back carries a signature of
-// the website's id, so that only a hub that was given it can bring a read
+// the channel's id, so that only a hub that was given it can bring a read
 // forward.
 package websub
 
@@ -25,21 +25,21 @@ import (
 // asked again before what it gave runs out.
 const Lease = 10 * 24 * time.Hour
 
-// Signature is what proves a call back is about this website.
+// Signature is what proves a call back is about this channel.
 func Signature(nodeID int64, key string) string {
 	mac := hmac.New(sha256.New, []byte(key))
 	fmt.Fprintf(mac, "websub:%d", nodeID)
 	return hex.EncodeToString(mac.Sum(nil))[:32]
 }
 
-// Signed says whether a signature is this website's.
+// Signed says whether a signature is this channel's.
 func Signed(nodeID int64, key, signature string) bool {
 	return key != "" && hmac.Equal([]byte(Signature(nodeID, key)), []byte(signature))
 }
 
-// Callback is where a hub calls back for a website, under the API.
+// Callback is where a hub calls back for a channel, under the API.
 func Callback(api func(string) string, nodeID int64, key string) string {
-	return api("/websites/_websub/" + strconv.FormatInt(nodeID, 10) + "/" + Signature(nodeID, key))
+	return api("/channels/_websub/" + strconv.FormatInt(nodeID, 10) + "/" + Signature(nodeID, key))
 }
 
 // Subscribe asks a hub to call back when the topic changes. The hub then

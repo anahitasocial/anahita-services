@@ -1,4 +1,4 @@
-# syndication-service: Connecting a website as a website: its feed found, its domain proved. It fetches from the internet, and goes only to public addresses. Optional: left out, there are no websites.
+# syndication-service: Connecting a website as a channel: its feed found, its domain proved. It fetches from the internet, and goes only to public addresses. Optional: left out, there are no channels.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -89,13 +89,13 @@ spec:
                 secretKeyRef:
                   name: anahita-secrets
                   key: DSN
-            # Who may connect a website. auth-service is given the same value
+            # Who may connect a channel. auth-service is given the same value
             # so it can publish it in NodeInfo.
-            - name: WEBSITES_FROM
+            - name: CHANNELS_FROM
               valueFrom:
                 configMapKeyRef:
                   name: anahita-config
-                  key: WEBSITES_FROM
+                  key: CHANNELS_FROM
                   optional: true
           readinessProbe:
             httpGet:

@@ -42,7 +42,7 @@ is gathered at the end, [for planning](#not-built).
 | Verified profile links | planned | [Verified domains](plans/verified-domains.md) |
 | Profile header image | yes | A cover photo |
 | Bot accounts | no | |
-| Several identities under one login | partly | An admin of a website replies as it ([Websites](websites.md)) |
+| Several identities under one login | partly | An admin of a website replies as it ([Websites](channels.md)) |
 
 ## Posting
 

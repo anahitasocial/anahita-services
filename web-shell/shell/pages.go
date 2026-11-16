@@ -42,8 +42,10 @@ type Subject struct {
 }
 
 var (
-	postPath  = regexp.MustCompile(`^/(notes|photos|videos|audio|articles|topics)/(\d+)(?:-[^/]*)?/?$`)
-	actorPath = regexp.MustCompile(`^/(groups|events|websites)/(\d+)(?:-[^/]*)?(?:/.*)?$`)
+	postPath = regexp.MustCompile(`^/(notes|photos|videos|audio|articles|topics)/(\d+)(?:-[^/]*)?/?$`)
+	// /websites/… was a channel's address until roadmap row 147: a link to
+	// one still has its page's own tags.
+	actorPath = regexp.MustCompile(`^/(groups|events|channels|websites)/(\d+)(?:-[^/]*)?(?:/.*)?$`)
 	// Not a person's page: /people/add, and a person's settings and
 	// notifications, which are theirs alone.
 	personPath = regexp.MustCompile(`^/people/([^/]+)(?:/([^/]+))?(?:/.*)?$`)
@@ -53,7 +55,7 @@ var (
 	// /tags/<name> is what other servers are given for a hashtag's page:
 	// see activitypub-service/ap/addresses.go. The web app sends it on.
 	tagPath   = regexp.MustCompile(`^/(?:hashtags|tags)/([^/]+)/?$`)
-	imageName = regexp.MustCompile(`^(person|group|event|website|post)-(\d+)$`)
+	imageName = regexp.MustCompile(`^(person|group|event|channel|website|post)-(\d+)$`)
 )
 
 // A group's type, which the shared constants do not name.
@@ -62,13 +64,15 @@ const groupType = "node.actor.group-service.group.v1"
 var actorTypes = map[string]string{
 	"groups":   groupType,
 	"events":   constants.NodeActorEventEntityType,
-	"websites": constants.NodeActorWebsiteEntityType,
+	"channels": constants.NodeActorChannelEntityType,
+	"websites": constants.NodeActorChannelEntityType,
 }
 
 var actorKinds = map[string]string{
 	"groups":   "group",
 	"events":   "event",
-	"websites": "website",
+	"channels": "channel",
+	"websites": "channel",
 }
 
 // Resolve finds what the page at a path is about. It answers nil for a
@@ -97,7 +101,7 @@ func Resolve(reader Reader, path string) *Subject {
 			{"person", constants.NodeActorPersonEntityType},
 			{"group", groupType},
 			{"event", constants.NodeActorEventEntityType},
-			{"website", constants.NodeActorWebsiteEntityType},
+			{"channel", constants.NodeActorChannelEntityType},
 		} {
 			if node, err := reader.ActorByAlias(found[1], each.nodeType); err == nil && node != nil {
 				return actor(node, each.kind)
@@ -149,12 +153,14 @@ func ResolveImage(reader Reader, name string) *Subject {
 			return nil
 		}
 		return actor(node, "event")
-	case "website":
-		node, err := reader.Actor(id, constants.NodeActorWebsiteEntityType)
+	// A channel's picture; website-… is its name as shared before roadmap
+	// row 147.
+	case "channel", "website":
+		node, err := reader.Actor(id, constants.NodeActorChannelEntityType)
 		if err != nil {
 			return nil
 		}
-		return actor(node, "website")
+		return actor(node, "channel")
 	default:
 		node, err := reader.Actor(id, constants.NodeActorPersonEntityType)
 		if err != nil {

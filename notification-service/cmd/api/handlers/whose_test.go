@@ -107,7 +107,7 @@ func TestWhatIsYoursAndWhatYouTakePartIn(t *testing.T) {
 				ActorsGRPC: &fakeActors{},
 				GraphNodeGRPC: &whoseGraph{nodes: map[int64]*an_entities.AnahitaNode{
 					naomi:     {ID: naomi, Type: person},
-					rocinante: {ID: rocinante, Type: constants.NodeActorWebsiteEntityType},
+					rocinante: {ID: rocinante, Type: constants.NodeActorChannelEntityType},
 					post:      {ID: post, CreatedBy: naomi, Type: constants.NodeMediumNoteEntityType},
 					theirs:    {ID: theirs, CreatedBy: rocinante, Type: constants.NodeMediumNoteEntityType},
 				}},

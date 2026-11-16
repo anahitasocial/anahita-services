@@ -46,7 +46,7 @@ func main() {
 	authorize := an_mw.Authorize(config, jwks)
 	setViewer := an_mw.SetViewer(config, jwks)
 
-	// The websites, their feeds' items and the domains proved for them are
+	// The channels, their feeds' items and the domains proved for them are
 	// kept in the database: without it nothing can be connected.
 	db, err := data.Open(config.GetDSN(), data.Pool{MaxOpen: 10, MaxIdle: 5})
 	if err != nil {

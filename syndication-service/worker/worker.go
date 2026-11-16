@@ -1,9 +1,9 @@
-// Package worker reads the feeds of websites and posts what is new in them,
+// Package worker reads the feeds of channels and posts what is new in them,
 // and checks every day that the domains they rest on are still proved.
 //
 // It runs apart from the API (cmd/worker), as one or more processes: a
-// Website is taken by one worker at a time (repositories.Claim), so several
-// may run. See docs/plans/done/website.md.
+// Channel is taken by one worker at a time (repositories.Claim), so several
+// may run. See docs/plans/done/channel.md.
 package worker
 
 import (
@@ -28,11 +28,11 @@ import (
 const (
 	// How often a feed is read when all is well.
 	DefaultReadEvery = 30 * time.Minute
-	// The most posts a website makes in an hour; the rest wait for the next.
+	// The most posts a channel makes in an hour; the rest wait for the next.
 	DefaultHourlyCap = 10
 	// A feed that fails is asked less often each time, up to once a day.
 	longestWait = 24 * time.Hour
-	// A website whose domain's proof has been gone this long is paused.
+	// A channel whose domain's proof has been gone this long is paused.
 	proofGrace = 7 * 24 * time.Hour
 	// The proofs looked at again on each round.
 	proofsPerRound = 20
@@ -52,11 +52,11 @@ type Checker interface {
 	Check(ctx context.Context, site domains.Site, token string) (string, error)
 }
 
-// Graph is what the worker asks of the graph: the website, who looks after
+// Graph is what the worker asks of the graph: the channel, who looks after
 // it, and its posts.
 type Graph interface {
-	Website(id int64) (*entities.AnahitaNode, error)
-	FirstAdmin(websiteID int64) (int64, error)
+	Channel(id int64) (*entities.AnahitaNode, error)
+	FirstAdmin(channelID int64) (int64, error)
 	Post(note *entities.AnahitaNode, viewer *entities.Viewer) (*entities.AnahitaNode, error)
 	Read(id int64, viewer *entities.Viewer) (*entities.AnahitaNode, error)
 	Edit(note *entities.AnahitaNode, viewer *entities.Viewer) (*entities.AnahitaNode, error)
@@ -68,7 +68,7 @@ type Cards interface {
 }
 
 type Worker struct {
-	Websites repositories.WebsitesInterface
+	Channels repositories.ChannelsInterface
 	Items    repositories.ItemsInterface
 	Domains  repositories.DomainsInterface
 	Feeds    Feeds
@@ -125,7 +125,7 @@ func (w *Worker) Run(ctx context.Context) {
 // Once reads the feed most overdue, if any is: did says whether there was
 // one.
 func (w *Worker) Once(ctx context.Context) (did bool, err error) {
-	due, err := w.Websites.Claim(ctx)
+	due, err := w.Channels.Claim(ctx)
 	if err != nil || due == nil {
 		return false, err
 	}
@@ -161,18 +161,18 @@ func (w *Worker) failed(ctx context.Context, due *repositories.Due, why error) e
 	if wait > longestWait {
 		wait = longestWait
 	}
-	return w.Websites.Failed(ctx, due.NodeID, failures, w.now().Add(wait), why.Error())
+	return w.Channels.Failed(ctx, due.NodeID, failures, w.now().Add(wait), why.Error())
 }
 
 func (w *Worker) read(ctx context.Context, due *repositories.Due) error {
-	website, err := w.Graph.Website(due.NodeID)
+	channel, err := w.Graph.Channel(due.NodeID)
 	if err != nil {
-		return w.failed(ctx, due, fmt.Errorf("the Website could not be read: %w", err))
+		return w.failed(ctx, due, fmt.Errorf("the Channel could not be read: %w", err))
 	}
 	// Switched off, or deleted and waiting out its grace period, archived:
 	// nothing is posted on it.
-	if website == nil || website.ID == 0 || !website.Enabled || website.DeletedAt != nil || website.ArchivedAt != nil {
-		return w.Websites.Pause(ctx, due.NodeID, repositories.PausedProfileGone)
+	if channel == nil || channel.ID == 0 || !channel.Enabled || channel.DeletedAt != nil || channel.ArchivedAt != nil {
+		return w.Channels.Pause(ctx, due.NodeID, repositories.PausedProfileGone)
 	}
 
 	// What waits to be posted is posted from the feed as it is read: so
@@ -197,12 +197,12 @@ func (w *Worker) read(ctx context.Context, due *repositories.Due) error {
 		NextReadAt:   w.now().Add(w.readEvery()),
 	}
 	if !read.NotModified {
-		if err := w.take(ctx, website, read.Items, &next); err != nil {
+		if err := w.take(ctx, channel, read.Items, &next); err != nil {
 			return w.failed(ctx, due, err)
 		}
 		w.subscribe(ctx, due, read)
 	}
-	return w.Websites.Read(ctx, due.NodeID, next)
+	return w.Channels.Read(ctx, due.NodeID, next)
 }
 
 // subscribe asks the hub a feed names to say when it changes: when it has
@@ -220,14 +220,14 @@ func (w *Worker) subscribe(ctx context.Context, due *repositories.Due, read *fee
 		log.Printf("syndication-worker: subscribing to %s: %v", read.Hub, err)
 		return
 	}
-	if err := w.Websites.Hub(ctx, due.NodeID, read.Hub, now.Add(2*hubRenew)); err != nil {
+	if err := w.Channels.Hub(ctx, due.NodeID, read.Hub, now.Add(2*hubRenew)); err != nil {
 		log.Printf("syndication-worker: %v", err)
 	}
 }
 
 // take keeps what is new in a feed, posts as much of what waits as this
 // hour allows, and changes the posts of items that changed.
-func (w *Worker) take(ctx context.Context, website *entities.AnahitaNode, items []feeds.Item, next *repositories.Read) error {
+func (w *Worker) take(ctx context.Context, channel *entities.AnahitaNode, items []feeds.Item, next *repositories.Read) error {
 	if len(items) == 0 {
 		return nil
 	}
@@ -236,7 +236,7 @@ func (w *Worker) take(ctx context.Context, website *entities.AnahitaNode, items 
 	for i, item := range items {
 		keys[i] = item.Key
 	}
-	known, err := w.Items.Known(ctx, website.ID, keys)
+	known, err := w.Items.Known(ctx, channel.ID, keys)
 	if err != nil {
 		return err
 	}
@@ -257,14 +257,14 @@ func (w *Worker) take(ctx context.Context, website *entities.AnahitaNode, items 
 			changed = append(changed, item)
 		}
 	}
-	if err := w.Items.AddWaiting(ctx, website.ID, fresh); err != nil {
+	if err := w.Items.AddWaiting(ctx, channel.ID, fresh); err != nil {
 		return err
 	}
 	if len(waiting) == 0 && len(changed) == 0 {
 		return nil
 	}
 
-	adminID, err := w.Graph.FirstAdmin(website.ID)
+	adminID, err := w.Graph.FirstAdmin(channel.ID)
 	if err != nil {
 		return err
 	}
@@ -286,25 +286,25 @@ func (w *Worker) take(ctx context.Context, website *entities.AnahitaNode, items 
 			}
 			break
 		}
-		node, err := w.Graph.Post(w.noteOf(ctx, website, adminID, item), viewer)
+		node, err := w.Graph.Post(w.noteOf(ctx, channel, adminID, item), viewer)
 		if err != nil {
 			return fmt.Errorf("the note was not made: %w", err)
 		}
-		if err := w.Items.Posted(ctx, website.ID, item.Key, node.ID); err != nil {
+		if err := w.Items.Posted(ctx, channel.ID, item.Key, node.ID); err != nil {
 			return err
 		}
 		next.HourPosts++
 	}
 
 	for _, item := range changed {
-		if err := w.change(ctx, website, known[item.Key].NodeID, item, viewer); err != nil {
+		if err := w.change(ctx, channel, known[item.Key].NodeID, item, viewer); err != nil {
 			log.Printf("syndication-worker: the note of %s was not changed: %v", item.Link, err)
 		}
 	}
 	return nil
 }
 
-// posterFor is the viewer a website's note is made as: its first
+// posterFor is the viewer a channel's note is made as: its first
 // administrator, as the video-worker makes a post as its uploader.
 func posterFor(adminID int64) *entities.Viewer {
 	viewer := entities.NewViewer()
@@ -336,16 +336,16 @@ func ContentOf(item feeds.Item) string {
 // it is kept as it is written.
 var markdownEscaper = strings.NewReplacer(`\`, `\\`, `*`, `\*`, `_`, `\_`, "`", "\\`", `[`, `\[`, `#`, `\#`)
 
-// noteOf is the note an item becomes: the website's own, shown and sent as
+// noteOf is the note an item becomes: the channel's own, shown and sent as
 // its, public, with the original's card. The administrator it is made as is
 // kept for moderators (`written_by`), as for its replies.
-func (w *Worker) noteOf(ctx context.Context, website *entities.AnahitaNode, adminID int64, item feeds.Item) *entities.AnahitaNode {
+func (w *Worker) noteOf(ctx context.Context, channel *entities.AnahitaNode, adminID int64, item feeds.Item) *entities.AnahitaNode {
 	note := entities.NewAnahitaNode()
 	note.Type = an_const.NodeMediumNoteEntityType
 	note.Service = an_const.TextService
-	note.OwnerID = website.ID
-	note.OwnerType = website.Type
-	note.CreatedBy = website.ID
+	note.OwnerID = channel.ID
+	note.OwnerType = channel.Type
+	note.CreatedBy = channel.ID
 	note.ModifiedBy = adminID
 	note.Body = ContentOf(item)
 	note.Access = an_const.AnahitaAccessPublic
@@ -369,38 +369,38 @@ func (w *Worker) cardOf(ctx context.Context, link string) []byte {
 	return linkpreviews.IntoMeta(nil, snapshot)
 }
 
-func (w *Worker) change(ctx context.Context, website *entities.AnahitaNode, nodeID int64, item feeds.Item, viewer *entities.Viewer) error {
+func (w *Worker) change(ctx context.Context, channel *entities.AnahitaNode, nodeID int64, item feeds.Item, viewer *entities.Viewer) error {
 	note, err := w.Graph.Read(nodeID, viewer)
 	if err != nil {
 		return err
 	}
-	if note == nil || note.ID == 0 || note.OwnerID != website.ID {
-		return errors.New("it is no longer the website's")
+	if note == nil || note.ID == 0 || note.OwnerID != channel.ID {
+		return errors.New("it is no longer the channel's")
 	}
 	note.Body = ContentOf(item)
 	note.ModifiedBy = viewer.ID
 	if _, err := w.Graph.Edit(note, viewer); err != nil {
 		return err
 	}
-	return w.Items.Changed(ctx, website.ID, item.Key, repositories.ContentHash(item.Title, item.Excerpt))
+	return w.Items.Changed(ctx, channel.ID, item.Key, repositories.ContentHash(item.Title, item.Excerpt))
 }
 
-// CheckProfiles starts again the websites paused because their profile was
+// CheckProfiles starts again the channels paused because their profile was
 // switched off, deleted or archived, once it is back: switched on again, or
 // restored within its grace period.
 func (w *Worker) CheckProfiles(ctx context.Context) {
-	paused, err := w.Websites.PausedFor(ctx, repositories.PausedProfileGone, proofsPerRound)
+	paused, err := w.Channels.PausedFor(ctx, repositories.PausedProfileGone, proofsPerRound)
 	if err != nil {
 		log.Printf("syndication-worker: profiles: %v", err)
 		return
 	}
 	for _, id := range paused {
-		website, err := w.Graph.Website(id)
-		if err != nil || website == nil || website.ID == 0 {
+		channel, err := w.Graph.Channel(id)
+		if err != nil || channel == nil || channel.ID == 0 {
 			continue
 		}
-		if website.Enabled && website.DeletedAt == nil && website.ArchivedAt == nil {
-			if err := w.Websites.Resume(ctx, id); err != nil {
+		if channel.Enabled && channel.DeletedAt == nil && channel.ArchivedAt == nil {
+			if err := w.Channels.Resume(ctx, id); err != nil {
 				log.Printf("syndication-worker: resuming %d: %v", id, err)
 			}
 		}
@@ -408,7 +408,7 @@ func (w *Worker) CheckProfiles(ctx context.Context) {
 }
 
 // CheckProofs looks again at the proofs not looked at for a day: one found
-// holds again, and starts its websites again if it had paused them; one gone
+// holds again, and starts its channels again if it had paused them; one gone
 // a week pauses them.
 func (w *Worker) CheckProofs(ctx context.Context) {
 	due, err := w.Domains.Due(ctx, proofsPerRound)
@@ -425,7 +425,7 @@ func (w *Worker) CheckProofs(ctx context.Context) {
 				continue
 			}
 			if d.FailingSince != nil {
-				_ = w.Websites.ResumeAfterProof(ctx, d.ID)
+				_ = w.Channels.ResumeAfterProof(ctx, d.ID)
 			}
 			continue
 		}
@@ -436,7 +436,7 @@ func (w *Worker) CheckProofs(ctx context.Context) {
 			continue
 		}
 		if w.now().Sub(since) >= proofGrace {
-			if err := w.Websites.PauseForProof(ctx, d.ID); err != nil {
+			if err := w.Channels.PauseForProof(ctx, d.ID); err != nil {
 				log.Printf("syndication-worker: pausing for %s: %v", d.Domain, err)
 			}
 		}

@@ -359,17 +359,17 @@ func TestChoicesDecideWhatIsLookedFor(t *testing.T) {
 		t.Errorf("events after asking for none: %s after %d searches", suggested(answer), f.signals.asked)
 	}
 
-	// Websites too (anahita-web roadmap row 111).
+	// Channels too (anahita-web roadmap row 111).
 	f.signals.asked = 0
-	_, answer = f.call(f.handlers.Actors.Browse, http.MethodGet, "/?kind=website", person(1), "")
-	if suggested(answer) != "[4]" || f.signals.kind != constants.KindWebsite {
-		t.Errorf("websites: suggested %s, asked for %q", suggested(answer), f.signals.kind)
+	_, answer = f.call(f.handlers.Actors.Browse, http.MethodGet, "/?kind=channel", person(1), "")
+	if suggested(answer) != "[4]" || f.signals.kind != constants.KindChannel {
+		t.Errorf("channels: suggested %s, asked for %q", suggested(answer), f.signals.kind)
 	}
-	f.call(f.handlers.Preferences.Edit, http.MethodPut, "/", person(1), `{"suggest_websites":false}`)
+	f.call(f.handlers.Preferences.Edit, http.MethodPut, "/", person(1), `{"suggest_channels":false}`)
 	f.signals.asked = 0
-	_, answer = f.call(f.handlers.Actors.Browse, http.MethodGet, "/?kind=website", person(1), "")
+	_, answer = f.call(f.handlers.Actors.Browse, http.MethodGet, "/?kind=channel", person(1), "")
 	if suggested(answer) != "[]" || f.signals.asked != 0 {
-		t.Errorf("websites after asking for none: %s after %d searches", suggested(answer), f.signals.asked)
+		t.Errorf("channels after asking for none: %s after %d searches", suggested(answer), f.signals.asked)
 	}
 }
 

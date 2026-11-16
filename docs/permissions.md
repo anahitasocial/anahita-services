@@ -373,7 +373,7 @@ Under a website's own post, a reply in words by one of its administrators is
 the website's, its owner and author, so the site answers its readers as
 itself; which administrator wrote it is kept for those who handle reports
 (`written_by`). Anywhere else a reply is its writer's. Who may connect a
-website is `WEBSITES_FROM`, administrators unless set. See [Websites](websites.md).
+website is `CHANNELS_FROM`, administrators unless set. See [Websites](channels.md).
 
 ### Liking a reply
 

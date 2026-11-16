@@ -23,29 +23,29 @@ func NewRoutes(handler *handlers.Handlers, authorize, setViewer echo.MiddlewareF
 // Init registers the routes, each with its description, and answers with
 // the descriptions: docs/api/syndication-service.json is made of them.
 //
-// Only connecting a website is here. The website, once made, is a profile
-// served by actor-service under /websites, as a group is under /groups.
+// Only connecting a channel is here. The channel, once made, is a profile
+// served by actor-service under /channels, as a group is under /groups.
 func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
-	doc := apidoc.NewService("syndication-service", "Websites",
-		"Connecting a website: its feed found, its domain proved, and a Website made of it, a profile whose posts are the feed's items (websites.md). Who may is WEBSITES_FROM, administrators unless the installation says otherwise.")
+	doc := apidoc.NewService("syndication-service", "Channels",
+		"Connecting a channel: its feed found, its domain proved, and a channel made of it, a profile whose posts are the feed's items (channels.md). Who may is CHANNELS_FROM, administrators unless the installation says otherwise.")
 	api := doc.On(e)
-	connect := api.Group("websites/_connect")
+	connect := api.Group("channels/_connect")
 
 	notAllowed := func(route *apidoc.Route) *apidoc.Route {
 		return route.
 			Refuses(http.StatusUnauthorized, "the viewer is not signed in").
-			Refuses(http.StatusForbidden, "the viewer may not connect a website: see WEBSITES_FROM")
+			Refuses(http.StatusForbidden, "the viewer may not connect a channel: see CHANNELS_FROM")
 	}
 
 	connect.POST("", r.handler.Connect.Start, r.authorize).With(func(route *apidoc.Route) {
 		notAllowed(route.
-			Summary("Begin connecting a website").
+			Summary("Begin connecting a channel").
 			Describe("The site's feed is found: the address itself, or the feed the page names with `<link rel=\"alternate\">`. It must be on the site's domain. The answer is the token, to be put in a TXT record or a file, with a name and a handle to begin with.").
 			Viewer(apidoc.SignedIn).
 			Takes(&handlers.ConnectStartRequest{}).
 			Sends(http.StatusCreated, handlers.Connection{}).
-			Refuses(http.StatusBadRequest, "`not_a_domain`, `no_feed`, `unreadable`, `feed_not_on_domain` or `private_feed` (behind a login, or a secret in its address: a website is public), as `error`").
-			Refuses(http.StatusConflict, "`feed_taken`: the feed already has a Website").
+			Refuses(http.StatusBadRequest, "`not_a_domain`, `no_feed`, `unreadable`, `feed_not_on_domain` or `private_feed` (behind a login, or a secret in its address: a channel is public), as `error`").
+			Refuses(http.StatusConflict, "`feed_taken`: the feed already has a Channel").
 			Refuses(http.StatusTooManyRequests, "the viewer has begun too many lately"))
 	})
 
@@ -61,7 +61,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 
 	connect.POST("/:id", r.handler.Connect.Make, r.authorize).With(func(route *apidoc.Route) {
 		notAllowed(route.
-			Summary("Make the Website").
+			Summary("Make the Channel").
 			Describe("Once its domain is proved. Whoever proved it is its first administrator and its first follower; its feed's ten newest items are posted, the rest marked seen, and what is published afterwards is posted as it comes.").
 			Viewer(apidoc.SignedIn).
 			Takes(&handlers.ConnectMakeRequest{}).
@@ -72,27 +72,27 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	})
 
 	// Where a WebSub hub calls back: not signed in, since a hub has no
-	// account here; the address's signature says which website it is about.
+	// account here; the address's signature says which channel it is about.
 	// Through SetViewer, so that a members-only site, which does not
 	// federate, refuses it, and its feeds are read on the clock.
-	hub := api.Group("websites/_websub")
+	hub := api.Group("channels/_websub")
 	hub.GET("/:id/:signature", r.handler.WebSub.Verify, r.setViewer).
 		Summary("A hub checks a subscription").
-		Describe("WebSub: the hub a Website's feed names asks whether its subscription was asked for here, and is answered with its challenge.").
+		Describe("WebSub: the hub a Channel's feed names asks whether its subscription was asked for here, and is answered with its challenge.").
 		Viewer(apidoc.Anyone).
 		Takes(&handlers.WebSubRequest{}).
 		Unbound().
 		Sends(http.StatusOK, "", "the challenge, as plain text").
 		Refuses(http.StatusBadRequest, "it is not a check this answers").
-		Refuses(http.StatusNotFound, "there is no such Website, or no subscription was asked for")
+		Refuses(http.StatusNotFound, "there is no such Channel, or no subscription was asked for")
 	hub.POST("/:id/:signature", r.handler.WebSub.Notify, r.setViewer).
 		Summary("A hub says a feed changed").
-		Describe("The Website's feed is read from its site at once, at most once a minute; what the hub sends is not read.").
+		Describe("The Channel's feed is read from its site at once, at most once a minute; what the hub sends is not read.").
 		Viewer(apidoc.Anyone).
 		Takes(&handlers.WebSubRequest{}).
 		Unbound().
 		SendsNothing(http.StatusAccepted, "it will be read").
-		Refuses(http.StatusNotFound, "there is no such Website, or no subscription was asked for")
+		Refuses(http.StatusNotFound, "there is no such Channel, or no subscription was asked for")
 
 	return doc
 }

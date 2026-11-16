@@ -77,7 +77,7 @@ everything, as no file does.
    graph-grpc-service refuses to save a post of a kind that is off,
    whichever service asks, as a last check, and a reply where neither
    `reply` nor `note` is offered.
-   `GROUPS_FROM`, `EVENTS_FROM` and `WEBSITES_FROM` still say who may make
+   `GROUPS_FROM`, `EVENTS_FROM` and `CHANNELS_FROM` still say who may make
    one where it is offered.
 3. **What is already there stays,** readable at its address: a site that
    turns articles off keeps those written before.

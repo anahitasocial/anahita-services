@@ -103,7 +103,7 @@ An event is suggested while it is still to come or on, and has not been called o
 
 ### Websites
 
-A website, a site's feed to follow ([Websites](websites.md)), is suggested
+A website, a site's feed to follow ([Websites](channels.md)), is suggested
 for the reasons that fit a site: people the viewer follows follow it
 (`followed_by_leaders`), the viewer liked its posts (`you_engaged`), its
 public posts carry hashtags the viewer uses or follows (`shared_interest`),
@@ -163,7 +163,7 @@ All but the last are one clause every signal's query ends with (`eligibleCandida
 | `suggest_people` | To be suggested people |
 | `suggest_groups` | To be suggested groups |
 | `suggest_events` | To be suggested events |
-| `suggest_websites` | To be suggested websites. Kept in `recommendation_preferences.suggest_websites` (migration `20261122000008_suggest_websites`) |
+| `suggest_channels` | To be suggested websites. Kept in `recommendation_preferences.suggest_channels` (migration `20261122000008_suggest_channels`) |
 | `use_activity` | That what they liked and wrote, and the photos they are in, may be used to choose for them. Off, `you_engaged`, `shared_interest`, `pictured_with_you` and `pictured_with_leaders` are not looked for. Who they follow is still used |
 | `discoverable` | That they may be suggested to other people |
 
