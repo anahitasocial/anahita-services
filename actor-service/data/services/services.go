@@ -38,6 +38,8 @@ func NewServices(config *config.Config) *Services {
 		Mentions:              NewMentions(nodes, edges, socialgraph),
 		SocialgraphFollowGRPC: services.NewSocialgraphFollowGRPC(config),
 		SocialgraphGRPC:       socialgraph,
+		// Whether the viewer is told of a profile's new posts (row 146).
+		SubscriptionsGRPC: services.NewSubscriptionsGRPC(config),
 	}
 }
 
@@ -58,4 +60,6 @@ type Services struct {
 	Mentions              MentionsInterface
 	SocialgraphFollowGRPC services.SocialgraphFollowGRPCInterface
 	SocialgraphGRPC       services.SocialgraphGRPCInterface
+	// Whether the viewer is told of a profile's new posts (roadmap row 146).
+	SubscriptionsGRPC services.SubscriptionsGRPCInterface
 }

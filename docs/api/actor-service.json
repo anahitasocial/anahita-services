@@ -228,6 +228,10 @@
             "description": "Whether the viewer has muted it.",
             "type": "boolean"
           },
+          "is_subscribed_by_viewer": {
+            "description": "Whether the viewer, following it, is told of its new posts (roadmap row 146).",
+            "type": "boolean"
+          },
           "leader_count": {
             "description": "How many it follows.",
             "format": "int64",
@@ -1768,6 +1772,10 @@
             "description": "Whether the viewer has muted it.",
             "type": "boolean"
           },
+          "is_subscribed_by_viewer": {
+            "description": "Whether the viewer, following it, is told of its new posts (roadmap row 146).",
+            "type": "boolean"
+          },
           "leader_count": {
             "description": "How many it follows.",
             "format": "int64",
@@ -1997,6 +2005,10 @@
           },
           "is_muted_by_viewer": {
             "description": "Whether the viewer has muted it.",
+            "type": "boolean"
+          },
+          "is_subscribed_by_viewer": {
+            "description": "Whether the viewer, following it, is told of its new posts (roadmap row 146).",
             "type": "boolean"
           },
           "leader_count": {
@@ -2252,6 +2264,10 @@
           },
           "is_muted_by_viewer": {
             "description": "Whether the viewer has muted it.",
+            "type": "boolean"
+          },
+          "is_subscribed_by_viewer": {
+            "description": "Whether the viewer, following it, is told of its new posts (roadmap row 146).",
             "type": "boolean"
           },
           "language": {
@@ -2539,6 +2555,10 @@
           },
           "is_muted_by_viewer": {
             "description": "Whether the viewer has muted it.",
+            "type": "boolean"
+          },
+          "is_subscribed_by_viewer": {
+            "description": "Whether the viewer, following it, is told of its new posts (roadmap row 146).",
             "type": "boolean"
           },
           "leader_count": {

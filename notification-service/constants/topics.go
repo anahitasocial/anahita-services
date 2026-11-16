@@ -46,6 +46,7 @@ var topicOf = map[string]string{
 	"photo_add":                   TopicPosts,
 	"topic_add":                   TopicPosts,
 	"video_add":                   TopicPosts,
+	"audio_add":                   TopicPosts,
 	"event_rsvp":                  TopicEvents,
 	"event_changed":               TopicEvents,
 	"event_cancelled":             TopicEvents,

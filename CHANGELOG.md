@@ -14,38 +14,47 @@ Releases before v1.0.17 are described on GitHub, under
 
 ### Added
 
-1. **Blocking a server yourself** (roadmap row 152): `GET`, `POST
+1. **Whose notifications** (roadmap row 146): what is yours, or a website's
+   you look after, tells you of everyone; what you take part in tells you
+   of the people you follow. Replying and reposting subscribe you to the
+   post; a post's subscribers are told of likes, reposts and replies by
+   people they follow; a website's admins are told as its author. Post
+   notifications carry `notify_off` while the reader is told of the
+   profile; profiles say `is_subscribed_by_viewer` to whoever follows them.
+2. **Blocking a server yourself** (roadmap row 152): `GET`, `POST
    /socialgraph/:actor_id/blocked-servers`, `DELETE …/:domain`. Nothing
    from the server, or one under it, is shown to the person; no
    notifications; follows with people there end both ways, their server
    told as for any follow that ends, and new ones are refused. Bluesky is
    refused (`server_on_bluesky`). In the download as `domain_blocks.csv`.
    Migration `20261122000020_person_domain_blocks`.
-2. **Who sees a profile's followers and whom it follows** (roadmap row
+3. **Who sees a profile's followers and whom it follows** (roadmap row
    151): `PATCH /people|groups|events/:id/graph-access`, an access level or
    none, never wider than the profile; the lists answer 403 to anybody
    else, the counts stay, and recommendations name only those who let the
    viewer see whom they follow. Migration `20261122000019_graph_access`.
-3. **Mailpit in the development stack:** every message is caught and read
+4. **Mailpit in the development stack:** every message is caught and read
    at http://localhost:8025, nothing sent anywhere. Point `.env` at it
    (`SMTP_HOST="mailpit"`, `SMTP_PORT="1025"`, no user or password); see
    Getting started, Mail in development.
-4. **Removing a follower who is on another server tells their server**
+5. **Removing a follower who is on another server tells their server**
    (roadmap row 150), with a `Reject` of their follow, so that it stops
    delivering one's posts to them. It is not a block, and they may follow
    again.
 
 ### Fixed
 
-1. **A sensitive post from another server keeps its pictures** (roadmap
+1. **A new sound posted (`audio_add`)** can be turned off with the other
+   posts, under `posts`.
+2. **A sensitive post from another server keeps its pictures** (roadmap
    row 122): its warning is read, a Note's `summary` in its author's words
    or "Sensitive", or a Bluesky self-label as its kind, and its pictures,
    video or sound are kept behind it, as a post written here is. They were
    left out before.
-2. **Search finds a photo post by the alt text of any of its pictures,**
+3. **Search finds a photo post by the alt text of any of its pictures,**
    the second, third or fourth as well as the first; a whole word there
    counts as one in the post's words.
-3. **A photo post with several pictures** found by search, on a hashtag's
+4. **A photo post with several pictures** found by search, on a hashtag's
    or a location's page, or among liked posts, is answered with all of
    them, as in a feed, not its first picture alone.
 

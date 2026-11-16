@@ -37,6 +37,11 @@ func (f *countedSubscriptions) BrowseSources(target *an_entities.AnahitaNode) ([
 	return nil, nil
 }
 
+// Add is whoever replied taking part in the thread (roadmap row 146).
+func (f *countedSubscriptions) Add(source, target *an_entities.AnahitaNode, viewer *an_entities.Viewer) error {
+	return nil
+}
+
 // WHAT THIS GUARDS (roadmap row 101, part 3): a thread written in one go
 // is told of once, by its first note. The notes after it tell nobody; a
 // reply made on its own, or a thread's first note, tells as a reply does.

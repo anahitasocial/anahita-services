@@ -798,6 +798,7 @@ func (h *groupHandler) onAfterFetched(c echo.Context, item *entities.AnahitaNode
 	// everybody, so the web app treated every viewer as an administrator of
 	// every group it showed.
 	item.IsAdminedByViewer = rel.HasAdmin
+	item.IsSubscribedByViewer = toldOfPosts(h.Env, viewer, item.ID, rel.IsLeading || rel.HasAdmin)
 	item.Authorized.Edit, _ = h.Perms.Groups.CanEdit(actorAccessCtx)
 	item.Authorized.Delete, _ = h.Perms.Groups.CanDelete(actorAccessCtx)
 	item.Authorized.Administration, _ = h.Perms.Groups.CanAdministrate(actorAccessCtx)
@@ -821,4 +822,19 @@ func (h *groupHandler) onAfterFetched(c echo.Context, item *entities.AnahitaNode
 	item.IsInvitedViewer = rel.HasInvite
 
 	return nil
+}
+
+// toldOfPosts says whether the viewer is told of this profile's new posts,
+// for whoever follows it or looks after it (roadmap row 146): Following's
+// menu turns it on and off. One question, only for them.
+func toldOfPosts(env *Env, viewer *entities.Viewer, actorID int64, follows bool) bool {
+	if !follows || viewer == nil || viewer.ID <= 0 || env.Srv.SubscriptionsGRPC == nil {
+		return false
+	}
+	told, err := env.Srv.SubscriptionsGRPC.IsSubscribedTo(viewer.ID, actorID)
+	if err != nil {
+		log.Println("whether the viewer is told of the posts:", err)
+		return false
+	}
+	return told
 }

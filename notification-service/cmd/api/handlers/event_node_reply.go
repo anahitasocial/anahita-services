@@ -49,35 +49,31 @@ func (h *eventHandler) replyAdded(payload *event.EventPayload, subject *an_entit
 		return err
 	}
 
-	// Whoever wrote something that came from another server is told by
-	// their own server, which is sent the reply. A notification made for
-	// them here would be read by nobody.
-	var recipients []int64
-	if !root.IsRemote() {
-		recipients = append(recipients, root.CreatedBy)
-	}
-
+	// The authors of the post and of what the reply answers are told,
+	// whoever answered: what is yours tells you of everyone. A channel's
+	// admins for what it wrote (peopleBehind). Whoever wrote something that
+	// came from another server is told by their own server, which is sent
+	// the reply: nobody here.
+	authors := h.peopleBehind(root.CreatedBy)
 	if reply.ParentID != reply.RootID {
 		parent, err := h.Srv.GraphNodeGRPC.Read(reply.ParentID)
 		if err != nil {
 			return err
 		}
-		if !parent.IsRemote() {
-			recipients = append(recipients, parent.CreatedBy)
-		}
+		authors = append(authors, h.peopleBehind(parent.CreatedBy)...)
 	}
 
-	// And whoever asked to be told about this post (Follow post, in its
-	// menu).
-	subscribers, err := h.Srv.SubscriptionsGRPC.BrowseSources(root)
+	// And whoever is subscribed to the post (they replied, reposted it,
+	// or chose Follow post), when they follow whoever answered: what you
+	// take part in tells you of the people you follow (roadmap row 146).
+	following, err := h.subscribersFollowing(root, subject.ID)
 	if err != nil {
 		return err
 	}
-	for _, subscriber := range subscribers {
-		if subscriber != nil && !subscriber.IsRemote() {
-			recipients = append(recipients, subscriber.ID)
-		}
-	}
+	recipients := append(authors, following...)
+
+	// Whoever answered takes part in the thread from now on.
+	defer h.subscribeTo(subject, root)
 
 	told := map[int64]bool{}
 	for _, recipient := range recipients {

@@ -1,4 +1,4 @@
-# What is yours, and what you take part in (roadmap row 146)
+# What is yours, and what you take part in (roadmap row 146, done 2026-11-16)
 
 Asked for by the user on 2026-11-15, while planning channels (row 147):
 each person chooses, for each profile they follow, whether its posts reach
@@ -138,7 +138,7 @@ From the check of the code on 2026-11-15:
 
 | Phase | What | Status |
 | --- | --- | --- |
-| 1 | `audio_add` everywhere; the docs fixed where they and the code disagree | ⬜ |
-| 2 | Replying and reposting subscribe; a post's subscribers told of likes, reposts and replies from the people they follow; a channel's admins told as its author | ⬜ |
-| 3 | Following with its menu; Turn off on post notifications, with Undo | ⬜ |
-| 4 | Who tells you what, in the docs; tried at both sizes; changelogs | ⬜ |
+| 1 | `audio_add` everywhere; the docs fixed where they and the code disagree | ✅ 2026-11-16 |
+| 2 | Replying and reposting subscribe; a post's subscribers told of likes, reposts and replies from the people they follow; a channel's admins (today a website's) told as its author | ✅ 2026-11-16 |
+| 3 | Following with its menu; Turn off on post notifications, with Undo | ✅ 2026-11-16 |
+| 4 | Who tells you what, in the docs; tried at both sizes; changelogs | ✅ 2026-11-16 |

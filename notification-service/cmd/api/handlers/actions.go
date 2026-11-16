@@ -24,9 +24,22 @@ const (
 	// Accept or decline being tagged in a post, while the tag waits
 	// (roadmap row 103).
 	ActionAnswerTag = "answer_tag"
+	// Stop being told of a profile's new posts, still following it
+	// (roadmap row 146): the subscription to it ends.
+	ActionNotifyOff = "notify_off"
 )
 
 // replyable are the kinds a reader can answer from where they read them.
+// What tells of a new post on a profile one is subscribed to.
+var postNews = map[string]bool{
+	"note_add":    true,
+	"article_add": true,
+	"photo_add":   true,
+	"topic_add":   true,
+	"video_add":   true,
+	"audio_add":   true,
+}
+
 var replyable = map[string]bool{
 	NotificationTypeReplyAdd:          true,
 	NotificationTypeActorMention:      true,
@@ -54,8 +67,29 @@ func (h *notificationHandler) setActions(items []*entities.Notification, viewer 
 		}
 	}
 
+	// The profiles whose new posts the reader is still told of: Turn off is
+	// offered on those (roadmap row 146).
+	var postedOn []int64
+	for _, item := range items {
+		if postNews[item.Type] && item.Target.ID > 0 {
+			postedOn = append(postedOn, item.Target.ID)
+		}
+	}
+	subscribed := map[int64]bool{}
+	if len(postedOn) > 0 && h.Srv.SubscriptionsGRPC != nil {
+		var err error
+		if subscribed, err = h.Srv.SubscriptionsGRPC.IsSubscribedToMany(viewer.ID, postedOn); err != nil {
+			log.Println("notifications: asking what the viewer is subscribed to:", err)
+			subscribed = map[int64]bool{}
+		}
+	}
+
 	for _, item := range items {
 		switch {
+		case postNews[item.Type]:
+			if subscribed[item.Target.ID] {
+				item.Actions = []string{ActionNotifyOff}
+			}
 		case replyable[item.Type]:
 			item.Actions = []string{ActionReply}
 		case item.Type == NotificationTypeActorFollow:

@@ -206,7 +206,7 @@ There is one edge of a type between the same two nodes, never two
 | `edge.actor.invite.v1` | A person | A profile | Was invited to follow it, by `created_by` |
 | `edge.base.voteup.v1` | A person | A post | Likes it |
 | `edge.base.bookmark.v1` | A person | A post | Saved it. Private: nobody else is told, the post's author included, and nothing is counted from it |
-| `edge.base.subscription.v1` | A person | A post or a profile | Is notified of what happens to it ([Notifications](notifications.md)) |
+| `edge.base.subscription.v1` | A person | A post or a profile | Is notified of a profile's new posts; of a post's replies, likes and reposts by the people they follow ([Notifications](notifications.md#who-tells-you-what)) |
 | `edge.tag.hashtag.v1` | A hashtag | A post or a profile | It carries the hashtag |
 | `edge.tag.location.v1` | A location | A post or a profile | It is tied to the location |
 | `edge.tag.mention.v1` | A profile | A post | The post names the profile: "this is for you" |

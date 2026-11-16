@@ -708,6 +708,7 @@ func (h *personHandler) onAfterFetched(c echo.Context, node *entities.Person) er
 	node.IsLeadingViewer = actorAccessCtx.ActorViewerRel.IsLeading
 	// Asked and waiting: "Requested" on the button (roadmap row 130).
 	node.IsFollowRequestedByViewer = actorAccessCtx.ActorViewerRel.HasRequested
+	node.IsSubscribedByViewer = toldOfPosts(h.Env, viewer, node.ID, node.IsLeadingViewer)
 	// Whether the viewer has blocked them. The relationship above is theirs
 	// to the viewer, where blocking means that they block the viewer; it
 	// was read as this, and a block never showed on the profile of the

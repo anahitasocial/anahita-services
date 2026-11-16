@@ -88,6 +88,9 @@ type ActorNodeItem struct {
 	LeaderCount int64 `json:"leader_count,omitempty"`
 	// Whether the viewer follows it.
 	IsLeadingViewer bool `json:"is_leading_viewer,omitempty"`
+	// Whether the viewer, following it, is told of its new posts (roadmap
+	// row 146).
+	IsSubscribedByViewer bool `json:"is_subscribed_by_viewer,omitempty"`
 	// Whether the viewer has asked to follow it and is waiting for an
 	// answer: a profile that approves its followers, here or elsewhere.
 	IsFollowRequestedByViewer bool `json:"is_follow_requested_by_viewer,omitempty"`
@@ -220,6 +223,7 @@ func (r *ActorResponse) MapNodeItem(node *entities.AnahitaNode) *ActorNodeItem {
 		FollowerCount:             node.FollowerCount,
 		LeaderCount:               node.LeaderCount,
 		IsLeadingViewer:           node.IsLeadingViewer,
+		IsSubscribedByViewer:      node.IsSubscribedByViewer,
 		IsFollowRequestedByViewer: node.IsFollowRequestedByViewer,
 		IsAdminedByViewer:         node.IsAdminedByViewer,
 		IsFollowingViewer:         node.IsFollowingViewer,

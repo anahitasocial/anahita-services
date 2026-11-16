@@ -38,15 +38,37 @@ subject, object, target and `comment_id`) keeps a repeated event from
 making a second row. Telling somebody the same thing again moves the row to
 the top of their list, unread: an event moved twice says so once.
 
+## Who tells you what
+
+**What is yours, or your channel's, tells you of everyone. What you take
+part in tells you of the people you follow, and of whoever answers you**
+(roadmap row 146).
+
+| The post | You are told of | Unless |
+| --- | --- | --- |
+| Yours, a post or a reply | Everyone who likes, reposts, quotes or answers it | You turn that kind off in Settings › Notifications |
+| A website's (a channel's) you look after | Everyone, as if it were yours | You turn that kind off |
+| Somebody else's that you replied to, reposted, or chose Follow post on | The people you follow who like, repost or reply to it, and whoever answers you | You choose Unfollow post, or turn the kind off |
+| A new post from a profile you follow | Each one, from the day you follow it | You choose Turn off on its notification, or Turn off notifications in Following's menu on the profile |
+
+Liking a post subscribes you to nothing: people like a lot, and would be
+told of a lot. Replying and reposting subscribe you to the post at the top
+of the thread; deleting the reply or the repost does not unsubscribe you,
+Unfollow post does.
+
 ## The kinds
 
 | `type` | Told when | Who is told |
 | --- | --- | --- |
-| `note_add`, `article_add`, `photo_add`, `topic_add`, `video_add` | A profile posts | Its subscribers who may see the post |
-| `reply_add` | A reply is made | The author of the post at the top of the thread, the author of what it answers, and the post's subscribers, each when they may see the thread and the reply |
+| `note_add`, `article_add`, `photo_add`, `topic_add`, `video_add`, `audio_add` | A profile posts | Its subscribers who may see the post |
+| `reply_add` | A reply is made | The author of the post at the top of the thread and of what it answers, whoever answered; the post's subscribers who follow whoever answered; each when they may see the thread and the reply |
 | `quote_add` | A note quotes a post | The quoted post's author, when they may see the note |
-| `repost_add` | A post is reposted | Its author |
-| `voteup` | A post is liked | Its author |
+| `repost_add` | A post is reposted | Its author, and its subscribers who follow whoever reposted |
+| `voteup` | A post is liked | Its author, and its subscribers who follow whoever liked |
+
+For a website's post or reply, its author is each of its admins, who
+write as it. Somebody whose post came from another server is told by
+their own server, never here.
 | `actor_mention`, `actor_mention_reply` | A post or a reply names a person | The person, when they may see it ([Permissions](permissions.md)) |
 | `actor_tag_request` | A person is tagged in a photo or a video, and the tag waits for them | The person, when they may see the post ([Permissions](permissions.md#people-in-pictures-and-videos)) |
 | `actor_tag` | A person is tagged at once, as they chose | The person, likewise |
@@ -61,9 +83,14 @@ the top of their list, unread: an event moved twice says so once.
 
 **Subscribers.** Following a profile, or becoming one of its
 administrators, subscribes to it; each is a reason to stay subscribed, and
-the subscription ends with the last of them. Follow post, in a post's
-menu, subscribes to that post: its replies are told. What people read says
-follow; the code says subscription.
+the subscription ends with the last of them. Following somebody on another
+server, or being followed from one, makes none. The subscription to a
+profile can be ended while the follow stays (Turn off), and made again
+(`DELETE` and `POST /notifications/subscriptions`); following it again
+makes it again. A post is subscribed to by replying to it, reposting it,
+or Follow post in its menu, and its subscribers are told of what the
+people they follow do there. What people read says follow; the code says
+subscription.
 
 ## Only what its reader may see
 
@@ -139,7 +166,7 @@ none. A purge takes them with the person.
 | `replies` | `reply_add` |
 | `mentions` | `actor_mention`, `actor_mention_reply`, `actor_tag_request`, `actor_tag`, `actor_tag_accept` |
 | `follows` | `actor_follow`, `actor_follow_request`, `actor_follow_request_accept`, `actor_moved`, `actor_moved_asked` |
-| `posts` | `note_add`, `article_add`, `photo_add`, `topic_add`, `video_add` |
+| `posts` | `note_add`, `article_add`, `photo_add`, `topic_add`, `video_add`, `audio_add` |
 | `events` | `event_rsvp`, `event_changed`, `event_cancelled`, `event_reminder` |
 | `invitations` | `actor_invite`, `actor_invite_accept`, `admin_add` |
 
@@ -165,11 +192,13 @@ stored: `notification-service/cmd/api/handlers/actions.go`):
 | `answer_request` | `actor_follow_request` | The request is still waiting: accept or decline it |
 | `answer_tag` | `actor_tag_request` | The tag is still waiting: accept (`PUT /people/:id/tags/:post_id`) or decline (`DELETE`) |
 | `follow` | `actor_follow` | The reader does not follow whoever followed |
+| `notify_off` | `note_add`, `article_add`, `photo_add`, `topic_add`, `video_add`, `audio_add` | The reader is still told of the profile's new posts: Turn off ends the subscription to it, with Undo |
 | `reply` | `reply_add`, `actor_mention`, `actor_mention_reply`, `quote_add` | Always: answer the reply (`comment_id`), or the post |
 
 An event's notifications have none: whoever is told has answered the event
-already, and changes the answer on its page. Using an action reads the
-notification.
+already, and changes the answer on its page. An invitation is answered
+from its notification by the web app, without an action from here. Using
+an action reads the notification.
 
 ## Read, and how long they are kept
 
