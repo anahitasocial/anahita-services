@@ -8,7 +8,7 @@ your own machine, use docker-compose instead: see
 
 **Choose a recipe first.** [Anahita Recipes](https://github.com/anahitasocial/anahita-recipes)
 are sites ready to run on one server, each a folder to copy with its
-settings chosen and explained, and every task one `make` word: `commons`,
+settings chosen and explained, and every task one `make` word: `classique`,
 everything Anahita does, and `php-migration`, to move a site from Anahita
 PHP into it. They need no knowledge of Kubernetes. This page is for what
 they do not cover: a cluster of your own, a larger site, or a provider's

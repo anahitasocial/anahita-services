@@ -49,11 +49,16 @@ microservices architecture.")
    every one so that a reader knows where to look. What the recipes share is
    copied into each, and a check says when the copies differ. This replaced
    a shared `site/` with each recipe a Kustomize component added to it.
-   **Named for a place or a practice** (the user, 2026-11-08): `commons`,
-   `coffeehouse`, `journal`, `gallery`, `theatre`, `gathering`, `forum`,
-   and `php-migration` for the move from Anahita PHP. Plain words that
-   collide with nothing in the code; `stream`, `channel` and `bridge` were
-   left for that reason.
+   **Named for a place or a practice** (the user, 2026-11-08), **in
+   French** from 2026-11-16 (the user: "the French have the best recipes",
+   and Canada speaks it beside English; the descriptions stay in English):
+   `classique`, `cafe` (café), `journal`, `galerie`, `videotheque`
+   (vidéothèque), `rendez-vous`, `forum`, `quartier`, and `php-migration`
+   for the move from Anahita PHP, always last. They were `commons`,
+   `coffeehouse`, `journal`, `gallery`, `theatre`, `gathering`, `forum` and
+   `neighbourhood`. Folders drop the accents; the READMEs and anahita.io's
+   cards keep them. Words that collide with nothing in the code; `stream`,
+   `channel` and `bridge` were left for that reason.
 3. **One server first.** The path a recipe documents is banu.io's: one
    server, k3s, its own MySQL, Redis and RabbitMQ, a bucket for files. A
    larger site's path (EKS, managed databases) is in anahita-services'
@@ -99,21 +104,22 @@ microservices architecture.")
 
 ## The recipes
 
-| Recipe | Like | What it runs and puts first | Gaps it shows | When |
-| --- | --- | --- | --- | --- |
-| **php-migration** | | Moving a site from Anahita PHP: row 92, made simple from what was done for banu.io. The move alone: the new site is made first with `commons`, and the old one moved into it (the user, 2026-11-08). Archive the old site and prove the archive; copy the files to a new bucket; `upgrade.sql`; check; the old site retired. One `make` target a step, each one that changes anything shown first with nothing changed (`tidy`, then `tidy-apply`, as banu.io does). Examples of thinning a site, from banu.io's `migration/` (the user, 2026-11-08): inactive accounts purged but a list kept; old posts by kind and date; posts whose author is gone; photos moved to another profile with their files; groups purged; then the file sweep. Each counts first and keeps a copy of what it removes | Each step tried on a copy | First |
-| **commons** | Mastodon and Pixelfed, but more | Everything: notes, photos, video, articles, groups, events, federation on both networks. What `generic` is now | | First |
-| **coffeehouse** | Mastodon, Bluesky | People and their notes alone (the user, 2026-11-09), and their photos from 2026-11-15 (the user: photo sharing is part of microblogging): groups, events, websites, articles and topics off; no videos, GIFs or sound, so neither `video-service` nor `video-worker` runs | Needed row 139's first part, built 2026-11-09 ([What a site offers](../instance-features.md)) | Written 2026-11-09 |
-| **journal** | WordPress, Medium | Articles first: a home of article cards with their covers, notes beside them | RSS feeds; newsletters by email | Written 2026-11-09 with what is built, its home page and these gaps to come |
-| **gallery** | Pixelfed, Instagram | People and their photos, and the replies under them (the user, 2026-11-14; replies alone, without notes, from v1.2.8, 2026-11-15): notes, articles, topics, groups, events and websites off; no videos, GIFs or sound | A grid of photos as its home | Written 2026-11-14 with what is built, its home page to come |
-| **theatre** | YouTube, PeerTube | Video first: a grid of thumbnails, larger uploads, the video worker given more; replies under videos, and no notes, from v1.2.8 (the user, 2026-11-15); no photo posts, so photo-service is not run | Adaptive streaming (HLS); captions; playlists | Written 2026-11-09 with what is built, its home page and these gaps to come |
-| **gathering** | Meetup, Luma | What is on, first; groups as the organisers | A calendar to subscribe to (iCal). No tickets: nothing is sold | Written 2026-11-09 with what is built, its home page and these gaps to come |
-| **forum** | Discourse, NodeBB | People and groups; topics, and the replies under them (the user, 2026-11-15): groups as boards, made by administrators (`GROUPS_FROM`); notes, articles, photo posts, events and websites off; no videos, GIFs or sound; neither photo-service nor video-service runs | The topics, latest reply first, as its home | Written 2026-11-15 on v1.2.9, its home page to come |
+| Recipe | What it runs and puts first | Gaps it shows | When |
+| --- | --- | --- | --- |
+| **classique** | Everything: notes, photos, video, articles, groups, events, federation on both networks. What `generic` is now | | First |
+| **cafe** | People and their notes alone (the user, 2026-11-09), and their photos from 2026-11-15 (the user: photo sharing is part of microblogging): groups, events, websites, articles and topics off; no videos, GIFs or sound, so neither `video-service` nor `video-worker` runs | Needed row 139's first part, built 2026-11-09 ([What a site offers](../instance-features.md)) | Written 2026-11-09 |
+| **journal** | Articles first: a home of article cards with their covers, notes beside them | RSS feeds; newsletters by email | Written 2026-11-09 with what is built, its home page and these gaps to come |
+| **galerie** | People and their photos, and the replies under them (the user, 2026-11-14; replies alone, without notes, from v1.2.8, 2026-11-15): notes, articles, topics, groups, events and websites off; no videos, GIFs or sound | A grid of photos as its home | Written 2026-11-14 with what is built, its home page to come |
+| **videotheque** | Video first: a grid of thumbnails, larger uploads, the video worker given more; replies under videos, and no notes, from v1.2.8 (the user, 2026-11-15); no photo posts, so photo-service is not run | Adaptive streaming (HLS); captions; playlists | Written 2026-11-09 with what is built, its home page and these gaps to come |
+| **rendez-vous** | What is on, first; groups as the organisers | A calendar to subscribe to (iCal). No tickets: nothing is sold | Written 2026-11-09 with what is built, its home page and these gaps to come |
+| **forum** | People and groups; topics, and the replies under them (the user, 2026-11-15): groups as boards, made by anybody signed in (`GROUPS_FROM`, from 2026-11-16); notes, articles, photo posts, events and websites off; no videos, GIFs or sound; neither photo-service nor video-service runs | The topics, latest reply first, as its home | Written 2026-11-15 on v1.2.9, its home page to come |
+| **quartier** | People, channels and events; notes, photos and videos (the user, 2026-11-16): a channel for each of its local shops, businesses and facilities, the café, the clinic, the library, the school, the park, each posting its news and hosting its events, and reading its website's feed; neighbourhoods follow each other over federation. Groups, articles, topics and sound off; everything runs | A directory of channels by kind; opening hours in a channel's About card: each when a neighbourhood asks | Written 2026-11-16 on v1.3.6 |
+| **php-migration** | Moving a site from Anahita PHP: row 92, made simple from what was done for banu.io. The move alone: the new site is made first with `classique`, and the old one moved into it (the user, 2026-11-08). Archive the old site and prove the archive; copy the files to a new bucket; `upgrade.sql`; check; the old site retired. One `make` target a step, each one that changes anything shown first with nothing changed (`tidy`, then `tidy-apply`, as banu.io does). Examples of thinning a site, from banu.io's `migration/` (the user, 2026-11-08): inactive accounts purged but a list kept; old posts by kind and date; posts whose author is gone; photos moved to another profile with their files; groups purged; then the file sweep. Each counts first and keeps a copy of what it removes | Each step tried on a copy | First |
 
 ## What a site is made of
 
 ```
-commons/                each recipe a directory; copy one, and it is a site
+classique/              each recipe a directory; copy one, and it is a site
   README.md             who it is for, what it decides, the three things to
                         decide before the first person joins, and the steps
                         from an empty server to the first person signed in
@@ -131,9 +137,9 @@ commons/                each recipe a directory; copy one, and it is a site
     patches/            the services it leaves out, and how to put one back
   deploy/               the server and its DNS: aws/, ovhcloud/, hetzner/
   web/                  the theme, build.sh and publish.sh, as banu.io's
-coffeehouse/            laid out the same
+cafe/                   laid out the same
 php-migration/          the move alone: a README and Makefile of its own,
-                        and migration/; used on a commons site made first
+                        and migration/; used on a classique site made first
 docs/providers.md       where a recipe runs, tried and untried
 ```
 
@@ -149,7 +155,7 @@ docs/providers.md       where a recipe runs, tried and untried
 ## What recipes will show is missing
 
 1. **Turning kinds of post and of profile off,** and choosing how lists are
-   shown: row 139, which `coffeehouse` and the later three need.
+   shown: row 139, which `cafe` and the later three need.
 2. **Hashtags and places to begin with** (the user, 2026-10-12 and
    2026-10-14): a new site has none, so signing up's Interests step and the
    place picker offer nothing. A seed file each recipe carries, featured
@@ -158,8 +164,8 @@ docs/providers.md       where a recipe runs, tried and untried
    needs it.
 3. **A site-wide default for a new profile's privacy,** and for a reader's
    content warnings (row 122), for a site with minors.
-4. **RSS feeds** (`journal`), **HLS and captions** (`theatre`), **iCal**
-   (`gathering`): each a feature to plan when its recipe is reached.
+4. **RSS feeds** (`journal`), **HLS and captions** (`videotheque`), **iCal**
+   (`rendez-vous`): each a feature to plan when its recipe is reached.
 5. **Terms and a privacy policy** to begin from, marked as a start and not
    legal advice.
 
@@ -178,15 +184,15 @@ docs/providers.md       where a recipe runs, tried and untried
 
 ## Phases
 
-1. **`commons`:** banu.io's overlay and Makefile made general,
+1. **`classique`:** banu.io's overlay and Makefile made general,
    `make init`, the README from an empty server; tried on a new server:
    about two sessions.
 2. **`php-migration`:** row 92's steps as `make` targets, and the examples
    of thinning a site made general from banu.io's scripts, tried on a copy
    of a PHP site's data: about two sessions.
-3. **`coffeehouse`,** after row 139: half a session. **Written 2026-11-09,** with its `instance.json`, `not-run.yml` and diagram.
+3. **`cafe`,** after row 139: half a session. **Written 2026-11-09,** with its `instance.json`, `not-run.yml` and diagram.
 4. **A Recipes page on anahita.io:** half a session.
-5. **`journal`, `theatre`, `gathering`, then `gallery` and `forum`:** each with its gaps weighed first. **Written 2026-11-09**, `gallery` on 2026-11-14 and `forum` on 2026-11-15, with what is built (the user, 2026-11-09: "Let's do it"): each offers its kinds and runs only what it needs, and its README says what is still to come, its home page (the rest of row 139) and the gaps above.
+5. **`journal`, `videotheque`, `rendez-vous`, then `galerie` and `forum`:** each with its gaps weighed first. **Written 2026-11-09**, `galerie` on 2026-11-14, `forum` on 2026-11-15 and `quartier` on 2026-11-16, with what is built (the user, 2026-11-09: "Let's do it"): each offers its kinds and runs only what it needs, and its README says what is still to come, its home page (the rest of row 139) and the gaps above.
 6. **Recipes for organisations, through 2027** (the user, 2026-11-08):
    schools, newsrooms, libraries, research groups and non-profits, each
    built on a purpose recipe, with its own configuration, privacy defaults
@@ -231,4 +237,4 @@ docs/providers.md       where a recipe runs, tried and untried
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-11 by kind of organisation; written again 2026-11-07 by purpose; each recipe a directory that stands alone, named, and three providers chosen, 2026-11-08 |
-| Implementation | 2026-11-08: phase 1, `commons`, and phase 2, `php-migration`, written in anahita-recipes, with `check.sh` run on every push; not tried end to end, which is left to the people who use them. `php-migration` may find few sites to move: Anahita PHP may have none left but anahita.io ; 2026-11-09: phases 3 and 5, `coffeehouse`, `journal`, `theatre` and `gathering`, written, on Anahita Services v1.2.6; 2026-11-14: `gallery`, photo sharing, written on v1.2.7, and every recipe's diagram drawn again in colour; 2026-11-15: `forum`, on v1.2.9; phase 7's first layer, `smoke.sh`, green on all seven recipes, and its second and third layers, and phase 8, banu.io's MySQL, for later |
+| Implementation | 2026-11-08: phase 1, `classique`, and phase 2, `php-migration`, written in anahita-recipes, with `check.sh` run on every push; not tried end to end, which is left to the people who use them. `php-migration` may find few sites to move: Anahita PHP may have none left but anahita.io ; 2026-11-09: phases 3 and 5, `cafe`, `journal`, `videotheque` and `rendez-vous`, written, on Anahita Services v1.2.6; 2026-11-14: `galerie`, photo sharing, written on v1.2.7, and every recipe's diagram drawn again in colour; 2026-11-15: `forum`, on v1.2.9; phase 7's first layer, `smoke.sh`, green on all seven recipes, and its second and third layers, and phase 8, banu.io's MySQL, for later; 2026-11-16: `neighbourhood` written on v1.3.6, and in every recipe anybody signed in makes the profiles it offers, groups, channels and events (`GROUPS_FROM`, `CHANNELS_FROM`, `EVENTS_FROM` at `registered`; the user, 2026-11-16: "registered people should be able to create actor profiles"), each config.env saying how to keep them to administrators; the same day, every recipe renamed in French (see the names, above) |

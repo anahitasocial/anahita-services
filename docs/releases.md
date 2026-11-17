@@ -105,7 +105,7 @@ For whoever maintains anahita-services:
    "v1.2.4 Birth": the changelog's section for the version. A client's
    release says which services it works with in its own notes.
 5. In anahita-recipes, once the images are built: the manifests' `ref=`
-   and every image in `commons/k8s/kustomization.yml` at the new version,
+   and every image in each recipe's `k8s/kustomization.yml` at the new version,
    renamed images by their new names, and `kubectl kustomize` to see it
    builds. Pinned, not `latest`: a site changes version only when its
    operator does, and reads the Upgrading notes at a new minor.
