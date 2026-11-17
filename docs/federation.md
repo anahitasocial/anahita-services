@@ -925,7 +925,12 @@ Bluesky, not at the next sweep. An older note of the writer's that never
 went out still does not go out because of a reply. On Bluesky, the part
 before is read from the writer's own server (`com.atproto.repo.getRecord`)
 rather than the AppView, which may not have seen it yet; a part written
-before the one it answers is tried again shortly, and not given up on. A
+before the one it answers is tried again shortly, and not given up on.
+Each post says it was written when it was written here, which is kept to
+the second, with its note's id's last three digits as the milliseconds
+(`writtenAt` in atproto-service): Bluesky lists only one of an author's
+posts of the same moment, and the parts of a thread are written in one
+second. A
 part with pictures (roadmap row 143) is a photo post, and goes out as any
 reply with pictures does. A part with a GIF, a video or a sound is made when
 its file is ready, and the parts after it then, each going out as it is

@@ -513,6 +513,21 @@ func kindOf(collection string) string {
 	return ""
 }
 
+// writtenAt is the time a post says it was written, on Bluesky: when it
+// was written here, which is kept to the second, and its id's last three
+// digits as the milliseconds. The parts of a thread are written in the
+// same second, and Bluesky lists one post of those at the same moment, the
+// last: the first part was in no tab of its author's profile (the user,
+// 2026-11-17). Their ids follow each other, so they stay in order but for
+// a thread whose ids pass a thousand.
+func writtenAt(note *entities.AnahitaNode) time.Time {
+	at := note.CreatedAt
+	if at.IsZero() || at.Nanosecond() != 0 || note.ID <= 0 {
+		return at
+	}
+	return at.Add(time.Duration(note.ID%1000) * time.Millisecond)
+}
+
 // record makes what is written for a like, a repost or a reply. Nil, and
 // no error, when there is no longer anything to write.
 func (h *Handlers) record(ctx context.Context, w *write, upload uploader) (any, error) {
@@ -556,7 +571,7 @@ func (h *Handlers) record(ctx context.Context, w *write, upload uploader) (any, 
 			words = strings.TrimSpace(title + "\n\n" + words)
 		}
 	}
-	post := bsky.NewOutPost(words, note.Language, note.CreatedAt)
+	post := bsky.NewOutPost(words, note.Language, writtenAt(note))
 	// Its content warning, as the self-label of its kind; Other, in its
 	// author's words, has none on Bluesky (roadmap row 122).
 	post.WithLabel(entities.WarningLabel(note.Warning))

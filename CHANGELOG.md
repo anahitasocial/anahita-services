@@ -10,6 +10,15 @@ made.
 Releases before v1.0.17 are described on GitHub, under
 [Releases](https://github.com/anahitasocial/anahita-services/releases).
 
+## Embryo
+
+### Fixed
+
+1. **A thread's first part on its author's Bluesky profile.** Every part
+   said it was written in the same second, and Bluesky lists only one post
+   of the same moment, the last: the first part was in neither the Posts
+   tab nor the Replies tab. Each post now carries its own millisecond.
+
 ## v1.3.7 Birth, 2026-11-17
 
 ### Fixed
