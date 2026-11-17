@@ -356,7 +356,10 @@ kind (`DELETE /notes/:id`, `/photos/:id`, `/videos/:id`), so that a photo or
 video reply's files go with it. Its words are changed at `PATCH /notes/:id`
 whatever its kind. If it has been answered, an empty
 placeholder is left where it was, with no text and no name, so the replies
-under it still hang from something. Deleting a post removes its whole thread.
+under it still hang from something. Deleting a post removes its whole thread,
+and each note of it is said to be gone (`node.medium.*.*.deleted.v1`, one
+for each), so that whatever went to Bluesky or the fediverse goes from there
+too.
 
 **Hiding** takes a reply out of the thread for everybody, with everything
 said under it. It is not destroyed and its author is not told. Whoever looks

@@ -10,6 +10,16 @@ made.
 Releases before v1.0.17 are described on GitHub, under
 [Releases](https://github.com/anahitasocial/anahita-services/releases).
 
+## Embryo
+
+### Fixed
+
+1. **Deleting a thread takes back every part of it,** on Bluesky and the
+   fediverse, not its first note alone: the later parts stayed there as
+   replies to a post that was gone. Each note of a deleted thread is now
+   said to be gone, one event for each, and the fediverse's sweep takes
+   back a note deleted with its thread, which it failed to read before.
+
 ## v1.3.6 Birth, 2026-11-16
 
 ### Fixed

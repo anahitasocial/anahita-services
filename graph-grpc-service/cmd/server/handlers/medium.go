@@ -467,10 +467,17 @@ func (h *mediumHandler) Delete(ctx context.Context, req *graphpb.MediumDeleteReq
 	// What it cites, read while its edges are still there: they go with it.
 	cited := h.citedBy(node.ID)
 
+	// What went, each said to have gone below: a post's thread goes with
+	// it, and each of its parts may have gone to Bluesky or the fediverse
+	// as a post of its own, to be taken back there too.
+	gone := []*entities.AnahitaNode{node}
 	if answered {
 		err = h.env.Repos.Replies.Tombstone(node.ID, viewer.ID)
 	} else {
-		_, err = h.env.Repos.Nodes.DeleteSubtree(node.ID)
+		var deleted []*entities.AnahitaNode
+		if deleted, err = h.env.Repos.Nodes.DeleteSubtree(node.ID); len(deleted) > 0 {
+			gone = deleted
+		}
 	}
 	if err != nil {
 		return nil, err
@@ -492,33 +499,56 @@ func (h *mediumHandler) Delete(ctx context.Context, req *graphpb.MediumDeleteReq
 	// And one citer fewer, perhaps, of what it cited.
 	h.recount(cited)
 
-	// The list of a photo post's images goes with the post. The stored images
-	// themselves are removed by the service that asked for this.
-	if err := h.env.Repos.PhotoFiles.DeleteForNodes([]int64{node.ID}); err != nil {
-		log.Printf("deleting the image list of %d failed: %v", node.ID, err)
+	// The list of a photo post's images goes with the post, and with each
+	// photo post of its thread. The stored images themselves are removed by
+	// the service that asked for this, or by the nightly sweep.
+	ids := make([]int64, 0, len(gone))
+	for _, each := range gone {
+		ids = append(ids, each.ID)
+	}
+	if err := h.env.Repos.PhotoFiles.DeleteForNodes(ids); err != nil {
+		log.Printf("deleting the image lists of %v failed: %v", ids, err)
 	}
 
-	// publish event
-	go func() {
-		entityName := strings.Split(node.Type, ".")[3]
-		srvName := strings.Split(node.Service, "-")[0]
+	// One event for each, the post first.
+	go h.publishDeleted(gone, node.Owner, viewer)
+
+	return &graphpb.MediumDeleteResponse{}, nil
+}
+
+// publishDeleted says of each node that it was deleted. A node read whole
+// knows its owner; one read with its thread has only the owner's id and
+// type, and owner is the post's, read whole, for when it has neither.
+func (h *mediumHandler) publishDeleted(gone []*entities.AnahitaNode, owner *entities.AnahitaNode, viewer *entities.Viewer) {
+	for _, each := range gone {
+		types := strings.Split(each.Type, ".")
+		if len(types) < 4 || each.Service == "" {
+			continue
+		}
+		targetID, targetType := each.OwnerID, each.OwnerType
+		if each.Owner != nil {
+			targetID, targetType = each.Owner.ID, each.Owner.Type
+		}
+		if targetID == 0 && owner != nil {
+			targetID, targetType = owner.ID, owner.Type
+		}
+		entityName := types[3]
+		srvName := strings.Split(each.Service, "-")[0]
 		routing_key := fmt.Sprintf(event.EventFormatNodeMediumDeleted, srvName, entityName)
 		payload := &event.EventPayload{
 			Name:             routing_key,
-			SourceService:    node.Service,
+			SourceService:    each.Service,
 			SubjectID:        viewer.ID,
 			SubjectType:      constants.NodeActorPersonEntityType,
-			ObjectID:         node.ID,
-			ObjectType:       node.Type,
-			TargetID:         node.Owner.ID,
-			TargetType:       node.Owner.Type,
+			ObjectID:         each.ID,
+			ObjectType:       each.Type,
+			TargetID:         targetID,
+			TargetType:       targetType,
 			ViewerID:         viewer.ID,
 			ViewerPersonType: viewer.PersonType,
 		}
 		h.env.Publisher.Publish(payload, routing_key)
-	}()
-
-	return &graphpb.MediumDeleteResponse{}, nil
+	}
 }
 
 // recountCitedBy puts right the citation counts of what a post cites, after

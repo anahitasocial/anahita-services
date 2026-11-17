@@ -373,3 +373,56 @@ func TestEnablingIsNotGuarded(t *testing.T) {
 		t.Fatalf("enable: %v", err)
 	}
 }
+
+// ---------------------------------------------------------------------
+// A post and its thread
+// ---------------------------------------------------------------------
+
+// Deleting a post takes its whole thread, and answers with every node that
+// went, read before the delete and in the same transaction, so that each
+// can be said to have gone: a thread's later parts were posts of their own
+// on Bluesky, and stayed there when only the first was taken back.
+func TestDeleteSubtreeAnswersWithEveryNodeThatWent(t *testing.T) {
+	db, mock, seen := newNodesTestDB(t)
+
+	mock.ExpectBegin()
+	mock.ExpectQuery("select").WillReturnRows(
+		sqlmock.NewRows([]string{"id", "type", "service", "owner_id", "owner_type"}).
+			AddRow(180, "node.medium.text-service.note.v1", "text-service", 5, "node.actor.person").
+			AddRow(181, "node.medium.text-service.note.v1", "text-service", 5, "node.actor.person").
+			AddRow(182, "node.medium.photo-service.photo.v1", "photo-service", 5, "node.actor.person"))
+	mock.ExpectExec("delete").WillReturnResult(sqlmock.NewResult(0, 3))
+	mock.ExpectCommit()
+
+	gone, err := newRepo(db).DeleteSubtree(180)
+	if err != nil {
+		t.Fatalf("DeleteSubtree: %v", err)
+	}
+	if len(gone) != 3 || gone[0].ID != 180 || gone[1].ID != 181 || gone[2].ID != 182 {
+		t.Fatalf("gone = %+v, want 180, 181 and 182, the post first", gone)
+	}
+	if gone[2].Service != "photo-service" || gone[2].OwnerID != 5 || gone[2].OwnerType != "node.actor.person" {
+		t.Errorf("a part read without what its event needs: %+v", gone[2])
+	}
+
+	read := statementMatching(t, seen, "select")
+	deleted := statementMatching(t, seen, "delete n, e")
+	for _, stmt := range []string{read, deleted} {
+		if !strings.Contains(stmt, "c.parent_id = s.id") {
+			t.Errorf("not walking the thread by parent_id:\n%s", stmt)
+		}
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestDeleteSubtreeRefusesANonPositiveID(t *testing.T) {
+	db, _, seen := newNodesTestDB(t)
+	if gone, err := newRepo(db).DeleteSubtree(0); err != nil || gone != nil {
+		t.Errorf("DeleteSubtree(0) = %v, %v", gone, err)
+	}
+	if len(*seen) != 0 {
+		t.Errorf("reached the database: %v", *seen)
+	}
+}

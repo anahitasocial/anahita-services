@@ -7,6 +7,7 @@ require (
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/gosimple/slug v1.15.0
 	github.com/labstack/echo/v4 v4.16.3
+	google.golang.org/grpc v1.85.0
 )
 
 require (

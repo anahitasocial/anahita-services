@@ -83,8 +83,10 @@ type NodesRepoInterface interface {
 	// BatchDelete removes multiple nodes based on the provided delete request and viewer context.
 	BatchDelete(ids []int64) (bool, error)
 
-	// DeleteSubtree deletes rootID, all descendants via parent_id, and all edges attached to any of them.
-	DeleteSubtree(rootID int64) (bool, error)
+	// DeleteSubtree deletes rootID, all descendants via parent_id, and all
+	// edges attached to any of them; it answers with each node it deleted,
+	// the root first.
+	DeleteSubtree(rootID int64) ([]*entities.AnahitaNode, error)
 
 	// ReadDeletionCounts totals what deleting this actor would take with it,
 	// for the confirmation dialog.

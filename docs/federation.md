@@ -133,8 +133,8 @@ domain, is written down for later (`docs/plans/atproto-server.md`).
    copies from its image servers (`cdn.bsky.app`) and plays videos from its
    video service, so most viewing comes from Bluesky's caches even when the
    original is on somebody's own server.
-4. **Deleting a post here deletes it from their Bluesky account,** and
-   Bluesky takes it out of its app. Copies others already took from the
+4. **Deleting a post here deletes it from their Bluesky account,** a
+   thread with every part of it, and Bluesky takes it out of its app. Copies others already took from the
    public network cannot be called back, there or on the fediverse.
 5. **Disconnecting stops new copies and takes nothing back.** What was
    written to Bluesky stays there, and can no longer be removed from here.
@@ -1088,7 +1088,7 @@ differ:
 | A follow of somebody elsewhere that their server was never asked about | It is asked. Or the follow is taken away, where it is one that cannot be: by somebody not on the fediverse, or from the lab to a real server |
 | A follow their server was asked about that is no longer in the graph | Their server is told it is over |
 | A public note by somebody on the fediverse, written in the last two days and since they joined, that was never sent | It is sent to their followers |
-| A note that was sent and is gone here, disabled, or no longer open to everybody | Servers that have it are told to drop it |
+| A note that was sent and is gone here, deleted with its thread among them, disabled, or no longer open to everybody | Servers that have it are told to drop it |
 | A note other servers have that was changed here since they were last sent it | They are sent the change |
 | Somebody whose profile was changed since their followers' servers were last sent it | They are sent it as it is now |
 | Somebody on the fediverse whose profile is no longer open to everybody, or is disabled or gone | They leave, as they would have |

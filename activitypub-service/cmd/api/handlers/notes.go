@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -19,6 +20,7 @@ import (
 
 	"anahita-libs/videos"
 	"github.com/labstack/echo/v4"
+	"google.golang.org/grpc/status"
 	"html"
 	"regexp"
 )
@@ -534,14 +536,22 @@ func (h *Handlers) relocated(ctx context.Context, nodeID int64) error {
 	return h.tellOf(ctx, nodeID, true)
 }
 
+// gone is a node read from graph-grpc-service that is not there: deleted
+// with its whole thread, say, rather than kept as deleted. The graph says
+// so in the words of the database's own error, which is all a gRPC error
+// from it carries.
+func gone(err error) bool {
+	return err != nil && status.Convert(err).Message() == sql.ErrNoRows.Error()
+}
+
 // tellOf tells other servers of a post as it is now: made, changed, or, with
 // `retagged`, given other locations.
 func (h *Handlers) tellOf(ctx context.Context, nodeID int64, retagged bool) error {
 	note, err := h.Nodes.Read(nodeID)
-	if err != nil {
+	if err != nil && !gone(err) {
 		return err
 	}
-	if note == nil || note.ID == 0 {
+	if err != nil || note == nil || note.ID == 0 {
 		return h.removed(ctx, nodeID)
 	}
 
