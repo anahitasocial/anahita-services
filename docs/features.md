@@ -138,7 +138,7 @@ is gathered at the end, [for planning](#not-built).
 | Hide follower and following lists | yes | Who may see them, never wider than the profile; the counts stay ([Permissions](permissions.md#who-sees-a-profiles-followers-and-whom-it-follows)) |
 | Choose whether posts are searchable | yes | Whether other servers may find them ([Federation](federation.md)) |
 | Hide from search engines | no | |
-| Signed fetches required (secure mode) | no | |
+| Signed fetches required (secure mode) | no | On the roadmap, kept for later (row 157) |
 
 ## Moderation
 
@@ -244,7 +244,7 @@ Every **no** and **planned** above, gathered for planning.
 5. **Interactions:** emoji reactions; downvotes; lists; joining groups on
    other servers; interacting from another server.
 6. **Privacy and safety:** unlisted posts; word filters; hiding from search
-   engines; requiring signed fetches.
+   engines; requiring signed fetches (row 157, kept for later).
 7. **Moderation:** forwarding reports to other servers; limiting servers;
    federating only with a list; appeals.
 8. **Discovery:** a local timeline; a federated timeline; RSS feeds of

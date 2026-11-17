@@ -291,7 +291,7 @@ Written by hand with small JSON structs and an HTTP-signature library (`github.c
 3. **Phase 4, groups and audiences:**
    1. groups as ActivityPub `Group` actors (FEP-1b12, Lemmy-compatible);
    2. followers-only posts on ActivityPub (AT can't do this);
-   3. "authorized fetch" (servers must sign every fetch);
+   3. "authorized fetch" (servers must sign every fetch), roadmap row 157, kept for later;
    4. reply controls (AT threadgates and the AP equivalents).
 4. **Phase 5, moderation and trust:**
    1. sending reports as `Flag` activities and to Bluesky moderation (ties into item 4b's `atproto_reason`);
