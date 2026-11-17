@@ -154,7 +154,7 @@ is gathered at the end, [for planning](#not-built).
 | Invite links | yes | [Registration](registration.md#invitations) |
 | CAPTCHA on sign up | no | A hidden field and a timing check instead ([Registration](registration.md#protection-against-bots)) |
 | Moderation audit log | partly | Each case records who decided it and what was done |
-| Appeal moderation decisions | no | |
+| Appeal moderation decisions | no | On the roadmap, kept for later (row 158) |
 | Custom content rules | yes | The site's, a group's and an event's rules |
 
 ## Discovery
@@ -246,7 +246,7 @@ Every **no** and **planned** above, gathered for planning.
 6. **Privacy and safety:** unlisted posts; word filters; hiding from search
    engines; requiring signed fetches (row 157, kept for later).
 7. **Moderation:** forwarding reports to other servers; limiting servers;
-   federating only with a list; appeals.
+   federating only with a list; appeals (row 158, kept for later).
 8. **Discovery:** a local timeline; a federated timeline; RSS feeds of
    profiles; relays.
 9. **Federation:** RFC 9421 signatures; object integrity proofs; fetching
