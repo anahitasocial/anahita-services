@@ -32,6 +32,21 @@ Releases before v1.0.17 are described on GitHub, under
    place of ingress-nginx, retired in March 2026. A site on it installs
    Traefik (`k8s/eks/traefik.yml`) and applies again.
 
+### Upgrading
+
+1. **A site built on the `aws` overlay** is reached through Traefik now,
+   not ingress-nginx, and its certificates come through Traefik's Ingress
+   class. Before applying the new release:
+   1. Install Traefik once: `kubectl apply -f k8s/eks/traefik.yml`, from
+      this release's checkout ([Deploying on EKS](docs/deploying-eks.md#traefik-and-cert-manager)).
+   2. Point `api.` and `auth.` of your domain at the new load balancer
+      Traefik's Service makes.
+   3. Apply your overlay; then remove ingress-nginx and its load balancer.
+
+   A site on the `k3s` overlay, or on the `traefik` component, as the
+   recipes are, has nothing to do.
+2. **No migrations.**
+
 ## v1.3.8 Birth, 2026-11-17
 
 ### Fixed
