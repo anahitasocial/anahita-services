@@ -19623,7 +19623,7 @@
     },
     "/feeds/actor/{actor_id}/": {
       "get": {
-        "description": "The ones the viewer may see, its pin first among its posts.\n\nWho may call it: anyone, signed in or not.",
+        "description": "The ones the viewer may see, its pin first among its posts. What a person liked (`liked`) is sent to that person alone, the latest liked first.\n\nWho may call it: anyone, signed in or not.",
         "operationId": "getFeedsActorByActorId",
         "parameters": [
           {
@@ -19637,7 +19637,7 @@
             }
           },
           {
-            "description": "Which of the profile's lists: posts (the default), replies, reposts, or tagged, the photos and videos a person is in.",
+            "description": "Which of the profile's lists: posts (the default), replies, reposts, tagged, the photos and videos a person is in, or liked, the posts a person liked, sent to that person alone.",
             "in": "query",
             "name": "filter",
             "schema": {
@@ -19645,7 +19645,8 @@
                 "posts",
                 "replies",
                 "reposts",
-                "tagged"
+                "tagged",
+                "liked"
               ],
               "type": "string"
             }
@@ -19717,7 +19718,7 @@
             "description": "`members_only`: replies are not part of a preview"
           },
           "403": {
-            "description": "the viewer may not see the profile"
+            "description": "the viewer may not see the profile, or asked for what somebody else liked"
           },
           "404": {
             "description": "there is no such profile"

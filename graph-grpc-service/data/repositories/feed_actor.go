@@ -76,6 +76,17 @@ func (repo *FeedActorRepo) Browse(req *graphpb.FeedActorBrowseRequest, viewer *e
 		query = query.OrderBy("node.pinned DESC", "node.pinned_at DESC")
 	}
 
+	// What was liked, the latest liked first.
+	if req.Filter == constants.FeedFilterLiked {
+		query = query.OrderByClause(`(
+        SELECT MAX(liked.created_at)
+        FROM edges liked
+        WHERE liked.type = ?
+          AND liked.node_a_id = ?
+          AND liked.node_b_id = node.id
+      ) DESC`, constants.EdgeBaseLikeEntityType, req.ActorId)
+	}
+
 	// Sort & paginate
 	query = query.OrderBy("node.created_at DESC").
 		Limit(req.Limit).
@@ -84,7 +95,7 @@ func (repo *FeedActorRepo) Browse(req *graphpb.FeedActorBrowseRequest, viewer *e
 	return FetchNodes(repo.db, query)
 }
 
-// actorFeedCondition picks the rows of one of a profile's three lists. Who
+// actorFeedCondition picks the rows of one of a profile's lists. Who
 // may see each row is the access gate's to say, not this.
 //
 //   - posts: what was posted on the profile, and, when asked, what its owner
@@ -97,6 +108,9 @@ func (repo *FeedActorRepo) Browse(req *graphpb.FeedActorBrowseRequest, viewer *e
 //   - reposts: what the actor reposted, and nothing else.
 //   - tagged: the photos and videos the actor is in, the tag approved
 //     (roadmap row 103), whoever posted them; never one still waiting.
+//   - liked: the posts the actor liked, whoever posted them; not replies,
+//     which are read in their thread, and not a removed post. Who may ask
+//     for it is feed-service's to say: the person alone.
 func actorFeedCondition(actorID int64, filter string, mediumTypes []string, includeReposts bool) sq.Sqlizer {
 	owned := sq.Eq{"node.owner_id": actorID}
 
@@ -120,6 +134,20 @@ func actorFeedCondition(actorID int64, filter string, mediumTypes []string, incl
 		return sq.And{
 			owned,
 			sq.Eq{"node.type": constants.NodeBaseRepostType},
+		}
+
+	case constants.FeedFilterLiked:
+		return sq.And{
+			sq.Eq{"node.type": mediumTypes},
+			sq.Expr("node.root_id IS NULL"),
+			sq.Expr("node.deleted_at IS NULL"),
+			sq.Expr(`EXISTS (
+        SELECT 1
+        FROM edges liked
+        WHERE liked.type = ?
+          AND liked.node_a_id = ?
+          AND liked.node_b_id = node.id
+      )`, constants.EdgeBaseLikeEntityType, actorID),
 		}
 
 	case constants.FeedFilterTagged:

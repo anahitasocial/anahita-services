@@ -12,6 +12,13 @@ Releases before v1.0.17 are described on GitHub, under
 
 ## Embryo
 
+### Added
+
+1. **What you liked.** `GET /feeds/actor/<your id>/?filter=liked` lists the
+   posts you liked, the latest liked first, for you alone: nobody else is
+   sent it, the site's administrators included. It is the Likes tab on your
+   own profile in Anahita Web.
+
 ### Changed
 
 1. **Your own reposts are no longer in your Following feed.** A repost is

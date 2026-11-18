@@ -274,12 +274,12 @@ post. There is no count of views and no list of who looked: nothing records
 that. The plan that had both (`plans/post-insights.md`) was set aside for
 this.
 
-### A profile's three lists
+### A profile's lists
 
-`GET /feeds/actor/<actor id>/` is everything a profile shows, in one of three
-lists chosen with `filter`. Replies and reposts are a person's: only people
-reply and repost, so for a group or any other kind of actor the last two are
-empty.
+`GET /feeds/actor/<actor id>/` is everything a profile shows, in one of its
+lists chosen with `filter`. Replies, reposts and likes are a person's: only
+people reply, repost and like, so for a group or any other kind of actor
+those lists are empty.
 
 | `filter` | Holds |
 | --- | --- |
@@ -287,6 +287,7 @@ empty.
 | `replies` | The replies its owner wrote, wherever the threads are. Each is sent with what it answers as `parent`, and with `root`: the post at the top of its thread and, as `root.owner`, the profile that thread is on |
 | `reposts` | What its owner reposted, and nothing else. Each is sent with the post it reposts as `parent`, with that post's author, owner and date |
 | `tagged` | The photos and videos a person is in, their tag approved, whoever posted them ([Permissions](permissions.md#people-in-pictures-and-videos)) |
+| `liked` | The posts a person liked, whoever posted them, the latest liked first; not replies, and not a removed post. Sent to that person alone, signed in: anybody else, the site's administrators among them, is refused with 403. It is their profile's Likes tab, which only they see |
 
 - **Reposts are not among the posts unless the profile asks for it.** The
   choice is kept on the actor as `show_reposts_on_profile`, off until somebody

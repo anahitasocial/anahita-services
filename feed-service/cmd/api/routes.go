@@ -51,12 +51,12 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Sends(http.StatusOK, responses.List[*responses.NodeItem]{})
 	feeds.GET("/actor/:actor_id/", r.handler.FeedActor.Browse, r.setViewer).
 		Summary("A profile's posts, replies or reposts").
-		Describe("The ones the viewer may see, its pin first among its posts.").
+		Describe("The ones the viewer may see, its pin first among its posts. What a person liked (`liked`) is sent to that person alone, the latest liked first.").
 		Viewer(apidoc.Anyone).
 		Takes(requests.NewFeedActorRequest().Browse).
 		Sends(http.StatusOK, responses.List[*responses.NodeItem]{}).
 		Sends(http.StatusUnauthorized, responses.Refusal{}, "`members_only`: replies are not part of a preview").
-		Refuses(http.StatusForbidden, "the viewer may not see the profile").
+		Refuses(http.StatusForbidden, "the viewer may not see the profile, or asked for what somebody else liked").
 		Refuses(http.StatusNotFound, "there is no such profile")
 
 	// Custom feeds. Making, changing and keeping one need somebody signed

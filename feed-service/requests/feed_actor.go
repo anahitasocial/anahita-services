@@ -19,8 +19,9 @@ type FeedActorBrowseRequest struct {
 	// The profile's id.
 	ActorID int64 `param:"actor_id" validate:"required,number"`
 	// Which of the profile's lists: posts (the default), replies, reposts,
-	// or tagged, the photos and videos a person is in.
-	Filter string `query:"filter" validate:"omitempty,oneof=posts replies reposts tagged"`
+	// tagged, the photos and videos a person is in, or liked, the posts a
+	// person liked, sent to that person alone.
+	Filter string `query:"filter" validate:"omitempty,oneof=posts replies reposts tagged liked"`
 	// How many to pass over.
 	Offset uint64 `query:"start"`
 	// The most to send.

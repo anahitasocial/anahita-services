@@ -56,6 +56,12 @@ func (h *feedActorHandler) Browse(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, responses.Refusal{Error: "members_only"})
 	}
 
+	// What a person liked is theirs alone: not their followers', not the
+	// site administrators'.
+	if req.Filter == constants.FeedFilterLiked && (viewer.ID == 0 || viewer.ID != req.ActorID) {
+		return c.NoContent(http.StatusForbidden)
+	}
+
 	resp := &responses.List[*responses.NodeItem]{}
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset

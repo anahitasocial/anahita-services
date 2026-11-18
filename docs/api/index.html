@@ -9843,18 +9843,18 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </table>
 <p class="handler">Answered by <code>feed/cmd/api/handlers.(*customFeedHandler).Add</code></p>
 </details>
-<details class="route" id="getFeedsActorByActorId" data-search="get /feeds/actor/{actor_id}/ a profile&#39;s posts, replies or reposts the ones the viewer may see, its pin first among its posts.
+<details class="route" id="getFeedsActorByActorId" data-search="get /feeds/actor/{actor_id}/ a profile&#39;s posts, replies or reposts the ones the viewer may see, its pin first among its posts. what a person liked (`liked`) is sent to that person alone, the latest liked first.
 
 who may call it: anyone, signed in or not.">
 <summary><span class="method get">GET</span> <code class="path">/feeds/actor/{actor_id}/</code> <span class="summary">A profile&#39;s posts, replies or reposts</span></summary>
-<div class="description"><p>The ones the viewer may see, its pin first among its posts.</p></div>
+<div class="description"><p>The ones the viewer may see, its pin first among its posts. What a person liked (<code>liked</code>) is sent to that person alone, the latest liked first.</p></div>
 <p class="who"><strong>Who:</strong> anyone, signed in or not</p>
 <h4>Takes</h4>
 <table>
 <thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
 <tr><td><code>actor_id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
-<tr><td><code>filter</code></td><td>query</td><td>string</td><td>Which of the profile&#39;s lists: posts (the default), replies, reposts, or tagged, the photos and videos a person is in. One of <code>posts</code>, <code>replies</code>, <code>reposts</code>, <code>tagged</code>.</td></tr>
+<tr><td><code>filter</code></td><td>query</td><td>string</td><td>Which of the profile&#39;s lists: posts (the default), replies, reposts, tagged, the photos and videos a person is in, or liked, the posts a person liked, sent to that person alone. One of <code>posts</code>, <code>replies</code>, <code>reposts</code>, <code>tagged</code>, <code>liked</code>.</td></tr>
 <tr><td><code>start</code></td><td>query</td><td>integer</td><td>How many to pass over. At least 0.</td></tr>
 <tr><td><code>limit</code></td><td>query</td><td>integer</td><td>The most to send. At least 0. <code>20</code> unless given.</td></tr>
 </tbody>
@@ -9865,7 +9865,7 @@ who may call it: anyone, signed in or not.">
 <tr><td class="status s2">200</td><td>OK<div class="body">object { <code>data</code>: list of <a href="#schema-NodeItem">NodeItem</a> or null, <code>pagination</code>: <a href="#schema-Pagination">Pagination</a> } <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
 <tr><td class="status s4">401</td><td><code>members_only</code>: replies are not part of a preview<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
-<tr><td class="status s4">403</td><td>the viewer may not see the profile</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not see the profile, or asked for what somebody else liked</td></tr>
 <tr><td class="status s4">404</td><td>there is no such profile</td></tr>
 </tbody>
 </table>

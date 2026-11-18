@@ -1,6 +1,6 @@
 package constants
 
-// What a profile's feed is asked for: the three lists a profile shows.
+// What a profile's feed is asked for: the lists a profile shows.
 //
 //	posts     what was posted on the profile, and what its owner reposted.
 //	          Not replies.
@@ -8,9 +8,12 @@ package constants
 //	reposts   what its owner reposted, and nothing else.
 //	tagged    the photos and videos a person is in, their tag approved
 //	          (roadmap row 103), whoever posted them and wherever.
+//	liked     the posts a person liked, the latest liked first. Theirs
+//	          alone: nobody else is sent it.
 const (
 	FeedFilterPosts   = "posts"
 	FeedFilterReplies = "replies"
 	FeedFilterReposts = "reposts"
 	FeedFilterTagged  = "tagged"
+	FeedFilterLiked   = "liked"
 )
