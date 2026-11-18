@@ -2,7 +2,8 @@
 #
 # file-grpc-service signs in to S3 with an IAM role given to its pod (IRSA),
 # so there are no storage keys to keep. RabbitMQ still runs in the cluster.
-# docs/deploying.md has the details.
+# The way in is Traefik, as on k3s. docs/deploying-eks.md is the example
+# that makes the cluster and fills this in.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
@@ -15,6 +16,7 @@ resources:
   - ../../base
 
 components:
+  - ../../components/traefik
   - ../../components/rabbitmq
 
 patches:

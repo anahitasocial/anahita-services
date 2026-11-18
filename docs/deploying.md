@@ -36,7 +36,7 @@ managed database.
 | What | Notes |
 | --- | --- |
 | A Kubernetes cluster | Any provider's, or your own. A default StorageClass, unless the database, Redis and RabbitMQ all run elsewhere |
-| An ingress controller | A maintained one. The base names the `nginx` class; the `traefik` component changes it to Traefik, which comes with k3s. ingress-nginx itself was retired in March 2026 |
+| An ingress controller | A maintained one. The base names the `nginx` class; the `traefik` component changes it to Traefik, which comes with k3s and which the `aws` overlay uses too. ingress-nginx itself was retired in March 2026 |
 | [cert-manager](https://cert-manager.io/) | Gets and renews the Let's Encrypt certificate, and issues the certificates the services use between themselves |
 | Two DNS names | `api.` and `auth.` under your domain, both pointing at the ingress controller's address |
 | A bucket | On any S3-compatible object store. Private. See [Object storage](#object-storage) |
@@ -44,7 +44,8 @@ managed database.
 | The images | Published to GitHub's registry for each version: see [Images](#images). Or your own builds: `make build_dockerfiles` builds them all |
 
 Nothing here depends on one cloud. AWS is one option among several, and its
-overlay only differs in how it signs in to S3 and where the database lives.
+overlay only differs in how it signs in to S3, where the database lives,
+and how mail goes out.
 
 ## How the manifests are laid out
 
@@ -67,11 +68,15 @@ k8s/
   overlays/
     generic/            any cluster, any S3-compatible store
     k3s/                one server running k3s, at any provider
-    aws/                EKS with S3, RDS and ElastiCache
+    aws/                EKS with S3, RDS and ElastiCache, through Traefik
     local/              minikube, for trying the manifests
     k3d/                k3d, for trying the k3s overlay's components
   k3s/
     traefik-config.yml  for a k3s cluster itself: keeps visitors' addresses
+  eks/                  an example EKS cluster, for the aws overlay
+    cluster.yml         the cluster, for eksctl
+    storage-class.yml   gp3 as the default disk
+    traefik.yml         Traefik behind a Network Load Balancer
 ~~~
 
 It is built with [Kustomize](https://kustomize.io/), which is part of
@@ -172,7 +177,8 @@ kubectl --kubeconfig ~/.kube/<your-site>.yaml apply -f k8s/k3s/traefik-config.ym
 
 It sets Traefik's Service to `externalTrafficPolicy: Local`, which keeps the
 visitor's address. Traefik drops an `X-Forwarded-For` sent by a visitor, so
-it cannot be forged.
+it cannot be forged. The EKS example's `k8s/eks/traefik.yml` does the same
+([Deploying on EKS](deploying-eks.md#traefik-and-cert-manager)).
 
 ## Certificates between the services
 
@@ -399,21 +405,26 @@ patches:
 
 ## On AWS
 
-`k8s/overlays/aws` differs from `generic` in three ways:
+[Deploying on EKS](deploying-eks.md) is an example of the whole of it, from
+an empty account: the cluster, the bucket, the database, Redis and mail.
+`k8s/overlays/aws` differs from `generic` in four ways:
 
-- **S3 without keys.** file-grpc-service runs as a service account tied to an
-  IAM role (`service-accounts.yml`). Put your role's ARN there. The role needs
-  `s3:GetObject`, `s3:PutObject` and `s3:DeleteObject` on the bucket's
-  objects, and `s3:ListBucket` on the bucket.
-- **RDS and ElastiCache** in place of the MySQL and Redis components.
-- **SES** as the SMTP relay.
+1. **S3 without keys.** file-grpc-service runs as a service account tied to an
+   IAM role (`service-accounts.yml`). Put your role's ARN there. The role needs
+   `s3:GetObject`, `s3:PutObject` and `s3:DeleteObject` on the bucket's
+   objects, and `s3:ListBucket` on the bucket.
+2. **RDS and ElastiCache** in place of the MySQL and Redis components.
+3. **SES** as the SMTP relay.
+4. **Traefik** as the Ingress class, as on k3s. The example installs it
+   behind a Network Load Balancer, with no Helm.
 
 The key services are optional. To seal secrets and sign tokens with KMS, set
 `CRYPT_BACKEND=kms`, `AWS_KMS_KEY_ID`, `OAUTH_SIGNER_BACKEND=kms` and
 `OAUTH_KMS_KEY_ALIAS` in `config.env`, and give auth-service a service
 account with a role that may use those keys, the same way.
 
-This overlay has been checked to build. It has not been run on EKS.
+This overlay has been checked to build. It has not been run on EKS, and
+neither has the example.
 
 ## Joining the fediverse
 

@@ -1,0 +1,19 @@
+# For the cluster, not the site: applied once to an EKS cluster, before the
+# overlay (docs/deploying-eks.md). Part of the example, like cluster.yml.
+#
+# EKS marks no StorageClass as the default, so a volume asked for without
+# one, as RabbitMQ's is, would wait for ever. This one is gp3, through the
+# EBS CSI driver cluster.yml installs.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gp3
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: ebs.csi.aws.com
+parameters:
+  type: gp3
+  encrypted: "true"
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Retain
+allowVolumeExpansion: true

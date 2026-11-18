@@ -18,12 +18,19 @@ Releases before v1.0.17 are described on GitHub, under
    posts you liked, the latest liked first, for you alone: nobody else is
    sent it, the site's administrators included. It is the Likes tab on your
    own profile in Anahita Web.
+2. **An example of a site on EKS,** with RDS, ElastiCache, S3 and SES:
+   [Deploying on EKS](docs/deploying-eks.md), and `k8s/eks/` for eksctl,
+   the default disk and Traefik. An example to adapt, not run on EKS; no
+   Helm.
 
 ### Changed
 
 1. **Your own reposts are no longer in your Following feed.** A repost is
    for others to see; yours are on your profile, under Reposts. Your own
    posts, and what the profiles you follow repost, stay in it.
+2. **The `aws` overlay goes through Traefik,** as the `k3s` one does, in
+   place of ingress-nginx, retired in March 2026. A site on it installs
+   Traefik (`k8s/eks/traefik.yml`) and applies again.
 
 ## v1.3.8 Birth, 2026-11-17
 

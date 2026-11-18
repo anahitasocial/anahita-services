@@ -69,12 +69,13 @@ The pages, grouped by what they are about, each group in the order to read it.
    11. [Running more than one copy of a service](deploying.md#running-more-than-one-copy-of-a-service)
    12. [Trying it on your own machine](deploying.md#trying-it-on-your-own-machine)
    13. [One machine without Kubernetes](deploying.md#one-machine-without-kubernetes)
-5. [Releases](releases.md) — Embryo and Birth, what a version number says, and how Anahita Web and the other clients follow the services' releases
+5. [Deploying on EKS](deploying-eks.md) — an example of a site on Amazon EKS, with RDS, ElastiCache, S3 and SES, its costs, and deleting it all
+6. [Releases](releases.md) — Embryo and Birth, what a version number says, and how Anahita Web and the other clients follow the services' releases
    1. [With Anahita Web](releases.md#with-anahita-web)
    2. [Version numbers](releases.md#version-numbers)
    3. [Making one](releases.md#making-one)
    4. [What is rebuilt](releases.md#what-is-rebuilt)
-6. [Licensing](licensing.md) — what the licences allow, for running a site and for building on it
+7. [Licensing](licensing.md) — what the licences allow, for running a site and for building on it
 
 ### AI agents
 
@@ -500,7 +501,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [The API reference, made from the code](plans/done/api-reference.md) | 38 | done 2026-10-15: every route described, `docs/api/index.html`, answers checked in the handler tests |
 | [Documentation agents can use, and an MCP server](plans/done/docs-for-agents.md) | 39 | done 2026-10-27: the MCP server is anahita-mcp |
 | [Anahita Recipes: a site ready to run, for each purpose](plans/recipes.md) | 40 | planned again 2026-11-07 by purpose: `commons` and `php-migration` first, each a directory that stands alone in `anahita-recipes`; anahita-web's roadmap row 30 |
-| [Running Anahita on k3s and on EKS](plans/k3s-and-eks.md) | 76 | planned 2026-10-22: a manual for both, with sizes and costs, tried on k3d, a rented server and EKS |
+| [Running Anahita on k3s and on EKS](plans/done/k3s-and-eks.md) | 76 | done 2026-11-18: the `k3s` overlay and its components, tried on k3d; the k3s manual became the recipes, run on banu.io; [Deploying on EKS](deploying-eks.md), an example not run on EKS (the user's choice) |
 | [Sweeping away unused hashtags and locations](plans/done/tag-sweep.md) | 88 | done 2026-10-27: the sweeper removes a hashtag or location no post carries, a day old, but a location a feed names; `sweeper -tags-only` |
 | [Sweeping away stored files nothing names](plans/done/file-sweep.md) | 89 | done 2026-11-07: a nightly sweep through file-grpc-service's `Browse` removes what no row names under `assets/v1/`, a day old, kept unless sure; dry until FILE_SWEEP=on |
 | [BREAD names in the services' code](plans/done/bread-names.md) | 127 | done 2026-11-07: thirty functions named List, Remove or Update renamed Browse, Delete and Edit; five gRPC methods under both names for one release |

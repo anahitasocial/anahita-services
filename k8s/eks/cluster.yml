@@ -1,0 +1,94 @@
+# An example EKS cluster for Anahita, for eksctl (docs/deploying-eks.md).
+#
+# AN EXAMPLE, NOT A RECOMMENDATION. The name, the region, the Kubernetes
+# version, the size and number of nodes and the bucket are this example's;
+# put in your own. It has not been run end to end on EKS.
+#
+#   eksctl create cluster -f k8s/eks/cluster.yml --write-kubeconfig=false
+#
+# One file holds the whole cluster: the network, the nodes, the add-ons and
+# the role file-grpc-service signs in to S3 with, so that the cluster is
+# made, and deleted, with one command and nothing done by hand in the
+# console.
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: anahita
+  # Every AWS resource of the site in one region.
+  region: ca-central-1
+  # One of the versions EKS offers in standard support on the day: older
+  # ones cost more in extended support.
+  version: "1.36"
+
+# EKS needs subnets in two zones at least.
+availabilityZones:
+  - ca-central-1a
+  - ca-central-1b
+
+# The nodes are in the public subnets, reached only through the security
+# groups eksctl makes, so no NAT gateway is needed: it would add a fixed
+# cost every month and one for every gigabyte through it.
+vpc:
+  nat:
+    gateway: Disable
+
+iam:
+  # Lets a pod's service account be given an IAM role (IRSA).
+  withOIDC: true
+  serviceAccounts:
+    # The role file-grpc-service runs as. The service account itself is in
+    # the overlay (k8s/overlays/aws/service-accounts.yml), which names this
+    # role's ARN: arn:aws:iam::<account id>:role/anahita-files.
+    - metadata:
+        name: file-grpc-service
+        namespace: anahita
+      roleName: anahita-files
+      roleOnly: true
+      attachPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:GetObject
+              - s3:PutObject
+              - s3:DeleteObject
+            Resource: arn:aws:s3:::example-anahita/*
+          - Effect: Allow
+            Action:
+              - s3:ListBucket
+            Resource: arn:aws:s3:::example-anahita
+
+addons:
+  # Prefix delegation: each node takes up to 110 pods, not the 17 a
+  # t3.medium's network interfaces allow one address at a time. Anahita
+  # runs about thirty.
+  - name: vpc-cni
+    configurationValues: '{"env":{"ENABLE_PREFIX_DELEGATION":"true"}}'
+  - name: coredns
+  - name: kube-proxy
+  # Disks for what runs with a volume in the cluster: RabbitMQ here, and
+  # MySQL and Redis too if their components are used in place of RDS and
+  # ElastiCache. k8s/eks/storage-class.yml makes gp3 the default.
+  - name: aws-ebs-csi-driver
+    wellKnownPolicies:
+      ebsCSIController: true
+
+managedNodeGroups:
+  # Numbered, so that a node group of another size can be made beside it,
+  # the pods moved, and this one deleted (docs/deploying-eks.md, Upgrading).
+  - name: anahita-1
+    instanceType: t3.medium
+    # Or spot, for less, with more than one type to choose from:
+    # instanceTypes: [t3.medium, t3a.medium]
+    # spot: true
+    desiredCapacity: 2
+    minSize: 2
+    maxSize: 3
+    maxPodsPerNode: 110
+    volumeSize: 30
+    volumeType: gp3
+    amiFamily: AmazonLinux2023
+    # No SSH. A node is reached, when it has to be, with Session Manager.
+    ssh:
+      allow: false

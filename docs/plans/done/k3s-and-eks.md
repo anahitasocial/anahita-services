@@ -2,11 +2,11 @@
 
 *Roadmap row 93, planned 2026-10-22. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
 
-**Status:** planned 2026-10-22. Phases 1 and 2 done on 2026-10-26; phase 3 next.
+**Status:** done 2026-11-18. Phases 1 and 2 on 2026-10-26; phase 3 through the recipes; phase 4 written as an example, not run on EKS, at the user's word.
 
 ## Context
 
-[Deploying](../deploying.md) explains how to run Anahita on any Kubernetes
+[Deploying](../../deploying.md) explains how to run Anahita on any Kubernetes
 cluster, with two overlays: `generic`, for any cluster and any
 S3-compatible store, and `aws`, for EKS with S3, RDS and ElastiCache. It does
 not say which cluster to choose, how big, or what it costs, and the `aws`
@@ -159,7 +159,7 @@ the load balancer, IRSA, RDS and ElastiCache or in the cluster, costs.
 
 ### Not in this row
 
-- Recipes for kinds of sites (row 30, [recipes.md](recipes.md)): a recipe
+- Recipes for kinds of sites (row 30, [recipes.md](../recipes.md)): a recipe
   says what a site turns on, this row says where it runs. Both end up in
   `anahita-recipes`.
 - Any one site's deployment.
@@ -175,6 +175,11 @@ the load balancer, IRSA, RDS and ElastiCache or in the cluster, costs.
 | `k8s/overlays/k3d` | The same components and `mailpit` (a component, so a site can catch its mail before it opens), development settings, names under `localhost` at port 8088 |
 | `k8s/k3s/traefik-config.yml` | A HelmChartConfig for k3s's Traefik: `externalTrafficPolicy: Local` |
 | `Makefile` | `k3d-start`, `k3d-build`, `k3d-deploy`, `k3d-cleanup`; `k8s-start` with `--keep-context`; both start targets stop if kubectl's current context changed |
+| anahita-recipes | The k3s manual: each recipe's README, from an empty server to the first person signed in, with upgrading and backups; `docs/providers.md` for the server and where to rent one. Run on banu.io, and smoke-tested on GitHub's runners |
+| `k8s/eks/cluster.yml` | An example cluster for eksctl: no NAT gateway, prefix delegation, the EBS CSI driver, two `t3.medium` nodes without SSH, and file-grpc-service's S3 role |
+| `k8s/eks/storage-class.yml`, `k8s/eks/traefik.yml` | gp3 as the default disk; Traefik behind a Network Load Balancer, the visitor's address kept |
+| `k8s/overlays/aws` | Traefik's Ingress class, in place of ingress-nginx, retired |
+| `docs/deploying-eks.md` | The EKS example, from an empty account: costs, the cluster, the bucket, RDS, ElastiCache, SES, upgrading and deleting it all |
 
 ## Different from the plan
 
@@ -186,6 +191,17 @@ the load balancer, IRSA, RDS and ElastiCache or in the cluster, costs.
   Traefik.
 - **Mail on k3d:** the `k3d` overlay has its own mailpit, so a person can
   sign up without docker-compose.
+- **No `docs/deploying-k3s.md`.** The recipes are the k3s manual: a folder to
+  copy, every step one `make` word, and `docs/deploying.md` sends people to
+  them first. A page here would have said the same less usefully.
+- **EKS is an example, not tried** (the user, 2026-11-18: "We don't have to
+  do an eks deployment"). The manual says so at its top, and that its sizes
+  are to be replaced with one's own. eksctl checks a file only when signed
+  in to an account, so `cluster.yml` is checked to parse, and the overlay
+  to build.
+- **No Helm,** on EKS as elsewhere: the add-ons are eksctl's, cert-manager
+  and Traefik plain manifests, and EKS makes the load balancer for
+  Traefik's Service without the AWS Load Balancer Controller.
 
 ## Phases
 
@@ -199,8 +215,11 @@ the load balancer, IRSA, RDS and ElastiCache or in the cluster, costs.
    unsigned was refused; a backup sent to the bucket and restored into an
    empty database, all 47 tables back. `~/.kube/config` was the same, byte
    for byte, after `make k3d-start`.
-3. The k3s manual; tried on a real server. It starts from the `classique` recipe (then `commons`) in `anahita-recipes` ([recipes.md](recipes.md)), made then from banu.io's overlay, so the manual and the starting point are tried together on banu.io's server.
-4. The EKS manual; the `aws` overlay tried on EKS and corrected.
+3. The k3s manual; tried on a real server. **Done through the recipes,**
+   run on banu.io's server. It starts from the `classique` recipe (then `commons`) in `anahita-recipes` ([recipes.md](../recipes.md)), made then from banu.io's overlay, so the manual and the starting point are tried together on banu.io's server.
+4. The EKS manual; the `aws` overlay tried on EKS and corrected. **Written
+   2026-11-18 as an example** (`docs/deploying-eks.md`, `k8s/eks/`), the
+   overlay moved to Traefik; not run on EKS.
 
 ## Docs to change
 
