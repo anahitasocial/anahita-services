@@ -5,11 +5,13 @@
 The pages for running a live site from day to day.
 
 1. **Upgrading** to a new release: [Upgrading](deploying.md#upgrading). The
-   migration job brings the database up to date.
+   migration job brings the database up to date. On EKS, the cluster and its
+   nodes too: [Upgrading](deploying-eks.md#upgrading).
 2. **The database, Redis and RabbitMQ.** What runs in the cluster, and using a
    managed service instead:
    [Database, Redis and RabbitMQ](deploying.md#database-redis-and-rabbitmq).
-   Nothing backs them up for you.
+   Nothing in the cluster backs them up for you; on EKS, RDS keeps its
+   own: [Backups](deploying-eks.md#backups).
 3. **Storage.** What is in the bucket, and moving an old one to the current
    layout: [Object storage](deploying.md#object-storage).
 4. **Running more than one copy** of a service:

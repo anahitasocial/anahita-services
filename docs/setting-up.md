@@ -22,8 +22,9 @@ linked where they come in.
 4. [Privacy](privacy.md): who can see a post, a profile and the site, and the
    two settings that decide it for the whole installation.
 5. [Deploying](deploying.md): a live site on Kubernetes, on any provider.
-   Hostnames, certificates, object storage, and the database. The web app is
-   built and hosted on its own:
+   Hostnames, certificates, object storage, and the database. On Amazon EKS,
+   [Deploying on EKS](deploying-eks.md) is an example from an empty account,
+   to adapt with your own sizes. The web app is built and hosted on its own:
    [Deploying the web app](https://github.com/anahitasocial/anahita-web/blob/main/docs/deploying.md).
 6. [Federation](federation.md#setting-it-up): joining the fediverse and
    Bluesky. It is off until you turn it on, and each profile then chooses for
