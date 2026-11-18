@@ -50,7 +50,7 @@ site's administrators.
 
 | What | Where |
 | --- | --- |
-| The routes | `actor-service/cmd/api/routes.go`, under `people` |
+| The routes | `actor-service/cmd/api/routes_people.go` |
 | The handlers | `actor-service/cmd/api/handlers/person*.go` |
 | What a person is sent as | `actor-service/responses/person.go` |
 | Signing up and in | `auth-service` ([Registration](registration.md), [Signing in](signing-in.md)) |

@@ -33,46 +33,69 @@ func NewRoutes(
 // the descriptions: docs/api/identity-image-service.json is made of them.
 func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	doc := apidoc.NewService("identity-image-service", "Profile and cover photos",
-		"A profile's photo, which stands for it, and the cover photo across the top of a profile or a post. The code calls the first an avatar.")
+		"A profile's photo, which stands for it, and the cover photo across the top of a profile "+
+			"or a post. The code calls the first an avatar.")
 	api := doc.On(e)
 
+	// --- Public addresses ---
 	// A public profile's pictures at an address that does not change, for
 	// other servers to keep: by the node's UUID, answered with a redirect to
-	// a freshly signed address. No token is needed, and whoever is asking
-	// makes no difference: see handlers/public.go for what is answered for.
+	// a freshly signed address. Public: no token is needed, and r.setViewer
+	// is on each, though whoever is asking makes no difference: see
+	// handlers/public.go for what is answered for.
+
+	// public describes both public addresses; what names the picture.
 	public := func(what string) func(*apidoc.Route) {
 		return func(route *apidoc.Route) {
 			route.
 				Summary(what+", at an address that does not change").
-				Describe("For other servers, which keep the address of a picture for weeks: a redirect to a freshly signed address in storage. Only what anybody may see is answered for; anything else, on a site for members included, is not found, in the same words as what does not exist.").
+				Describe("For other servers, which keep the address of a picture for weeks: a "+
+					"redirect to a freshly signed address in storage. Only what anybody may see "+
+					"is answered for; anything else, on a site for members included, is not "+
+					"found, in the same words as what does not exist.").
 				Viewer(apidoc.Anyone).
 				Takes(&handlers.PublicImageRequest{}).
 				SendsNothing(http.StatusFound, "the picture is at the address in Location").
 				Refuses(http.StatusNotFound, "there is no such picture that anybody may see")
 		}
 	}
-	api.GET("/avatars/:uuid/:size", r.handler.Image.PublicAvatar, r.setViewer).With(public("A public profile's avatar"))
-	api.GET("/covers/:uuid/:size", r.handler.Image.PublicCover, r.setViewer).With(public("A public profile's or post's cover"))
 
+	api.GET("/avatars/:uuid/:size", r.handler.Image.PublicAvatar, r.setViewer).
+		With(public("A public profile's avatar"))
+
+	api.GET("/covers/:uuid/:size", r.handler.Image.PublicCover, r.setViewer).
+		With(public("A public profile's or post's cover"))
+
+	// --- Setting and removing a picture ---
 	// Each kind of image keeps the address it had when it was a service of
-	// its own, and the gateway sends both here. Every route needs a valid
-	// OAuth access token; whether that person may change this node is
-	// decided in the handler.
+	// its own, and the gateway sends both here. Every route needs a token
+	// (r.authorize); whether that person may change this node is decided
+	// in the handler.
+
+	// set describes uploading a picture: what kind it is, on what it may
+	// be, and the form that carries it.
 	set := func(what, on string, upload any) func(*apidoc.Route) {
 		return func(route *apidoc.Route) {
 			route.
 				Summary("Set the "+what+" of "+on).
-				Describe("Replaces any there was, which is removed from storage. Answers with each size of the new one, at addresses good for a short while.").
+				Describe("Replaces any there was, which is removed from storage. Answers with "+
+					"each size of the new one, at addresses good for a short while.").
 				Viewer(apidoc.SignedIn).
 				Takes(upload).
 				Sends(http.StatusCreated, map[string]responses.Image{}).
-				Sends(http.StatusBadRequest, responses.Refusal{}, "`file_required` when no file was sent, `file_unreadable` when it cannot be read as a picture").
-				Refuses(http.StatusForbidden, "it cannot have one, or the viewer may not change it").
-				Refuses(http.StatusNotFound, "there is no such profile or post, or the viewer may not see it").
-				Sends(http.StatusRequestEntityTooLarge, responses.Refusal{}, "`file_too_large`: more than 10 MB, or too many pixels").
-				Sends(http.StatusUnsupportedMediaType, responses.Refusal{}, "`file_unsupported`: not a JPEG, a PNG, a WebP, a HEIC or an AVIF")
+				Sends(http.StatusBadRequest, responses.Refusal{}, "`file_required` when no file "+
+					"was sent, `file_unreadable` when it cannot be read as a picture").
+				Refuses(http.StatusForbidden,
+					"it cannot have one, or the viewer may not change it").
+				Refuses(http.StatusNotFound,
+					"there is no such profile or post, or the viewer may not see it").
+				Sends(http.StatusRequestEntityTooLarge, responses.Refusal{}, "`file_too_large`: "+
+					"more than 10 MB, or too many pixels").
+				Sends(http.StatusUnsupportedMediaType, responses.Refusal{}, "`file_unsupported`: "+
+					"not a JPEG, a PNG, a WebP, a HEIC or an AVIF")
 		}
 	}
+	// remove describes taking a picture away, in the same words as set.
 	remove := func(what, on string) func(*apidoc.Route) {
 		return func(route *apidoc.Route) {
 			route.
@@ -80,18 +103,27 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 				Viewer(apidoc.SignedIn).
 				Takes(&handlers.NodeImageRequest{}).
 				SendsNothing(http.StatusOK, "it has none now, whether or not it had one").
-				Refuses(http.StatusForbidden, "it cannot have one, or the viewer may not change it").
-				Refuses(http.StatusNotFound, "there is no such profile or post, or the viewer may not see it")
+				Refuses(http.StatusForbidden,
+					"it cannot have one, or the viewer may not change it").
+				Refuses(http.StatusNotFound,
+					"there is no such profile or post, or the viewer may not see it")
 		}
 	}
 
 	avatars := api.Group("avatars", r.authorize)
-	avatars.POST("/:node_id/", r.handler.Image.SetAvatar).With(set("avatar", "a profile", &handlers.AvatarUpload{}))
+
+	avatars.POST("/:node_id/", r.handler.Image.SetAvatar).
+		With(set("avatar", "a profile", &handlers.AvatarUpload{}))
+
 	avatars.DELETE("/:node_id/", r.handler.Image.DeleteAvatar).With(remove("avatar", "a profile"))
 
 	covers := api.Group("covers", r.authorize)
-	covers.POST("/:node_id/", r.handler.Image.SetCover).With(set("cover", "a profile or a post", &handlers.CoverUpload{}))
-	covers.DELETE("/:node_id/", r.handler.Image.DeleteCover).With(remove("cover", "a profile or a post"))
+
+	covers.POST("/:node_id/", r.handler.Image.SetCover).
+		With(set("cover", "a profile or a post", &handlers.CoverUpload{}))
+
+	covers.DELETE("/:node_id/", r.handler.Image.DeleteCover).
+		With(remove("cover", "a profile or a post"))
 
 	return doc
 }

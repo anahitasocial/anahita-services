@@ -28,12 +28,21 @@ func NewRoutes(handler *handlers.Handlers, authorize echo.MiddlewareFunc) *Route
 // the two a route is for is checked in its handler.
 func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	doc := apidoc.NewService("abuse-report-service", "Abuse reports",
-		"Reporting a post, a reply or a profile, and the administrators' queue of what was reported. Optional: an installation may not run it (abuse-reports.md).")
+		"Reporting a post, a reply or a profile, and the administrators' queue of what was "+
+			"reported. Optional: an installation may not run it (abuse-reports.md).")
 	api := doc.On(e)
-	reports := api.Group("abuse-reports", r.authorize)
+
+	// The scope each kind of route asks for: making a report is the
+	// reporter's own, reading cases and deciding them are an
+	// administrator's.
 	report := libs_constants.OAuthScopeAccountWrite
 	readCases := libs_constants.OAuthScopeActorsRead
 	decide := libs_constants.OAuthScopeActorsWrite
+
+	// --- Reporting ---
+	// Every route in the group needs a token (r.authorize). These are for
+	// any member: what may be reported, and the report itself.
+	reports := api.Group("abuse-reports", r.authorize)
 
 	reports.GET("/reasons", r.handler.Reasons.Browse).
 		Summary("What a thing may be reported for").
@@ -42,23 +51,43 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Scope(report).
 		Takes(&requests.ReasonsBrowse{}).
 		Sends(http.StatusOK, libs_responses.Unpaged[responses.Reason]{})
+
+	// add describes making a report, which is registered twice, with and
+	// without the trailing slash.
 	add := func(route *apidoc.Route) {
 		route.
 			Summary("Report something").
-			Describe("Nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. A thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. Twenty reports an hour at most. With `reason_key` `rule`, it breaks one of the rules everybody ticked, named by its title in `rule`: the site's (`rule_profile_id` 0, from `GET /site`) or those of the group or event it is in, or is (its id).").
+			Describe("Nobody is told: the person reported never learns of the report or who made "+
+				"it, and administrators find it in their queue. A thing the viewer cannot see "+
+				"answers exactly as one that does not exist, so that reporting is no way to find "+
+				"out what is hidden. Twenty reports an hour at most. With `reason_key` `rule`, it "+
+				"breaks one of the rules everybody ticked, named by its title in `rule`: the "+
+				"site's (`rule_profile_id` 0, from `GET /site`) or those of the group or event it "+
+				"is in, or is (its id).").
 			Viewer(apidoc.SignedIn).
 			Scope(report).
 			Takes(&requests.ReportAdd{}).
 			SendsNothing(http.StatusCreated, "reported").
-			SendsNothing(http.StatusOK, "the viewer had reported it already; their report was updated").
-			Sends(http.StatusBadRequest, libs_responses.Refusal{}, "`own_content`, it is the viewer's own; `reason_not_applicable`, the reason is not for this kind of thing; `details_required`, the reason needs the reporter's own words; `rule_required`, `rule` is empty; `rule_not_applicable`, it is not one of that profile's rules, or the thing is not in that profile; or not well formed, without a body").
+			SendsNothing(http.StatusOK,
+				"the viewer had reported it already; their report was updated").
+			Sends(http.StatusBadRequest, libs_responses.Refusal{}, "`own_content`, it is the "+
+				"viewer's own; `reason_not_applicable`, the reason is not for this kind of thing; "+
+				"`details_required`, the reason needs the reporter's own words; `rule_required`, "+
+				"`rule` is empty; `rule_not_applicable`, it is not one of that profile's rules, "+
+				"or the thing is not in that profile; or not well formed, without a body").
 			Refuses(http.StatusNotFound, "there is no such thing that the viewer can see").
 			Refuses(http.StatusTooManyRequests, "too many reports in the last hour")
 	}
+
 	reports.POST("", r.handler.Reports.Add).With(add)
+
 	reports.POST("/", r.handler.Reports.Add).With(add)
 
-	// "summary" before ":id", so it is not read as a case's id.
+	// --- Cases ---
+	// The queue of what was reported, for the site's administrators, and a
+	// group's or an event's own reports for its administrators. Every
+	// route needs a token (r.authorize); who may see which is checked in
+	// the handlers.
 	reports.GET("/cases", r.handler.Cases.Browse).
 		Summary("Cases").
 		Describe("What was reported, one case for each thing, however many reported it.").
@@ -66,22 +95,30 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Scope(readCases).
 		Takes(&requests.CasesBrowse{}).
 		Sends(http.StatusOK, libs_responses.List[responses.Case]{})
-	// A group's or an event's own reports, for its administrators: the
-	// reports against its rules, with nobody's name (roadmap row 102).
+
+	// The reports against a group's or an event's rules carry nobody's
+	// name (roadmap row 102).
 	reports.GET("/profiles/:id/cases", r.handler.Cases.BrowseForProfile).
 		Summary("A group's or an event's reports").
-		Describe("The cases with a report against a group's or an event's rules, newest first, each with those reports: the rule, the reporter's words and when, never who made them. For its administrators and the site's. They act on what was reported where it is, by deleting or hiding it, which closes its case; deciding the case stays with the site's administrators.").
+		Describe("The cases with a report against a group's or an event's rules, newest first, "+
+			"each with those reports: the rule, the reporter's words and when, never who made "+
+			"them. For its administrators and the site's. They act on what was reported where it "+
+			"is, by deleting or hiding it, which closes its case; deciding the case stays with "+
+			"the site's administrators.").
 		Viewer(apidoc.SignedIn).
 		Scope(readCases).
 		Takes(&requests.ProfileCasesBrowse{}).
 		Sends(http.StatusOK, libs_responses.List[responses.ProfileCase]{}).
 		Refuses(http.StatusForbidden, "the viewer administers neither it nor the site").
 		Refuses(http.StatusNotFound, "there is no such group or event")
+
+	// "summary" before ":id", so it is not read as a case's id.
 	reports.GET("/cases/summary", r.handler.Cases.Summary).
 		Summary("How many cases are open").
 		Viewer(apidoc.Admin).
 		Scope(readCases).
 		Sends(http.StatusOK, responses.CaseSummary{})
+
 	reports.GET("/cases/:id", r.handler.Cases.Read).
 		Summary("One case").
 		Describe("With each report, and the earlier cases about the same thing.").
@@ -90,6 +127,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Takes(&requests.CaseRead{}).
 		Sends(http.StatusOK, responses.CaseDetail{}).
 		Refuses(http.StatusNotFound, "there is no such case")
+
 	reports.POST("/cases/:id/resolve", r.handler.Cases.Resolve).
 		Summary("Decide a case").
 		Viewer(apidoc.Admin).
@@ -98,6 +136,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		SendsNothing(http.StatusNoContent, "decided").
 		Refuses(http.StatusNotFound, "there is no such case").
 		Sends(http.StatusConflict, libs_responses.Refusal{}, "`already_decided`")
+
 	reports.POST("/cases/:id/reopen", r.handler.Cases.Reopen).
 		Summary("Reopen a case").
 		Viewer(apidoc.Admin).
@@ -105,7 +144,8 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Takes(&requests.CaseReopen{}).
 		SendsNothing(http.StatusNoContent, "open again").
 		Refuses(http.StatusNotFound, "there is no such case").
-		Sends(http.StatusConflict, libs_responses.Refusal{}, "`already_open`; or `newer_case_open`, a later case about the same thing is open")
+		Sends(http.StatusConflict, libs_responses.Refusal{}, "`already_open`; or "+
+			"`newer_case_open`, a later case about the same thing is open")
 
 	return doc
 }

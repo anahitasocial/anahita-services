@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -145,28 +146,48 @@ func TestAVisitorCannotReadRepliesOnAMembersOnlySite(t *testing.T) {
 // SetViewer cannot know that one list is of replies and another of posts.
 // These are the three, and a fourth such route has to be added here.
 func TestTheRoutesAPreviewLeavesOutSaySo(t *testing.T) {
-	for file, routes := range map[string][]string{
+	// A route's call runs from its path to the ")" that ends a line, its
+	// handler and middleware wrapped onto the lines after the path or not.
+	callEnd := regexp.MustCompile(`\)\.?[ \t]*\n`)
+
+	for service, routes := range map[string][]string{
 		"text-service":        {`notes.GET("/:id/thread"`},
 		"socialgraph-service": {`"/:actor_id/followers/"`, `"/:actor_id/leaders/"`},
 	} {
-		source, err := os.ReadFile(filepath.Join("..", "..", file, "cmd", "api", "routes.go"))
-		if err != nil {
-			t.Fatalf("reading %s: %v", file, err)
+		// The service's routes.go, and the routes_*.go a long one is split
+		// into, read as one.
+		files, err := filepath.Glob(filepath.Join("..", "..", service, "cmd", "api", "routes*.go"))
+		if err != nil || len(files) == 0 {
+			t.Fatalf("finding the routes files of %s: %v", service, err)
+		}
+		source := ""
+		for _, file := range files {
+			read, err := os.ReadFile(file)
+			if err != nil {
+				t.Fatalf("reading %s: %v", file, err)
+			}
+			source += string(read) + "\n"
 		}
 
 		for _, route := range routes {
 			found := false
-			for _, line := range strings.Split(string(source), "\n") {
-				if strings.Contains(line, route) && !strings.HasPrefix(strings.TrimSpace(line), "//") {
-					found = true
-					if !strings.Contains(line, "MembersInPreview()") {
-						t.Errorf("%s serves %s to visitors on a preview site: %s",
-							file, route, strings.TrimSpace(line))
-					}
+			for _, line := range strings.Split(source, "\n") {
+				if !strings.Contains(line, route) || strings.HasPrefix(strings.TrimSpace(line), "//") {
+					continue
+				}
+				found = true
+				start := strings.Index(source, line)
+				call := source[start:]
+				if end := callEnd.FindStringIndex(call); end != nil {
+					call = call[:end[1]]
+				}
+				if !strings.Contains(call, "MembersInPreview()") {
+					t.Errorf("%s serves %s to visitors on a preview site: %s",
+						service, route, strings.TrimSpace(call))
 				}
 			}
 			if !found {
-				t.Errorf("%s: could not find the route %s; has it moved?", file, route)
+				t.Errorf("%s: could not find the route %s; has it moved?", service, route)
 			}
 		}
 	}

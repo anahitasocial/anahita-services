@@ -35,33 +35,52 @@ func NewRoutes(
 // the descriptions: docs/api/video-service.json is made of them.
 func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	doc := apidoc.NewService("video-service", "Video posts",
-		"Posts of a video, a GIF or an animated PNG, sent straight to storage in parts and made ready by a worker in several sizes; and replies with one (videos.md). Optional: off until the installation turns video on.")
+		"Posts of a video, a GIF or an animated PNG, sent straight to storage in parts and made "+
+			"ready by a worker in several sizes; and replies with one (videos.md). Optional: off "+
+			"until the installation turns video on.")
 	api := doc.On(e)
+
+	// write is the scope every route that changes a post asks for.
 	write := libs_constants.OAuthScopeMediaWrite
+
+	// media holds what each route takes, shared by every kind of post.
 	media := requests.NewMediumRequest()
+
+	// reply is the refusal of a setting asked of a reply, which follows
+	// the post at the top of its thread.
 	reply := "`reply_follows_its_thread`: a reply has no setting of its own; its thread decides"
+
+	// mine is the refusal of every route about one upload.
 	mine := "there is no such upload of the viewer's"
 
-	// videos — the read routes are public but still identify the caller
-	// when a token is present, so the viewer drives access filtering.
-	// Everything else requires a valid OAuth access token.
+	// --- Videos ---
+	// The group carries no middleware: each route names its own. The
+	// reads are public: no token is needed, and when one is sent the
+	// caller is known (r.setViewer), so that what is answered is what the
+	// viewer may see. Everything else needs a token (r.authorize).
 	videos := api.Group("videos")
 
-	// The uploads. Registered before the routes with an id in the same
-	// place, which a word is never mistaken for.
+	// --- Uploads ---
+	// A video is sent straight to storage in parts. Registered before the
+	// routes with an id in the same place, which a word is never mistaken
+	// for. Every route needs a token (r.authorize).
 	videos.GET("/uploads", r.handler.Video.UploadBrowse, r.authorize).
 		Summary("The viewer's uploads").
-		Describe("Those being sent or waiting for the worker, and those that failed in the last day, the latest first.").
+		Describe("Those being sent or waiting for the worker, and those that failed in the last "+
+			"day, the latest first.").
 		Viewer(apidoc.SignedIn).
 		Sends(http.StatusOK, responses.Unpaged[*handlers.UploadResponse]{})
+
 	videos.GET("/uploads/:id", r.handler.Video.UploadRead, r.authorize).
 		Summary("One upload").
-		Describe("Asked again until it is `ready`, when `node_id` is the post, or `failed`, when `error` says why.").
+		Describe("Asked again until it is `ready`, when `node_id` is the post, or `failed`, when "+
+			"`error` says why.").
 		Viewer(apidoc.SignedIn).
 		Takes(&handlers.UploadRef{}).
 		Unbound().
 		Sends(http.StatusOK, handlers.UploadResponse{}).
 		Refuses(http.StatusNotFound, mine)
+
 	videos.POST("/uploads/:id/parts", r.handler.Video.UploadParts, r.authorize).
 		Summary("Where to send some parts").
 		Describe("Signed addresses, good for an hour, each part sent to its own with PUT.").
@@ -69,7 +88,9 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Takes(&handlers.UploadPartsRequest{}).
 		Sends(http.StatusOK, responses.Unpaged[handlers.UploadPart]{}).
 		Refuses(http.StatusNotFound, mine).
-		Sends(http.StatusConflict, responses.Refusal{}, "`not_uploading`: it is not being sent any more")
+		Sends(http.StatusConflict, responses.Refusal{},
+			"`not_uploading`: it is not being sent any more")
+
 	videos.POST("/uploads/:id/complete", r.handler.Video.UploadComplete, r.authorize).
 		Summary("Say every part is sent").
 		Describe("The worker then makes the post. Said twice, the answer is how it stands.").
@@ -79,7 +100,9 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Sends(http.StatusOK, handlers.UploadResponse{}).
 		Refuses(http.StatusNotFound, mine).
 		Sends(http.StatusConflict, responses.Refusal{}, "`nothing_sent`").
-		Sends(http.StatusRequestEntityTooLarge, responses.Refusal{}, "`too_large`: what was sent is larger than it may be")
+		Sends(http.StatusRequestEntityTooLarge, responses.Refusal{},
+			"`too_large`: what was sent is larger than it may be")
+
 	videos.DELETE("/uploads/:id", r.handler.Video.UploadCancel, r.authorize).
 		Summary("Give an upload up").
 		Describe("One being sent, waiting for the worker, or failed.").
@@ -89,29 +112,45 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		SendsNothing(http.StatusNoContent, "given up").
 		Refuses(http.StatusNotFound, mine).
 		Sends(http.StatusConflict, responses.Refusal{}, "`finished`: it is a post already")
+
 	videos.POST("/:owner_id/uploads", r.handler.Video.UploadStart, r.authorize).
 		Summary("Begin a video post").
-		Describe("Everything about the post is settled here, as when any post is made, and the file is then sent straight to storage in parts (`POST /videos/uploads/{id}/parts`). With `parent_id`, a reply with a video, on its author's own profile. In a thread written in one go (roadmap row 143), `thread_after` is the notes after it, made once its post is, and `after_upload` the viewer's earlier upload in the same thread, which this one waits for and answers the notes after.").
+		Describe("Everything about the post is settled here, as when any post is made, and the "+
+			"file is then sent straight to storage in parts (`POST /videos/uploads/{id}/parts`). "+
+			"With `parent_id`, a reply with a video, on its author's own profile. In a thread "+
+			"written in one go (roadmap row 143), `thread_after` is the notes after it, made once "+
+			"its post is, and `after_upload` the viewer's earlier upload in the same thread, "+
+			"which this one waits for and answers the notes after.").
 		Viewer(apidoc.SignedIn).
 		Scope(write).
 		Takes(&handlers.UploadStartRequest{}).
 		Sends(http.StatusCreated, handlers.UploadResponse{}).
-		Sends(http.StatusBadRequest, responses.Refusal{}, "`language_invalid`, `reply_access_invalid` or `quote_policy_invalid`; or not well formed, without a body").
-		Sends(http.StatusForbidden, responses.Refusal{}, "`uploads_off`: this installation takes no video; `audio_off`: it takes no sound (`AUDIO_UPLOADS`); or the viewer may not post or reply here, without a body").
-		Refuses(http.StatusNotFound, "there is no such profile, or nothing it answers that the viewer may see").
+		Sends(http.StatusBadRequest, responses.Refusal{}, "`language_invalid`, "+
+			"`reply_access_invalid` or `quote_policy_invalid`; or not well formed, without a body").
+		Sends(http.StatusForbidden, responses.Refusal{}, "`uploads_off`: this installation takes "+
+			"no video; `audio_off`: it takes no sound (`AUDIO_UPLOADS`); or the viewer may not "+
+			"post or reply here, without a body").
+		Refuses(http.StatusNotFound,
+			"there is no such profile, or nothing it answers that the viewer may see").
 		Refuses(http.StatusGone, "it answers a reply that was removed").
-		Sends(http.StatusConflict, responses.Refusal{}, "`thread_stopped`: the upload it would follow failed or was given up").
+		Sends(http.StatusConflict, responses.Refusal{}, "`thread_stopped`: the upload it would "+
+			"follow failed or was given up").
 		Sends(http.StatusRequestEntityTooLarge, handlers.UploadTooLarge{}).
 		Sends(http.StatusUnsupportedMediaType, responses.Refusal{}, "`not_a_video`").
 		Sends(http.StatusUnprocessableEntity, responses.AudienceRefusal{}).
-		Sends(http.StatusTooManyRequests, responses.Refusal{}, "`too_many`: as many as may be begun in a day")
+		Sends(http.StatusTooManyRequests, responses.Refusal{},
+			"`too_many`: as many as may be begun in a day")
 
+	// --- Video posts ---
+	// The reads are public (r.setViewer); changing or deleting a post
+	// needs a token (r.authorize).
 	videos.GET("/:owner_id/", r.handler.Video.Browse, r.setViewer).
 		Summary("A profile's video posts, or its audio posts").
 		Describe("Those the viewer may see. With `?type=audio`, its audio posts (roadmap row 137).").
 		Viewer(apidoc.Anyone).
 		Takes(media.Browse).
 		Sends(http.StatusOK, responses.List[*responses.MediumNodeItem]{})
+
 	videos.GET("/:id", r.handler.Video.Read, r.setViewer).
 		Summary("One video post").
 		Viewer(apidoc.Anyone).
@@ -119,6 +158,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Sends(http.StatusOK, responses.MediumNode{}).
 		Refuses(http.StatusForbidden, "the viewer may not see it").
 		Refuses(http.StatusNotFound, "there is no such post")
+
 	videos.PATCH("/:id", r.handler.Video.Edit, r.authorize).
 		Summary("Change a video post's words").
 		Describe("A video needs a title, and may have nothing more said of it.").
@@ -126,9 +166,11 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Scope(write).
 		Takes(&handlers.VideoEditRequest{}).
 		Sends(http.StatusOK, responses.MediumNode{}).
-		Sends(http.StatusBadRequest, responses.Refusal{}, "`language_invalid`; or not well formed, without a body").
+		Sends(http.StatusBadRequest, responses.Refusal{},
+			"`language_invalid`; or not well formed, without a body").
 		Refuses(http.StatusForbidden, "the viewer may not change it").
 		Refuses(http.StatusNotFound, "there is no such post")
+
 	videos.DELETE("/:id", r.handler.Video.Delete, r.authorize).
 		Summary("Delete a video post").
 		Viewer(apidoc.SignedIn).
@@ -138,35 +180,52 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Refuses(http.StatusForbidden, "the viewer may not delete it").
 		Refuses(http.StatusNotFound, "there is no such post")
 
-	// A video's files: each size of it, and its poster.
+	// --- Files ---
+	// A video's files: each size of it, and its poster. Public: no token
+	// is needed, and when one is sent the caller is known (r.setViewer).
 	videos.GET("/:id/files/:name", r.handler.Video.File, r.setViewer).
 		Summary("A file of a video post").
-		Describe("A redirect to it in storage, at an address good for a short while. Who may see the post is asked each time; nothing in between keeps it.").
+		Describe("A redirect to it in storage, at an address good for a short while. Who may see "+
+			"the post is asked each time; nothing in between keeps it.").
 		Viewer(apidoc.Anyone).
 		Takes(&handlers.VideoFileRequest{}).
 		Unbound().
 		SendsNothing(http.StatusFound, "the file is at the address in Location").
 		Refuses(http.StatusNotFound, "there is no such post or file that the viewer may see")
 
+	// --- Videos from elsewhere ---
 	// A video from another network, copied here the first time somebody
-	// plays it (roadmap row 120). Before the routes under /:id.
+	// plays it (roadmap row 120). Before the routes under /:id. Every
+	// route needs a token (r.authorize).
 	videos.POST("/elsewhere/:id", r.handler.Video.AskElsewhere, r.authorize).
 		Summary("Ask for a video from another network").
-		Describe("Of a post from Bluesky or the fediverse that says it carries one (`media_elsewhere`). It is copied here by the worker, one file up to 720, and played from this site's storage, never from its own server; asked again, the copy is said to be played. Ask with GET until it is ready, when `video` is what plays. Thirty in ten minutes.").
+		Describe("Of a post from Bluesky or the fediverse that says it carries one "+
+			"(`media_elsewhere`). It is copied here by the worker, one file up to 720, and played "+
+			"from this site's storage, never from its own server; asked again, the copy is said "+
+			"to be played. Ask with GET until it is ready, when `video` is what plays. Thirty in "+
+			"ten minutes.").
 		Viewer(apidoc.SignedIn).
 		Takes(&handlers.ElsewhereRequest{}).
 		Sends(http.StatusOK, handlers.ElsewhereStatus{}).
 		Sends(http.StatusTooManyRequests, responses.Refusal{}, "`too_many_videos`").
-		Refuses(http.StatusNotFound, "there is no such post that the viewer may see, or it carries no video from elsewhere")
+		Refuses(http.StatusNotFound, "there is no such post that the viewer may see, or it "+
+			"carries no video from elsewhere")
+
 	videos.GET("/elsewhere/:id", r.handler.Video.ReadElsewhere, r.authorize).
 		Summary("How a video from another network stands").
-		Describe("waiting or working while it is copied; ready, with `video`; failed, with why, when the post is to lead to its page instead; removed when there is no copy, and it is to be asked for again.").
+		Describe("waiting or working while it is copied; ready, with `video`; failed, with why, "+
+			"when the post is to lead to its page instead; removed when there is no copy, and it "+
+			"is to be asked for again.").
 		Viewer(apidoc.SignedIn).
 		Takes(&handlers.ElsewhereRequest{}).
 		Unbound().
 		Sends(http.StatusOK, handlers.ElsewhereStatus{}).
-		Refuses(http.StatusNotFound, "there is no such post that the viewer may see, or it carries no video from elsewhere")
+		Refuses(http.StatusNotFound, "there is no such post that the viewer may see, or it "+
+			"carries no video from elsewhere")
 
+	// --- Settings ---
+	// What its author may change of a post besides its words. Every route
+	// needs a token (r.authorize).
 	videos.PATCH("/:id/access", r.handler.Video.EditAccess, r.authorize).
 		Summary("Change who may see it").
 		Viewer(apidoc.SignedIn).
@@ -175,7 +234,10 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Sends(http.StatusOK, responses.MediumNode{}).
 		Refuses(http.StatusForbidden, "the viewer may not change it").
 		Refuses(http.StatusNotFound, "there is no such post").
-		Sends(http.StatusUnprocessableEntity, responses.AudienceRefusal{}, "`access_not_allowed`, with the audiences it may have; or "+reply+", without them")
+		Sends(http.StatusUnprocessableEntity, responses.AudienceRefusal{}, "`access_not_allowed`, "+
+			"with the audiences it may have; or "+reply+", "+
+			"without them")
+
 	videos.PATCH("/:id/comment-status", r.handler.Video.EditCommentStatus, r.authorize).
 		Summary("Open or close replies").
 		Viewer(apidoc.SignedIn).
@@ -185,38 +247,52 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Refuses(http.StatusForbidden, "the viewer may not change it").
 		Refuses(http.StatusNotFound, "there is no such post").
 		Sends(http.StatusUnprocessableEntity, responses.Refusal{}, reply)
+
 	videos.PATCH("/:id/reply-access", r.handler.Video.EditReplyAccess, r.authorize).
 		Summary("Change who may reply").
 		Viewer(apidoc.SignedIn).
 		Scope(write).
 		Takes(&requests.MediumEditReplyAccessRequest{}).
 		Sends(http.StatusOK, responses.MediumNode{}).
-		Sends(http.StatusBadRequest, responses.Refusal{}, "`reply_access_invalid`, or not well formed").
+		Sends(http.StatusBadRequest, responses.Refusal{},
+			"`reply_access_invalid`, or not well formed").
 		Refuses(http.StatusForbidden, "the viewer may not change it").
 		Refuses(http.StatusNotFound, "there is no such post").
 		Sends(http.StatusUnprocessableEntity, responses.Refusal{}, reply)
+
 	videos.PATCH("/:id/quote-policy", r.handler.Video.EditQuotePolicy, r.authorize).
 		Summary("Change who may quote it").
 		Viewer(apidoc.SignedIn).
 		Scope(write).
 		Takes(&requests.MediumEditQuotePolicyRequest{}).
 		Sends(http.StatusOK, responses.MediumNode{}).
-		Sends(http.StatusBadRequest, responses.Refusal{}, "`quote_policy_invalid`, or not well formed").
+		Sends(http.StatusBadRequest, responses.Refusal{},
+			"`quote_policy_invalid`, or not well formed").
 		Refuses(http.StatusForbidden, "the viewer may not change it").
 		Refuses(http.StatusNotFound, "there is no such post").
 		Sends(http.StatusUnprocessableEntity, responses.Refusal{}, reply)
+
 	videos.PATCH("/:id/warning", r.handler.Video.EditWarning, r.authorize).
 		Summary("Give it a content warning, or take it off").
-		Describe("A video or a sound. Its kind, and for `other` its words: shown in place of the post until a reader chooses to see it. An empty `warning` takes it off. Whoever may edit the post may; a reply, its author alone. A site administrator who did not write it gives or takes off a warning as a moderator, on any post, and its author is told; its author may not change what a moderator gave.").
+		Describe("A video or a sound. Its kind, and for `other` its words: shown in place of the "+
+			"post until a reader chooses to see it. An empty `warning` takes it off. Whoever may "+
+			"edit the post may; a reply, its author alone. A site administrator who did not write "+
+			"it gives or takes off a warning as a moderator, on any post, and its author is told; "+
+			"its author may not change what a moderator gave.").
 		Viewer(apidoc.SignedIn).
 		Scope(write).
 		Takes(&requests.MediumEditWarningRequest{}).
 		Sends(http.StatusOK, responses.MediumNode{}).
 		Sends(http.StatusBadRequest, responses.Refusal{}, "`warning_invalid`, or not well formed").
 		Refuses(http.StatusForbidden, "the viewer may not change it").
-		Sends(http.StatusForbidden, responses.Refusal{}, "`warning_not_allowed`: a moderator gave it").
+		Sends(http.StatusForbidden, responses.Refusal{},
+			"`warning_not_allowed`: a moderator gave it").
 		Refuses(http.StatusNotFound, "there is no such post")
-	// Whether it may be downloaded, and the download itself.
+
+	// --- Downloads ---
+	// Whether it may be downloaded needs a token (r.authorize); the
+	// download itself is public, and the caller is known when a token is
+	// sent (r.setViewer).
 	videos.PATCH("/:id/download", r.handler.Video.EditDownload, r.authorize).
 		Summary("Change whether it may be downloaded").
 		Viewer(apidoc.SignedIn).
@@ -225,9 +301,11 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Sends(http.StatusOK, responses.MediumNode{}).
 		Refuses(http.StatusForbidden, "the viewer may not change it").
 		Refuses(http.StatusNotFound, "there is no such post")
+
 	videos.GET("/:id/download", r.handler.Video.Download, r.setViewer).
 		Summary("Download it").
-		Describe("A redirect to one size of it, named to be saved. For whoever may see the post, when it may be downloaded.").
+		Describe("A redirect to one size of it, named to be saved. For whoever may see the post, "+
+			"when it may be downloaded.").
 		Viewer(apidoc.Anyone).
 		Takes(&handlers.VideoDownloadRequest{}).
 		Unbound().
@@ -235,11 +313,19 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Refuses(http.StatusForbidden, "it may not be downloaded").
 		Refuses(http.StatusNotFound, "there is no such post or size that the viewer may see").
 		Refuses(http.StatusTooManyRequests, "too many downloads lately")
+
+	// --- Pins ---
+	// Every route needs a token (r.authorize).
+
+	// pin describes pinning a post and taking the pin off, which differ
+	// only in their summary.
 	pin := func(what string) func(*apidoc.Route) {
 		return func(route *apidoc.Route) {
 			route.
 				Summary(what).
-				Describe("A profile has one pin: pinning another post moves it. For the profile and its administrators, and site administrators (permissions.md). Answers with the post.").
+				Describe("A profile has one pin: pinning another post moves it. For the profile "+
+					"and its administrators, and site administrators (permissions.md). Answers "+
+					"with the post.").
 				Viewer(apidoc.SignedIn).
 				Scope(write).
 				Takes(media.Read).
@@ -249,8 +335,12 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 				Sends(http.StatusUnprocessableEntity, responses.Refusal{}, "`reply_cannot_be_pinned`")
 		}
 	}
-	videos.PUT("/:id/pin", r.handler.Video.Pin, r.authorize).With(pin("Pin it to the profile it is on"))
-	videos.DELETE("/:id/pin", r.handler.Video.Unpin, r.authorize).With(pin("Take its pin off"))
+
+	videos.PUT("/:id/pin", r.handler.Video.Pin, r.authorize).
+		With(pin("Pin it to the profile it is on"))
+
+	videos.DELETE("/:id/pin", r.handler.Video.Unpin, r.authorize).
+		With(pin("Take its pin off"))
 
 	return doc
 }

@@ -72,9 +72,10 @@ func TestSetViewerRefusesAnonymousReadersOnAMembersOnlySite(t *testing.T) {
 // goes through SetViewer. One with neither would serve people who are not
 // signed in without the members-only setting ever being asked.
 //
-// Read out of the routes files rather than by starting the services. What is
-// checked is how each route is REGISTERED: with a middleware on the line, on
-// its group, or on the group it was made from.
+// Read out of the routes files rather than by starting the services: a
+// service's routes.go, and the routes_*.go beside it that a long one is split
+// into, read as one. What is checked is how each route is REGISTERED: with a
+// middleware in its call, on its group, or on the group it was made from.
 //
 // auth-service is the exception, and is held to a list: its open routes are
 // how anybody gets in, so they must stay open on a members-only site, and a
@@ -92,19 +93,28 @@ var betweenServices = map[string][]string{
 }
 
 func TestEveryRouteNamesItsViewer(t *testing.T) {
-	files, err := filepath.Glob(filepath.Join("..", "..", "*", "cmd", "api", "routes.go"))
+	files, err := filepath.Glob(filepath.Join("..", "..", "*", "cmd", "api", "routes*.go"))
 	if err != nil || len(files) < 10 {
 		t.Fatalf("found %d routes files (%v); has the layout changed?", len(files), err)
 	}
 
-	open := map[string][]string{}
+	// Each service's routes files, read as one source.
+	sources := map[string]string{}
 	for _, file := range files {
+		if strings.HasSuffix(file, "_test.go") {
+			continue
+		}
 		source, err := os.ReadFile(file)
 		if err != nil {
 			t.Fatalf("reading %s: %v", file, err)
 		}
 		service := filepath.Base(filepath.Dir(filepath.Dir(filepath.Dir(file))))
-		if routes := openRoutes(string(source)); len(routes) > 0 {
+		sources[service] += string(source) + "\n"
+	}
+
+	open := map[string][]string{}
+	for service, source := range sources {
+		if routes := openRoutes(source); len(routes) > 0 {
 			open[service] = routes
 		}
 	}
@@ -152,7 +162,9 @@ func TestEveryRouteNamesItsViewer(t *testing.T) {
 var (
 	groupDecl = regexp.MustCompile(`(\w+)\s*:?=\s*(\w+)\.Group\("([^"]*)"(?:,\s*([^)]*))?\)`)
 	groupUse  = regexp.MustCompile(`(\w+)\.Use\(([^)]*)\)`)
-	routeDecl = regexp.MustCompile(`(?m)^\s*(\w+)\.(GET|POST|PATCH|DELETE|PUT|Any)\(\s*"([^"]*)"\s*,([^\n]*)`)
+	// A route's call, to the ")" that ends a line: its handler and
+	// middleware may be wrapped onto the lines after the path.
+	routeDecl = regexp.MustCompile(`(?ms)^\s*(\w+)\.(GET|POST|PATCH|DELETE|PUT|Any)\(\s*"([^"]*)"\s*,(.*?)\)\.?[ \t]*$`)
 )
 
 func guards(middleware string) bool {
@@ -160,8 +172,8 @@ func guards(middleware string) bool {
 	return strings.Contains(lower, "authorize") || strings.Contains(lower, "setviewer")
 }
 
-// openRoutes lists the routes in one routes file that have no viewer
-// middleware on the line, on their group, or on a group above it.
+// openRoutes lists the routes in a service's routes files that have no viewer
+// middleware in their call, on their group, or on a group above it.
 func openRoutes(source string) []string {
 	type group struct {
 		prefix  string
@@ -204,6 +216,9 @@ func TestOpenRoutesFindsOnlyTheUnguarded(t *testing.T) {
 	notes.GET("/:id", r.handler.Read, r.setViewer)
 	notes.POST("/", r.handler.Add, r.authorize)
 	notes.GET("/open", r.handler.Open)
+	notes.PATCH("/:id/words", r.handler.EditWords,
+		r.authorize).
+		Summary("Change its words")
 
 	likes := e.Group("likes")
 	likes.Use(r.authorize)

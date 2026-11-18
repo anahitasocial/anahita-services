@@ -51,6 +51,6 @@ What every profile has is there too, at `/groups/:id/…`
 
 | What | Where |
 | --- | --- |
-| The routes | `actor-service/cmd/api/routes.go`, under `groups` |
+| The routes | `actor-service/cmd/api/routes_groups.go` |
 | The handlers | `actor-service/cmd/api/handlers/group*.go` |
 | Who may do what | `anahita-libs/permissions/actor.go`, `follow.go` |

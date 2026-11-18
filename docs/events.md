@@ -105,7 +105,7 @@ answered.
 
 | What | Where |
 | --- | --- |
-| The routes | `actor-service/cmd/api/routes.go`, under `events` |
+| The routes | `actor-service/cmd/api/routes_events.go` |
 | The handlers | `actor-service/cmd/api/handlers/event*.go` |
 | Who may do what | `anahita-libs/permissions/event.go` (`CanRsvp`, `CanSeeOnlineURL`); setting `EVENTS_FROM` |
 | What is on, and each person's lists | `graph-grpc-service/data/repositories/events.go` (`BrowseOpen`, `BrowseFor`, `BrowseHostedBy`) |

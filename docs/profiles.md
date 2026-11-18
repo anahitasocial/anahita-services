@@ -103,7 +103,7 @@ what only another kind has. `GET /actors/:alias` answers with
 
 | What | Where |
 | --- | --- |
-| The routes, and which are every profile's | `actor-service/cmd/api/routes.go` (`Section`, `Shared`) |
+| The routes, and which are every profile's | `actor-service/cmd/api/routes.go` (`Section`), `routes_shared.go` (`Shared`), and a file for each kind beside them |
 | Groups, events and channels | `actor-service/cmd/api/handlers/group*.go`, `event*.go`, `channel*.go` |
 | People | `actor-service/cmd/api/handlers/person*.go` |
 | The shapes sent | `anahita-libs/responses/actor.go`, `actor-service/responses/` |

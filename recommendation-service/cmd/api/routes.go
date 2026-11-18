@@ -29,20 +29,31 @@ func NewRoutes(handler *handlers.Handlers, authorize echo.MiddlewareFunc) *Route
 // docs/recommendations.md.
 func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	doc := apidoc.NewService("recommendation-service", "Recommendations",
-		"Who the viewer might follow, with the reasons, worked out from the graph by rules and no model; and the viewer's own choices about it. Optional: an installation may not run it, or may run another service that answers these routes (recommendations.md).")
+		"Who the viewer might follow, with the reasons, worked out from the graph by rules and no "+
+			"model; and the viewer's own choices about it. Optional: an installation may not run it, "+
+			"or may run another service that answers these routes (recommendations.md).")
 	api := doc.On(e)
+
+	// --- Recommendations ---
+	// Every route needs a token (r.authorize): what is suggested, the
+	// viewer's weights for it, and the profiles they have dismissed.
 	recommendations := api.Group("recommendations", r.authorize)
 
 	recommendations.GET("/actors", r.handler.Actors.Browse).
 		Summary("Who the viewer might follow").
-		Describe("People, groups and events, best first, each with why. Nobody the viewer follows already, nobody on either side of a block with them, nobody they dismissed, and nobody who asked not to be suggested: the whole list is under Who is never suggested in recommendations.md.").
+		Describe("People, groups and events, best first, each with why. Nobody the viewer follows "+
+			"already, nobody on either side of a block with them, nobody they dismissed, and "+
+			"nobody who asked not to be suggested: the whole list is under Who is never suggested "+
+			"in recommendations.md.").
 		Viewer(apidoc.SignedIn).
 		Takes(&handlers.ActorsRequest{}).
 		Sends(http.StatusOK, handlers.ActorsResponse{})
+
 	// The hashtags offered in the Interests step of signing up.
 	recommendations.GET("/interests", r.handler.Interests.Browse).
 		Summary("Hashtags to pick from when signing up").
-		Describe("The ones on the most public posts lately, the most used first, looking further back until enough are found: the last three months, then the year, then all of it.").
+		Describe("The ones on the most public posts lately, the most used first, looking further "+
+			"back until enough are found: the last three months, then the year, then all of it.").
 		Viewer(apidoc.SignedIn).
 		Takes(&handlers.InterestsRequest{}).
 		Sends(http.StatusOK, responses.Unpaged[repositories.Interest]{})
@@ -51,24 +62,29 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Summary("The viewer's choices").
 		Viewer(apidoc.SignedIn).
 		Sends(http.StatusOK, handlers.PreferencesResponse{})
+
 	recommendations.PUT("/preferences", r.handler.Preferences.Edit).
 		Summary("Change the viewer's choices").
-		Describe("What is sent is set, and what is left out is left as it is. Answers with them all.").
+		Describe("What is sent is set, and what is left out is left as it is. Answers with them "+
+			"all.").
 		Viewer(apidoc.SignedIn).
 		Takes(&handlers.PreferencesRequest{}).
 		Sends(http.StatusOK, handlers.PreferencesResponse{}).
-		Sends(http.StatusUnprocessableEntity, responses.Refusal{}, "`invalid_weight`: a reason there is not, or a weight out of range; nothing is changed")
+		Sends(http.StatusUnprocessableEntity, responses.Refusal{}, "`invalid_weight`: a reason "+
+			"there is not, or a weight out of range; nothing is changed")
 
 	recommendations.GET("/dismissals", r.handler.Dismissals.Browse).
 		Summary("Whom the viewer is not interested in").
 		Viewer(apidoc.SignedIn).
 		Sends(http.StatusOK, responses.Unpaged[*responses.ActorBrief]{})
+
 	recommendations.POST("/dismissals", r.handler.Dismissals.Add).
 		Summary("Not interested in this one").
 		Describe("They are not suggested to the viewer again.").
 		Viewer(apidoc.SignedIn).
 		Takes(&handlers.DismissalAddRequest{}).
 		SendsNothing(http.StatusNoContent, "done")
+
 	recommendations.DELETE("/dismissals/:actor_id", r.handler.Dismissals.Delete).
 		Summary("Take that back").
 		Viewer(apidoc.SignedIn).

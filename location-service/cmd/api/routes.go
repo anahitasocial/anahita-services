@@ -33,34 +33,53 @@ func NewRoutes(
 	}
 }
 
+// Init registers the routes, each with its description, and answers with
+// the descriptions: docs/api/location-service.json is made of them.
 func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	doc := apidoc.NewService("location-service", "Locations",
-		"Locations posts can be tied to: placed on a map, or found from an address, and the posts tied to each.")
+		"Locations posts can be tied to: placed on a map, or found from an address, and the posts "+
+			"tied to each.")
 	api := doc.On(e)
+
+	// The scopes the writes ask for: changing a location itself, and
+	// tagging a post with one.
 	taxonomy := libs_constants.OAuthScopeTaxonomyWrite
 	media := libs_constants.OAuthScopeMediaWrite
 
-	// locations — the read routes are public but still identify the
-	// caller when a token is present, so the viewer drives access
-	// filtering.
+	// --- Browsing locations ---
+	// The group carries no middleware: each route names its own. These
+	// are public: no token is needed, and when one is sent the caller is
+	// known (r.setViewer), so that what is counted is what the viewer may
+	// see.
 	locations := api.Group("locations")
+
 	locations.GET("/_browse/trending", r.handler.Location.BrowseTrending, r.setViewer).
 		Summary("Locations used most lately").
-		Describe("The locations the most profiles used in a window of time that ends now: the writers of public posts tied to it, by when they were written, and the public profiles (people, groups, events, channels) tagged with it, by when they were tagged; each profile once, whatever its kind, here or elsewhere; `profiles` says how many. `time_window` left out, the installation's own (`TRENDING_WINDOW`; daily where it federates, monthly where not), widened while it holds fewer than ten; `window` says which. One page, all there is: up to `limit`.").
+		Describe("The locations the most profiles used in a window of time that ends now: the "+
+			"writers of public posts tied to it, by when they were written, and the public "+
+			"profiles (people, groups, events, channels) tagged with it, by when they were "+
+			"tagged; each profile once, whatever its kind, here or elsewhere; `profiles` says how "+
+			"many. `time_window` left out, the installation's own (`TRENDING_WINDOW`; daily where "+
+			"it federates, monthly where not), widened while it holds fewer than ten; `window` "+
+			"says which. One page, all there is: up to `limit`.").
 		Viewer(apidoc.Anyone).
 		Takes(requests.NewLocationRequest().BrowseTrending).
 		Sends(http.StatusOK, libs_responses.Trending[*responses.LocationNodeItem]{})
-	locations.GET("/_browse/ordered_by_degree", r.handler.Location.BrowseOrderedByDegree, r.setViewer).
+
+	locations.GET("/_browse/ordered_by_degree", r.handler.Location.BrowseOrderedByDegree,
+		r.setViewer).
 		Summary("Locations used most of all").
 		Viewer(apidoc.Anyone).
 		Takes(requests.NewLocationRequest().BrowseOrderedByDegree).
 		Sends(http.StatusOK, libs_responses.List[*responses.LocationNodeItem]{})
+
 	locations.GET("/", r.handler.Location.Browse, r.setViewer).
 		Summary("Locations").
 		Describe("Found by words, near a point, or the locations one post is tied to.").
 		Viewer(apidoc.Anyone).
 		Takes(requests.NewLocationRequest().Browse).
 		Sends(http.StatusOK, libs_responses.List[*responses.LocationNodeItem]{})
+
 	locations.GET("/:id", r.handler.Location.Read, r.setViewer).
 		Summary("One location").
 		Viewer(apidoc.Anyone).
@@ -68,10 +87,12 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Sends(http.StatusOK, responses.LocationNodeItem{}).
 		Refuses(http.StatusNotFound, "there is no such location")
 
-	// inbound — browsing is public like the reads above; tagging and
-	// untagging are writes and require a token. They previously sat on
-	// setViewer only, which was a leftover from an older route table
-	// rather than a decision, and left both open to anonymous callers.
+	// --- The posts tied to a location ---
+	// Browsing is public like the reads above (r.setViewer); tagging and
+	// untagging are writes and need a token (r.authorize). They previously
+	// sat on setViewer only, which was a leftover from an older route
+	// table rather than a decision, and left both open to anonymous
+	// callers.
 	locations.GET("/:id/inbounds", r.handler.Inbound.Browse, r.setViewer).
 		Summary("The posts tied to a location").
 		Describe("Those the viewer may see.").
@@ -79,19 +100,24 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Takes(libs_requests.NewInboundRequest().Browse).
 		Sends(http.StatusOK, libs_responses.List[*libs_responses.NodeItem]{}).
 		Refuses(http.StatusNotFound, "there is no such location")
+
 	locations.POST("/:id/inbounds/", r.handler.Inbound.Add, r.authorize).
 		Summary("Tie a post to a location").
-		Describe("For the post's author, the owner of the profile it is on, and site administrators.").
+		Describe("For the post's author, the owner of the profile it is on, and site "+
+			"administrators.").
 		Viewer(apidoc.SignedIn).
 		Scope(media).
 		Takes(libs_requests.NewInboundRequest().Add).
 		SendsNothing(http.StatusCreated, "tied, or tied already").
 		Refuses(http.StatusForbidden, "the viewer may not change the post").
 		Refuses(http.StatusNotFound, "there is no such location or post").
-		Sends(http.StatusUnprocessableEntity, libs_responses.Refusal{}, "`too_many_locations`: the post is tied to five locations already")
+		Sends(http.StatusUnprocessableEntity, libs_responses.Refusal{}, "`too_many_locations`: "+
+			"the post is tied to five locations already")
+
 	locations.DELETE("/:id/inbounds/:source_id", r.handler.Inbound.Delete, r.authorize).
 		Summary("Untie a post from a location").
-		Describe("For the post's author, the owner of the profile it is on, and site administrators.").
+		Describe("For the post's author, the owner of the profile it is on, and site "+
+			"administrators.").
 		Viewer(apidoc.SignedIn).
 		Scope(media).
 		Takes(libs_requests.NewInboundRequest().Delete).
@@ -99,24 +125,33 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Refuses(http.StatusForbidden, "the viewer may not change the post").
 		Refuses(http.StatusNotFound, "there is no such location or post")
 
-	// admin — requires a valid OAuth access token.
+	// --- Changing locations ---
+	// Every route needs a token (r.authorize).
 	locations.PATCH("/:id", r.handler.Location.Edit, r.authorize).
 		Summary("Change a location").
-		Describe("A point given (`latitude`, `longitude`) is kept as it is; without one, a changed address is found on the map again, and clearing the address keeps the point. Answers with the location.").
+		Describe("A point given (`latitude`, `longitude`) is kept as it is; without one, a "+
+			"changed address is found on the map again, and clearing the address keeps the point. "+
+			"Answers with the location.").
 		Viewer(apidoc.Admin).
 		Scope(taxonomy).
 		Takes(requests.NewLocationRequest().Edit).
 		Sends(http.StatusOK, responses.LocationNodeItem{}).
-		Refuses(http.StatusBadRequest, "not well formed, or the address could not be found on a map").
+		Refuses(http.StatusBadRequest,
+			"not well formed, or the address could not be found on a map").
 		Refuses(http.StatusNotFound, "there is no such location")
+
 	locations.POST("/", r.handler.Location.Add, r.authorize).
 		Summary("Add a location").
-		Describe("It needs a point: one given (`latitude`, `longitude`), placed on a map, or an address to find it by. The address is optional, since a beach or a trail has none. Answers with the location.").
+		Describe("It needs a point: one given (`latitude`, `longitude`), placed on a map, or an "+
+			"address to find it by. The address is optional, since a beach or a trail has none. "+
+			"Answers with the location.").
 		Viewer(apidoc.Admin).
 		Scope(taxonomy).
 		Takes(requests.NewLocationRequest().Add).
 		Sends(http.StatusCreated, responses.LocationNodeItem{}).
-		Refuses(http.StatusBadRequest, "not well formed, or the address could not be found on a map")
+		Refuses(http.StatusBadRequest,
+			"not well formed, or the address could not be found on a map")
+
 	locations.DELETE("/:id", r.handler.Location.Delete, r.authorize).
 		Summary("Delete a location").
 		Viewer(apidoc.Admin).

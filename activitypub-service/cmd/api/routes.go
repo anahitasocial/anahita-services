@@ -1,16 +1,9 @@
 package main
 
 import (
-	"encoding/json"
-	"net/http"
-
-	"activitypub/ap"
 	"activitypub/cmd/api/handlers"
-	"activitypub/data/repositories"
 
 	"anahita-libs/apidoc"
-	"anahita-libs/federation"
-	"anahita-libs/responses"
 
 	"github.com/labstack/echo/v4"
 )
@@ -37,305 +30,30 @@ func NewRoutes(
 // the descriptions: docs/api/activitypub-service.json is made of them.
 func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	doc := apidoc.NewService("activitypub-service", "The fediverse",
-		"This installation on the fediverse, by ActivityPub: what other servers ask of it and send to it, a person's choice to be on it, finding somebody elsewhere, and the servers it refuses (federation.md). Optional: an installation may not run it.")
+		"This installation on the fediverse, by ActivityPub: what other servers ask of it "+
+			"and send to it, a person's choice to be on it, finding somebody elsewhere, and the "+
+			"servers it refuses (federation.md). Optional: an installation may not run it.")
 	api := doc.On(e)
-	activity := "application/activity+json"
-	server := "For other servers, in ActivityStreams (https://www.w3.org/TR/activitystreams-vocabulary/). "
-	gone := "nobody here by that name is on the fediverse"
 
-	// What other servers ask. No token, since a server has none: who is
-	// answered for is decided in each handler, and it is only ever somebody
-	// who chose to be on the fediverse. setViewer is on each because it is
-	// what answers for a site that is for members only.
-	api.GET("/.well-known/webfinger", r.handler.WebFinger, r.setViewer).
-		Summary("Who an account is").
-		Describe("WebFinger (RFC 7033): where another server finds somebody here by their handle.").
-		Viewer(apidoc.Anyone).
-		Media("application/jrd+json").
-		Takes(&handlers.WebFingerRequest{}).
-		Unbound().
-		Sends(http.StatusOK, ap.JRD{}).
-		Refuses(http.StatusBadRequest, "no resource, or not one that is asked about").
-		Refuses(http.StatusNotFound, gone)
-	api.GET("/.well-known/host-meta", r.handler.HostMeta, r.setViewer).
-		Summary("Where WebFinger is").
-		Describe("An XRD document (RFC 6415), for servers that look for WebFinger this way.").
-		Viewer(apidoc.Anyone).
-		Media("application/xrd+xml").
-		Sends(http.StatusOK, "", "the XRD document")
+	// What other servers ask of this installation, and send to it.
+	r.serverRoutes(api)
 
-	// Where other servers send what somebody did: one for the whole
-	// installation, and one for each person. They are the same door.
-	inbox := func(route *apidoc.Route) {
-		route.
-			Summary("Take an activity from another server").
-			Describe(server+"Signed with HTTP Signatures; what is not signed by whoever is said to have done it is not believed. Six hundred a minute from one address. Taken, whether or not anything is done with it.").
-			Viewer(apidoc.Anyone).
-			Media(activity).
-			TakesBody(json.RawMessage{}).
-			SendsNothing(http.StatusAccepted, "taken").
-			Refuses(http.StatusUnauthorized, "not signed, or the signature does not check, or not by whoever is said to have done it").
-			Refuses(http.StatusForbidden, "the server it came from is refused").
-			Refuses(http.StatusNotFound, gone).
-			Refuses(http.StatusRequestEntityTooLarge, "too large").
-			Refuses(http.StatusTooManyRequests, "too many from one address").
-			Refuses(http.StatusServiceUnavailable, "it could not be kept now; send it again")
-	}
-	api.POST("/inbox", r.handler.Inbox, r.setViewer).With(inbox)
-
-	ap_ := api.Group("ap")
-	ap_.POST("/users/:uuid/inbox", r.handler.Inbox, r.setViewer).
-		With(inbox).
-		Takes(&handlers.ActorRef{}).
-		Unbound()
-	ap_.GET("/actor", r.handler.InstanceActor, r.setViewer).
-		Summary("The installation itself").
-		Describe(server+"The actor that signs what the installation asks of other servers.").
-		Viewer(apidoc.Anyone).
-		Media(activity).
-		Sends(http.StatusOK, ap.Actor{}).
-		Refuses(http.StatusNotFound, "the installation is not on the fediverse").
-		Refuses(http.StatusServiceUnavailable, "its key cannot be read now")
-	ap_.GET("/users/:uuid", r.handler.Actor, r.setViewer).
-		Summary("Somebody here, as other servers see them").
-		Describe(server+"A `Person`, or an `Organization` for a Channel, with their public key.").
-		Viewer(apidoc.Anyone).
-		Media(activity).
-		Takes(&handlers.ActorRef{}).
-		Unbound().
-		Sends(http.StatusOK, ap.Actor{}).
-		SendsNothing(http.StatusFound, "a browser, asking for text/html, is sent to their profile in the web app, the actor's `url`").
-		Refuses(http.StatusNotFound, gone).
-		Refuses(http.StatusServiceUnavailable, "their key cannot be read now")
-	ap_.GET("/users/:uuid/followers", r.handler.Followers, r.setViewer).
-		Summary("How many follow them").
-		Describe(server+"A collection with its count and no items.").
-		Viewer(apidoc.Anyone).
-		Media(activity).
-		Takes(&handlers.ActorRef{}).
-		Unbound().
-		Sends(http.StatusOK, ap.Collection{}).
-		Refuses(http.StatusNotFound, gone)
-	ap_.GET("/users/:uuid/following", r.handler.Following, r.setViewer).
-		Summary("How many they follow").
-		Describe(server+"A collection with its count and no items.").
-		Viewer(apidoc.Anyone).
-		Media(activity).
-		Takes(&handlers.ActorRef{}).
-		Unbound().
-		Sends(http.StatusOK, ap.Collection{}).
-		Refuses(http.StatusNotFound, gone)
-	ap_.GET("/users/:uuid/outbox", r.handler.Outbox, r.setViewer).
-		Summary("How many posts they have sent out").
-		Describe(server+"A collection with its count and no items.").
-		Viewer(apidoc.Anyone).
-		Media(activity).
-		Takes(&handlers.ActorRef{}).
-		Unbound().
-		Sends(http.StatusOK, ap.Collection{}).
-		Refuses(http.StatusNotFound, gone).
-		Refuses(http.StatusServiceUnavailable, "it cannot be counted now")
-	ap_.GET("/notes/:uuid", r.handler.Note, r.setViewer).
-		Summary("A post, as other servers see it").
-		Describe(server+"A `Note`, of somebody on the fediverse, open to everybody.").
-		Viewer(apidoc.Anyone).
-		Media(activity).
-		Takes(&handlers.NoteRef{}).
-		Unbound().
-		Sends(http.StatusOK, ap.Note{}).
-		SendsNothing(http.StatusFound, "a browser, asking for text/html, is sent to the post's page in the web app, the note's `url`").
-		Refuses(http.StatusNotFound, "there is no such post that went out")
-	// A stamp: a quote of a post here approved (roadmap row 156, FEP-044f).
-	ap_.GET("/quotes/:uuid", r.handler.QuoteStamp, r.setViewer).
-		Summary("A quote's stamp").
-		Describe(server+"A `QuoteAuthorization`: the author of a post here let another post quote it. Given to a post on another server that asked with a `QuoteRequest`, or made for a post here that quotes another here, and there only while the quote is.").
-		Viewer(apidoc.Anyone).
-		Media(activity).
-		Takes(&handlers.NoteRef{}).
-		Unbound().
-		Sends(http.StatusOK, ap.QuoteAuthorization{}).
-		Refuses(http.StatusNotFound, "there is no such stamp, or the quote it approved is gone")
-	// One of a photo post's pictures, for a server that was sent the post.
-	ap_.GET("/notes/:uuid/pictures/:position", r.handler.Picture, r.setViewer).
-		Summary("A picture of a post").
-		Describe("For a server that was sent the post: a redirect to the picture in storage.").
-		Viewer(apidoc.Anyone).
-		Takes(&handlers.NotePictureRef{}).
-		Unbound().
-		SendsNothing(http.StatusFound, "the picture is at the address in Location").
-		Refuses(http.StatusNotFound, "there is no such picture of a post that went out")
-	// A video post's file, and its poster, for a server that was sent it.
-	ap_.GET("/notes/:uuid/video", r.handler.Video, r.setViewer).
-		Summary("The video of a post").
-		Describe("For a server that was sent the post: a redirect to the file in storage.").
-		Viewer(apidoc.Anyone).
-		Takes(&handlers.NoteRef{}).
-		Unbound().
-		SendsNothing(http.StatusFound, "the file is at the address in Location").
-		Refuses(http.StatusNotFound, "there is no such video of a post that went out")
-	ap_.GET("/notes/:uuid/poster", r.handler.VideoPoster, r.setViewer).
-		Summary("The poster of a video post").
-		Describe("For a server that was sent the post: a redirect to the picture in storage.").
-		Viewer(apidoc.Anyone).
-		Takes(&handlers.NoteRef{}).
-		Unbound().
-		SendsNothing(http.StatusFound, "the picture is at the address in Location").
-		Refuses(http.StatusNotFound, "there is no such video of a post that went out")
-
-	// A person's own choice to be on the fediverse.
+	// --- Asked by people here ---
+	// Everything under /activitypub is asked by somebody signed in here, so
+	// every route needs a token (r.authorize). Who may do what beyond that
+	// is checked in the handlers.
 	activitypub := api.Group("activitypub", r.authorize)
-	activitypub.GET("/settings", r.handler.ReadSettings).
-		Summary("Whether the viewer is on the fediverse, and could be").
-		Viewer(apidoc.SignedIn).
-		Takes(&handlers.SettingsQuery{}).
-		Unbound().
-		Sends(http.StatusOK, handlers.Settings{}).
-		Sends(http.StatusBadRequest, responses.Refusal{}, "`person_unreadable`").
-		Refuses(http.StatusForbidden, "somebody else's, and the viewer is not a site administrator, nor an administrator of the channel asked about").
-		Refuses(http.StatusNotFound, "there is no such person")
-	activitypub.PUT("/settings", r.handler.EditSettings).
-		Summary("Go on the fediverse, or leave it").
-		Describe("It is each person's own choice, off until they make it, and only for somebody whose profile is open to everybody. A channel's is its administrators' (`?person_id=` with its id).").
-		Viewer(apidoc.SignedIn).
-		Takes(&handlers.SettingsQuery{}).
-		Takes(&handlers.SettingsRequest{}).
-		Sends(http.StatusOK, handlers.Settings{}).
-		Sends(http.StatusBadRequest, responses.Refusal{}, "`enabled_required`: nothing to change; `person_unreadable`").
-		Refuses(http.StatusForbidden, "somebody else's, and the viewer is not an administrator of the channel asked about").
-		Sends(http.StatusConflict, responses.Refusal{}, "why they cannot be: `site_private`, `site_unreachable` or `profile_not_public`; `moved` for leaving an account that moved away, which would take the way to the new one with it")
-	// Moving one's own account, out and in (roadmap row 124, part 3).
-	activitypub.GET("/aliases", r.handler.ReadAliases).
-		Summary("The old accounts the viewer's account also is").
-		Describe("Its `alsoKnownAs`: what another server checks before it lets somebody move from there to here.").
-		Viewer(apidoc.SignedIn).
-		Unbound().
-		Sends(http.StatusOK, handlers.Aliases{})
-	activitypub.PUT("/aliases", r.handler.EditAliases).
-		Summary("Name the old accounts the viewer's account also is").
-		Describe("Each is found on its own server and kept, as a lookup is; the list takes the place of the one before. For somebody on the fediverse; not an account on this site. Their followers' servers are sent their description again.").
-		Viewer(apidoc.SignedIn).
-		Takes(&handlers.AliasesRequest{}).
-		Sends(http.StatusOK, handlers.Aliases{}).
-		Sends(http.StatusBadRequest, responses.Refusal{}, "`also_known_as_required` or `too_many_aliases`").
-		Sends(http.StatusNotFound, handlers.AliasRefusal{}, "one could not be found, as for a lookup (`lookup_not_found`, `lookup_is_here` for one on this site, …), with `alias` naming it").
-		Sends(http.StatusConflict, responses.Refusal{}, "`not_on_fediverse` or `not_a_person`").
-		Sends(http.StatusBadGateway, responses.Refusal{}, "`lookup_failed`")
-	activitypub.GET("/move", r.handler.ReadMove).
-		Summary("Whether the viewer's account moved").
-		Describe("To which account and when, and, within thirty days of a move, when it may move again.").
-		Viewer(apidoc.SignedIn).
-		Unbound().
-		Sends(http.StatusOK, handlers.MoveStatus{})
-	activitypub.POST("/move", r.handler.Move).
-		Summary("Move the viewer's account to another").
-		Describe("To an account elsewhere that names this one in its `alsoKnownAs`, read afresh. Its description gains `movedTo`; its followers' servers are sent a `Move`, and its followers here follow the new account; its profile says where it went. The account can then no longer post, like, follow or tag, until it moves back. Not within thirty days of the last move.").
-		Viewer(apidoc.SignedIn).
-		StepUp().
-		Takes(&handlers.MoveRequest{}).
-		Sends(http.StatusOK, handlers.MoveStatus{}).
-		Sends(http.StatusBadRequest, responses.Refusal{}, "`to_required`").
-		Sends(http.StatusForbidden, responses.Refusal{}, "`step_up_required`: the viewer must prove who they are again first (`/reauth`)").
-		Sends(http.StatusNotFound, responses.Refusal{}, "the account could not be found, as for a lookup; `lookup_is_here` for one on this site, which is not moved to: a username is changed instead").
-		Sends(http.StatusConflict, responses.Refusal{}, "`not_on_fediverse`, `not_a_person`, `moved_already`, `moved_lately` or `not_named_there`: the new account does not name this one").
-		Sends(http.StatusBadGateway, responses.Refusal{}, "`lookup_failed`")
-	activitypub.DELETE("/move", r.handler.ComeBack).
-		Summary("Take the viewer's move back").
-		Describe("The profile no longer points to the new account, its description no longer says it moved, and the account may post, like and follow again. Its followers stay with the new account; moving from there to here brings them back, which other servers allow only after this. The thirty days before another move still count from the move.").
-		Viewer(apidoc.SignedIn).
-		Sends(http.StatusOK, handlers.MoveStatus{}).
-		Sends(http.StatusConflict, responses.Refusal{}, "`not_moved`, `not_on_fediverse` or `not_a_person`")
-	// Finding somebody on another server.
-	activitypub.GET("/lookup", r.handler.Lookup).
-		Summary("Find somebody on another server").
-		Describe("They are kept here, so that they can be followed as anybody is. Thirty lookups in ten minutes.").
-		Viewer(apidoc.SignedIn).
-		Takes(&handlers.LookupRequest{}).
-		Unbound().
-		Sends(http.StatusOK, handlers.RemotePerson{}).
-		Sends(http.StatusBadRequest, responses.Refusal{}, "`lookup_unreadable`").
-		Sends(http.StatusNotFound, responses.Refusal{}, "`lookup_not_found`, `lookup_is_here`, `lookup_not_a_person` or `lookup_refused`").
-		Sends(http.StatusConflict, responses.Refusal{}, "the installation is not on the fediverse: `site_private` or `site_unreachable`").
-		Sends(http.StatusTooManyRequests, responses.Refusal{}, "`too_many_lookups`").
-		Sends(http.StatusBadGateway, responses.Refusal{}, "`lookup_failed`")
-	// Somebody on another server, read again when their profile is opened
-	// and what was kept of them is old (roadmap row 130).
-	activitypub.POST("/people/:id/refresh", r.handler.RefreshPerson).
-		Summary("Read somebody on another server again").
-		Describe("When what was kept of them is more than an hour old: whether they approve their followers, their name, their words, their pictures. Asked by the web app when their profile is opened; `refreshed` says whether to read the profile again. A failure there leaves what was kept, and says nothing.").
-		Viewer(apidoc.SignedIn).
-		Takes(&handlers.RefreshPersonRequest{}).
-		Unbound().
-		Sends(http.StatusOK, handlers.Refreshed{}).
-		Sends(http.StatusNotFound, responses.Refusal{}, "`profile_not_kept`: nobody from another server is kept under that id").
-		Sends(http.StatusConflict, responses.Refusal{}, "the installation is not on the fediverse: `site_private` or `site_unreachable`")
-	// The pictures of a post from another server, copied here again after
-	// they were removed for its age.
-	activitypub.POST("/posts/:id/pictures", r.handler.RestorePictures).
-		Summary("Copy a post's pictures here again").
-		Describe("The pictures of a post from another server that has been left alone a while are removed from storage, and the post says so (`media_removed`). Asked here, they are read again from where they came from. For anybody signed in who may see the post.").
-		Viewer(apidoc.SignedIn).
-		Takes(&handlers.PostPicturesRequest{}).
-		Unbound().
-		Sends(http.StatusOK, responses.PicturesRestored{}).
-		Sends(http.StatusNotFound, responses.Refusal{}, "`media_not_removed`: there is no such post the viewer may see, or its pictures are here").
-		Sends(http.StatusGone, responses.Refusal{}, "`media_gone`").
-		Sends(http.StatusTooManyRequests, responses.Refusal{}, "`too_many_requests`").
-		Sends(http.StatusBadGateway, responses.Refusal{}, "`media_failed`")
-	// The servers this installation refuses. Super administrators only:
-	// the handlers check.
-	activitypub.GET("/blocks", r.handler.BrowseBlocks).
-		Summary("The servers refused").
-		Viewer(apidoc.SuperAdmin).
-		Takes(&handlers.BlocksBrowse{}).
-		Unbound().
-		Sends(http.StatusOK, responses.List[*federation.DomainBlock]{})
-	activitypub.POST("/blocks", r.handler.AddBlock).
-		Summary("Refuse a server, or change why").
-		Describe("Nothing from it is taken, and nothing is sent to it.").
-		Viewer(apidoc.SuperAdmin).
-		Takes(&handlers.BlockRequest{}).
-		Sends(http.StatusCreated, federation.DomainBlock{}).
-		Sends(http.StatusBadRequest, responses.Refusal{}, "`domain_required`: the request names no server; `domain_unreadable`: it is not a server's name; `domain_is_here`: it is this installation")
-	// The accounts refused one by one, on the fediverse and on Bluesky
-	// (docs/plans/done/refused-accounts.md). Administrators: the handlers check.
-	activitypub.GET("/known-profiles", r.handler.BrowseKnownProfiles).
-		Summary("Who from other networks is kept here").
-		Describe("Newest first. `q` narrows it to the names and handles it is found in. For administrators: these people did not ask to be listed.").
-		Viewer(apidoc.Admin).
-		Takes(&handlers.BlocksBrowse{}).
-		Unbound().
-		Sends(http.StatusOK, responses.List[*repositories.KnownProfile]{})
-	activitypub.GET("/refused-accounts", r.handler.BrowseRefusedAccounts).
-		Summary("The accounts refused").
-		Describe("Newest first. `q` narrows it to the names, handles and reasons it is found in.").
-		Viewer(apidoc.Admin).
-		Takes(&handlers.BlocksBrowse{}).
-		Unbound().
-		Sends(http.StatusOK, responses.List[*federation.RefusedAccount]{})
-	activitypub.POST("/refused-accounts", r.handler.RefuseAccount).
-		Summary("Refuse an account from another network").
-		Describe("By the profile kept here (`actor_id`), or by a handle or an address (`address`): `@user@server`, an actor's address, a Bluesky handle or a DID. Nothing from it is taken, nothing is sent to it, it cannot be looked up or followed, and what is here of it is removed: at once on the fediverse, within a minute on Bluesky.").
-		Viewer(apidoc.Admin).
-		Takes(&handlers.RefuseAccountRequest{}).
-		Sends(http.StatusCreated, federation.RefusedAccount{}).
-		Sends(http.StatusBadRequest, responses.Refusal{}, "`account_required`: the request names no account; `account_unreadable`: the address is not one").
-		Sends(http.StatusNotFound, responses.Refusal{}, "`account_not_found`").
-		Sends(http.StatusConflict, responses.Refusal{}, "`is_local`: the profile is this installation's own; `already_refused`: it, or its server, is refused already")
-	activitypub.DELETE("/refused-accounts/:id", r.handler.LetAccountBack).
-		Summary("Stop refusing an account").
-		Describe("What was removed does not come back: the account can be looked up and followed again.").
-		Viewer(apidoc.Admin).
-		Takes(&handlers.RefusedAccountRef{}).
-		Unbound().
-		SendsNothing(http.StatusNoContent, "done").
-		Refuses(http.StatusNotFound, "it is not refused")
-	activitypub.DELETE("/blocks/:domain", r.handler.DeleteBlock).
-		Summary("Stop refusing a server").
-		Viewer(apidoc.SuperAdmin).
-		Takes(&handlers.DomainRef{}).
-		Unbound().
-		SendsNothing(http.StatusNoContent, "done").
-		Refuses(http.StatusNotFound, "it is not refused")
+
+	// A person's own choice to be on the fediverse, and moving their
+	// account out and in.
+	r.accountRoutes(activitypub)
+
+	// Finding somebody on another server, and reading them or their
+	// posts' pictures again.
+	r.remoteRoutes(activitypub)
+
+	// The servers and the accounts this installation refuses.
+	r.refusalRoutes(activitypub)
 
 	return doc
 }

@@ -34,13 +34,20 @@ func NewRoutes(
 // the descriptions: docs/api/notification-service.json is made of them.
 func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	doc := apidoc.NewService("notification-service", "Notifications",
-		"What the viewer is told of: who followed them, liked, replied to or reposted what they wrote, and the rest; and what they asked to be told about.")
+		"What the viewer is told of: who followed them, liked, replied to or reposted what they "+
+			"wrote, and the rest; and what they asked to be told about.")
 	api := doc.On(e)
+
+	// The scopes the routes ask for: one to read the viewer's
+	// notifications and settings, one to change them.
 	read := libs_constants.OAuthScopeNotificationsRead
 	write := libs_constants.OAuthScopeNotificationsWrite
 
-	// notifications — every route requires a valid OAuth access token.
+	// --- Notifications ---
+	// The viewer's own notifications and what they are told about. Every
+	// route needs a token (r.authorize).
 	notifications := api.Group("notifications", r.authorize)
+
 	notifications.GET("/", r.handler.Notification.Browse).
 		Summary("The viewer's notifications").
 		Describe("The latest first, each with who did what to what, as they are now.").
@@ -48,40 +55,49 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Scope(read).
 		Takes(requests.NewNotificationRequest().Browse).
 		Sends(http.StatusOK, libs_responses.List[*responses.NotificationItem]{})
+
 	notifications.GET("/unread-count", r.handler.Notification.UnreadCount).
 		Summary("How many are unread").
 		Viewer(apidoc.SignedIn).
 		Scope(read).
 		Sends(http.StatusOK, responses.UnreadCount{})
+
 	notifications.GET("/settings", r.handler.Notification.ReadSettings).
 		Summary("What the viewer is told about").
-		Describe("Every kind of thing, on or off: likes, reposts, replies, mentions, follows, posts, events and invitations. All on to begin with.").
+		Describe("Every kind of thing, on or off: likes, reposts, replies, mentions, follows, "+
+			"posts, events and invitations. All on to begin with.").
 		Viewer(apidoc.SignedIn).
 		Scope(read).
 		Sends(http.StatusOK, responses.Settings{})
+
 	notifications.PATCH("/settings", r.handler.Notification.EditSettings).
 		Summary("Be told about a kind of thing, or not").
-		Describe("Turns one on or off. A notification of a kind turned off is not made. Answers with them all.").
+		Describe("Turns one on or off. A notification of a kind turned off is not made. Answers "+
+			"with them all.").
 		Viewer(apidoc.SignedIn).
 		Scope(write).
 		Takes(requests.NewNotificationRequest().EditSettings).
 		Sends(http.StatusOK, responses.Settings{}).
 		Refuses(http.StatusBadRequest, "there is no such kind of thing")
+
 	notifications.PATCH("/read-all", r.handler.Notification.EditAll).
 		Summary("Mark all as read").
 		Describe("Every one of the viewer's notifications. Answers how many were unread.").
 		Viewer(apidoc.SignedIn).
 		Scope(write).
 		Sends(http.StatusOK, responses.MarkedRead{})
+
 	notifications.PATCH("/:id", r.handler.Notification.Edit).
 		Summary("Mark one as read").
-		Describe("It takes nothing else: the one thing that changes is that it is read. Answers with it.").
+		Describe("It takes nothing else: the one thing that changes is that it is read. Answers "+
+			"with it.").
 		Viewer(apidoc.SignedIn).
 		Scope(write).
 		Takes(requests.NewNotificationRequest().Edit).
 		Sends(http.StatusOK, responses.NotificationItem{}).
 		Refuses(http.StatusForbidden, "it is somebody else's").
 		Refuses(http.StatusNotFound, "there is no such notification")
+
 	notifications.DELETE("/:id", r.handler.Notification.Delete).
 		Summary("Delete one").
 		Viewer(apidoc.SignedIn).
@@ -91,21 +107,28 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Refuses(http.StatusForbidden, "it is somebody else's").
 		Refuses(http.StatusNotFound, "there is no such notification")
 
-	// subscriptions — gated at the route rather than in a permission
-	// method: there is no per-row ownership question here, the caller is
-	// always acting on their own subscription, so a coarse scope check
-	// is the whole of the authorization.
+	// --- Subscriptions ---
+	// Being told about one post or profile. Every route needs a token
+	// (r.authorize, on the group), and the write scope as well
+	// (subscriptionWrite). That is checked at the route rather than in a
+	// permission method: there is no per-row ownership question here, the
+	// caller is always acting on their own subscription, so a coarse scope
+	// check is the whole of the authorization.
 	subscriptionWrite := middleware.RequireScope(write)
+
 	notifications.POST("/subscriptions", r.handler.Subscription.Add, subscriptionWrite).
 		Summary("Be told about a post or a profile").
-		Describe("The viewer is notified of what happens to it from now on. Answers with what they are told about.").
+		Describe("The viewer is notified of what happens to it from now on. Answers with what "+
+			"they are told about.").
 		Viewer(apidoc.SignedIn).
 		Scope(write).
 		Takes(requests.NewSubscriptionRequest().Add).
 		Sends(http.StatusCreated, libs_responses.NodeItem{}).
 		Refuses(http.StatusForbidden, "the viewer may not see it").
 		Refuses(http.StatusNotFound, "there is no such post or profile")
-	notifications.DELETE("/subscriptions/:target_id", r.handler.Subscription.Delete, subscriptionWrite).
+
+	notifications.DELETE("/subscriptions/:target_id", r.handler.Subscription.Delete,
+		subscriptionWrite).
 		Summary("Stop being told about it").
 		Describe("Answers with what they were told about.").
 		Viewer(apidoc.SignedIn).
@@ -113,7 +136,8 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Takes(requests.NewSubscriptionRequest().Delete).
 		Sends(http.StatusOK, libs_responses.NodeItem{}).
 		Refuses(http.StatusForbidden, "the viewer may not see it").
-		Refuses(http.StatusNotFound, "there is no such post or profile, or the viewer was not told about it")
+		Refuses(http.StatusNotFound,
+			"there is no such post or profile, or the viewer was not told about it")
 
 	return doc
 }

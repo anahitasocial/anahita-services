@@ -228,12 +228,24 @@ hashtags.GET("/:alias", r.handler.Hashtag.Read, r.setViewer).
    directory of files.
    `400`, `401` and `403` are added where a route of its kind can answer them.
 
-**Register each route on a line of its own,** beginning with its group
-(`hashtags.GET("/:alias", …)`): the members-only guard in
-anahita-libs/middleware reads the routes files as text, and checks that each
-route says who may call it. A route registered in a loop is not seen. Two
-routes that share a description take it with `With`:
+**Register each route in a call of its own,** beginning a line with its
+group (`hashtags.GET("/:alias", …)`); its handler and middleware may go on
+the lines after, up to the `)` that ends one. The members-only guard in
+anahita-libs/middleware reads a service's routes files as text, `routes.go`
+and the `routes_*.go` beside it, and checks that each route says who may
+call it. A route registered in a loop is not seen. Two routes that share a
+description take it with `With`:
 `previews.GET("/", h, r.authorize).With(readPreview)`.
+
+**Laid out for people to read** (the user, 2026-11-18): a blank line between
+routes; each group opened by a heading, `// --- Custom feeds ---`, and a
+sentence or two on what it is for and who may call it (`r.authorize`, a
+token needed; `r.setViewer`, open, the caller known when a token is sent);
+the values and helpers `Init` shares, each with a comment; and a long
+description wrapped at about 100 columns with `+`. Where `Init` grows long,
+each area of routes is a method in a file of its own beside it
+(`routes_people.go`, `peopleRoutes`), and `Init` reads as their list, in
+the order they are registered.
 
 A named struct of anahita-libs is described once and named as it is
 (`NodeItem`); one of a service is named with its module
