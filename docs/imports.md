@@ -5,7 +5,7 @@ follow, block and mute, and what they saved, in a file: another Anahita's
 download, or a single CSV of Mastodon's or Misskey's. The file is read at
 once and what is in it shown; nothing is done until they start it; then a
 worker goes through it a line at a time, doing each as they would by hand.
-Roadmap row 124, part 1 ([Moving](plans/moving.md)).
+Roadmap row 124, part 1 ([Moving](plans/done/moving.md)).
 
 Its routes are in the API reference: [import-export-service](api/index.html#import-export-service).
 
@@ -36,7 +36,7 @@ by its name. One whose kind cannot be told is refused with `kind_unknown`,
 and the person is asked which it is. Lists (`List name,Account address`)
 and blocked servers (`#domain`) are refused with `not_supported`: Anahita
 has neither yet. A list of somebody's followers is not read: their
-followers come by moving ([Moving](plans/moving.md), part 3).
+followers come by moving ([Moving](plans/done/moving.md), part 3).
 
 ## How each line is done
 
@@ -132,4 +132,4 @@ large as 21 MB.
 1. **Lists, one's own blocked servers, filters,** Misskey's antennas: the
    features are not here yet.
 2. **Replacing** one's lists with a file's, as Mastodon's "overwrite" does.
-3. **Posts,** between two Anahitas ([Moving](plans/moving.md), part 4).
+3. **Posts,** between two Anahitas: roadmap row 160, not planned yet ([Moving](plans/done/moving.md#part-4-bringing-your-posts)).

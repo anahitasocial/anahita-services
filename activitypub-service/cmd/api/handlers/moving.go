@@ -19,7 +19,7 @@ import (
 )
 
 // Somebody followed, blocked or muted from here, on another server, moving
-// their account (roadmap row 124, part 2; docs/plans/moving.md).
+// their account (roadmap row 124, part 2; docs/plans/done/moving.md).
 //
 // WHO IS BELIEVED. A Move is signed by the old account, as everything in
 // the inbox is checked to be, and names it as what moved. Its target, the

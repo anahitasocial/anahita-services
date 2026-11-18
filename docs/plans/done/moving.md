@@ -7,7 +7,8 @@ new profile on the old server"; and moving between Anahita and Mastodon or
 servers like it. Brought forward on 2026-11-08, at the user's word ("focus
 on helping people moving in and out"), before the WordPress import, with
 the lists that Mastodon, Misskey and Pixelfed move between them. Parts 1
-to 3 are built; part 4 is not.
+to 3 are built, and the row is done (2026-11-18). Part 4, bringing one's
+posts, is roadmap row 160 of its own, not planned yet.
 
 ## Contents
 
@@ -36,13 +37,13 @@ them on every server that does it Mastodon's way.
    them, whom they blocked and muted, and what they saved, as JSON
    (`data/following.json`, `followers.json`, `blocked.json`, `muted.json`,
    `saved.json`), and their posts and pictures
-   ([Download your data](../data-export.md)). Nothing reads it back in.
+   ([Download your data](../../data-export.md)). Nothing reads it back in.
    (`blocked.json` was empty until 2026-11-08, from the same fault as a
    person's own Blocked list.)
 2. **Moving is built** (parts 2 and 3, 2026-11-08): a `Move` from
    somebody followed from here has their followers follow the new account
-   ([Federation](../federation.md#somebody-who-moved)), and a person here
-   moves in or away ([Moving one's own account](../federation.md#moving-ones-own-account)).
+   ([Federation](../../federation.md#somebody-who-moved)), and a person here
+   moves in or away ([Moving one's own account](../../federation.md#moving-ones-own-account)).
 
 ## How others do it
 
@@ -190,7 +191,7 @@ changing one's username does what it is for, and nothing else in the
 fediverse offers it.
 
 **Who may move:** a person whose profile is on the fediverse, which they
-turn on themselves ([Federation](../federation.md#who-is-on-the-fediverse));
+turn on themselves ([Federation](../../federation.md#who-is-on-the-fediverse));
 the screen says so first. Groups, events and websites are the
 installation's and their admins', and do not move.
 
@@ -252,7 +253,10 @@ username; a `Move` from one account here to another here is ignored.
 
 ## Part 4: bringing your posts
 
-Through import-export-service's imports ([imports.md](imports.md)), with the powers it
+Roadmap row 160 since 2026-11-18, not this row: what follows is where it
+starts from.
+
+Through import-export-service's imports ([imports.md](../imports.md)), with the powers it
 keeps: a post's own date, and nothing sent for it.
 
 Between two Anahitas, which read each other's download: the new one imports
@@ -283,16 +287,18 @@ installation, and nothing there changes.
 1. **Your lists, out and in:** import-export-service's imports (row 142, phase 1,
    without what only posts need), the files in the download, the import
    with its preview: about two sessions. **Done 2026-11-08**
-   ([Bring your lists in](../imports.md)), in Settings › Your data.
+   ([Bring your lists in](../../imports.md)), in Settings › Your data.
 2. **Following somebody who moved:** one session. **Done 2026-11-08**
-   ([Somebody who moved](../federation.md#somebody-who-moved)), tried in the
+   ([Somebody who moved](../../federation.md#somebody-who-moved)), tried in the
    lab with GoToSocial's own move.
 3. **Moving, out and in,** with the signpost: three to four sessions.
-   **Done 2026-11-08** ([Moving one's own account](../federation.md#moving-ones-own-account)),
+   **Done 2026-11-08** ([Moving one's own account](../../federation.md#moving-ones-own-account)),
    tried in the lab with GoToSocial, out and in.
 4. **Bringing your posts,** from Anahita, then perhaps from Mastodon: three
    to four sessions, decided apart.
+   **Moved to row 160 on 2026-11-18,** at the user's word: kept for when
+   somebody moves between two Anahitas.
 
-Four of FediDB's questions ([direct-messages.md](direct-messages.md#part-2-the-feature-list-answered))
+Four of FediDB's questions ([direct-messages.md](../direct-messages.md#part-2-the-feature-list-answered))
 are these: moving with followers, accepting followers moving in, exporting
 one's data, and importing follows and blocks.

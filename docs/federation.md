@@ -564,7 +564,7 @@ Somebody on another server, followed, blocked or muted from here, moves
 their account, as Mastodon, Misskey, GoToSocial and the rest let them: the
 new account names the old one as another of its own (`alsoKnownAs`), and
 the old one sends its followers' servers a `Move` (roadmap row 124, part 2;
-[Moving](plans/moving.md#part-2-following-somebody-who-moved)).
+[Moving](plans/done/moving.md#part-2-following-somebody-who-moved)).
 
 **Believed** when it is signed by the old account and names it as what
 moved, as everything in the inbox is checked, and when the new account,
@@ -597,7 +597,7 @@ Tried in [the lab](federation-lab.md), with GoToSocial's own move.
 
 A person here moves their account in from elsewhere, or away to elsewhere,
 as Mastodon's people do (roadmap row 124, part 3;
-[Moving](plans/moving.md#part-3-moving-yourself)). Both are under Settings ›
+[Moving](plans/done/moving.md#part-3-moving-yourself)). Both are under Settings ›
 Fediverse, for somebody on the fediverse. Not to another account on this
 site: changing one's username does what that would.
 

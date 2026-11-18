@@ -37,7 +37,7 @@ const UploadLimit = "21M"
 func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	h := r.handler
 	doc := apidoc.NewService("import-export-service", "Data exports and imports",
-		"A person's copy of their own data: asking for one, seeing how it is getting on, fetching it and giving it up (data-export.md); and bringing their lists in from a file (moving.md). Optional: an installation may not run it.")
+		"A person's copy of their own data: asking for one, seeing how it is getting on, fetching it and giving it up (data-export.md); and bringing their lists in from a file (imports.md). Optional: an installation may not run it.")
 	api := doc.On(e)
 
 	// Every route is the viewer's own: there is nothing here for a visitor.

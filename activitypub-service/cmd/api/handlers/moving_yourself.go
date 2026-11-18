@@ -23,7 +23,7 @@ import (
 )
 
 // Moving one's own account, out and in (roadmap row 124, part 3;
-// docs/plans/moving.md).
+// docs/plans/done/moving.md).
 //
 // IN. The new account here names the old ones it also is (alsoKnownAs),
 // which the old server reads before it lets the move start; then the old

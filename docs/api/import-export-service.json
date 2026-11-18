@@ -248,7 +248,7 @@
     }
   },
   "info": {
-    "description": "A person's copy of their own data: asking for one, seeing how it is getting on, fetching it and giving it up (data-export.md); and bringing their lists in from a file (moving.md). Optional: an installation may not run it.",
+    "description": "A person's copy of their own data: asking for one, seeing how it is getting on, fetching it and giving it up (data-export.md); and bringing their lists in from a file (imports.md). Optional: an installation may not run it.",
     "license": {
       "identifier": "AGPL-3.0-only",
       "name": "GNU Affero General Public License v3.0 only"
