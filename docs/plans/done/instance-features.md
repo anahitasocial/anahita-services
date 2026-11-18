@@ -7,7 +7,8 @@ of profile already has a file saying which kinds of post it has
 (`graph-grpc-defaults/actor_features/`); the instance gets one too,
 `instance.json`, and every profile has only what the instance has. JSON, as
 the other files are (the user, 2026-11-09). The rest of row 139, how lists
-are laid out and the tutorials, comes later.
+are laid out and the tutorials, was done in anahita-web on 2026-11-18 (see
+Status).
 
 ## Contents
 
@@ -104,7 +105,7 @@ Moving them into the file alone is for a later minor release.
 2. Who may make what, site-wide (`add_permissions` on the instance): the
    `*_FROM` settings say it for profiles.
 3. How lists are laid out, a site's home page and themes: the rest of row
-   139.
+   139, in anahita-web (Status).
 
 ## Phases
 
@@ -119,3 +120,5 @@ Moving them into the file alone is for a later minor release.
 Plan written on 2026-11-09, and its first two phases, the services and the web app, built the same night; the coffeehouse recipe follows.
 
 2026-11-15: `reply` a kind of its own (the user: a gallery or a theatre needs no notes, only the replies under its posts), offered where it is listed or where `note` is; tried on the dev stack as a gallery, through the API and the web app.
+
+2026-11-18: row 139 done. The coffeehouse recipe is `café` in anahita-recipes. In anahita-web: `REACT_APP_FEED_VIEW`, the site's default layout of feeds and profiles on a wide screen (`stream` or `columns`), a visitor's own choice first; no grid, left out until asked for; and "Your own theme, step by step" in its `docs/customising.md`, linked from every recipe.

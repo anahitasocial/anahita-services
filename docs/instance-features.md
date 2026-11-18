@@ -7,7 +7,7 @@ profile, and every profile on it has only what it has. A site of notes and
 photos alone, for example, offers no articles, topics, events, channels or
 videos: they are in no composer, menu or tab, and the services refuse them.
 
-Built for the recipes, roadmap row 139 ([the plan](plans/instance-features.md)).
+Built for the recipes, roadmap row 139 ([the plan](plans/done/instance-features.md)).
 
 ## Contents
 
