@@ -151,7 +151,7 @@ func TestAMuteTakesThemOutOfTheMutersLists(t *testing.T) {
 		{"posts found by Naomi", searched(constants.SearchScopePosts, muterNaomi), []int64{11}},
 		{"people found by Naomi, Moss among them", searched(constants.SearchScopeActor, muterNaomi), []int64{1, 2, 3, 5}},
 		// One way: Rose has muted nobody, and follows Moss.
-		{"Rose's Following, her own repost in it", following(otherRose), []int64{10, 11, 13, 14, 15}},
+		{"Rose's Following, without her own repost", following(otherRose), []int64{10, 11, 14, 15}},
 		{"the hashtag's, for Rose", hashtag(otherRose), []int64{10, 11}},
 	}
 	for _, c := range cases {

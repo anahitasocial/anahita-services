@@ -10,6 +10,14 @@ made.
 Releases before v1.0.17 are described on GitHub, under
 [Releases](https://github.com/anahitasocial/anahita-services/releases).
 
+## Embryo
+
+### Changed
+
+1. **Your own reposts are no longer in your Following feed.** A repost is
+   for others to see; yours are on your profile, under Reposts. Your own
+   posts, and what the profiles you follow repost, stay in it.
+
 ## v1.3.8 Birth, 2026-11-17
 
 ### Fixed

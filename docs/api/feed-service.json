@@ -1759,7 +1759,7 @@
     },
     "/feeds/leaders/": {
       "get": {
-        "description": "Posts from the profiles the viewer follows, the latest first. In order of time, not ranked: a ranked feed is a custom feed the viewer makes.\n\nWho may call it: anyone, signed in or not.",
+        "description": "Posts from the profiles the viewer follows, and the viewer's own but not their reposts, the latest first. In order of time, not ranked: a ranked feed is a custom feed the viewer makes.\n\nWho may call it: anyone, signed in or not.",
         "operationId": "getFeedsLeaders",
         "parameters": [
           {

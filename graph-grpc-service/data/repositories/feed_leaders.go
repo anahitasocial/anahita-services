@@ -30,8 +30,8 @@ func NewFeedLeadersRepo(db *sql.DB) FeedLeadersRepoInterface {
 }
 
 // FeedLeadersRepo is the FeedLeaders repository: the Following feed, the
-// viewer's own posts and the posts and reposts of the profiles they follow,
-// reached through follow edges and nothing else. What those profiles only
+// viewer's own posts (not their reposts) and the posts and reposts of the
+// profiles they follow, reached through follow edges and nothing else. What those profiles only
 // liked is not in it (2026-10-29); the request's include_liked is not read.
 type FeedLeadersRepo struct {
 	db               *sql.DB
@@ -54,9 +54,10 @@ func (repo *FeedLeadersRepo) Count(req *graphpb.FeedLeadersCountRequest, viewer 
 		nodeTypes = append(nodeTypes, constants.NodeBaseRepostType)
 	}
 
-	// Branch 0: viewer's media
+	// Branch 0: viewer's media, without their reposts: a repost is for
+	// others to see, and is on the viewer's profile, under Reposts.
 	branchViewerMedia := sq.And{
-		sq.Eq{"node.type": nodeTypes}, // slice → IN (...)
+		sq.Eq{"node.type": req.MediumEntityTypes}, // slice → IN (...)
 		sq.Eq{"node.owner_id": viewer.ID},
 	}
 
@@ -105,9 +106,10 @@ func (repo *FeedLeadersRepo) Browse(req *graphpb.FeedLeadersBrowseRequest, viewe
 		nodeTypes = append(nodeTypes, constants.NodeBaseRepostType)
 	}
 
-	// Branch 0: viewer's media
+	// Branch 0: viewer's media, without their reposts: a repost is for
+	// others to see, and is on the viewer's profile, under Reposts.
 	branchViewerMedia := sq.And{
-		sq.Eq{"node.type": nodeTypes}, // slice → IN (...)
+		sq.Eq{"node.type": req.MediumEntityTypes}, // slice → IN (...)
 		sq.Eq{"node.owner_id": viewer.ID},
 	}
 

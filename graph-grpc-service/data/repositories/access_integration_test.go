@@ -446,7 +446,7 @@ func TestLeadersFeedJudgesRepostsByTheirPostAndLeavesRepliesOut(t *testing.T) {
 		{carolID, noteFollowers, true, "a leader's followers-only post, to a follower"},
 		{carolID, noteMyself, false, "a leader's only-me post"},
 		{carolID, noteMutuals, false, "a leader's mutuals-only post, to a follower who is not followed back"},
-		{carolID, repostOfFollowers, true, "the reposter sees their own repost"},
+		{carolID, repostOfFollowers, false, "the reposter's own repost: it is for others, and on their profile"},
 
 		// The viewer's own posts are part of their home feed.
 		{bobID, noteFollowers, true, "the viewer's own followers-only post"},

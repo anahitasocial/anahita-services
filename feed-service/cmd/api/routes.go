@@ -45,7 +45,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	feeds := api.Group("feeds")
 	feeds.GET("/leaders/", r.handler.FeedLeaders.Browse, r.setViewer).
 		Summary("The home feed").
-		Describe("Posts from the profiles the viewer follows, the latest first. In order of time, not ranked: a ranked feed is a custom feed the viewer makes.").
+		Describe("Posts from the profiles the viewer follows, and the viewer's own but not their reposts, the latest first. In order of time, not ranked: a ranked feed is a custom feed the viewer makes.").
 		Viewer(apidoc.Anyone).
 		Takes(requests.NewFeedLeadersRequest().Browse).
 		Sends(http.StatusOK, responses.List[*responses.NodeItem]{})
