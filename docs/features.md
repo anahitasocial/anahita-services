@@ -37,7 +37,7 @@ is gathered at the end, [for planning](#not-built).
 | Delete your own account | yes | Thirty days to undo ([Account lifecycle](account-lifecycle.md)) |
 | Two-factor authentication | yes | Codes from an authenticator app ([Signing in](signing-in.md)) |
 | Passkeys and security keys | yes | [Signing in](signing-in.md) |
-| Sign in with an external provider | no | |
+| Sign in with an external provider | no | On the roadmap, kept for later (row 159) |
 | Profile metadata fields | no | One website link, and pronouns |
 | Verified profile links | planned | [Verified domains](plans/verified-domains.md) |
 | Profile header image | yes | A cover photo |
@@ -233,8 +233,8 @@ Every **no** and **planned** above, gathered for planning.
 
 **Not built, and open to plan:**
 
-1. **Accounts:** signing in with another provider; profile fields; bot
-   accounts.
+1. **Accounts:** signing in with another provider (row 159, kept for
+   later); profile fields; bot accounts.
 2. **Posting:** polls; scheduled posts; a post length the operator sets;
    custom emoji; deleting old posts automatically, each person's own choice
    (planned: [old-posts.md](plans/old-posts.md), row 132).
