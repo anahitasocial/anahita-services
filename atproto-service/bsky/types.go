@@ -122,6 +122,33 @@ const PostCollection = "app.bsky.feed.post"
 // ProfileCollection is the record of what an account says of itself.
 const ProfileCollection = "app.bsky.actor.profile"
 
+// PostgateCollection is the kind of record that says what others may do
+// with a post: whether it may be quoted, and which quotes its author took
+// it out of. Named as the post is.
+const PostgateCollection = "app.bsky.feed.postgate"
+
+// Postgate is a post's postgate record.
+type Postgate struct {
+	Post                  string   `json:"post"`
+	DetachedEmbeddingURIs []string `json:"detachedEmbeddingUris"`
+	EmbeddingRules        []struct {
+		Type string `json:"$type"`
+	} `json:"embeddingRules"`
+}
+
+// QuotesOff says whether its author let nobody quote the post.
+func (g *Postgate) QuotesOff() bool {
+	if g == nil {
+		return false
+	}
+	for _, rule := range g.EmbeddingRules {
+		if rule.Type == "app.bsky.feed.postgate#disableRule" {
+			return true
+		}
+	}
+	return false
+}
+
 // RepostCollection is the kind of record a repost is.
 const RepostCollection = "app.bsky.feed.repost"
 

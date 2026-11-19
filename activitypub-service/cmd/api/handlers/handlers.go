@@ -24,6 +24,11 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// QuoteDetacher takes a quoted post out of a note that quotes it.
+type QuoteDetacher interface {
+	DetachQuote(noteID int64, viewer *entities.Viewer) error
+}
+
 // Env is what the handlers work with.
 type Env struct {
 	Site     site.Addresses
@@ -43,6 +48,9 @@ type Env struct {
 	// Runs what need not hold up an answer: copying a picture, reading
 	// somebody's recent posts. Nil runs it at once, which tests want.
 	Later func(func())
+	// Takes a quoted post out of a quote here, when its author on another
+	// server refused it (roadmap row 162). Nil in tests that are not of it.
+	Detacher QuoteDetacher
 	// Where a post's list of pictures is kept. Nil for none, in tests that
 	// are not of pictures.
 	PhotoFiles PhotoFiles

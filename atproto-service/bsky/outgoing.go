@@ -188,13 +188,6 @@ func (p *OutPost) EndWithLink(label, address string) {
 	p.endWith("", label, address)
 }
 
-// EndWithQuote ends the post with a line leading to the post it quotes
-// (roadmap row 156): `prefix`, then the address shown without its scheme,
-// which alone is the link.
-func (p *OutPost) EndWithQuote(prefix, address string) {
-	p.endWith(prefix, strings.TrimPrefix(address, "https://"), address)
-}
-
 // endWith ends the post with `prefix` and `label`, `label` a link to
 // `address`, cutting its words where they would not fit.
 func (p *OutPost) endWith(prefix, label, address string) {

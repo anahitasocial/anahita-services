@@ -782,6 +782,33 @@ func TestWhatIsHeard(t *testing.T) {
 	}
 }
 
+// THE RULE THIS GUARDS: a post whose author on Bluesky let nobody quote it
+// (its postgate) is not offered to be quoted here; taken away, the
+// postgate lets anybody again (roadmap row 162).
+func TestAPostgateSaysWhetherAPostMayBeQuoted(t *testing.T) {
+	w := newWorld(t)
+	w.alice(true)
+	ctx := context.Background()
+	heard := func(raw string) {
+		t.Helper()
+		e := &bsky.Event{}
+		if err := json.Unmarshal([]byte(raw), e); err != nil {
+			t.Fatal(err)
+		}
+		w.h.Heard(ctx, e)
+	}
+	uri := bsky.PostURI(aliceDID, "3l3gated")
+	heard(`{"did":"` + aliceDID + `","time_us":1,"kind":"commit","commit":{"operation":"create","collection":"app.bsky.feed.post","rkey":"3l3gated","record":{"text":"Mine alone","createdAt":"2026-11-19T11:00:00Z"}}}`)
+	heard(`{"did":"` + aliceDID + `","time_us":2,"kind":"commit","commit":{"operation":"create","collection":"app.bsky.feed.postgate","rkey":"3l3gated","record":{"post":"` + uri + `","embeddingRules":[{"$type":"app.bsky.feed.postgate#disableRule"}]}}}`)
+	if kept := w.keptAt(uri); kept == nil || kept.QuotePolicy != constants.QuotePolicyNobody || kept.Body != "Mine alone" {
+		t.Fatalf("with quotes turned off: %+v", kept)
+	}
+	heard(`{"did":"` + aliceDID + `","time_us":3,"kind":"commit","commit":{"operation":"delete","collection":"app.bsky.feed.postgate","rkey":"3l3gated"}}`)
+	if kept := w.keptAt(uri); kept == nil || kept.QuotePolicy != constants.QuotePolicyAnyone {
+		t.Errorf("with the postgate taken away: %+v", kept)
+	}
+}
+
 func feedItem(did, rkey, text string, reason string) bsky.FeedItem {
 	item := bsky.FeedItem{}
 	item.Post.URI = bsky.PostURI(did, rkey)

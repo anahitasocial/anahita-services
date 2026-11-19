@@ -91,6 +91,15 @@ func (h *Handlers) Heard(ctx context.Context, heard *bsky.Event) {
 			}
 			err = h.reposted(ctx, kept, heard.Commit.RKey, heard.Commit.Record)
 
+		case bsky.PostgateCollection:
+			// Whether their post may be quoted, and the quotes they took it
+			// out of (roadmap row 162).
+			gate := &bsky.Postgate{}
+			if heard.Commit.Operation != "delete" && json.Unmarshal(heard.Commit.Record, gate) != nil {
+				return
+			}
+			err = h.postgated(kept, heard.Commit.RKey, gate)
+
 		case bsky.ProfileCollection:
 			// What they say of themselves changed.
 			h.refreshSoon(heard.DID)

@@ -667,6 +667,19 @@ it is that post's, on a person it is their default.
 Somebody can always quote their own post, whatever its policy. Only people
 quote, and only a note can quote.
 
+A post from another network is quoted under what its author said there
+(roadmap row 162), kept in its `quote_policy` and followed when they change
+it:
+
+| From | Read from | Kept as |
+| --- | --- | --- |
+| The fediverse | `interactionPolicy.canQuote` (FEP-044f): the public approved at once or by hand, its author's followers, or neither | `anyone`, `followers` or `nobody`. A post that says nothing lets nobody, as FEP-044f and Mastodon have it |
+| Bluesky | Its postgate (`app.bsky.feed.postgate`): quoting turned off (`disableRule`) or not | `nobody` or `anyone`. A post with no postgate lets anyone |
+
+The policy only says whether Quote is offered. What lets a quote of a post
+on the fediverse go out is its author's answer
+([Quotes](federation.md#quotes)).
+
 A refusal answers 403 `quote_not_allowed` with a `reason`: `policy`,
 `not_public`, `blocked` or `unavailable`. A post the viewer cannot see answers
 `unavailable`, the same as one that is not there.
@@ -696,6 +709,10 @@ the note cannot be made to quote the post again.
 
 Changing a post's policy to `nobody` stops new quotes. Notes that already
 quote it stay until the author takes the post out of each.
+
+A post from elsewhere is taken out of a quote here too when its author
+refuses the quote on the fediverse (a `Reject`), or takes it out on Bluesky
+(the postgate's `detachedEmbeddingUris`).
 
 ### Counting and telling
 

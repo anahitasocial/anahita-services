@@ -160,19 +160,6 @@ func (n *Note) endWithLink(address string) {
 	}
 }
 
-// EndWithQuote ends the post's words with a line leading to the post it
-// quotes, "↪" and its address shown without its scheme: Mastodon makes a
-// card of it. The quoted post itself is not sent.
-func (n *Note) EndWithQuote(address string) {
-	shown := strings.TrimPrefix(address, "https://")
-	line := fmt.Sprintf(`<p>%s<a href="%s">%s</a></p>`,
-		html.EscapeString(federation.QuotedLine), html.EscapeString(address), html.EscapeString(shown))
-	n.Content += line
-	for language, words := range n.ContentMap {
-		n.ContentMap[language] = words + line
-	}
-}
-
 // Tag names somebody or a hashtag that a post mentions, beside its text,
 // or a location it was tagged with, a `Place` with its point.
 type Tag struct {
@@ -418,6 +405,9 @@ type ReceivedNote struct {
 	QuoteURL           json.RawMessage `json:"quoteUrl"`
 	MisskeyQuote       json.RawMessage `json:"_misskey_quote"`
 	QuoteAuthorization json.RawMessage `json:"quoteAuthorization"`
+	// Who may quote it, by its author's say (FEP-044f): read for whether
+	// Quote is offered here (roadmap row 162).
+	InteractionPolicy json.RawMessage `json:"interactionPolicy"`
 	// Read because another post quotes it: what it quotes in turn is not
 	// read, only found among what is kept already.
 	ForAQuote bool `json:"-"`

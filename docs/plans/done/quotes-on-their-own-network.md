@@ -1,5 +1,8 @@
 # Quotes on their own network (roadmap row 162)
 
+**Done 2026-11-19**, all of it, in services alone: the web app asks the
+server whether Quote is offered, and needed no change.
+
 ## Context
 
 The user, 2026-11-19: somebody on Mastodon who lets a post be quoted has
@@ -50,9 +53,11 @@ A Bluesky author can turn quoting off (`app.bsky.feed.postgate`, an
 detach one quote (`detachedEmbeddingUris`). Not read until now. With this
 row:
 
-1. A post from Bluesky is read with its postgate; quoting turned off makes
-   its quote policy here "no one", and Quote is not offered, as for a post
-   here.
+1. A post from Bluesky has its postgate read as Jetstream tells of it
+   (`app.bsky.feed.postgate`, beside posts); quoting turned off makes its
+   quote policy here "nobody", and Quote is not offered, as for a post
+   here. A post read when its author is first followed is not looked up
+   for one.
 2. A quote already made of a post whose author turns quoting off, or
    detaches it, keeps its words here and on Bluesky, as Bluesky shows it,
    without the quoted post.
@@ -87,8 +92,8 @@ read on posts that came in. With this row:
    answers by the author's setting. A quote whose author's server never
    answers never goes out: no answer is not consent.
 3. **On a `Reject`** nothing goes to the fediverse, and here the quote
-   keeps its words without the quoted post. Whether its writer is told
-   (a quiet notification) is open.
+   keeps its words without the quoted post (taken out as an author takes
+   theirs out). Its writer is not told.
 
 The composer says nothing of where a quote goes (the user, 2026-11-19):
 the rules are clear and followed, and a person can do nothing other than
@@ -99,8 +104,7 @@ respect the consent, so there is nothing to tell them before they post.
 1. anahita-services `docs/federation.md`: Quotes (the table), Posts going
    out, and the Bluesky paragraph on quoting; `docs/permissions.md`, Quotes,
    for the postgate.
-2. anahita-web: Quote not offered where a post's policy or postgate says
-   no; `docs/` where quotes are described.
+2. anahita-web: nothing; Quote is offered as the server says.
 3. anahita.io: a new blog post when this is built, saying that we changed
    our mind and refined the design (the user, 2026-11-19). The post
    "Quotes that reach Mastodon and Bluesky" stays as it was written; it says

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html"
+	"net/url"
 	"strings"
 )
 
@@ -162,4 +163,66 @@ func ReadQuoteRequest(body []byte) (*QuoteRequestSeen, error) {
 		return nil, fmt.Errorf("not a QuoteRequest that can be answered")
 	}
 	return seen, nil
+}
+
+// QuotePolicy is who may quote a post from elsewhere, as Anahita's quote
+// policy says it (roadmap row 162): everybody, when its `canQuote` names
+// the public, approved at once or by hand; its author's followers, when it
+// names their collection; and otherwise nobody, as FEP-044f has it: an
+// actor named nowhere is expected never to be approved, and a post that
+// says nothing is taken to let nobody, as Mastodon takes it. The policy
+// says only whether Quote is offered; what lets a quote go out is the
+// stamp its author's server gives.
+func (n *ReceivedNote) QuotePolicy() string {
+	var policy struct {
+		CanQuote *struct {
+			AutomaticApproval json.RawMessage `json:"automaticApproval"`
+			ManualApproval    json.RawMessage `json:"manualApproval"`
+		} `json:"canQuote"`
+	}
+	if len(n.InteractionPolicy) == 0 || json.Unmarshal(n.InteractionPolicy, &policy) != nil || policy.CanQuote == nil {
+		return QuoteNobody
+	}
+	author := n.Author()
+	followers := false
+	for _, raw := range []json.RawMessage{policy.CanQuote.AutomaticApproval, policy.CanQuote.ManualApproval} {
+		for _, who := range idsOf(raw) {
+			switch {
+			case who == Public || who == "as:Public" || who == "Public":
+				return QuoteAnyone
+			case author != "" && (who == author+"/followers" || (sameHostAs(who, author) && strings.HasSuffix(who, "/followers"))):
+				followers = true
+			}
+		}
+	}
+	if followers {
+		return QuoteFollowers
+	}
+	return QuoteNobody
+}
+
+// idsOf reads one address or a list of them, each as itself or as the id
+// of an object.
+func idsOf(raw json.RawMessage) []string {
+	if len(raw) == 0 {
+		return nil
+	}
+	var list []json.RawMessage
+	if json.Unmarshal(raw, &list) != nil {
+		list = []json.RawMessage{raw}
+	}
+	ids := make([]string, 0, len(list))
+	for _, each := range list {
+		if id := idOf(each); id != "" {
+			ids = append(ids, id)
+		}
+	}
+	return ids
+}
+
+// sameHostAs says whether two addresses are on one server.
+func sameHostAs(a, b string) bool {
+	ua, errA := url.Parse(a)
+	ub, errB := url.Parse(b)
+	return errA == nil && errB == nil && ua.Host != "" && strings.EqualFold(ua.Host, ub.Host)
 }

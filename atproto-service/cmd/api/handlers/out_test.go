@@ -1563,9 +1563,10 @@ func TestAHiddenReplyUnderAPostNotOnBluesky(t *testing.T) {
 	}
 }
 
-// A post that quotes ends with a line leading to what it quotes, and,
-// carrying nothing else, a card of it with its picture (roadmap row 156).
-func TestAQuoteGoesToBlueskyWithACardOfWhatItQuotes(t *testing.T) {
+// THE RULE THIS GUARDS: a quote of a post here that is not on Bluesky is
+// not written there, nor carried there as a line or a card (roadmap row
+// 162): only its author chooses the networks their post is on.
+func TestAQuoteOfAPostNotOnBlueskyStaysOffIt(t *testing.T) {
 	w, _ := writingWorld(t)
 	w.connect()
 
@@ -1573,9 +1574,6 @@ func TestAQuoteGoesToBlueskyWithACardOfWhatItQuotes(t *testing.T) {
 		ID: 96, Type: constants.NodeMediumPhotoEntityType, Enabled: true, OwnerID: anaID, CreatedBy: anaID,
 		Access: constants.AnahitaAccessPublic, Body: "Testing a channel",
 	}
-	sizes, _ := photo.PortraitsFor("one.png")
-	w.files.content[sizes[entities.PortraitSizeMedium].Url] = aPicture(t)
-	w.listed.kept[96] = []*entities.PhotoFile{{Filename: "one.png", Mimetype: "image/png", Width: 600, Height: 400}}
 	quote := &entities.AnahitaNode{
 		ID: 97, Type: constants.NodeMediumNoteEntityType, Enabled: true, OwnerID: anaID, CreatedBy: anaID,
 		Access: constants.AnahitaAccessPublic, Body: "It works", QuoteID: 96,
@@ -1585,20 +1583,8 @@ func TestAQuoteGoesToBlueskyWithACardOfWhatItQuotes(t *testing.T) {
 	if failed := w.drain(); len(failed) != 0 {
 		t.Fatal(failed)
 	}
-
-	var written string
-	for key, record := range w.writer.records {
-		if out, _ := json.Marshal(record); strings.Contains(string(out), "It works") {
-			written = key + " " + string(out)
-		}
-	}
-	for _, want := range []string{
-		`"text":"It works\n\n↪ anahita.example/photos/96"`, `"uri":"https://anahita.example/photos/96"`,
-		`"app.bsky.embed.external"`, `"title":"Testing a channel"`, `"thumb":{"$type":"blob"`,
-	} {
-		if !strings.Contains(written, want) {
-			t.Errorf("the quote as written lacks %s:\n%s", want, written)
-		}
+	if out := writtenWith(w, "It works"); out != "" {
+		t.Errorf("a quote of a post not on Bluesky was written there:\n%s", out)
 	}
 }
 
@@ -1667,50 +1653,40 @@ func TestAQuoteOfAPostOnBlueskyIsAQuoteThere(t *testing.T) {
 	}
 }
 
-// A quote of a post from the fediverse, which is not on Bluesky, goes with a
-// card of it: its words plain, a link as its words and no Markdown; whose
-// it is, by name and handle; and its first picture, kept here while it is
-// quoted (the user, 2026-11-16: the card showed the post's Markdown, the
-// host alone and no picture).
-func TestTheCardOfAQuotedPostFromTheFediverse(t *testing.T) {
+// THE RULE THIS GUARDS: a quote of a post from the fediverse is not
+// written to Bluesky (roadmap row 162): its author's consent to be quoted
+// there is not consent to be carried to another network.
+func TestAQuoteOfAPostFromTheFediverseStaysOffBluesky(t *testing.T) {
 	w, _ := writingWorld(t)
 	w.connect()
 
 	author := &entities.AnahitaNode{
 		ID: 120, Type: constants.NodeActorActivityPubPersonEntityType, Enabled: true,
-		Alias: "falseknees@mastodon.social", Name: "False Knees",
-		URI: "https://mastodon.social/users/falseknees", Access: constants.AnahitaAccessPublic,
+		Alias: "amos@rocinante.example", Name: "Amos Burton",
+		URI: "https://rocinante.example/users/amos", Access: constants.AnahitaAccessPublic,
 	}
 	quoted := &entities.AnahitaNode{
 		ID: 121, Type: constants.NodeMediumNoteEntityType, Enabled: true, OwnerID: 120, CreatedBy: 120,
-		Access: constants.AnahitaAccessPublic, URI: "https://mastodon.social/users/falseknees/statuses/1",
-		Body: "focus - prints available at [https://store.falseknees.com/](https://store.falseknees.com/)",
+		Access: constants.AnahitaAccessPublic, URI: "https://rocinante.example/users/amos/statuses/1",
+		Body: "Engine room, all good",
 	}
-	sizes, _ := quoted.PortraitsFor("comic.png")
-	w.files.content[sizes[entities.PortraitSizeMedium].Url] = aPicture(t)
-	w.listed.kept[121] = []*entities.PhotoFile{{Filename: "comic.png", Mimetype: "image/png", Width: 600, Height: 600}}
 	quote := &entities.AnahitaNode{
 		ID: 122, Type: constants.NodeMediumNoteEntityType, Enabled: true, OwnerID: anaID, CreatedBy: anaID,
-		Access: constants.AnahitaAccessPublic, Body: "Today's mantra", QuoteID: 121,
+		Access: constants.AnahitaAccessPublic, Body: "Good to hear", QuoteID: 121,
 	}
 	w.nodes.kept = append(w.nodes.kept, author, quoted, quote)
 	w.heard("node.medium.text-service.note.added.v1", event.EventPayload{ObjectType: constants.NodeMediumNoteEntityType, ObjectID: 122})
 	if failed := w.drain(); len(failed) != 0 {
 		t.Fatal(failed)
 	}
-
-	written := writtenWith(w, "Today's mantra")
-	for _, want := range []string{
-		`"app.bsky.embed.external"`,
-		`"title":"focus - prints available at store.falseknees.com"`,
-		`"description":"False Knees · @falseknees@mastodon.social"`,
-		`"thumb":{"$type":"blob"`,
-	} {
-		if !strings.Contains(written, want) {
-			t.Errorf("the quote as written lacks %s:\n%s", want, written)
-		}
+	if out := writtenWith(w, "Good to hear"); out != "" {
+		t.Errorf("a quote of a post from the fediverse was written to Bluesky:\n%s", out)
 	}
-	if strings.Contains(written, "](") {
-		t.Errorf("the card shows Markdown:\n%s", written)
+	// Taken out of the quote by its author, it still stays off.
+	quote.QuoteDetached = true
+	w.heard("node.medium.text-service.note.edited.v1", event.EventPayload{ObjectType: constants.NodeMediumNoteEntityType, ObjectID: 122})
+	_ = w.drain()
+	if out := writtenWith(w, "Good to hear"); out != "" {
+		t.Errorf("a refused quote came to Bluesky as its words:\n%s", out)
 	}
 }

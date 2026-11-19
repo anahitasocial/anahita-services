@@ -9,18 +9,13 @@ import (
 	"anahita-libs/videos"
 )
 
-// QuotedLine starts the line a post that quotes ends with on another
-// network, before the quoted post's address, as a quote that comes in ends
-// with "↪ bsky.app".
-const QuotedLine = "↪ "
-
-// QuotedAddress is where a post that quotes leads, on another network, to
-// the post it quotes: Mastodon and Bluesky make a card of it. A post from
-// elsewhere is led to where it lives: its address on the fediverse, or its
-// page on Bluesky. A post made here is led to its page here, only when it
-// is public (`public`, as the caller read it for somebody signed out): a
-// quoted post that is not leaves no line, and nothing of it goes out.
-// web is the site's address of a path: web("/photos/12").
+// QuotedAddress is the address of the post a post quotes, as a quote names
+// it on the network it goes to: a post from elsewhere where it lives, its
+// address on the fediverse or its page on Bluesky; a post made here, its
+// page here, only when it is public (`public`, as the caller read it for
+// somebody signed out). Nothing for a quoted post that is not. A quote goes
+// only to the networks the quoted post is on (roadmap row 162), and the
+// address is the line a server that shows no quotes leads its readers by.
 func QuotedAddress(quoted *entities.AnahitaNode, public bool, web func(path string) string) string {
 	if quoted == nil || quoted.ID == 0 || quoted.DeletedAt != nil {
 		return ""

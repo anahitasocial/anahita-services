@@ -498,6 +498,11 @@ func (r *nodesRepo) addRemote(ctx context.Context, node *entities.AnahitaNode) (
 		columns["warning_text"] = node.WarningText
 		// The post it quotes, when its author let it (roadmap row 156).
 		columns["quote_id"] = nullableID(node.QuoteID)
+		// Who may quote it, by its author's say where it was written
+		// (roadmap row 162). Empty for not said.
+		if node.QuotePolicy != "" {
+			columns["quote_policy"] = node.QuotePolicy
+		}
 	}
 	// A reply is seen by whoever may see the root of its thread, and says
 	// nothing of its own about who may: as a reply written here.
@@ -558,6 +563,11 @@ func (r *nodesRepo) editRemote(ctx context.Context, id int64, node *entities.Ana
 		// What it quotes, as its author's server says it now (roadmap row
 		// 156).
 		columns["quote_id"] = nullableID(node.QuoteID)
+		// Who may quote it, when its network said: a post read again
+		// without it keeps what it had (roadmap row 162).
+		if node.QuotePolicy != "" {
+			columns["quote_policy"] = node.QuotePolicy
+		}
 	}
 
 	query, args, err := sq.Update("nodes").SetMap(columns).

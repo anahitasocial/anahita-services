@@ -323,6 +323,14 @@ func (h *Handlers) localPosted(ctx context.Context, noteID int64) error {
 		return nil
 	}
 
+	// A quote goes to Bluesky only when what it quotes is there, by its
+	// author's choice (roadmap row 162): a quote of a post from the
+	// fediverse, or of one here that is not on Bluesky, stays off it. One
+	// that went before is taken back.
+	if h.quoteStaysOff(note) {
+		return h.localRemoved(ctx, note.ID)
+	}
+
 	// A note that answers nothing: theirs, on their own profile, open to
 	// everybody.
 	if note.ParentID <= 0 && note.RootID <= 0 {
@@ -604,16 +612,16 @@ func (h *Handlers) record(ctx context.Context, w *write, upload uploader) (any, 
 	if note.Type == videos.AudioNodeType {
 		post.WithCard(h.Site.Web(webPathOf(note)), cutTitle(note), articleOpening(note), h.audioCover(note, upload))
 	}
-	// The post it quotes, led to by a line at its end (roadmap row 156).
+	// The post it quotes, quoted there as a quote made there is (roadmap
+	// row 156). One not on Bluesky is not carried there: the quote is not
+	// written (roadmap row 162).
 	address, quoted := h.quotedAddress(note)
-	// On Bluesky too, it is quoted there, as a quote made there is; a post
-	// that is not is led to by a line.
 	quotedRef, err := h.quotedRef(ctx, quoted, address)
 	if err != nil {
 		return nil, err
 	}
-	if address != "" && quotedRef == nil {
-		post.EndWithQuote(federation.QuotedLine, address)
+	if note.QuoteID > 0 && !note.QuoteDetached && quoted != nil && quotedRef == nil {
+		return nil, nil
 	}
 	if post.Text == "" && post.Embed == nil {
 		return nil, nil
@@ -631,12 +639,9 @@ func (h *Handlers) record(ctx context.Context, w *write, upload uploader) (any, 
 		address := h.Site.Web(webPathOf(note))
 		post.EndWithLink(strings.TrimPrefix(address, "https://"), address)
 	}
-	// The post it quotes, embedded where it is on Bluesky; as its card where
-	// it is not and the post carries nothing else.
-	if quotedRef != nil {
+	// The post it quotes, embedded as it is on Bluesky.
+	if quotedRef != nil && !note.QuoteDetached {
 		post.WithQuote(quotedRef)
-	} else if address != "" && post.Embed == nil {
-		post.WithCard(address, cutTitle(quoted), h.quotedBy(quoted, address), h.quotedPicture(quoted, upload))
 	}
 	// The card of the link in it, as it was kept when the note was made.
 	if card := linkpreviews.FromMeta(note.Meta); card != nil && post.Embed == nil {
@@ -1013,76 +1018,6 @@ func (h *Handlers) quotedAddress(note *entities.AnahitaNode) (string, *entities.
 	return federation.QuotedAddress(quoted, public, h.Site.Web), quoted
 }
 
-// hostOf is an address's host, for a card's line under its title.
-func hostOf(address string) string {
-	host := strings.TrimPrefix(address, "https://")
-	if i := strings.IndexByte(host, '/'); i >= 0 {
-		host = host[:i]
-	}
-	return host
-}
-
-// quotedBy is the line under a quoted post's card on Bluesky: whose it is,
-// by name and handle, "False Knees · @falseknees@mastodon.social"; or the
-// host of its address when its author cannot be read.
-func (h *Handlers) quotedBy(quoted *entities.AnahitaNode, address string) string {
-	if quoted == nil || quoted.CreatedBy <= 0 {
-		return hostOf(address)
-	}
-	author, err := h.Nodes.Read(quoted.CreatedBy)
-	if err != nil || author == nil || author.Alias == "" {
-		return hostOf(address)
-	}
-	// Somebody from elsewhere is named by their whole handle; somebody here
-	// by theirs on this installation.
-	handle := "@" + author.Alias
-	if !strings.Contains(author.Alias, "@") {
-		handle += "@" + h.Site.Domain
-	}
-	if name := strings.TrimSpace(author.Name); name != "" {
-		return name + " · " + handle
-	}
-	return handle
-}
-
-// quotedPicture is the picture of a quoted post's card on Bluesky, or nil:
-// its first picture, of a photo post or of any post with pictures, one from
-// elsewhere too, whose pictures are kept here while it is quoted; an
-// article's cover, a video's poster, a sound's cover, or the picture of the
-// card a note carries.
-func (h *Handlers) quotedPicture(quoted *entities.AnahitaNode, upload uploader) *bsky.OutBlob {
-	if quoted == nil || h.Keeper == nil || h.Keeper.Files == nil {
-		return nil
-	}
-	if h.Keeper.PhotoFiles != nil {
-		if files, err := h.Keeper.PhotoFiles.BrowsePhotoFiles([]int64{quoted.ID}); err == nil && len(files) > 0 {
-			if sizes, err := quoted.PortraitsFor(files[0].Filename); err == nil {
-				if blob := h.uploaded(sizes[entities.PortraitSizeMedium].Url, upload); blob != nil {
-					return blob
-				}
-			}
-		}
-	}
-	if quoted.URI != "" {
-		return nil
-	}
-	switch quoted.Type {
-	case constants.NodeMediumArticleEntityType:
-		return h.coverPicture(quoted, upload)
-	case videos.AudioNodeType:
-		return h.audioCover(quoted, upload)
-	case videos.NodeType:
-		if video := videos.FromMeta(quoted.Meta); video != nil {
-			return h.uploaded(video.Poster, upload)
-		}
-		return nil
-	}
-	if card := linkpreviews.FromMeta(quoted.Meta); card != nil {
-		return h.cardPicture(card.ImageKey, upload)
-	}
-	return nil
-}
-
 // uploaded is a picture in this installation's storage, given to the
 // account's server, or nil.
 func (h *Handlers) uploaded(path string, upload uploader) *bsky.OutBlob {
@@ -1095,6 +1030,30 @@ func (h *Handlers) uploaded(path string, upload uploader) *bsky.OutBlob {
 		return nil
 	}
 	return blob
+}
+
+// quoteStaysOff says whether a post that quotes stays off Bluesky
+// (roadmap row 162): it quotes a post from the fediverse, or one here that
+// is not on Bluesky, or is not open to everybody. Consent to be quoted on
+// one network is not consent to be carried to another. Decided by where
+// the quoted post is, even once it is taken out of the quote: a quote of a
+// post from the fediverse whose author refused it does not come to Bluesky
+// as its words alone. A post whose quoted post is gone goes as its words.
+func (h *Handlers) quoteStaysOff(note *entities.AnahitaNode) bool {
+	if note == nil || note.QuoteID <= 0 {
+		return false
+	}
+	quoted, err := h.Nodes.Read(note.QuoteID)
+	if err != nil || quoted == nil || quoted.ID == 0 || quoted.DeletedAt != nil {
+		return false
+	}
+	if quoted.IsRemote() {
+		return !strings.HasPrefix(quoted.URI, "at://")
+	}
+	if !permissions.CanReadByID(h.Nodes, quoted.ID, entities.NewViewer()) {
+		return true
+	}
+	return h.onBluesky(quoted) == ""
 }
 
 // quotedWait is how long a quoted post written from here is waited for on

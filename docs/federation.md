@@ -741,16 +741,27 @@ from then on, and nothing from before.
 
 ## Quotes
 
-Quotes between servers are as Mastodon makes them (FEP-044f; roadmap row
-156): a post names what it quotes, and the quoted post's author says, in a
-stamp their server keeps, that they let it.
+Quotes between servers follow FEP-044f (roadmap rows 156 and 162), a
+fediverse proposal that Mastodon and GoToSocial make quotes by: a post names
+what it quotes, and the quoted post's author says, in a stamp their server
+keeps, that they let it.
 
-| A quote here of | Goes out as |
+**A quote goes only where the post it quotes is** (roadmap row 162).
+Consent to be quoted on one network is not consent to be carried to
+another, though the post is public. A quote is always kept here, where both
+networks meet; past that:
+
+| A quote here of | Goes to the fediverse |
 | --- | --- |
-| A post here on the fediverse | A quote: `quote` (with `quoteUri` and `_misskey_quote` for the servers that read those) naming it, and `quoteAuthorization`, a stamp this installation gives and serves at `/ap/quotes/:uuid`, made from the two posts each time it is asked for and there only while the quote is |
-| A post on another server of the fediverse | A quote, and a `QuoteRequest` to its author, asked once. Their `Accept` sends the quote again (an `Update`) with their stamp; their `Reject` sends it again without the quote. Only the quoted post's author is listened to (`activitypub_quote_requests`) |
-| A post on Bluesky alone, or one here not on the fediverse but public | A line that leads to it, "↪" and its address, of which Mastodon makes a card |
-| A post nobody signed out may see | Nothing of it: no line |
+| A post here on the fediverse | As a quote: `quote` (with `quoteUri` and `_misskey_quote` for the servers that read those) naming it, and `quoteAuthorization`, a stamp this installation gives and serves at `/ap/quotes/:uuid`, made from the two posts each time it is asked for and there only while the quote is |
+| A post on another server of the fediverse | Only once its author lets it. A `QuoteRequest` is sent first, once, with the quote inlined as its `instrument`, and nothing else goes out. Their `Accept` sends the quote, a `Create` with their stamp. Their `Reject` sends nothing, and takes their post out of the quote here, which keeps its words. A request never answered sends nothing: no answer is not consent. Only the quoted post's author is listened to (`activitypub_quote_requests`) |
+| A post from Bluesky, or one here not on the fediverse | Nothing: the quote stays off the fediverse, decided by where the quoted post is even once it is taken out of the quote |
+| A post nobody signed out may see | Nothing |
+
+A post that quotes one since removed goes as its words, as any post does.
+A post's own address pasted into a post is a link, with its card, and goes
+wherever that post goes: crossing from one network to another is somebody's
+own doing, never a quote's.
 
 A quote's words end with `RE:` and the quoted post's address, in a
 paragraph marked `quote-inline`, which Mastodon hides when it shows the
@@ -774,6 +785,14 @@ from its author's server and checked (`interactingObject`,
 out, as it shows. A quoted post not kept here is read and kept, once: what
 it quotes in turn is not followed. A quote that is not approved is kept as
 the words it is, with the line that leads to the quoted post.
+
+**Who may quote a post that comes in** is read from its
+`interactionPolicy.canQuote` and kept as its quote policy, followed when
+its author changes it: the public, approved at once or by hand, is
+anyone; its author's followers are followers; anything else, or nothing
+said, is nobody, as FEP-044f has it. Quote is not offered where it says no
+([Quotes](permissions.md#quotes)). FEP-044f has the policy only as a hint:
+the stamp is what lets a quote go out.
 
 ## Posts coming in
 
@@ -1657,14 +1676,13 @@ its own. The card says to use one and where to make it.
    Bluesky, from there or one of this installation's written there, is a
    quote there: the quoted post embedded as a record
    (`app.bsky.embed.record`, or `recordWithMedia` beside its own pictures,
-   video or card; roadmap row 156). Quoting one that is not, it ends with
-   a line that leads to it, as on the fediverse, "↪" and its address, and
-   carries a card of it when it carries nothing else: its opening in plain
-   words, a link as its words or its short address; whose it is, by name
-   and handle ("False Knees · @falseknees@mastodon.social"); and its
-   picture: the first of a post with pictures, one from the fediverse too,
-   an article's cover, a video's poster, a sound's cover, or the picture of
-   a note's link card. A post or a reply that is changed here afterwards
+   video or card; roadmap row 156). A post that quotes one not on Bluesky,
+   from the fediverse or one here that is not written there, is not written
+   to Bluesky at all, nor anything of the quoted post (roadmap row 162; see
+   [Quotes](#quotes)). Whether a post from Bluesky may be quoted here is its
+   postgate's say, read as it changes; a quote of it its author takes it
+   out of on Bluesky is taken out here too.
+   A post or a reply that is changed here afterwards
    is not changed there: Bluesky has no changing a post, and taking it down
    to post it again would lose its likes, reposts and replies. Mastodon and
    other servers are sent the change.
@@ -1775,7 +1793,7 @@ app.
 | The service | `activitypub-service/` |
 | Who is on the fediverse | `cmd/api/handlers/handlers.go`: `siteFederates`, `mayFederate`, `federating` |
 | WebFinger and host-meta | `cmd/api/handlers/discovery.go` |
-| Quotes (FEP-044f) | `cmd/api/handlers/quotes.go` (a quote going out, its stamp, `QuoteRequest`s both ways, quotes coming in), `ap/quote.go`, tables `activitypub_quote_requests` and `activitypub_quote_stamps`; on Bluesky, `atproto-service/cmd/api/handlers/out.go` (`quotedRef`) and `bsky/outgoing.go` (`WithQuote`); both, `anahita-libs/federation/quoted.go` |
+| Quotes (FEP-044f) | `cmd/api/handlers/quotes.go` (a quote going out, its stamp, `QuoteRequest`s both ways, quotes coming in), `ap/quote.go`, tables `activitypub_quote_requests` and `activitypub_quote_stamps`; where a quote goes, `quoteStaysHere` and `askFirst`; on Bluesky, `atproto-service/cmd/api/handlers/out.go` (`quoteStaysOff`, `quotedRef`), `bsky/outgoing.go` (`WithQuote`) and postgates in `posts.go` (`postgated`); both, `anahita-libs/federation/quoted.go`; who may quote a post from elsewhere, `anahita-libs/permissions/quote.go` (`quotePolicyOf`) |
 | A person's description | `cmd/api/handlers/actor.go`, `ap/actor.go` |
 | The addresses of things | `ap/addresses.go` |
 | Keys | `keys/`, `cmd/api/handlers/keys.go`, table `actor_keys` |

@@ -23,18 +23,76 @@ import (
 // (FEP-044f). A quote here names the post it quotes. For a post here, the
 // stamp that says its author let it is this installation's to give, and is
 // made from the two posts each time it is asked for. For a post on another
-// server, its author is asked with a QuoteRequest, and their stamp kept
-// when they accept. A post elsewhere that quotes one here is answered by
+// server, its author is asked with a QuoteRequest before anything goes out,
+// and the quote goes out with their stamp when they accept; when they
+// refuse, nothing goes out, and their post is taken out of the quote here
+// (roadmap row 162). A post elsewhere that quotes one here is answered by
 // its author's quote policy, and given a stamp that is kept. A quote that
 // comes in is kept as one when its stamp checks out, or it quotes its own
 // author.
+//
+// A quote goes to the fediverse only when what it quotes is on the
+// fediverse, by its author's choice (roadmap row 162): a quote of a post
+// from Bluesky, or of one here that does not go out, stays here and on the
+// networks that post is on. Consent to be quoted on one network is not
+// consent to be carried to another.
+
+// quoteStaysHere says whether a post that quotes stays off the fediverse:
+// it quotes a post from Bluesky; one here that does not go out; or one on
+// another server whose author has not let it, yet or at all. A post whose
+// quoted post is gone goes as its words, as any post does.
+func (h *Handlers) quoteStaysHere(note *entities.AnahitaNode) bool {
+	if note == nil || note.QuoteID <= 0 {
+		return false
+	}
+	quoted, err := h.Nodes.Read(note.QuoteID)
+	if err != nil || quoted == nil || quoted.ID == 0 || quoted.DeletedAt != nil {
+		return false
+	}
+	switch {
+	case quoted.URI == "":
+		author, _ := h.goesOut(quoted)
+		return author == nil
+	case strings.HasPrefix(quoted.URI, "https://"):
+		if h.Quotes == nil {
+			return true
+		}
+		request, err := h.Quotes.RequestOf(note.ID)
+		return err != nil || request == nil || request.State != repositories.QuoteAccepted
+	}
+	return true
+}
+
+// askFirst asks the author of a post on another server to let a note here
+// quote it, when the note would go out but for that and they have not
+// been asked. It says whether it asked.
+func (h *Handlers) askFirst(ctx context.Context, note *entities.AnahitaNode) (bool, error) {
+	if h.Quotes == nil || note == nil || note.QuoteID <= 0 || note.QuoteDetached {
+		return false, nil
+	}
+	request, err := h.Quotes.RequestOf(note.ID)
+	if err != nil || request != nil {
+		return false, err
+	}
+	author, answering := h.goesOutAsPost(note)
+	if author == nil {
+		return false, nil
+	}
+	quoted, err := h.Nodes.Read(note.QuoteID)
+	if err != nil || quoted == nil || !strings.HasPrefix(quoted.URI, "https://") {
+		return false, err
+	}
+	// The quote as it would go, inlined in the request for its author's
+	// server to look at, as FEP-044f asks.
+	sent := h.described(note, author, answering)
+	return true, h.askToQuote(ctx, note, author, sent)
+}
 
 // quoteOf is how a post that quotes names what it quotes between servers:
 // the quoted post's address there, the stamp that approves it, and the
 // page a server that shows no quotes leads to. Nothing when the quoted post
-// has no address between servers (one on Bluesky alone, one here that does
-// not go out), or its author refused the quote: then the post goes with a
-// line that leads to it (federation.QuotedAddress), if anything.
+// has no address between servers, or its author refused the quote: such a
+// quote does not go out (quoteStaysHere), or it was taken out.
 func (h *Handlers) quoteOf(note *entities.AnahitaNode) (quoted, stamp, page string) {
 	if note == nil || note.QuoteID <= 0 || note.QuoteDetached {
 		return "", "", ""
@@ -79,8 +137,6 @@ func (h *Handlers) quoteOf(note *entities.AnahitaNode) (quoted, stamp, page stri
 func (h *Handlers) withQuote(sent *ap.Note, note, author *entities.AnahitaNode) {
 	if quoted, stamp, page := h.quoteOf(note); quoted != "" {
 		sent.QuotesPost(quoted, stamp, page)
-	} else if address := h.quotedAddress(note); address != "" {
-		sent.EndWithQuote(address)
 	}
 	policy := constants.EffectiveQuotePolicy(note.QuotePolicy, author.QuotePolicy)
 	reply := note.ParentID > 0 || note.RootID > 0
@@ -151,7 +207,19 @@ func (h *Handlers) quoteAnswered(ctx context.Context, from *remote.Actor, activi
 	if err := h.Quotes.Answer(request.NodeID, accepted, stamp); err != nil {
 		return err
 	}
-	// Sent again, as changed now: with its stamp, or without its quote.
+	// Refused: their post is taken out of the quote here too, and the quote
+	// keeps its words, as when an author here takes theirs out.
+	if !accepted && h.Detacher != nil {
+		if writer, err := h.Actors.ReadByURI(request.QuotedAuthorURI); err == nil && writer != nil {
+			by := &entities.Viewer{}
+			by.ID = writer.NodeID
+			if err := h.Detacher.DetachQuote(request.NodeID, by); err != nil {
+				log.Printf("inbox: taking %s out of quote %d: %v", request.QuotedURI, request.NodeID, err)
+			}
+		}
+	}
+	// Told of again: let, it goes out now with their stamp; refused, it
+	// stays here, and nothing goes out.
 	return h.relocated(ctx, request.NodeID)
 }
 

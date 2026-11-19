@@ -150,10 +150,14 @@ func TestAQuoteOfAPostHereGoesAsAQuote(t *testing.T) {
 }
 
 // THE RULE THIS GUARDS: a quote here of a post on another server asks its
-// author, once; their Accept sends the quote again with their stamp, their
-// Reject sends it again without the quote. Only they are listened to.
+// author first, once, and nothing goes out before they answer (roadmap row
+// 162): their Accept sends the quote with their stamp; their Reject sends
+// nothing, and their post is taken out of the quote here. Only they are
+// listened to.
 func TestAQuoteOfAPostElsewhereAsksItsAuthor(t *testing.T) {
 	w, quotes := quotesWorld()
+	detacher := &fakeDetacher{}
+	w.h.Detacher = detacher
 	w.call(w.h.Lookup, http.MethodGet, "/activitypub/lookup?q=@alice@mastodon.example", "", anaID)
 	var alice *repositories.RemoteActor
 	for _, kept := range w.actors.kept {
@@ -166,11 +170,11 @@ func TestAQuoteOfAPostElsewhereAsksItsAuthor(t *testing.T) {
 	w.nodes.people = append(w.nodes.people, hers, anasQuote(9001))
 
 	_ = w.h.HandleEvent(made(quoteID))
-	var created, asked map[string]any
+	var asked map[string]any
 	for _, each := range w.queue.sent {
 		switch each.payload["type"] {
 		case "Create":
-			created = each.payload
+			t.Errorf("sent before her answer, to %s", each.target)
 		case "QuoteRequest":
 			asked = each.payload
 			if each.target != alice.Inbox {
@@ -178,53 +182,85 @@ func TestAQuoteOfAPostElsewhereAsksItsAuthor(t *testing.T) {
 			}
 		}
 	}
-	object, _ := created["object"].(map[string]any)
-	if object["quote"] != alicesNote || object["quoteAuthorization"] != nil {
-		t.Errorf("sent before her answer as %v, %v", object["quote"], object["quoteAuthorization"])
-	}
 	if asked == nil || asked["object"] != alicesNote || asked["actor"] != anaActor {
 		t.Fatalf("asked %v", asked)
 	}
+	// The quote is in the request, for her server to look at.
+	if instrument, _ := asked["instrument"].(map[string]any); instrument["quote"] != alicesNote {
+		t.Errorf("the quote not in the request: %v", asked["instrument"])
+	}
 	requestID := asked["id"].(string)
 
-	// Somebody else answering is not listened to.
+	// Told of again while she has not answered: not asked twice, not sent.
 	w.queue.sent = nil
+	_ = w.h.HandleEvent(made(quoteID))
+	if len(w.queue.sent) != 0 {
+		t.Errorf("while waiting: %+v", w.queue.sent)
+	}
+
+	// Somebody else answering is not listened to.
 	w.deliver(`{"id":"https://other.example/a/1","type":"Accept","actor":"https://other.example/users/eve","object":"`+requestID+`","result":"https://other.example/stamps/1"}`,
 		"https://other.example/users/eve#main-key", remoteKey.PrivatePEM, nil)
 	if quotes.requests[quoteID].State != repositories.QuotePending {
 		t.Errorf("an answer from somebody else was taken: %+v", quotes.requests[quoteID])
 	}
 
-	// She accepts: the quote goes again, with her stamp.
+	// Had she said no, nothing goes out, and her post is taken out of the
+	// quote here.
+	w.queue.sent = nil
+	w.fromAlice(`{"id":"https://mastodon.example/a/3","type":"Reject","actor":"` + aliceID + `","object":"` + requestID + `"}`)
+	for _, each := range w.queue.sent {
+		if each.payload["type"] == "Create" || each.payload["type"] == "Update" {
+			t.Errorf("after her Reject: %v to %s", each.payload["type"], each.target)
+		}
+	}
+	if len(detacher.detached) != 1 || detacher.detached[0] != quoteID {
+		t.Errorf("not taken out of the quote here: %v", detacher.detached)
+	}
+
+	// She accepts: the quote goes out, with her stamp.
+	quotes.requests[quoteID].State = repositories.QuotePending
+	w.queue.sent = nil
 	stamp := "https://mastodon.example/users/alice/quote_authorizations/1"
 	w.fromAlice(`{"id":"https://mastodon.example/a/2","type":"Accept","actor":"` + aliceID + `","object":{"id":"` + requestID + `","type":"QuoteRequest"},"result":"` + stamp + `"}`)
 	if quotes.requests[quoteID].State != repositories.QuoteAccepted || quotes.requests[quoteID].StampURI != stamp {
 		t.Fatalf("after her Accept: %+v", quotes.requests[quoteID])
 	}
-	updated := false
+	created := false
 	for _, each := range w.queue.sent {
-		if each.payload["type"] == "Update" {
+		if each.payload["type"] == "Create" {
 			object, _ := each.payload["object"].(map[string]any)
-			updated = object["quote"] == alicesNote && object["quoteAuthorization"] == stamp
+			created = object["quote"] == alicesNote && object["quoteAuthorization"] == stamp
 		}
 	}
-	if !updated {
-		t.Errorf("not sent again with her stamp: %+v", w.queue.sent)
+	if !created {
+		t.Errorf("not sent with her stamp: %+v", w.queue.sent)
 	}
+}
 
-	// Had she said no, it goes without the quote, and leads to it.
-	quotes.requests[quoteID].State = repositories.QuotePending
-	w.queue.sent = nil
-	w.fromAlice(`{"id":"https://mastodon.example/a/3","type":"Reject","actor":"` + aliceID + `","object":"` + requestID + `"}`)
+// THE RULE THIS GUARDS: a quote of a post from Bluesky does not go to the
+// fediverse, nor one of a post here that does not go out (roadmap row 162):
+// consent to be quoted on one network is not consent to be carried to
+// another.
+func TestAQuoteStaysOnItsQuotedPostsNetwork(t *testing.T) {
+	w, _ := quotesWorld()
+	fromBluesky := entities.NewAnahitaNode()
+	fromBluesky.ID, fromBluesky.URI, fromBluesky.Type = 9002, "at://did:plc:abc/app.bsky.feed.post/3k", constants.NodeMediumNoteEntityType
+	fromBluesky.OwnerID, fromBluesky.Access, fromBluesky.Enabled = 9003, "public", true
+	w.nodes.people = append(w.nodes.people, fromBluesky, anasQuote(9002))
+
+	_ = w.h.HandleEvent(made(quoteID))
 	for _, each := range w.queue.sent {
-		if each.payload["type"] == "Update" {
-			object, _ := each.payload["object"].(map[string]any)
-			content, _ := object["content"].(string)
-			if object["quote"] != nil || !strings.Contains(content, "↪") {
-				t.Errorf("after her Reject: quote %v, %q", object["quote"], content)
-			}
-		}
+		t.Errorf("a quote of a post from Bluesky went out: %v to %s", each.payload["type"], each.target)
 	}
+}
+
+// fakeDetacher remembers the quotes a quoted post was taken out of.
+type fakeDetacher struct{ detached []int64 }
+
+func (f *fakeDetacher) DetachQuote(noteID int64, viewer *entities.Viewer) error {
+	f.detached = append(f.detached, noteID)
+	return nil
 }
 
 // THE RULE THIS GUARDS: somebody elsewhere who asks to quote a post here

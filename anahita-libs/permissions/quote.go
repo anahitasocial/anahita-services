@@ -1,6 +1,8 @@
 package permissions
 
 import (
+	"strings"
+
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 )
@@ -101,7 +103,7 @@ func CanQuote(ctx *QuoteAccessContext) (bool, string) {
 		return false, QuoteRefusedBlocked
 	}
 
-	switch constants.EffectiveQuotePolicy(post.QuotePolicy, ctx.AuthorPolicy) {
+	switch quotePolicyOf(post, ctx.AuthorPolicy) {
 	case constants.QuotePolicyAnyone:
 		return true, ""
 	case constants.QuotePolicyFollowers:
@@ -113,6 +115,18 @@ func CanQuote(ctx *QuoteAccessContext) (bool, string) {
 	}
 
 	return false, QuoteRefusedPolicy
+}
+
+// quotePolicyOf is the policy a post is quoted under: its own, or its
+// author's, or anyone. A post from the fediverse that said nothing lets
+// nobody, as FEP-044f and Mastodon have it (roadmap row 162): its author
+// was never asked. One from Bluesky lets anyone unless its postgate says
+// otherwise, as Bluesky has it.
+func quotePolicyOf(post *entities.AnahitaNode, authorPolicy string) string {
+	if post.QuotePolicy == "" && strings.HasPrefix(post.URI, "https://") {
+		return constants.QuotePolicyNobody
+	}
+	return constants.EffectiveQuotePolicy(post.QuotePolicy, authorPolicy)
 }
 
 // CanQuotePost answers the same with what a list of posts has to hand: the

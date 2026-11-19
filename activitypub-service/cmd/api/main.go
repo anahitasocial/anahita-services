@@ -133,6 +133,7 @@ func main() {
 	env.Files = services.NewFilesGRPC(config)
 	env.Cards = handlers.NewCards(config.LinkPreviewURL)
 	env.PhotoFiles = services.NewMediaGRPC(config)
+	env.Detacher = services.NewMediaGRPC(config)
 	// The locations a post was tagged with, which go out with it.
 	env.Locations = services.NewGraphGRPC(config)
 	env.Announce = (&announcer{config: config}).Publish

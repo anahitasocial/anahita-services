@@ -292,7 +292,7 @@ func (s *Stream) tell(ctx context.Context, conn *websocket.Conn, wanted []string
 	message := map[string]any{
 		"type": "options_update",
 		"payload": map[string]any{
-			"wantedCollections":   []string{PostCollection, RepostCollection, ProfileCollection},
+			"wantedCollections":   []string{PostCollection, RepostCollection, ProfileCollection, PostgateCollection},
 			"wantedDids":          wanted,
 			"maxMessageSizeBytes": maxMessage,
 		},

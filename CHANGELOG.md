@@ -10,6 +10,27 @@ made.
 Releases before v1.0.17 are described on GitHub, under
 [Releases](https://github.com/anahitasocial/anahita-services/releases).
 
+## Embryo
+
+### Changed
+
+1. **A quote stays on the network of the post it quotes.** Consent to be
+   quoted on Mastodon is not consent to be carried to Bluesky, nor the other
+   way round. A quote of a post from the fediverse goes to the fediverse
+   alone, and one of a post from Bluesky to Bluesky alone; a quote of a post
+   here goes to the networks that post is on. A quote is always shown here.
+   No line or card of a quoted post goes anywhere else.
+2. **On the fediverse, a quote waits for its author's yes.** Quoting a post
+   from Mastodon asks its author first, and the quote goes out only when they
+   say yes. When they say no, nothing goes out, and their post is taken out
+   of the quote here, which keeps your words.
+3. **Quote is offered only where its author lets you.** A post from the
+   fediverse says who may quote it (`canQuote`), and a post from Bluesky
+   whether it may be quoted at all (its postgate); both are read and followed
+   when they change. A post from the fediverse that says nothing cannot be
+   quoted, as on Mastodon: posts kept before this release say nothing until
+   they are changed there.
+
 ## v1.4.0 Birth, 2026-11-18
 
 ### Added

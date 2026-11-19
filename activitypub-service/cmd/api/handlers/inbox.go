@@ -462,6 +462,9 @@ func (h *Handlers) store(authorID int64, note *ap.ReceivedNote, parentID int64) 
 	node.Language = note.Language()
 	// Its content warning, with its pictures and its media kept behind it.
 	node.Warning, node.WarningText = note.Warning()
+	// Who may quote it, as its author says, followed when they change it
+	// (roadmap row 162).
+	node.QuotePolicy = note.QuotePolicy()
 	if published, err := time.Parse(time.RFC3339, note.Published); err == nil {
 		node.CreatedAt = published
 	}

@@ -229,3 +229,46 @@ func (h *Handlers) forget(kept *repositories.RemoteActor) error {
 	h.changed()
 	return nil
 }
+
+// postgated follows what somebody on Bluesky says others may do with a post
+// of theirs (roadmap row 162): when they let nobody quote it, its quote
+// policy here is nobody, and Quote is not offered; a quote of it from here
+// that they took it out of is taken out here too, keeping its words. A
+// postgate taken away lets anybody again. Nothing for a post not kept here.
+func (h *Handlers) postgated(author *repositories.RemoteActor, rkey string, gate *bsky.Postgate) error {
+	if author == nil || !bsky.ValidRkey(rkey) {
+		return nil
+	}
+	if h.Media != nil && h.Sent != nil {
+		for _, uri := range gate.DetachedEmbeddingURIs {
+			did, quoteRkey, ok := bsky.ParsePostURI(uri)
+			if !ok {
+				continue
+			}
+			sent, err := h.Sent.ReadByName(did, repositories.SentPost, quoteRkey)
+			if err != nil || sent == nil {
+				continue
+			}
+			by := &entities.Viewer{}
+			by.ID = author.NodeID
+			if err := h.Media.DetachQuote(sent.LocalID, by); err != nil {
+				log.Printf("taking %s out of quote %d: %v", author.Handle, sent.LocalID, err)
+			}
+		}
+	}
+
+	post, err := h.Nodes.ReadByURI(bsky.PostURI(author.DID, rkey))
+	if err != nil || post == nil || post.ID == 0 || post.OwnerID != author.NodeID {
+		return err
+	}
+	policy := constants.QuotePolicyAnyone
+	if gate.QuotesOff() {
+		policy = constants.QuotePolicyNobody
+	}
+	if post.QuotePolicy == policy || (post.QuotePolicy == "" && policy == constants.QuotePolicyAnyone) {
+		return nil
+	}
+	post.QuotePolicy = policy
+	_, _, err = h.Nodes.UpsertRemote(post)
+	return err
+}

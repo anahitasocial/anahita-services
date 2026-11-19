@@ -43,8 +43,18 @@ import (
 // the servers that have it, as far as they will.
 
 // goesOut says whether a post is one that other servers are told of, and
-// who wrote it; and for a reply, what it answers.
+// who wrote it; and for a reply, what it answers. A quote goes out only
+// where what it quotes is (roadmap row 162): see quoteStaysHere.
 func (h *Handlers) goesOut(note *entities.AnahitaNode) (*entities.AnahitaNode, *answer) {
+	author, answering := h.goesOutAsPost(note)
+	if author == nil || h.quoteStaysHere(note) {
+		return nil, nil
+	}
+	return author, answering
+}
+
+// goesOutAsPost is goesOut by what a post is, whatever it quotes.
+func (h *Handlers) goesOutAsPost(note *entities.AnahitaNode) (*entities.AnahitaNode, *answer) {
 	if note == nil || note.ID == 0 || note.UUID == "" || note.IsRemote() {
 		return nil, nil
 	}
@@ -573,6 +583,12 @@ func (h *Handlers) tellOf(ctx context.Context, nodeID int64, retagged bool) erro
 
 	author, answering := h.goesOut(note)
 	if author == nil {
+		// A quote of a post on another server whose author has not been
+		// asked: they are asked first, and it goes out only when they let
+		// it (roadmap row 162).
+		if asked, err := h.askFirst(ctx, note); asked || err != nil {
+			return err
+		}
 		// Not one that goes out. If it did before (it was open to
 		// everybody and is not now), it is taken back.
 		return h.removed(ctx, nodeID)
@@ -603,11 +619,6 @@ func (h *Handlers) tellOf(ctx context.Context, nodeID int64, retagged bool) erro
 	}
 	if begun {
 		if err := h.toReaders(ctx, author, replyInbox, ap.NewCreate(h.addresses, sent, note.UUID), "create:"+note.UUID); err != nil {
-			return err
-		}
-		// A quote of a post on another server asks its author to let it
-		// (roadmap row 156): sent again with their stamp when they do.
-		if err := h.askToQuote(ctx, note, author, sent); err != nil {
 			return err
 		}
 		return h.Objects.Told(note.ID, note.UpdatedAt)
