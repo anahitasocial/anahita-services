@@ -109,6 +109,12 @@ For whoever maintains anahita-services:
    renamed images by their new names, and `kubectl kustomize` to see it
    builds. Pinned, not `latest`: a site changes version only when its
    operator does, and reads the Upgrading notes at a new minor.
+6. The night after, anahita.io's nightly build adds the day's releases,
+   of this repository and of anahita-web, to
+   [www.anahita.io/releases](https://www.anahita.io/releases/) and to its
+   feed, which the Anahita channel on banu.io posts. It reads them from
+   the changelog by their headings, so a release's heading keeps its form,
+   `## v1.2.4 Birth, 2026-11-18`.
 
 ### By hand
 
