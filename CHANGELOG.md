@@ -12,6 +12,13 @@ Releases before v1.0.17 are described on GitHub, under
 
 ## Embryo
 
+### Added
+
+1. **Rounder or squarer corners.** `CORNER_RADIUS` sets how round the web
+   app's corners are, in pixels from 0 to 24, for everybody who has not
+   chosen their own. Unset, it is 4, as before. It is published through
+   NodeInfo, so a change is a restart.
+
 ### Fixed
 
 1. **A new profile or cover photo reaches the fediverse.** Mastodon kept

@@ -262,6 +262,26 @@ func (config *Config) GetSupportWebsite() string {
 	return strings.TrimSpace(config.SupportWebsite)
 }
 
+// DefaultCornerRadius and MaxCornerRadius bound CORNER_RADIUS: 4 pixels is
+// Material UI's own, the look before the setting; past 24 a card's corners
+// are no longer corners (roadmap row 168).
+const (
+	DefaultCornerRadius = 4
+	MaxCornerRadius     = 24
+)
+
+// GetCornerRadius returns how round the web app's corners are, in pixels,
+// held between 0 and MaxCornerRadius.
+func (config *Config) GetCornerRadius() int {
+	switch {
+	case config.CornerRadius < 0:
+		return 0
+	case config.CornerRadius > MaxCornerRadius:
+		return MaxCornerRadius
+	}
+	return config.CornerRadius
+}
+
 // GetSuperAdminEmail returns the address the first super administrator is
 // seeded against, or "" when the operator has not set one.
 //

@@ -294,7 +294,9 @@ servers read, and the web app reads it too.
    "Create account" button from this.
 4. `metadata` — `nodeName`, `registrationMode`, `approvalRequired`,
    `invitationsAccepted`, `termsOfServiceUrl`, `privacyPolicyUrl`,
-   `supportEmail`, `supportPhone`, `supportWebsite` and `nodeDescription`.
+   `supportEmail`, `supportPhone`, `supportWebsite` and `nodeDescription`;
+   `cornerRadius`, how round the app's corners are in pixels
+   (`CORNER_RADIUS`).
    Also `invitesFrom`, `groupsFrom`, `eventsFrom` and `locationsFrom`, the
    least role that may invite, create a group, create an event or add a
    location; `photoMaxFiles`, the most

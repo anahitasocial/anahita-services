@@ -160,7 +160,7 @@ type NodeInfoDocument struct {
 	OpenRegistrations bool `json:"openRegistrations"`
 	// How much it is used.
 	Usage nodeInfoUsage `json:"usage"`
-	// What the web app reads of the installation: `nodeName`, `nodeDescription`, `logoUrl`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `channelsFrom`, `locationsFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `siteRules`, `spamRemovalMaxDays`, `accountGraceDays`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `audioMaxBytes`, `audioMaxSeconds`, `audioUploads`, `audioRecording`, `postMaxLength`, `postLinkLength`, `offers` (what the instance offers: `profiles` and `posts`), `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.
+	// What the web app reads of the installation: `nodeName`, `nodeDescription`, `logoUrl`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `channelsFrom`, `locationsFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `siteRules`, `spamRemovalMaxDays`, `accountGraceDays`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `audioMaxBytes`, `audioMaxSeconds`, `audioUploads`, `audioRecording`, `postMaxLength`, `postLinkLength`, `offers` (what the instance offers: `profiles` and `posts`), `termsOfServiceUrl`, `privacyPolicyUrl`, the support contacts `supportEmail`, `supportPhone` and `supportWebsite`, and `cornerRadius`, how round the app's corners are in pixels.
 	Metadata map[string]any `json:"metadata"`
 }
 
@@ -373,6 +373,10 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 			"supportEmail":   h.Config.GetSupportEmail(),
 			"supportPhone":   h.Config.GetSupportPhone(),
 			"supportWebsite": h.Config.GetSupportWebsite(),
+
+			// How round the web app's corners are, in pixels, for whoever
+			// has not chosen their own (CORNER_RADIUS).
+			"cornerRadius": h.Config.GetCornerRadius(),
 		},
 	}
 	// The kinds of profile that may be made and of post that may be

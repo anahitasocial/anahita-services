@@ -205,6 +205,11 @@ type Config struct {
 	SupportPhone   string
 	SupportWebsite string
 
+	// CornerRadius is how round the web app's corners are, in pixels, for
+	// everybody who has not chosen their own: CORNER_RADIUS, 4 when unset,
+	// held between 0 and 24. See bootstrap.go.
+	CornerRadius int
+
 	// InvitesFrom is who may issue an invitation, and InvitePendingMax* cap
 	// how many may be outstanding at once. See bootstrap.go.
 	InvitesFrom           string
@@ -266,6 +271,7 @@ func NewConfig() *Config {
 
 		TotpIssuer:       os.Getenv("TOTP_ISSUER"),
 		SupportEmail:     os.Getenv("SUPPORT_EMAIL"),
+		CornerRadius:     getenv.Int("CORNER_RADIUS", DefaultCornerRadius),
 		CryptBackend:     getenv.String("CRYPT_BACKEND", constants.CryptBackendLocal),
 		CryptLocalKey:    os.Getenv("CRYPT_LOCAL_KEY"),
 		AwsKmsKeyId:      os.Getenv("AWS_KMS_KEY_ID"),
