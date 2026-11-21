@@ -23,7 +23,7 @@ components:
   - ../../components/traefik
   - ../../components/mysql
   - ../../components/mysql-backup
-  - ../../components/redis
+  - ../../components/valkey
   - ../../components/rabbitmq
   - ../../components/garage
 

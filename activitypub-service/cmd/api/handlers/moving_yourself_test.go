@@ -17,7 +17,7 @@ import (
 	"anahita-libs/event"
 )
 
-// fakeSession holds the proofs of step-up given, as Redis does.
+// fakeSession holds the proofs of step-up given, as Valkey does.
 type fakeSession struct{ proofs map[string]bool }
 
 func (f *fakeSession) Exists(key string) (bool, error) { return f.proofs[key], nil }

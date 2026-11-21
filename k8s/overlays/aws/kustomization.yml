@@ -1,4 +1,4 @@
-# Amazon EKS, with S3 for uploads, RDS for MySQL and ElastiCache for Redis.
+# Amazon EKS, with S3 for uploads, RDS for MySQL and ElastiCache for Valkey.
 #
 # file-grpc-service signs in to S3 with an IAM role given to its pod (IRSA),
 # so there are no storage keys to keep. RabbitMQ still runs in the cluster.

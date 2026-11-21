@@ -47,3 +47,11 @@ func RenamedInt(key, old string, fallback int) int {
 	}
 	return fallback
 }
+
+// RenamedString is Renamed with a fallback for when neither is set.
+func RenamedString(key, old, fallback string) string {
+	if value := Renamed(key, old); value != "" {
+		return value
+	}
+	return fallback
+}

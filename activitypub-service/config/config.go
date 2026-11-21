@@ -28,9 +28,9 @@ type Config struct {
 	// (FEDERATION_LOCATIONS): on unless it says `off` (the user, 2026-10-19;
 	// roadmap row 82, part 4).
 	TakesLocations bool
-	RedisAddr      string
-	RedisPassword  string
-	RedisDB        int
+	ValkeyAddr     string
+	ValkeyPassword string
+	ValkeyDB       int
 	OAuthIssuer    string
 	OAuthJWKSURL   string
 	// How the private half of each person's signing key is kept: encrypted,
@@ -51,9 +51,9 @@ func NewConfig() *Config {
 		Lab:              os.Getenv("ACTIVITYPUB_LAB") == "on",
 		LinkPreviewURL:   os.Getenv("LINK_PREVIEW_URL"),
 		TakesLocations:   strings.ToLower(strings.TrimSpace(os.Getenv("FEDERATION_LOCATIONS"))) != "off",
-		RedisAddr:        getenv.String("REDIS_ADDR", "localhost:6379"),
-		RedisPassword:    os.Getenv("REDIS_PASSWORD"),
-		RedisDB:          getenv.Int("REDIS_DB", 0),
+		ValkeyAddr:       getenv.RenamedString("VALKEY_ADDR", "REDIS_ADDR", "localhost:6379"),
+		ValkeyPassword:   getenv.Renamed("VALKEY_PASSWORD", "REDIS_PASSWORD"),
+		ValkeyDB:         getenv.RenamedInt("VALKEY_DB", "REDIS_DB", 0),
 		OAuthIssuer:      os.Getenv("OAUTH_ISSUER"),
 		OAuthJWKSURL:     os.Getenv("OAUTH_JWKS_URL"),
 		CryptBackend:     getenv.String("CRYPT_BACKEND", constants.CryptBackendLocal),
@@ -105,9 +105,9 @@ func (config *Config) GetGraphServiceAddr() string { return config.GraphServiceA
 func (config *Config) GetFileServiceAddr() string  { return config.FileServiceAddr }
 func (config *Config) GetAmqpAddr() string         { return config.AmqpAddr }
 func (config *Config) GetSecureCookieKey() string  { return config.SecureCookieKey }
-func (config *Config) GetRedisAddr() string        { return config.RedisAddr }
-func (config *Config) GetRedisPassword() string    { return config.RedisPassword }
-func (config *Config) GetRedisDB() int             { return config.RedisDB }
+func (config *Config) GetValkeyAddr() string       { return config.ValkeyAddr }
+func (config *Config) GetValkeyPassword() string   { return config.ValkeyPassword }
+func (config *Config) GetValkeyDB() int            { return config.ValkeyDB }
 func (config *Config) GetOAuthIssuer() string      { return config.OAuthIssuer }
 func (config *Config) GetOAuthJWKSURL() string     { return config.OAuthJWKSURL }
 func (config *Config) GetDomainName() string       { return os.Getenv("DOMAIN_NAME") }

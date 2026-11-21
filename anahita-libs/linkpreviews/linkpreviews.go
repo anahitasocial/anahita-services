@@ -67,7 +67,7 @@ func (p *Preview) Usable() bool {
 	return p != nil && p.Status == StatusOK && p.Title != ""
 }
 
-// Cache keeps things a while. anahita-libs/sessions has the Redis one.
+// Cache keeps things a while. anahita-libs/sessions has the Valkey one.
 type Cache interface {
 	Get(key string) (string, bool, error)
 	Set(key string, value string, ttl time.Duration) error

@@ -68,22 +68,22 @@ spec:
                 secretKeyRef:
                   name: anahita-secrets
                   key: SECURE_COOKIE_KEY
-            - name: REDIS_ADDR
+            - name: VALKEY_ADDR
               valueFrom:
                 configMapKeyRef:
                   name: anahita-config
-                  key: REDIS_ADDR
-            - name: REDIS_TLS
+                  key: VALKEY_ADDR
+            - name: VALKEY_TLS
               valueFrom:
                 configMapKeyRef:
                   name: anahita-config
-                  key: REDIS_TLS
+                  key: VALKEY_TLS
                   optional: true
-            - name: REDIS_PASSWORD
+            - name: VALKEY_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: anahita-secrets
-                  key: REDIS_PASSWORD
+                  key: VALKEY_PASSWORD
                   optional: true
             - name: FILE_SERVICE_ADDR
               valueFrom:

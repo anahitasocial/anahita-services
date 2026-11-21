@@ -20,7 +20,7 @@ const (
 	ErrMissingDSN                 = "DSN is missing"
 	ErrMissingSecureCookieKey     = "Secure cookie key is missing"
 	ErrWrongSizeSecureCookieKey   = "Secure cookie key must be 32 bytes long"
-	ErrMissingRedisAddr           = "Redis address is missing"
+	ErrMissingValkeyAddr          = "Valkey address is missing"
 	ErrMissingDomainName          = "Domain name is missing"
 	ErrMissingDomainNameFormat    = "Domain name should not contain 'http' or 'www'"
 	ErrMissingSystemEmail         = "system email is missing"
@@ -52,9 +52,9 @@ type Config struct {
 	MaxDBConnections int
 	DSN              string
 	SecureCookieKey  string
-	RedisAddr        string
-	RedisPassword    string
-	RedisDB          int
+	ValkeyAddr       string
+	ValkeyPassword   string
+	ValkeyDB         int
 	DomainName       string
 	SystemEmail      string
 	// SiteName is what this installation calls itself — the "Example" in
@@ -258,9 +258,9 @@ func NewConfig() *Config {
 		DSN:              os.Getenv("DSN"),
 		MaxDBConnections: getenv.Int("MAX_DB_CONNECTIONS", constants.ConfigDefaultDBConnections),
 		SecureCookieKey:  os.Getenv("SECURE_COOKIE_KEY"),
-		RedisAddr:        getenv.String("REDIS_ADDR", "localhost:6379"),
-		RedisPassword:    os.Getenv("REDIS_PASSWORD"),
-		RedisDB:          getenv.Int("REDIS_DB", 0),
+		ValkeyAddr:       getenv.RenamedString("VALKEY_ADDR", "REDIS_ADDR", "localhost:6379"),
+		ValkeyPassword:   getenv.Renamed("VALKEY_PASSWORD", "REDIS_PASSWORD"),
+		ValkeyDB:         getenv.RenamedInt("VALKEY_DB", "REDIS_DB", 0),
 		DomainName:       os.Getenv("DOMAIN_NAME"),
 		SystemEmail:      os.Getenv("SYSTEM_EMAIL"),
 		SiteName:         os.Getenv("SITE_NAME"),
@@ -340,14 +340,14 @@ func (config *Config) Validate() error {
 		missingFields = append(missingFields, ErrMissingDSN)
 	}
 
-	// Redis is not optional. sessions.NewSession falls back to
+	// Valkey is not optional. sessions.NewSession falls back to
 	// cookie-backed sessions when this is empty, and that backend
 	// stores session state in the client's cookie — there is nothing
 	// server-side to delete. Session revocation silently becomes a
 	// no-op, which means password reset stops invalidating an
 	// attacker's IdP session while appearing to succeed.
-	if config.RedisAddr == "" {
-		missingFields = append(missingFields, ErrMissingRedisAddr)
+	if config.ValkeyAddr == "" {
+		missingFields = append(missingFields, ErrMissingValkeyAddr)
 	}
 
 	if config.DomainName == "" {
@@ -483,16 +483,16 @@ func (config *Config) GetCodeKey() []byte {
 	return mac.Sum(nil)
 }
 
-func (config *Config) GetRedisAddr() string {
-	return config.RedisAddr
+func (config *Config) GetValkeyAddr() string {
+	return config.ValkeyAddr
 }
 
-func (config *Config) GetRedisPassword() string {
-	return config.RedisPassword
+func (config *Config) GetValkeyPassword() string {
+	return config.ValkeyPassword
 }
 
-func (config *Config) GetRedisDB() int {
-	return config.RedisDB
+func (config *Config) GetValkeyDB() int {
+	return config.ValkeyDB
 }
 
 // GetCryptBackend returns the backend used to encrypt secrets at rest.

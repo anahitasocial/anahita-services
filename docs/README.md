@@ -62,7 +62,7 @@ The pages, grouped by what they are about, each group in the order to read it.
    4. [First deployment](deploying.md#first-deployment)
    5. [Certificates between the services](deploying.md#certificates-between-the-services)
    6. [Object storage](deploying.md#object-storage)
-   7. [Database, Redis and RabbitMQ](deploying.md#database-redis-and-rabbitmq)
+   7. [Database, Valkey and RabbitMQ](deploying.md#database-valkey-and-rabbitmq)
    8. [On AWS](deploying.md#on-aws)
    9. [Joining the fediverse](deploying.md#joining-the-fediverse)
    10. [Upgrading](deploying.md#upgrading)

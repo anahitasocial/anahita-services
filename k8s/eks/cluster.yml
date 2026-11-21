@@ -68,7 +68,7 @@ addons:
   - name: coredns
   - name: kube-proxy
   # Disks for what runs with a volume in the cluster: RabbitMQ here, and
-  # MySQL and Redis too if their components are used in place of RDS and
+  # MySQL and Valkey too if their components are used in place of RDS and
   # ElastiCache. k8s/eks/storage-class.yml makes gp3 the default.
   - name: aws-ebs-csi-driver
     wellKnownPolicies:

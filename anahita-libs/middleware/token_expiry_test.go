@@ -21,9 +21,9 @@ const expiryIssuer = "https://auth.anahita.test"
 
 type expiryConfig struct{ jwksURL string }
 
-func (expiryConfig) GetRedisAddr() string      { return "" }
-func (expiryConfig) GetRedisPassword() string  { return "" }
-func (expiryConfig) GetRedisDB() int           { return 0 }
+func (expiryConfig) GetValkeyAddr() string     { return "" }
+func (expiryConfig) GetValkeyPassword() string { return "" }
+func (expiryConfig) GetValkeyDB() int          { return 0 }
 func (expiryConfig) IsDev() bool               { return true }
 func (expiryConfig) IsStaging() bool           { return false }
 func (expiryConfig) IsProd() bool              { return false }

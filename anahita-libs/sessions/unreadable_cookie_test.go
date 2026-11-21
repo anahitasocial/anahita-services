@@ -11,9 +11,9 @@ import (
 type testConfig struct{}
 
 func (testConfig) GetSecureCookieKey() string { return "12345678901234567890123456789012" }
-func (testConfig) GetRedisAddr() string       { return "" }
-func (testConfig) GetRedisPassword() string   { return "" }
-func (testConfig) GetRedisDB() int            { return 0 }
+func (testConfig) GetValkeyAddr() string      { return "" }
+func (testConfig) GetValkeyPassword() string  { return "" }
+func (testConfig) GetValkeyDB() int           { return 0 }
 func (testConfig) IsStaging() bool            { return false }
 func (testConfig) IsDev() bool                { return true }
 func (testConfig) IsProd() bool               { return false }

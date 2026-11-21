@@ -238,8 +238,8 @@ def signin(person):
     there is one address, and these are not an attack: its counter is cleared
     and it goes on."""
     while not person.signin():
-        for key in compose('exec', '-T', 'redis', 'redis-cli', '--scan', '--pattern', 'ratelimit:login_ip:*').split():
-            compose('exec', '-T', 'redis', 'redis-cli', 'DEL', key)
+        for key in compose('exec', '-T', 'valkey', 'valkey-cli', '--scan', '--pattern', 'ratelimit:login_ip:*').split():
+            compose('exec', '-T', 'valkey', 'valkey-cli', 'DEL', key)
 
 
 def react(person, method, path, body=None):

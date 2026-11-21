@@ -19,6 +19,29 @@ Releases before v1.0.17 are described on GitHub, under
    chosen their own. Unset, it is 4, as before. It is published through
    NodeInfo, so a change is a restart.
 
+### Changed
+
+1. **Valkey in place of Redis,** for sessions and rate limits: the `valkey`
+   component (`valkey/valkey:9.2-alpine`) in place of `redis`, and in
+   docker-compose. Redis 8 is no longer open source alone; Valkey is BSD.
+   The settings are `VALKEY_ADDR`, `VALKEY_PASSWORD`, `VALKEY_DB` and
+   `VALKEY_TLS`; the old `REDIS_*` names are read for this release, with a
+   line in the log. A managed Redis still works.
+
+### Upgrading
+
+1. **Everybody signs in once:** sessions are in the new Valkey, which starts
+   empty.
+2. In `secrets.env`, rename `REDIS_PASSWORD` to `VALKEY_PASSWORD`, and in
+   `config.env` any `REDIS_ADDR` or `REDIS_TLS` to `VALKEY_ADDR` or
+   `VALKEY_TLS`. An overlay of your own that names `components/redis` names
+   `components/valkey` now.
+3. After applying, remove the old Redis, which `kubectl apply` leaves:
+   `kubectl -n anahita delete statefulset/redis service/redis pvc/data-redis-0`
+   ([Database, Valkey and RabbitMQ](docs/deploying.md#database-valkey-and-rabbitmq)).
+   With docker-compose, `docker compose up -d --remove-orphans`; `db-data/redis`
+   may then be deleted.
+
 ### Fixed
 
 1. **A new profile or cover photo reaches the fediverse.** Mastodon kept

@@ -46,15 +46,16 @@ services:
       --group_concat_max_len=64000
       --skip-log-bin
 
-# Redis - session store
-  redis:
-    image: redis:alpine
+# Valkey - sessions and rate limits, the open-source (BSD) Redis (roadmap
+# row 165)
+  valkey:
+    image: valkey/valkey:9.2-alpine
     restart: always
     ports:
       - "6379:6379"
-    command: redis-server --maxmemory-policy noeviction --appendonly yes
+    command: valkey-server --maxmemory-policy noeviction --appendonly yes
     volumes:
-      - ./db-data/redis:/data
+      - ./db-data/valkey:/data
     networks:
       anahita-network:
         ipv4_address: 172.20.1.4
@@ -101,9 +102,9 @@ services:
       CRYPT_LOCAL_KEY: ${CRYPT_LOCAL_KEY}
       AWS_KMS_KEY_ID: ${AWS_KMS_KEY_ID}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
-      REDIS_ADDR: ${REDIS_ADDR}
-      REDIS_TLS: ${REDIS_TLS:-}
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      VALKEY_ADDR: ${VALKEY_ADDR:-valkey:6379}
+      VALKEY_TLS: ${VALKEY_TLS:-}
+      VALKEY_PASSWORD: ${VALKEY_PASSWORD:-}
       DOMAIN_NAME: ${DOMAIN_NAME}
       SITE_NAME: ${SITE_NAME:-}
       SITE_LOGO_URL: ${SITE_LOGO_URL:-}
@@ -252,9 +253,9 @@ services:
       MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
-      REDIS_ADDR: ${REDIS_ADDR}
-      REDIS_TLS: ${REDIS_TLS:-}
-      REDIS_PASSWORD: ""
+      VALKEY_ADDR: ${VALKEY_ADDR:-valkey:6379}
+      VALKEY_TLS: ${VALKEY_TLS:-}
+      VALKEY_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
@@ -306,9 +307,9 @@ services:
       SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
       MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
-      REDIS_ADDR: ${REDIS_ADDR}
-      REDIS_TLS: ${REDIS_TLS:-}
-      REDIS_PASSWORD: ""
+      VALKEY_ADDR: ${VALKEY_ADDR:-valkey:6379}
+      VALKEY_TLS: ${VALKEY_TLS:-}
+      VALKEY_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
@@ -345,9 +346,9 @@ services:
       SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
       MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
-      REDIS_ADDR: ${REDIS_ADDR}
-      REDIS_TLS: ${REDIS_TLS:-}
-      REDIS_PASSWORD: ""
+      VALKEY_ADDR: ${VALKEY_ADDR:-valkey:6379}
+      VALKEY_TLS: ${VALKEY_TLS:-}
+      VALKEY_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
@@ -388,9 +389,9 @@ services:
       FEDERATION_PROTOCOLS: ${FEDERATION_PROTOCOLS:-}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
-      REDIS_ADDR: ${REDIS_ADDR}
-      REDIS_TLS: ${REDIS_TLS:-}
-      REDIS_PASSWORD: ""
+      VALKEY_ADDR: ${VALKEY_ADDR:-valkey:6379}
+      VALKEY_TLS: ${VALKEY_TLS:-}
+      VALKEY_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
@@ -433,9 +434,9 @@ services:
       # docs/configuration.md, Registration.
       LOCATIONS_FROM: ${LOCATIONS_FROM:-}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
-      REDIS_ADDR: ${REDIS_ADDR}
-      REDIS_TLS: ${REDIS_TLS:-}
-      REDIS_PASSWORD: ""
+      VALKEY_ADDR: ${VALKEY_ADDR:-valkey:6379}
+      VALKEY_TLS: ${VALKEY_TLS:-}
+      VALKEY_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
@@ -477,9 +478,9 @@ services:
       DSN: ${DSN}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
-      REDIS_ADDR: ${REDIS_ADDR}
-      REDIS_TLS: ${REDIS_TLS:-}
-      REDIS_PASSWORD: ""
+      VALKEY_ADDR: ${VALKEY_ADDR:-valkey:6379}
+      VALKEY_TLS: ${VALKEY_TLS:-}
+      VALKEY_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
@@ -518,9 +519,9 @@ services:
       MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       DSN: ${DSN}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
-      REDIS_ADDR: ${REDIS_ADDR}
-      REDIS_TLS: ${REDIS_TLS:-}
-      REDIS_PASSWORD: ""
+      VALKEY_ADDR: ${VALKEY_ADDR:-valkey:6379}
+      VALKEY_TLS: ${VALKEY_TLS:-}
+      VALKEY_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
@@ -556,9 +557,9 @@ services:
       MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       DSN: ${DSN}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
-      REDIS_ADDR: ${REDIS_ADDR}
-      REDIS_TLS: ${REDIS_TLS:-}
-      REDIS_PASSWORD: ""
+      VALKEY_ADDR: ${VALKEY_ADDR:-valkey:6379}
+      VALKEY_TLS: ${VALKEY_TLS:-}
+      VALKEY_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
@@ -596,9 +597,9 @@ services:
       DSN: ${DSN}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
-      REDIS_ADDR: ${REDIS_ADDR}
-      REDIS_TLS: ${REDIS_TLS:-}
-      REDIS_PASSWORD: ""
+      VALKEY_ADDR: ${VALKEY_ADDR:-valkey:6379}
+      VALKEY_TLS: ${VALKEY_TLS:-}
+      VALKEY_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
@@ -700,9 +701,9 @@ services:
       MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
-      REDIS_ADDR: ${REDIS_ADDR}
-      REDIS_TLS: ${REDIS_TLS:-}
-      REDIS_PASSWORD: ""
+      VALKEY_ADDR: ${VALKEY_ADDR:-valkey:6379}
+      VALKEY_TLS: ${VALKEY_TLS:-}
+      VALKEY_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
@@ -740,9 +741,9 @@ services:
       DSN: ${DSN}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
-      REDIS_ADDR: ${REDIS_ADDR}
-      REDIS_TLS: ${REDIS_TLS:-}
-      REDIS_PASSWORD: ""
+      VALKEY_ADDR: ${VALKEY_ADDR:-valkey:6379}
+      VALKEY_TLS: ${VALKEY_TLS:-}
+      VALKEY_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
@@ -785,9 +786,9 @@ services:
       DSN: ${DSN}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
-      REDIS_ADDR: ${REDIS_ADDR}
-      REDIS_TLS: ${REDIS_TLS:-}
-      REDIS_PASSWORD: ""
+      VALKEY_ADDR: ${VALKEY_ADDR:-valkey:6379}
+      VALKEY_TLS: ${VALKEY_TLS:-}
+      VALKEY_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
@@ -826,9 +827,9 @@ services:
       DSN: ${DSN}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
-      REDIS_ADDR: ${REDIS_ADDR}
-      REDIS_TLS: ${REDIS_TLS:-}
-      REDIS_PASSWORD: ""
+      VALKEY_ADDR: ${VALKEY_ADDR:-valkey:6379}
+      VALKEY_TLS: ${VALKEY_TLS:-}
+      VALKEY_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
@@ -863,9 +864,9 @@ services:
       MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       DSN: ${DSN}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
-      REDIS_ADDR: ${REDIS_ADDR}
-      REDIS_TLS: ${REDIS_TLS:-}
-      REDIS_PASSWORD: ""
+      VALKEY_ADDR: ${VALKEY_ADDR:-valkey:6379}
+      VALKEY_TLS: ${VALKEY_TLS:-}
+      VALKEY_PASSWORD: ""
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
       OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
@@ -943,9 +944,9 @@ services:
       MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       DSN: ${DSN}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
-      REDIS_ADDR: ${REDIS_ADDR}
-      REDIS_TLS: ${REDIS_TLS:-}
-      REDIS_PASSWORD: ""
+      VALKEY_ADDR: ${VALKEY_ADDR:-valkey:6379}
+      VALKEY_TLS: ${VALKEY_TLS:-}
+      VALKEY_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
@@ -1019,9 +1020,9 @@ services:
       MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       DSN: ${DSN}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
-      REDIS_ADDR: ${REDIS_ADDR}
-      REDIS_TLS: ${REDIS_TLS:-}
-      REDIS_PASSWORD: ""
+      VALKEY_ADDR: ${VALKEY_ADDR:-valkey:6379}
+      VALKEY_TLS: ${VALKEY_TLS:-}
+      VALKEY_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
@@ -1233,9 +1234,9 @@ services:
       DSN: ${DSN}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
-      REDIS_ADDR: ${REDIS_ADDR}
-      REDIS_TLS: ${REDIS_TLS:-}
-      REDIS_PASSWORD: ""
+      VALKEY_ADDR: ${VALKEY_ADDR:-valkey:6379}
+      VALKEY_TLS: ${VALKEY_TLS:-}
+      VALKEY_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
@@ -1363,9 +1364,9 @@ services:
       SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
       MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       DSN: ${DSN}
-      REDIS_ADDR: ${REDIS_ADDR}
-      REDIS_TLS: ${REDIS_TLS:-}
-      REDIS_PASSWORD: ""
+      VALKEY_ADDR: ${VALKEY_ADDR:-valkey:6379}
+      VALKEY_TLS: ${VALKEY_TLS:-}
+      VALKEY_PASSWORD: ""
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       # Where the pictures of people on other servers are kept, once copied.
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
@@ -1444,9 +1445,9 @@ services:
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
       DSN: ${DSN}
-      REDIS_ADDR: ${REDIS_ADDR}
-      REDIS_TLS: ${REDIS_TLS:-}
-      REDIS_PASSWORD: ""
+      VALKEY_ADDR: ${VALKEY_ADDR:-valkey:6379}
+      VALKEY_TLS: ${VALKEY_TLS:-}
+      VALKEY_PASSWORD: ""
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       # Where the pictures of people on Bluesky are kept, once copied.
       FILE_SERVICE_ADDR: "file-grpc-service:50051"

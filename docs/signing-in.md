@@ -93,7 +93,7 @@ whether the account exists. A successful sign-in clears that address's count.
 Somebody guessing at an account's password can use up its ten tries and lock
 password sign-in for a quarter of an hour. A code or a passkey still works.
 
-The counts are kept in Redis. If Redis cannot be reached they are not
+The counts are kept in Valkey. If Valkey cannot be reached they are not
 enforced, and the log says so.
 
 The sign-in forms carry a token tied to the browser's session, so another
@@ -168,7 +168,7 @@ the storage do not change.
 ## Staying signed in
 
 Signed in, the web app holds no token itself: auth-service keeps its pair in
-the session, in Redis, behind a cookie. Every request through the gateway asks
+the session, in Valkey, behind a cookie. Every request through the gateway asks
 `/oauth/validate`, which answers with the access token for the services.
 
 | Token | Lasts | |
@@ -186,7 +186,7 @@ others wait for it, up to two seconds, and take up the new access token. A
 session is ended only when its refresh token is over: spent, revoked, expired,
 unknown, or its account refused.
 
-What the session holds, in its cookie or in Redis, is sealed with
+What the session holds, in its cookie or in Valkey, is sealed with
 `SECURE_COOKIE_KEY` by AES-GCM: it cannot be read, and one changed by so much
 as a bit is refused and taken as no session at all, so its holder signs in
 again (`anahita-libs/crypt/encryption.go`). Before v1.0.17 it was AES-CFB,
@@ -213,7 +213,7 @@ client everywhere.
 **The "New sign-in" email.** A person is emailed when they sign in: with a
 password, a code or a passkey. A browser whose sign-in session is still
 alive is given new tokens without being asked for anything, and is not a
-sign-in, so it is sent no email. Each sign-in leaves a mark in Redis for
+sign-in, so it is sent no email. Each sign-in leaves a mark in Valkey for
 ten minutes (`auth:fresh_signin:<person>`), and the exchange of the code that
 follows sends the email only if the mark is there, and removes it. The same
 browser carrying on in a session it already had, its session row reused, is
@@ -225,7 +225,7 @@ sent none either.
 | --- | --- |
 | Staying signed in: renewing, rotation, copies of a refresh token | `auth-service/cmd/api/handlers/oauth_session.go` (`ReadValidate`, `validateRefreshAhead`, `refreshSessionTokens`, `awaitRenewal`), `auth-service/data/services/oauth_token.go` (`RefreshTokenPair`, `rotationContext`), table `oauth_refresh_tokens` (`rotated`) |
 | The "New sign-in" email | `auth-service/cmd/api/handlers/oauth_fresh_signin.go` (`markFreshSignIn`, `consumeFreshSignIn`), `oauth_token.go` (`recordAuthLogAfterIssuance`, `loginEmailDue`) |
-| Sealing what a session holds | `anahita-libs/crypt/encryption.go`, `anahita-libs/sessions/cookie.go` and `redis.go` (`Read`); setting `SECURE_COOKIE_KEY` |
+| Sealing what a session holds | `anahita-libs/crypt/encryption.go`, `anahita-libs/sessions/cookie.go` and `valkey.go` (`Read`); setting `SECURE_COOKIE_KEY` |
 | Checking a token's expiry | `anahita-libs/middleware/oauth.go` (`authenticateOAuth`), `auth-service/data/services/jwt.go` (`ValidateAccessToken`) |
 | Signing in with a password, then two-factor | `auth-service/cmd/api/handlers/oauth_login.go` (`AddCredentials`, `AddTotp`) |
 | Signing in with a passkey | `auth-service/cmd/api/handlers/oauth_web_authn.go`, table `webauthn_credentials` |

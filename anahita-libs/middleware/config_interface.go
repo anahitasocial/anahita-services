@@ -1,9 +1,9 @@
 package middleware
 
 type ConfigInterface interface {
-	GetRedisAddr() string
-	GetRedisPassword() string
-	GetRedisDB() int
+	GetValkeyAddr() string
+	GetValkeyPassword() string
+	GetValkeyDB() int
 
 	// Environment
 	IsDev() bool

@@ -1,45 +1,46 @@
-# Redis inside the cluster, for sessions and rate limits. Sessions are kept
-# on a volume so a restart does not sign everybody out.
+# Valkey inside the cluster, for sessions and rate limits: the open-source
+# (BSD) Redis, in Redis's place since roadmap row 165. Sessions are kept on a
+# volume so a restart does not sign everybody out.
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: redis
+  name: valkey
 spec:
-  serviceName: redis
+  serviceName: valkey
   replicas: 1
   selector:
     matchLabels:
-      app: redis
+      app: valkey
   template:
     metadata:
       labels:
-        app: redis
+        app: valkey
     spec:
       containers:
-        - name: redis
-          image: redis:alpine
-          # Asks for a password only when REDIS_PASSWORD is set, so it always
+        - name: valkey
+          image: valkey/valkey:9.2-alpine
+          # Asks for a password only when VALKEY_PASSWORD is set, so it always
           # matches what the services are given.
           command:
             - sh
             - -c
-            - exec redis-server --maxmemory-policy noeviction --appendonly yes ${REDIS_PASSWORD:+--requirepass "$REDIS_PASSWORD"}
+            - exec valkey-server --maxmemory-policy noeviction --appendonly yes ${VALKEY_PASSWORD:+--requirepass "$VALKEY_PASSWORD"}
           ports:
-            - name: redis
+            - name: valkey
               containerPort: 6379
           env:
-            - name: REDIS_PASSWORD
+            - name: VALKEY_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: anahita-secrets
-                  key: REDIS_PASSWORD
+                  key: VALKEY_PASSWORD
                   optional: true
           volumeMounts:
             - name: data
               mountPath: /data
           readinessProbe:
             tcpSocket:
-              port: redis
+              port: valkey
             periodSeconds: 10
           resources:
             requests:
@@ -57,11 +58,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: redis
+  name: valkey
 spec:
   selector:
-    app: redis
+    app: valkey
   ports:
-    - name: redis
+    - name: valkey
       port: 6379
-      targetPort: redis
+      targetPort: valkey

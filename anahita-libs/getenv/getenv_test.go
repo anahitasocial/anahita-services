@@ -49,3 +49,19 @@ func TestRenamed(t *testing.T) {
 		t.Errorf("a number by its old name: got %d", got)
 	}
 }
+
+func TestRenamedString(t *testing.T) {
+	t.Setenv("VALKEY_ADDR", "")
+	t.Setenv("REDIS_ADDR", "")
+	if got := RenamedString("VALKEY_ADDR", "REDIS_ADDR", "localhost:6379"); got != "localhost:6379" {
+		t.Errorf("neither: got %q", got)
+	}
+	t.Setenv("REDIS_ADDR", "redis:6379")
+	if got := RenamedString("VALKEY_ADDR", "REDIS_ADDR", "localhost:6379"); got != "redis:6379" {
+		t.Errorf("the old name alone: got %q", got)
+	}
+	t.Setenv("VALKEY_ADDR", "valkey:6379")
+	if got := RenamedString("VALKEY_ADDR", "REDIS_ADDR", "localhost:6379"); got != "valkey:6379" {
+		t.Errorf("the new name first: got %q", got)
+	}
+}

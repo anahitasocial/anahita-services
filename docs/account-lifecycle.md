@@ -261,7 +261,7 @@ lock, and removes what no row names any more.
    shapes and its row is certainly not there. A key in no shape it knows,
    and a page whose query failed, are kept. `import-export-service/` is left alone,
    as its copies run out by their own rule; so is `link-preview-service/`,
-   whose pictures a preview kept in Redis for a week may name.
+   whose pictures a preview kept in Valkey for a week may name.
 2. **A day old at least,** by the store's own date, so that nothing being
    uploaded, resized or encoded is touched.
 3. **Through file-grpc-service,** which lists `assets/v1/` and nothing else

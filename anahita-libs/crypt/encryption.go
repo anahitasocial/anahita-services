@@ -10,7 +10,7 @@ import (
 	"io"
 )
 
-// Encryption seals the values sessions keep, in a cookie or in Redis, with
+// Encryption seals the values sessions keep, in a cookie or in Valkey, with
 // AES-GCM: a value is hidden, and a value that was changed, or sealed under
 // another key, is refused rather than read as something else (roadmap row
 // 119). Until v1.0.17 this was AES-CFB, which hid a value and noticed

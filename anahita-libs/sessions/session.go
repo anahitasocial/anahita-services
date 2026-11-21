@@ -19,7 +19,7 @@ type SessionInterface interface {
 	DeleteBySessionID(echo.Context, string, string) error
 	GetViewerSessionID(echo.Context, string) (string, error)
 
-	// Redis operations
+	// Valkey operations
 	SetNX(string, string, time.Duration) (bool, error)
 
 	// Del removes one or more keys. Variadic so a caller holding a
@@ -63,8 +63,8 @@ type SessionInterface interface {
 }
 
 func NewSession(config ConfigInterface) SessionInterface {
-	if config.GetRedisAddr() != "" {
-		return NewRedisSession(config)
+	if config.GetValkeyAddr() != "" {
+		return NewValkeySession(config)
 	}
 
 	return NewCookieSession(config)

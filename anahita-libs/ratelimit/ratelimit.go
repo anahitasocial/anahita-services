@@ -1,5 +1,5 @@
 // Package ratelimit is a fixed-window counter: at most Max of something per
-// Window, per subject, counted in Redis.
+// Window, per subject, counted in Valkey.
 //
 // It began in auth-service, guarding sign-in and the forms around it, and
 // lives here so that any service can cap an action the same way. The scope
@@ -9,10 +9,10 @@
 // Three properties every caller relies on:
 //
 //   - The subject is hashed into the key, so an email address or an IP is
-//     never a Redis key.
+//     never a Valkey key.
 //   - It fails OPEN. If the counter cannot be reached, the action is allowed
 //     and the failure is logged. A limiter that locks everybody out when
-//     Redis blinks is a worse outage than the abuse it prevents.
+//     Valkey blinks is a worse outage than the abuse it prevents.
 //   - An empty subject is never limited, and never counted.
 package ratelimit
 

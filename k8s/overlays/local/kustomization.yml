@@ -16,7 +16,7 @@ resources:
 
 components:
   - ../../components/mysql
-  - ../../components/redis
+  - ../../components/valkey
   - ../../components/rabbitmq
 
 configMapGenerator:

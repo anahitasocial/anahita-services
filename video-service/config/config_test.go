@@ -15,9 +15,9 @@ func setEnv(key, value string) func() {
 func TestNewConfig_Defaults(t *testing.T) {
 	defer setEnv("ENV", "")()
 	defer setEnv("SECURE_COOKIE_KEY", "")()
-	defer setEnv("REDIS_ADDR", "")()
-	defer setEnv("REDIS_PASSWORD", "")()
-	defer setEnv("REDIS_DB", "")()
+	defer setEnv("VALKEY_ADDR", "")()
+	defer setEnv("VALKEY_PASSWORD", "")()
+	defer setEnv("VALKEY_DB", "")()
 	defer setEnv("GRAPH_SERVICE_ADDR", "")()
 	defer setEnv("FILE_SERVICE_ADDR", "")()
 
@@ -25,11 +25,11 @@ func TestNewConfig_Defaults(t *testing.T) {
 	if cfg.Env != "dev" {
 		t.Errorf("expected Env=dev, got %s", cfg.Env)
 	}
-	if cfg.RedisAddr != "localhost:6379" {
-		t.Errorf("expected RedisAddr=localhost:6379, got %s", cfg.RedisAddr)
+	if cfg.ValkeyAddr != "localhost:6379" {
+		t.Errorf("expected ValkeyAddr=localhost:6379, got %s", cfg.ValkeyAddr)
 	}
-	if cfg.RedisDB != 0 {
-		t.Errorf("expected RedisDB=0, got %d", cfg.RedisDB)
+	if cfg.ValkeyDB != 0 {
+		t.Errorf("expected ValkeyDB=0, got %d", cfg.ValkeyDB)
 	}
 }
 
@@ -129,23 +129,23 @@ func TestConfig_EnvChecks(t *testing.T) {
 func TestConfig_Getters(t *testing.T) {
 	cfg := &Config{
 		SecureCookieKey:  "key",
-		RedisAddr:        "addr",
-		RedisPassword:    "pass",
-		RedisDB:          42,
+		ValkeyAddr:       "addr",
+		ValkeyPassword:   "pass",
+		ValkeyDB:         42,
 		GraphServiceAddr: "graph",
 		FileServiceAddr:  "file",
 	}
 	if cfg.GetSecureCookieKey() != "key" {
 		t.Error("GetSecureCookieKey failed")
 	}
-	if cfg.GetRedisAddr() != "addr" {
-		t.Error("GetRedisAddr failed")
+	if cfg.GetValkeyAddr() != "addr" {
+		t.Error("GetValkeyAddr failed")
 	}
-	if cfg.GetRedisPassword() != "pass" {
-		t.Error("GetRedisPassword failed")
+	if cfg.GetValkeyPassword() != "pass" {
+		t.Error("GetValkeyPassword failed")
 	}
-	if cfg.GetRedisDB() != 42 {
-		t.Error("GetRedisDB failed")
+	if cfg.GetValkeyDB() != 42 {
+		t.Error("GetValkeyDB failed")
 	}
 	if cfg.GetGraphServiceAddr() != "graph" {
 		t.Error("GetGraphServiceAddr failed")

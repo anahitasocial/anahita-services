@@ -25,8 +25,8 @@ Its routes are in the API reference: [link-preview-service](api/index.html#link-
 
 | Part | Where | What it does |
 | --- | --- | --- |
-| `link-preview-service` | port 8101, `/link-previews` | Fetches a page from the internet, reads its title and picture, and keeps the result in Redis |
-| `anahita-libs/linkpreviews` | a package | The preview itself, the Redis store, how an address is normalised, and how a card is written into and read out of a note's `meta` |
+| `link-preview-service` | port 8101, `/link-previews` | Fetches a page from the internet, reads its title and picture, and keeps the result in Valkey |
+| `anahita-libs/linkpreviews` | a package | The preview itself, the Valkey store, how an address is normalised, and how a card is written into and read out of a note's `meta` |
 | `text-service` | `POST` and `PATCH /notes` | Copies a kept preview onto the note |
 
 Only `link-preview-service` connects to addresses people type. It is a
@@ -99,7 +99,7 @@ A picture that will not load in a reader's browser is left out of the card.
 | A preview without one | 1 hour |
 | That a page could not be read, or said nothing of itself | 1 hour |
 
-All are in Redis under the SHA-256 of the normalised address (lower-case
+All are in Valkey under the SHA-256 of the normalised address (lower-case
 scheme and host, no fragment), so the same link pasted by two people is
 fetched once. The card on a note is a copy and does not expire.
 
@@ -146,7 +146,7 @@ the same fields as a note's card.
 
 ## Running it, and not running it
 
-`make link_preview` builds and starts it. It needs Redis and
+`make link_preview` builds and starts it. It needs Valkey and
 `file-grpc-service`, and has no settings of its own.
 
 It is optional. Without it, asking for a preview fails, the composer shows
@@ -161,7 +161,7 @@ still shown; only their pictures need the service.
 | What is read from the page | `link-preview-service/fetch/parse.go`; YouTube, `oembed.go` |
 | The picture, no wider than 800 pixels | `link-preview-service/fetch/fetch.go` (`Thumbnail`), `safe.go` (`ThumbnailWidth`), `link-preview-service/cmd/api/handlers/previews.go` (`keepPicture`, `Image`) |
 | The endpoints | `link-preview-service/cmd/api/handlers/previews.go` |
-| The preview, the Redis store, how long it is kept, normalising an address | `anahita-libs/linkpreviews/linkpreviews.go` (`FreshFor`, `FailedFor`, `Key`, `Normalise`) |
+| The preview, the Valkey store, how long it is kept, normalising an address | `anahita-libs/linkpreviews/linkpreviews.go` (`FreshFor`, `FailedFor`, `Key`, `Normalise`) |
 | The card in a note's `meta` | `anahita-libs/linkpreviews/linkpreviews.go` (`IntoMeta`, `FromMeta`); `text-service/cmd/api/handlers/note.go` (`withLinkPreview`) |
 | Cards in long writing | `text-service/cmd/api/handlers/embeds.go` (`withEmbeddedPages`); `SnapshotsIntoMeta` in `anahita-libs/linkpreviews` |
 

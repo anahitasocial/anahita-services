@@ -212,7 +212,7 @@ already in `config.env` and `secrets.env`:
 | `FILE_SERVICE_ADDR` | The avatars of people on other servers are copied into this installation's storage |
 | `LINK_PREVIEW_URL` | Optional. Where link-preview-service is (`http://link-preview-service`), for the card of a link in a post from another server. Left out, such posts have none |
 | `AMQP_ADDR` | It hears there that somebody here followed, posted or changed their profile |
-| `REDIS_ADDR` | Limits on lookups and on what one address may send |
+| `VALKEY_ADDR` | Limits on lookups and on what one address may send |
 | `SECURE_COOKIE_KEY`, `OAUTH_ISSUER` | Knowing who is signed in, for a person's own switch |
 | `CRYPT_BACKEND`, `CRYPT_LOCAL_KEY` | What each person's signing key is kept under. **The same values auth-service has** |
 

@@ -12,14 +12,14 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type redisSession struct {
+type valkeySession struct {
 	encrypt *crypt.Encryption
 	client  *redis.Client
 	config  ConfigInterface
 }
 
-func NewRedisSession(config ConfigInterface) SessionInterface {
-	options, err := redisOptions(config)
+func NewValkeySession(config ConfigInterface) SessionInterface {
+	options, err := valkeyOptions(config)
 	if err != nil {
 		panic(err)
 	}
@@ -32,18 +32,18 @@ func NewRedisSession(config ConfigInterface) SessionInterface {
 
 	fmt.Println(pong)
 
-	return &redisSession{
+	return &valkeySession{
 		encrypt: &crypt.Encryption{},
 		client:  client,
 		config:  config,
 	}
 }
 
-func (s *redisSession) Add(c echo.Context, key string, value string) (string, error) {
+func (s *valkeySession) Add(c echo.Context, key string, value string) (string, error) {
 	return s.AddWithTTL(c, key, value, SessionTimeout)
 }
 
-func (s *redisSession) AddWithTTL(c echo.Context, key string, value string, ttl time.Duration) (string, error) {
+func (s *valkeySession) AddWithTTL(c echo.Context, key string, value string, ttl time.Duration) (string, error) {
 	rawID, err := GenerateRandomString(SessionIDLength)
 	if err != nil {
 		return "", err
@@ -69,19 +69,19 @@ func (s *redisSession) AddWithTTL(c echo.Context, key string, value string, ttl 
 	sessionID := HashString(rawID)
 
 	aesKey := s.config.GetSecureCookieKey()
-	redisValue, err := s.encrypt.Encrypt([]byte(aesKey), value)
+	valkeyValue, err := s.encrypt.Encrypt([]byte(aesKey), value)
 	if err != nil {
 		return "", err
 	}
 
-	if err := s.client.Set(sessionID, redisValue, ttl).Err(); err != nil {
+	if err := s.client.Set(sessionID, valkeyValue, ttl).Err(); err != nil {
 		return "", err
 	}
 
 	return sessionID, nil
 }
 
-func (s *redisSession) Read(c echo.Context, key string) (string, error) {
+func (s *valkeySession) Read(c echo.Context, key string) (string, error) {
 	cookie, err := c.Cookie(key)
 	if err != nil {
 		return "", err
@@ -107,7 +107,7 @@ func (s *redisSession) Read(c echo.Context, key string) (string, error) {
 	return value, nil
 }
 
-func (s *redisSession) Edit(c echo.Context, key string, value string) error {
+func (s *valkeySession) Edit(c echo.Context, key string, value string) error {
 	cookie, err := c.Cookie(key)
 	if err != nil {
 		return err
@@ -121,21 +121,21 @@ func (s *redisSession) Edit(c echo.Context, key string, value string) error {
 	}
 
 	aesKey := s.config.GetSecureCookieKey()
-	redisValue, err := s.encrypt.Encrypt([]byte(aesKey), value)
+	valkeyValue, err := s.encrypt.Encrypt([]byte(aesKey), value)
 	if err != nil {
 		return err
 	}
 
-	return s.client.Set(sessionID, redisValue, ttl).Err()
+	return s.client.Set(sessionID, valkeyValue, ttl).Err()
 }
 
-func (s *redisSession) Delete(c echo.Context, key string) error {
+func (s *valkeySession) Delete(c echo.Context, key string) error {
 	cookie, err := c.Request().Cookie(key)
 	if err == http.ErrNoCookie {
 		return err
 	}
-	redisKey := HashString(cookie.Value)
-	if err := s.client.Del(redisKey).Err(); err != nil {
+	valkeyKey := HashString(cookie.Value)
+	if err := s.client.Del(valkeyKey).Err(); err != nil {
 		return err
 	}
 
@@ -146,7 +146,7 @@ func (s *redisSession) Delete(c echo.Context, key string) error {
 	return nil
 }
 
-func (s *redisSession) HasSessionByID(c echo.Context, key string, sessionID string) (bool, error) {
+func (s *valkeySession) HasSessionByID(c echo.Context, key string, sessionID string) (bool, error) {
 	value, err := s.client.Get(sessionID).Bytes()
 	if err != nil {
 		return false, err
@@ -159,7 +159,7 @@ func (s *redisSession) HasSessionByID(c echo.Context, key string, sessionID stri
 	return false, nil
 }
 
-func (s *redisSession) DeleteBySessionID(c echo.Context, key string, sessionID string) error {
+func (s *valkeySession) DeleteBySessionID(c echo.Context, key string, sessionID string) error {
 	if err := s.client.Del(sessionID).Err(); err != nil {
 		return err
 	}
@@ -175,7 +175,7 @@ func (s *redisSession) DeleteBySessionID(c echo.Context, key string, sessionID s
 	return nil
 }
 
-func (s *redisSession) GetViewerSessionID(c echo.Context, key string) (string, error) {
+func (s *valkeySession) GetViewerSessionID(c echo.Context, key string) (string, error) {
 	cookie, err := c.Request().Cookie(key)
 	if err != nil {
 		return "", err
@@ -186,15 +186,15 @@ func (s *redisSession) GetViewerSessionID(c echo.Context, key string) (string, e
 	return sessionID, nil
 }
 
-func (s *redisSession) SetNX(key string, value string, ttl time.Duration) (bool, error) {
+func (s *valkeySession) SetNX(key string, value string, ttl time.Duration) (bool, error) {
 	return s.client.SetNX(key, value, ttl).Result()
 }
 
 // Del removes one or more keys. Deleting a key that does not exist is
-// not an error — Redis reports a count, not a failure, and a caller
+// not an error — Valkey reports a count, not a failure, and a caller
 // dropping a list of session IDs will routinely include some that
 // already expired on their own.
-func (s *redisSession) Del(keys ...string) error {
+func (s *valkeySession) Del(keys ...string) error {
 	if len(keys) == 0 {
 		return nil
 	}
@@ -205,11 +205,11 @@ func (s *redisSession) Del(keys ...string) error {
 //
 // The TTL is applied to the whole set on every add, so the index
 // outlives its newest member rather than expiring while sessions are
-// still live. Members are not individually expirable in Redis, which
+// still live. Members are not individually expirable in Valkey, which
 // means the set will accumulate IDs of sessions that have since
 // expired on their own. That is harmless: a stale ID deletes to a
 // no-op, and the set is dropped wholesale when the caller revokes.
-func (s *redisSession) SAdd(key string, member string, ttl time.Duration) error {
+func (s *valkeySession) SAdd(key string, member string, ttl time.Duration) error {
 	if err := s.client.SAdd(key, member).Err(); err != nil {
 		return err
 	}
@@ -222,7 +222,7 @@ func (s *redisSession) SAdd(key string, member string, ttl time.Duration) error 
 // A missing key is not an error. Someone with no active sessions and
 // someone whose index has expired are the same case from the caller's
 // point of view: nothing to revoke.
-func (s *redisSession) SMembers(key string) ([]string, error) {
+func (s *valkeySession) SMembers(key string) ([]string, error) {
 	members, err := s.client.SMembers(key).Result()
 	if err == redis.Nil {
 		return []string{}, nil
@@ -248,7 +248,7 @@ func (s *redisSession) SMembers(key string) ([]string, error) {
 // worst case is an identical expiry set twice. A crash between INCR
 // and EXPIRE leaves a counter without a TTL, which fails closed —
 // stricter than intended, never looser.
-func (s *redisSession) Incr(key string, ttl time.Duration) (int64, error) {
+func (s *valkeySession) Incr(key string, ttl time.Duration) (int64, error) {
 	count, err := s.client.Incr(key).Result()
 	if err != nil {
 		return 0, err
@@ -264,7 +264,7 @@ func (s *redisSession) Incr(key string, ttl time.Duration) (int64, error) {
 }
 
 // Exists reports whether a key is present.
-func (s *redisSession) Exists(key string) (bool, error) {
+func (s *valkeySession) Exists(key string) (bool, error) {
 	n, err := s.client.Exists(key).Result()
 	if err != nil {
 		return false, err

@@ -3,7 +3,7 @@
 [Documentation](README.md) › [Deploying](deploying.md) › On EKS
 
 An example of Anahita on Amazon EKS, from an empty AWS account to the first
-person signed in, with the database in RDS, Redis in ElastiCache, files in
+person signed in, with the database in RDS, Valkey in ElastiCache, files in
 S3 and mail through SES.
 
 > **This is an example.** Its names, its region, its Kubernetes version, the
@@ -24,7 +24,7 @@ with k3s: start from a recipe in
 3. [The files](#the-files)
 4. [The cluster](#the-cluster)
 5. [The bucket](#the-bucket)
-6. [The database and Redis](#the-database-and-redis)
+6. [The database and Valkey](#the-database-and-valkey)
 7. [Mail](#mail)
 8. [Traefik and cert-manager](#traefik-and-cert-manager)
 9. [The site](#the-site)
@@ -108,7 +108,7 @@ Make the bucket as [A bucket on AWS S3](deploying.md#a-bucket-on-aws-s3)
 says, in the cluster's region, with the name `cluster.yml` gives it. No keys
 are needed: file-grpc-service uses the role.
 
-## The database and Redis
+## The database and Valkey
 
 Both go in the cluster's network, in its two **private** subnets, reached
 only from the nodes. eksctl named the network `eksctl-anahita-cluster/VPC`,
@@ -123,7 +123,7 @@ and the nodes' security group `eksctl-anahita-cluster-ClusterSharedNodeSecurityG
    | Engine | MySQL 8.4 |
    | Size | `db.t4g.micro`, 20 GB of gp3; more for a bigger site |
    | Network | The cluster's network, a subnet group of its two private subnets, no public access, the security group above |
-   | Database | `anahita`, with its own user, which needs every right on it ([Database, Redis and RabbitMQ](deploying.md#database-redis-and-rabbitmq)) |
+   | Database | `anahita`, with its own user, which needs every right on it ([Database, Valkey and RabbitMQ](deploying.md#database-valkey-and-rabbitmq)) |
    | Backups | Automated, kept 7 days or more |
    | Character set | `utf8mb4`, the default |
 
@@ -131,13 +131,13 @@ and the nodes' security group `eksctl-anahita-cluster-ClusterSharedNodeSecurityG
 
    | Setting | Choose |
    | --- | --- |
-   | Engine | Redis OSS 7 (Valkey should work, and has not been tried) |
+   | Engine | Valkey (Redis OSS works too, and costs more) |
    | Size | `cache.t4g.micro`, one node, no cluster mode |
    | Network | A subnet group of the two private subnets, the security group above |
-   | Encryption in transit | On: `REDIS_TLS=true` in `config.env` |
+   | Encryption in transit | On: `VALKEY_TLS=true` in `config.env` |
 
 Put the database's address in `MYSQL_HOST` and `DSN`, and the cache's
-primary address in `REDIS_ADDR`.
+primary address in `VALKEY_ADDR`.
 
 ## Mail
 
@@ -184,8 +184,8 @@ Fill in your copy of the `aws` overlay as
 [First deployment](deploying.md#first-deployment) says, with these on EKS:
 
 1. `service-accounts.yml`: the ARN of `anahita-files`.
-2. `config.env`: the bucket and region; `MYSQL_HOST`, `REDIS_ADDR` and
-   `REDIS_TLS=true`; SES's `SMTP_HOST`.
+2. `config.env`: the bucket and region; `MYSQL_HOST`, `VALKEY_ADDR` and
+   `VALKEY_TLS=true`; SES's `SMTP_HOST`.
 3. `secrets.env`: `DSN` and the database's password; `SMTP_USER` and
    `SMTP_PASSWORD`; the rest as the example says.
 4. `ingress.yml` and `issuer.yml`: your names and your address.

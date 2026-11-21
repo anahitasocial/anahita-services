@@ -13,7 +13,7 @@ const (
 	ErrMissingDSN               = "DSN is missing"
 	ErrMissingSecureCookieKey   = "Secure cookie key is missing"
 	ErrWrongSizeSecureCookieKey = "Secure cookie key must be 32 bytes long"
-	ErrMissingRedisAddr         = "Redis address is missing"
+	ErrMissingValkeyAddr        = "Valkey address is missing"
 	ErrMissingAmqpAddr          = "AMQP address is missing"
 	ErrMissingFileAddr          = "File gRPC service address is missing"
 	ErrMissingGraphAddr         = "Graph gRPC service address is missing"
@@ -29,9 +29,9 @@ type Config struct {
 	Env              string
 	DSN              string
 	SecureCookieKey  string
-	RedisAddr        string
-	RedisPassword    string
-	RedisDB          int
+	ValkeyAddr       string
+	ValkeyPassword   string
+	ValkeyDB         int
 	AmqpAddr         string
 	FileServiceAddr  string
 	GraphServiceAddr string
@@ -45,9 +45,9 @@ func NewConfig() *Config {
 		Env:              getenv.String("ENV", constants.ConfigEnvDev),
 		DSN:              os.Getenv("DSN"),
 		SecureCookieKey:  os.Getenv("SECURE_COOKIE_KEY"),
-		RedisAddr:        getenv.String("REDIS_ADDR", "localhost:6379"),
-		RedisPassword:    os.Getenv("REDIS_PASSWORD"),
-		RedisDB:          getenv.Int("REDIS_DB", 0),
+		ValkeyAddr:       getenv.RenamedString("VALKEY_ADDR", "REDIS_ADDR", "localhost:6379"),
+		ValkeyPassword:   getenv.Renamed("VALKEY_PASSWORD", "REDIS_PASSWORD"),
+		ValkeyDB:         getenv.RenamedInt("VALKEY_DB", "REDIS_DB", 0),
 		AmqpAddr:         os.Getenv("AMQP_ADDR"),
 		FileServiceAddr:  os.Getenv("FILE_SERVICE_ADDR"),
 		GraphServiceAddr: os.Getenv("GRAPH_SERVICE_ADDR"),
@@ -133,16 +133,16 @@ func (config *Config) GetSecureCookieKey() string {
 	return config.SecureCookieKey
 }
 
-func (config *Config) GetRedisAddr() string {
-	return config.RedisAddr
+func (config *Config) GetValkeyAddr() string {
+	return config.ValkeyAddr
 }
 
-func (config *Config) GetRedisPassword() string {
-	return config.RedisPassword
+func (config *Config) GetValkeyPassword() string {
+	return config.ValkeyPassword
 }
 
-func (config *Config) GetRedisDB() int {
-	return config.RedisDB
+func (config *Config) GetValkeyDB() int {
+	return config.ValkeyDB
 }
 
 func (config *Config) GetAmqpAddr() string {

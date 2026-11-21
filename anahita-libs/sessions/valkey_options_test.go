@@ -5,19 +5,19 @@ import (
 	"testing"
 )
 
-type fakeRedisConnection struct{ addr string }
+type fakeValkeyConnection struct{ addr string }
 
-func (f fakeRedisConnection) GetRedisAddr() string     { return f.addr }
-func (f fakeRedisConnection) GetRedisPassword() string { return "secret" }
-func (f fakeRedisConnection) GetRedisDB() int          { return 2 }
+func (f fakeValkeyConnection) GetValkeyAddr() string     { return f.addr }
+func (f fakeValkeyConnection) GetValkeyPassword() string { return "secret" }
+func (f fakeValkeyConnection) GetValkeyDB() int          { return 2 }
 
-func TestRedisOptions(t *testing.T) {
-	conn := fakeRedisConnection{addr: "cache.example.com:6380"}
+func TestValkeyOptions(t *testing.T) {
+	conn := fakeValkeyConnection{addr: "cache.example.com:6380"}
 
 	t.Run("no TLS unless asked for", func(t *testing.T) {
 		for _, value := range []string{"", "false", "0"} {
-			t.Setenv(RedisTLSEnv, value)
-			options, err := redisOptions(conn)
+			t.Setenv(ValkeyTLSEnv, value)
+			options, err := valkeyOptions(conn)
 			if err != nil {
 				t.Fatalf("%q: %v", value, err)
 			}
@@ -32,8 +32,8 @@ func TestRedisOptions(t *testing.T) {
 
 	t.Run("TLS checks the certificate against the host", func(t *testing.T) {
 		for _, value := range []string{"true", "1"} {
-			t.Setenv(RedisTLSEnv, value)
-			options, err := redisOptions(conn)
+			t.Setenv(ValkeyTLSEnv, value)
+			options, err := valkeyOptions(conn)
 			if err != nil {
 				t.Fatalf("%q: %v", value, err)
 			}
@@ -54,8 +54,8 @@ func TestRedisOptions(t *testing.T) {
 
 	// "yes" must not quietly mean a plaintext connection.
 	t.Run("a value that is not a boolean is an error", func(t *testing.T) {
-		t.Setenv(RedisTLSEnv, "yes")
-		if options, err := redisOptions(conn); err == nil {
+		t.Setenv(ValkeyTLSEnv, "yes")
+		if options, err := valkeyOptions(conn); err == nil {
 			t.Errorf("accepted, with TLS %v", options.TLSConfig != nil)
 		}
 	})

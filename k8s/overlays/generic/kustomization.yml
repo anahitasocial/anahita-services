@@ -18,7 +18,7 @@ resources:
 # managed one instead, and point config.env and secrets.env at it.
 components:
   - ../../components/mysql
-  - ../../components/redis
+  - ../../components/valkey
   - ../../components/rabbitmq
 
 patches:

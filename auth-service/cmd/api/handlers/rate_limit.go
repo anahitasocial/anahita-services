@@ -20,7 +20,7 @@ import (
 // enforces.
 //
 // Subjects are hashed into the key. Two reasons: an email address or a
-// reset token in a Redis key is a copy of that value sitting in a
+// reset token in a Valkey key is a copy of that value sitting in a
 // second system with a different retention story, and subjects are
 // caller-supplied and unbounded, so hashing is also what keeps key
 // length fixed.
@@ -219,7 +219,7 @@ func rateLimitKey(scope rateLimitScope, subject string) string {
 // Fails OPEN. A store that is down, or the cookie backend that has
 // nowhere to count, both report "not exceeded" and log. This is the
 // uncomfortable half of the design and it is chosen rather than
-// overlooked: failing closed turns a Redis outage into a service where
+// overlooked: failing closed turns a Valkey outage into a service where
 // nobody can reset a password or change one, and account recovery is
 // exactly the thing that must keep working on a bad day. The exposure
 // while the store is down is the exposure this service had before

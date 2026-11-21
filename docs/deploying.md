@@ -22,7 +22,7 @@ managed database.
 4. [First deployment](#first-deployment)
 5. [Certificates between the services](#certificates-between-the-services)
 6. [Object storage](#object-storage)
-7. [Database, Redis and RabbitMQ](#database-redis-and-rabbitmq)
+7. [Database, Valkey and RabbitMQ](#database-valkey-and-rabbitmq)
 8. [On AWS](#on-aws)
 9. [Joining the fediverse](#joining-the-fediverse)
 10. [Images](#images)
@@ -35,7 +35,7 @@ managed database.
 
 | What | Notes |
 | --- | --- |
-| A Kubernetes cluster | Any provider's, or your own. A default StorageClass, unless the database, Redis and RabbitMQ all run elsewhere |
+| A Kubernetes cluster | Any provider's, or your own. A default StorageClass, unless the database, Valkey and RabbitMQ all run elsewhere |
 | An ingress controller | A maintained one. The base names the `nginx` class; the `traefik` component changes it to Traefik, which comes with k3s and which the `aws` overlay uses too. ingress-nginx itself was retired in March 2026 |
 | [cert-manager](https://cert-manager.io/) | Gets and renews the Let's Encrypt certificate, and issues the certificates the services use between themselves |
 | Two DNS names | `api.` and `auth.` under your domain, both pointing at the ingress controller's address |
@@ -60,7 +60,7 @@ k8s/
     grpc-tls.yml        certificates for the calls between the services
     config.env          how the services find each other
   components/           optional, each added by an overlay
-    mysql/ redis/ rabbitmq/   the backing services in the cluster
+    mysql/ valkey/ rabbitmq/   the backing services in the cluster
     mysql-backup/       a nightly dump of that MySQL to the bucket
     garage/             an S3-compatible store in the cluster
     traefik/            the Ingresses through Traefik
@@ -358,7 +358,7 @@ file the script does not recognise is left and listed.
 The script's own [README](../scripts/s3-migration/README.md) has every
 option.
 
-## Database, Redis and RabbitMQ
+## Database, Valkey and RabbitMQ
 
 The `generic` overlay runs all three inside the cluster, from
 `k8s/components`, each with one replica and a volume from the default
@@ -382,8 +382,19 @@ To use a managed service instead, remove its line from `components:` in
 | Service | In `config.env` | In `secrets.env` |
 | --- | --- | --- |
 | MySQL 8 or later | `MYSQL_HOST` | `DSN`, `MYSQL_USER`, `MYSQL_PASSWORD` |
-| Redis or Valkey | `REDIS_ADDR`, and `REDIS_TLS=true` if it requires TLS | `REDIS_PASSWORD` |
+| Valkey, or Redis | `VALKEY_ADDR`, and `VALKEY_TLS=true` if it requires TLS | `VALKEY_PASSWORD` |
 | RabbitMQ | | `AMQP_ADDR` |
+
+**From Redis to Valkey** (roadmap row 165). Until Valkey took its place,
+the component was `redis` and the settings `REDIS_*`. The old names are read
+for one release, so nothing breaks on the way, but the new component starts
+empty: everybody signs in once. Rename `REDIS_PASSWORD` to `VALKEY_PASSWORD`
+in `secrets.env` (and `REDIS_ADDR` to `VALKEY_ADDR` where it is set), apply,
+then remove what `kubectl apply` leaves behind:
+
+~~~sh
+kubectl --kubeconfig ~/.kube/<your-site>.yaml -n anahita delete statefulset/redis service/redis pvc/data-redis-0
+~~~
 
 The database account needs every right on its own database, including
 creating and dropping stored procedures, which the upgrade from the PHP
@@ -406,14 +417,14 @@ patches:
 ## On AWS
 
 [Deploying on EKS](deploying-eks.md) is an example of the whole of it, from
-an empty account: the cluster, the bucket, the database, Redis and mail.
+an empty account: the cluster, the bucket, the database, Valkey and mail.
 `k8s/overlays/aws` differs from `generic` in four ways:
 
 1. **S3 without keys.** file-grpc-service runs as a service account tied to an
    IAM role (`service-accounts.yml`). Put your role's ARN there. The role needs
    `s3:GetObject`, `s3:PutObject` and `s3:DeleteObject` on the bucket's
    objects, and `s3:ListBucket` on the bucket.
-2. **RDS and ElastiCache** in place of the MySQL and Redis components.
+2. **RDS and ElastiCache** in place of the MySQL and Valkey components.
 3. **SES** as the SMTP relay.
 4. **Traefik** as the Ingress class, as on k3s. The example installs it
    behind a Network Load Balancer, with no Helm.
@@ -552,7 +563,7 @@ serve it at `http://localhost`. `make k8s-cleanup` deletes the cluster.
 ### With k3d
 
 The `k3d` overlay runs the `k3s` overlay's components (Traefik, MySQL and
-its backup, Redis, RabbitMQ, Garage) on [k3d](https://k3d.io/), which is
+its backup, Valkey, RabbitMQ, Garage) on [k3d](https://k3d.io/), which is
 k3s in Docker, with a mailpit that catches every message. It needs k3d and
 nothing else from docker-compose, which can keep running.
 

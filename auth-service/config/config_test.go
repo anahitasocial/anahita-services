@@ -26,20 +26,20 @@ func TestNewConfigDefaults(t *testing.T) {
 	defer setEnv("ENV", "")()
 	defer unsetEnv("DSN")()
 	defer unsetEnv("SECURE_COOKIE_KEY")()
-	defer unsetEnv("REDIS_ADDR")()
-	defer unsetEnv("REDIS_PASSWORD")()
-	defer unsetEnv("REDIS_DB")()
+	defer unsetEnv("VALKEY_ADDR")()
+	defer unsetEnv("VALKEY_PASSWORD")()
+	defer unsetEnv("VALKEY_DB")()
 	defer unsetEnv("FILE_SERVICE_ADDR")()
 
 	cfg := NewConfig()
 	if cfg.Env == "" {
 		t.Error("expected default Env to be set")
 	}
-	if cfg.RedisAddr != "localhost:6379" {
-		t.Errorf("expected default RedisAddr to be localhost:6379, got %s", cfg.RedisAddr)
+	if cfg.ValkeyAddr != "localhost:6379" {
+		t.Errorf("expected default ValkeyAddr to be localhost:6379, got %s", cfg.ValkeyAddr)
 	}
-	if cfg.RedisDB != 0 {
-		t.Errorf("expected default RedisDB to be 0, got %d", cfg.RedisDB)
+	if cfg.ValkeyDB != 0 {
+		t.Errorf("expected default ValkeyDB to be 0, got %d", cfg.ValkeyDB)
 	}
 }
 
@@ -49,7 +49,7 @@ func validConfig() *Config {
 	return &Config{
 		DSN:                 "dsn",
 		SecureCookieKey:     "12345678901234567890123456789012",
-		RedisAddr:           "localhost:6379",
+		ValkeyAddr:          "localhost:6379",
 		DomainName:          "example.com",
 		SystemEmail:         "system@example.com",
 		SupportEmail:        "support@example.com",
@@ -185,16 +185,16 @@ func TestGetters(t *testing.T) {
 	cfg := &Config{
 		DSN:             "dsn",
 		SecureCookieKey: "key",
-		RedisAddr:       "addr",
-		RedisPassword:   "pass",
-		RedisDB:         2,
+		ValkeyAddr:      "addr",
+		ValkeyPassword:  "pass",
+		ValkeyDB:        2,
 		FileServiceAddr: "fileaddr",
 	}
 	if cfg.GetDSN() != "dsn" ||
 		cfg.GetSecureCookieKey() != "key" ||
-		cfg.GetRedisAddr() != "addr" ||
-		cfg.GetRedisPassword() != "pass" ||
-		cfg.GetRedisDB() != 2 ||
+		cfg.GetValkeyAddr() != "addr" ||
+		cfg.GetValkeyPassword() != "pass" ||
+		cfg.GetValkeyDB() != 2 ||
 		cfg.GetFileServiceAddr() != "fileaddr" {
 		t.Error("getter methods returned unexpected values")
 	}

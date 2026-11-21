@@ -20,7 +20,7 @@ import (
 //
 // FAILS CLOSED, deliberately, and in two ways that look like outages:
 //
-//   - no session store configured (Redis unreachable at startup)
+//   - no session store configured (Valkey unreachable at startup)
 //   - the store errors on the read
 //
 // Both refuse the action. This is the opposite of the rate limiter's

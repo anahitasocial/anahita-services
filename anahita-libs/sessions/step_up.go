@@ -25,7 +25,7 @@ import (
 // Narrow on purpose. person-service and group-service read this marker but
 // issue no proofs, set no cookies and serve no session — depending on the full
 // SessionInterface would have made them satisfy GetDomainName and
-// GetSecureCookieKey to reach two Redis calls that use neither. SessionInterface
+// GetSecureCookieKey to reach two Valkey calls that use neither. SessionInterface
 // satisfies this, so auth-service passes what it already has.
 type KeyValueInterface interface {
 	Exists(key string) (bool, error)

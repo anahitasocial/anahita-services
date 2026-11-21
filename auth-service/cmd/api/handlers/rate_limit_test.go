@@ -65,7 +65,7 @@ func TestRateLimitResetRefillsTheBudget(t *testing.T) {
 
 // Deliberate, and the uncomfortable half of the design: a store that is
 // down must not take account recovery down with it. The exposure while
-// Redis is unavailable is the exposure the service had before these
+// Valkey is unavailable is the exposure the service had before these
 // counters existed.
 func TestRateLimitFailsOpenWhenTheStoreIsDown(t *testing.T) {
 	te := newTestEnv()
@@ -108,7 +108,7 @@ func TestRateLimitAllowsAnUnknownScope(t *testing.T) {
 }
 
 // The subject is hashed into the key. An email address or a live reset
-// token sitting in a Redis key is a copy of that value in a second system
+// token sitting in a Valkey key is a copy of that value in a second system
 // with a different retention story.
 func TestRateLimitKeysDoNotCarryTheSubject(t *testing.T) {
 	const email = "ada@example.com"
@@ -121,7 +121,7 @@ func TestRateLimitKeysDoNotCarryTheSubject(t *testing.T) {
 	if strings.Contains(key, email) {
 		t.Errorf("key %q carries the subject in the clear", key)
 	}
-	// The scope stays legible, so a key can still be read in Redis.
+	// The scope stays legible, so a key can still be read in Valkey.
 	if !strings.Contains(key, string(rateLimitScopePasswordEmail)) {
 		t.Errorf("key %q does not name its scope", key)
 	}

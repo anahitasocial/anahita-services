@@ -38,10 +38,10 @@ On Kubernetes the same variables go in an overlay's `config.env` and
 | --- | --- | --- |
 | `ENV` | all | `dev`, `staging` or `prod`. Decides the default public URLs below, and in `dev` all mail goes to `DEVELOPER_EMAIL` |
 | `DSN` | services with a database | MySQL DSN, e.g. `root:root@(mysql:3306)/anahita?parseTime=true` |
-| `REDIS_ADDR`, `REDIS_PASSWORD` | HTTP services | Redis for sessions, e.g. `redis:6379` |
-| `REDIS_DB` | HTTP services | Optional. The Redis database number, `0` when left out. Useful when several installations share one Redis |
-| `REDIS_TLS` | HTTP services | `true` to connect to Redis over TLS, which most managed Redis and Valkey services require. The certificate is checked against the host in `REDIS_ADDR`. Default `false` |
-| `SECURE_COOKIE_KEY` | HTTP services | Key that seals what a session holds, in its cookie or in Redis (AES-GCM: unreadable, and refused if changed). Changing it signs everybody out. auth-service also derives from it the key that sign-in codes are hashed with, so changing it invalidates the codes outstanding at that moment |
+| `VALKEY_ADDR`, `VALKEY_PASSWORD` | HTTP services | Valkey, for sessions and rate limits, e.g. `valkey:6379`. Redis answers the same. Their names before Valkey, `REDIS_ADDR`, `REDIS_PASSWORD`, `REDIS_DB` and `REDIS_TLS`, are still read for one release |
+| `VALKEY_DB` | HTTP services | Optional. The Valkey database number, `0` when left out. Useful when several installations share one Valkey |
+| `VALKEY_TLS` | HTTP services | `true` to connect to Valkey over TLS, which most managed Valkey and Redis services require. The certificate is checked against the host in `VALKEY_ADDR`. Default `false` |
+| `SECURE_COOKIE_KEY` | HTTP services | Key that seals what a session holds, in its cookie or in Valkey (AES-GCM: unreadable, and refused if changed). Changing it signs everybody out. auth-service also derives from it the key that sign-in codes are hashed with, so changing it invalidates the codes outstanding at that moment |
 | `AMQP_ADDR` | publishers and consumers | RabbitMQ, e.g. `amqp://rabbitmq:5672` |
 | `OAUTH_ISSUER` | all HTTP services | Issuer URL that tokens are signed with and checked against |
 | `OAUTH_JWKS_URL` | all HTTP services | Where public signing keys are fetched. Defaults to auth-service inside the network |
@@ -115,7 +115,7 @@ and, for a server, require a client certificate.
 
 Read on Kubernetes only, by the migration job and the components that run a
 database, the event bus or a store on the cluster itself, as the `k3s`
-overlay does ([Database, Redis and RabbitMQ](deploying.md#database-redis-and-rabbitmq)).
+overlay does ([Database, Valkey and RabbitMQ](deploying.md#database-valkey-and-rabbitmq)).
 The services themselves read `DSN`, `AMQP_ADDR` and the `STORAGE_*`
 settings, which repeat the same accounts.
 
@@ -416,8 +416,8 @@ Read by abuse-report-service.
 | `SPAM_REMOVAL_MAX_DAYS` | How many days after it was made an account may still be removed as spam. 30 unless said. Read by graph-grpc-service, which refuses an older one, and auth-service, which publishes it as `metadata.spamRemovalMaxDays`. See [Removing as spam](account-lifecycle.md#removing-as-spam) |
 
 Somebody may file at most 20 reports an hour. That limit, like the ones on
-signing in, is counted in Redis by the shared limiter in
-`anahita-libs/ratelimit`, and is not enforced while Redis cannot be reached.
+signing in, is counted in Valkey by the shared limiter in
+`anahita-libs/ratelimit`, and is not enforced while Valkey cannot be reached.
 
 ## Account cleanup
 

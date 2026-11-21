@@ -7,9 +7,9 @@ The pages for running a live site from day to day.
 1. **Upgrading** to a new release: [Upgrading](deploying.md#upgrading). The
    migration job brings the database up to date. On EKS, the cluster and its
    nodes too: [Upgrading](deploying-eks.md#upgrading).
-2. **The database, Redis and RabbitMQ.** What runs in the cluster, and using a
+2. **The database, Valkey and RabbitMQ.** What runs in the cluster, and using a
    managed service instead:
-   [Database, Redis and RabbitMQ](deploying.md#database-redis-and-rabbitmq).
+   [Database, Valkey and RabbitMQ](deploying.md#database-valkey-and-rabbitmq).
    Nothing in the cluster backs them up for you; on EKS, RDS keeps its
    own: [Backups](deploying-eks.md#backups).
 3. **Storage.** What is in the bucket, and moving an old one to the current

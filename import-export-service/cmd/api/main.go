@@ -76,13 +76,13 @@ func main() {
 	}
 }
 
-// stepUpStore connects to Redis for the marker that says somebody has just
+// stepUpStore connects to Valkey for the marker that says somebody has just
 // proved who they are, or returns nil. With nil, asking for an export is
 // refused: a gate that cannot check does not open.
 func stepUpStore(cfg *config.Config) sessions.KeyValueInterface {
 	store, err := sessions.NewKeyValueStore(cfg)
 	if err != nil {
-		log.Printf("step-up: no Redis (%v): asking for an export will be refused until it is reachable", err)
+		log.Printf("step-up: no Valkey (%v): asking for an export will be refused until it is reachable", err)
 		return nil
 	}
 	return store

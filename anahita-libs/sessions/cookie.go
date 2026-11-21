@@ -149,7 +149,7 @@ func (s *cookieSession) Del(keys ...string) error {
 // does nothing.
 //
 // That is not a gap this backend can close: revoking a session you
-// cannot reach is not possible by construction. Redis is required for
+// cannot reach is not possible by construction. Valkey is required for
 // server-side revocation, which in practice means required for any
 // environment where an account might need to be taken back.
 func (s *cookieSession) SAdd(key string, member string, ttl time.Duration) error {
@@ -171,9 +171,9 @@ func (s *cookieSession) SMembers(key string) ([]string, error) {
 //
 // Reporting 1 rather than erroring is deliberate: a limiter that
 // errors here would fail every request on the backend that exists
-// precisely so local development works without Redis. The honest
+// precisely so local development works without Valkey. The honest
 // summary is that rate limiting, like remote session revocation,
-// requires Redis.
+// requires Valkey.
 func (s *cookieSession) Incr(key string, ttl time.Duration) (int64, error) {
 	return 1, nil
 }

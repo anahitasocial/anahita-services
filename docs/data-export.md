@@ -41,7 +41,7 @@ video service is.
 auth-service's `/reauth/` endpoints, the same proof deleting a profile
 asks for. An archive holds what only its owner may see, and a session left
 open on a shared computer must not be enough to take it. One proof makes
-one export. Where the proof cannot be checked, because Redis is not
+one export. Where the proof cannot be checked, because Valkey is not
 reachable, the request is refused.
 
 | Refused with | When |
@@ -157,7 +157,7 @@ it, and anybody else is told there is none.
 ## Running it, and not running it
 
 `make export` builds and starts both containers. They need the database,
-Redis, `graph-grpc-service` and `file-grpc-service`.
+Valkey, `graph-grpc-service` and `file-grpc-service`.
 
 Both are optional. Without them the web app's setting says the download is
 not available here.

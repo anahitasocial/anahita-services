@@ -109,17 +109,17 @@ func main() {
 	}
 }
 
-// stepUpStore connects to Redis for the step-up marker, or returns nil.
+// stepUpStore connects to Valkey for the step-up marker, or returns nil.
 //
 // nil is a working state, not a failure: profiles and groups are served
 // perfectly well without it, and refusing to start would take the whole
 // service down over a guard. requireStepUp treats nil as "cannot verify" and
-// refuses the guarded action, so losing Redis costs deletions rather than
+// refuses the guarded action, so losing Valkey costs deletions rather than
 // silently unguarding them.
 func stepUpStore(cfg *config.Config) sessions.KeyValueInterface {
 	store, err := sessions.NewKeyValueStore(cfg)
 	if err != nil {
-		log.Printf("step-up: no Redis (%v) — deleting a profile or a group will be refused "+
+		log.Printf("step-up: no Valkey (%v) — deleting a profile or a group will be refused "+
 			"until it is reachable", err)
 		return nil
 	}

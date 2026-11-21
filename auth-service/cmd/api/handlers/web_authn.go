@@ -23,10 +23,10 @@ import (
 
 // Session key + state for the registration ceremony.
 //
-// The challenge lives in the session rather than a bare Redis key for
+// The challenge lives in the session rather than a bare Valkey key for
 // the same reason pendingTOTPState does: it is per-browser state that
 // must not be usable from any other browser, and the session cookie
-// already gives us that binding for free. A raw Redis key would need
+// already gives us that binding for free. A raw Valkey key would need
 // us to invent an equivalent binding by hand.
 const sessionKeyWebAuthnRegister = "webauthn_register"
 

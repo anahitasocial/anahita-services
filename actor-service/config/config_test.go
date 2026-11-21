@@ -23,9 +23,9 @@ func TestNewConfig_Defaults(t *testing.T) {
 	cleanup := setEnvVars(map[string]string{
 		"ENV":                "",
 		"SECURE_COOKIE_KEY":  "",
-		"REDIS_ADDR":         "",
-		"REDIS_PASSWORD":     "",
-		"REDIS_DB":           "",
+		"VALKEY_ADDR":        "",
+		"VALKEY_PASSWORD":    "",
+		"VALKEY_DB":          "",
 		"ACTOR_SERVICE_ADDR": "",
 		"FILE_SERVICE_ADDR":  "",
 		"GRAPH_SERVICE_ADDR": "",
@@ -37,11 +37,11 @@ func TestNewConfig_Defaults(t *testing.T) {
 	if cfg.Env != "dev" {
 		t.Errorf("expected default Env to be 'dev', got %q", cfg.Env)
 	}
-	if cfg.RedisAddr != "localhost:6379" {
-		t.Errorf("expected default RedisAddr to be 'localhost:6379', got %q", cfg.RedisAddr)
+	if cfg.ValkeyAddr != "localhost:6379" {
+		t.Errorf("expected default ValkeyAddr to be 'localhost:6379', got %q", cfg.ValkeyAddr)
 	}
-	if cfg.RedisDB != 0 {
-		t.Errorf("expected default RedisDB to be 0, got %d", cfg.RedisDB)
+	if cfg.ValkeyDB != 0 {
+		t.Errorf("expected default ValkeyDB to be 0, got %d", cfg.ValkeyDB)
 	}
 }
 
@@ -138,17 +138,17 @@ func TestConfig_EnvChecks(t *testing.T) {
 func TestConfig_Getters(t *testing.T) {
 	cfg := &Config{
 		SecureCookieKey:  "key",
-		RedisAddr:        "addr",
-		RedisPassword:    "pass",
-		RedisDB:          2,
+		ValkeyAddr:       "addr",
+		ValkeyPassword:   "pass",
+		ValkeyDB:         2,
 		FileServiceAddr:  "file",
 		GraphServiceAddr: "graph",
 		AmqpAddr:         "amqp",
 	}
 	if cfg.GetSecureCookieKey() != "key" ||
-		cfg.GetRedisAddr() != "addr" ||
-		cfg.GetRedisPassword() != "pass" ||
-		cfg.GetRedisDB() != 2 ||
+		cfg.GetValkeyAddr() != "addr" ||
+		cfg.GetValkeyPassword() != "pass" ||
+		cfg.GetValkeyDB() != 2 ||
 		cfg.GetFileServiceAddr() != "file" ||
 		cfg.GetGraphServiceAddr() != "graph" ||
 		cfg.GetAmqpAddr() != "amqp" {

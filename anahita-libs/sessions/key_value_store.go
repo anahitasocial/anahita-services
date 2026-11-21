@@ -6,32 +6,32 @@ import (
 	"github.com/go-redis/redis"
 )
 
-// A Redis store for services that need keys and nothing else.
+// A Valkey store for services that need keys and nothing else.
 //
 // The full session store carries cookie handling, encryption and a request
 // context, and its config interface asks for a domain name and a cookie key to
 // match. A service that only reads a step-up marker needs none of that, and
-// making it supply them would be six methods of ceremony for two Redis calls.
+// making it supply them would be six methods of ceremony for two Valkey calls.
 
 // StoreConfigInterface is the configuration a bare key store needs.
 type StoreConfigInterface interface {
-	GetRedisAddr() string
-	GetRedisPassword() string
-	GetRedisDB() int
+	GetValkeyAddr() string
+	GetValkeyPassword() string
+	GetValkeyDB() int
 }
 
 type keyValueStore struct {
 	client *redis.Client
 }
 
-// NewKeyValueStore connects to Redis for key operations only.
+// NewKeyValueStore connects to Valkey for key operations only.
 //
-// Returns an error rather than panicking, unlike NewRedisSession. A service
-// that cannot reach Redis should be able to decide for itself whether that is
+// Returns an error rather than panicking, unlike NewValkeySession. A service
+// that cannot reach Valkey should be able to decide for itself whether that is
 // fatal — for person-service it means losing a guard, which is worth starting
 // without and logging loudly, not worth refusing to serve profiles over.
 func NewKeyValueStore(config StoreConfigInterface) (KeyValueInterface, error) {
-	options, err := redisOptions(config)
+	options, err := valkeyOptions(config)
 	if err != nil {
 		return nil, err
 	}
@@ -68,10 +68,10 @@ type CacheInterface interface {
 	Set(key string, value string, ttl time.Duration) error
 }
 
-// NewCache opens the store for keeping things a while. The same Redis the
+// NewCache opens the store for keeping things a while. The same Valkey the
 // sessions and the rate limits are in.
 func NewCache(config StoreConfigInterface) (CacheInterface, error) {
-	options, err := redisOptions(config)
+	options, err := valkeyOptions(config)
 	if err != nil {
 		return nil, err
 	}

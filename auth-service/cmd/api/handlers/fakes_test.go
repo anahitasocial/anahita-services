@@ -373,7 +373,7 @@ func (f *fakeWebAuthnCredentials) DeleteByPersonID(personID int64) (int64, error
 // Session store
 // ---------------------------------------------------------------------
 
-// fakeSession is an in-memory stand-in for Redis, implementing the whole
+// fakeSession is an in-memory stand-in for Valkey, implementing the whole
 // of SessionInterface because the rate limiter and the IdP-session purge
 // each reach for a different corner of it.
 //
@@ -459,7 +459,7 @@ func (f *fakeSession) SetNX(key, value string, ttl time.Duration) (bool, error) 
 	return true, nil
 }
 
-// errStoreDown stands in for Redis being unavailable. Two guards degrade in
+// errStoreDown stands in for Valkey being unavailable. Two guards degrade in
 // opposite directions on it — the rate limiter opens, the step-up gate
 // closes — so it is shared rather than re-declared per test.
 var errStoreDown = errors.New("session store unavailable")

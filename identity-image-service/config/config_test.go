@@ -14,18 +14,18 @@ func setEnv(key, value string) func() {
 
 func TestNewConfig_Defaults(t *testing.T) {
 	defer setEnv("ENV", "")()
-	defer setEnv("REDIS_ADDR", "")()
-	defer setEnv("REDIS_DB", "")()
+	defer setEnv("VALKEY_ADDR", "")()
+	defer setEnv("VALKEY_DB", "")()
 
 	cfg := NewConfig()
 	if cfg.Env != "dev" {
 		t.Errorf("expected Env to be 'dev', got %s", cfg.Env)
 	}
-	if cfg.RedisAddr != "localhost:6379" {
-		t.Errorf("expected RedisAddr to be 'localhost:6379', got %s", cfg.RedisAddr)
+	if cfg.ValkeyAddr != "localhost:6379" {
+		t.Errorf("expected ValkeyAddr to be 'localhost:6379', got %s", cfg.ValkeyAddr)
 	}
-	if cfg.RedisDB != 0 {
-		t.Errorf("expected RedisDB to be 0, got %d", cfg.RedisDB)
+	if cfg.ValkeyDB != 0 {
+		t.Errorf("expected ValkeyDB to be 0, got %d", cfg.ValkeyDB)
 	}
 }
 
@@ -119,17 +119,17 @@ func TestConfig_EnvChecks(t *testing.T) {
 func TestConfig_Getters(t *testing.T) {
 	cfg := &Config{
 		SecureCookieKey:  "key",
-		RedisAddr:        "addr",
-		RedisPassword:    "pass",
-		RedisDB:          2,
+		ValkeyAddr:       "addr",
+		ValkeyPassword:   "pass",
+		ValkeyDB:         2,
 		FileServiceAddr:  "file",
 		GraphServiceAddr: "graph",
 		AmqpAddr:         "amqp",
 	}
 	if cfg.GetSecureCookieKey() != "key" ||
-		cfg.GetRedisAddr() != "addr" ||
-		cfg.GetRedisPassword() != "pass" ||
-		cfg.GetRedisDB() != 2 ||
+		cfg.GetValkeyAddr() != "addr" ||
+		cfg.GetValkeyPassword() != "pass" ||
+		cfg.GetValkeyDB() != 2 ||
 		cfg.GetFileServiceAddr() != "file" ||
 		cfg.GetGraphServiceAddr() != "graph" ||
 		cfg.GetAmqpAddr() != "amqp" {

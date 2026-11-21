@@ -16,7 +16,7 @@ type Env struct {
 	Repos   *repositories.Repositories
 	Srv     *services.Services
 	Reasons *reasons.Source
-	// Limiter counts reports per reporter. Redis, through the session store.
+	// Limiter counts reports per reporter. Valkey, through the session store.
 	Limiter ratelimit.Counter
 }
 
