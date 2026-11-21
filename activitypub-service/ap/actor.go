@@ -53,10 +53,10 @@ func NewActor(a Addresses, person *entities.AnahitaNode, publicKeyPEM string) *A
 		actor.Published = person.CreatedAt.UTC().Format(time.RFC3339)
 	}
 	if person.AvatarFilename != "" {
-		actor.Icon = &Image{Type: "Image", MediaType: mediaType(person.AvatarFilename), URL: a.Avatar(uuid)}
+		actor.Icon = &Image{Type: "Image", MediaType: mediaType(person.AvatarFilename), URL: a.Avatar(uuid, person.AvatarFilename)}
 	}
 	if person.CoverFilename != "" {
-		actor.Image = &Image{Type: "Image", MediaType: mediaType(person.CoverFilename), URL: a.Cover(uuid)}
+		actor.Image = &Image{Type: "Image", MediaType: mediaType(person.CoverFilename), URL: a.Cover(uuid, person.CoverFilename)}
 	}
 
 	return actor

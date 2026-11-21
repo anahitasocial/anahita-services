@@ -726,7 +726,7 @@ its replies, go out as a person's posts do, the channel's, to its followers
 | `summary` | Its first paragraph of words, as plain text, cut at a word near 300 characters; a heading, a picture, a quotation, a list or an address on a line of its own is passed over |
 | `content` | All of it, as HTML made from its Markdown, as a note's is |
 | `url` | Its page here, `/articles/<id>` |
-| `image` | Its cover, at `/covers/<uuid>/large` |
+| `image` | Its cover, at `/covers/<uuid>/large?v=<file>`: the file's name tells another server when the cover is new |
 
 Mastodon shows an `Article` as its title and a link to its page here;
 WriteFreely, Ghost, Friendica and the like show the article itself.
@@ -1260,7 +1260,11 @@ fediverse, and asks once more before saving.
 
 **A profile changed.** When somebody on the fediverse changes their name,
 what they say of themselves or their pictures, their followers' servers are
-sent them as they are now (`Update`).
+sent them as they are now (`Update`). A picture's address names the file
+(`/avatars/<uuid>/large?v=<file>`), so that a new profile or cover photo is
+downloaded again: Mastodon keeps a picture until its address changes. A
+connected Bluesky account's profile is the person's own, and is never
+written from here.
 
 **From the other side.** A profile changed elsewhere is read again from
 its own server, and not taken from the message that says so. An account

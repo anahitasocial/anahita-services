@@ -10,6 +10,16 @@ made.
 Releases before v1.0.17 are described on GitHub, under
 [Releases](https://github.com/anahitasocial/anahita-services/releases).
 
+## Embryo
+
+### Fixed
+
+1. **A new profile or cover photo reaches the fediverse.** Mastodon kept
+   showing the old one: it downloads a picture again only when its address
+   changes, and the address was the same every time. The address now names
+   the picture. A connected Bluesky account's profile stays the person's own,
+   as before.
+
 ## v1.4.1 Birth, 2026-11-19
 
 ### Changed

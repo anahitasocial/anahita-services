@@ -496,7 +496,11 @@ by servers this one may never hear from again.
    sends whoever asks on to a freshly signed one. Another server keeps the
    address of an avatar for weeks; the signed one lasts a quarter of an hour.
    Only what somebody not signed in may see is answered for
-   (`identity-image-service/cmd/api/handlers/public.go`).
+   (`identity-image-service/cmd/api/handlers/public.go`). What is sent to the
+   fediverse adds which picture it is, `?v=` and the stored file's name, new
+   with each upload: Mastodon downloads a picture again only when its address
+   changes, and the address answers whatever follows `?v=` with the picture
+   the profile has now (`activitypub-service/ap/addresses.go`).
 6. **What is to be sent to another server waits in a table** until it has
    been sent, or tried for two days (`anahita-libs/federation`, `queue.go`).
    The bus cannot promise that a message arrives, and another server may be

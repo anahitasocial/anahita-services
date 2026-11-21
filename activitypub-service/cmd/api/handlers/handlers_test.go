@@ -421,7 +421,7 @@ func TestAPersonIsDescribedAsTheirPublicProfileIs(t *testing.T) {
 		actor.Published != "2020-05-01T00:00:00Z" {
 		t.Errorf("described as %+v", actor)
 	}
-	if actor.Icon == nil || actor.Icon.URL != "https://api.example.org/avatars/"+anaUUID+"/large" || actor.Icon.MediaType != "image/png" || actor.Image != nil {
+	if actor.Icon == nil || actor.Icon.URL != "https://api.example.org/avatars/"+anaUUID+"/large?v=abc.png" || actor.Icon.MediaType != "image/png" || actor.Image != nil {
 		t.Errorf("pictures %+v %+v", actor.Icon, actor.Image)
 	}
 

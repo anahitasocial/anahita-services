@@ -155,7 +155,7 @@ func TestAnArticleGoesOutAsAnArticle(t *testing.T) {
 	if content, _ := object["content"].(string); !strings.Contains(content, "<strong>beans</strong>") || !strings.Contains(content, "More below.") {
 		t.Errorf("content %q", content)
 	}
-	if image, _ := object["image"].(map[string]any); image["url"] != "https://api.example.org/covers/"+noteUUID+"/large" || image["mediaType"] != "image/jpeg" {
+	if image, _ := object["image"].(map[string]any); image["url"] != "https://api.example.org/covers/"+noteUUID+"/large?v=cover.jpg" || image["mediaType"] != "image/jpeg" {
 		t.Errorf("image %v", object["image"])
 	}
 

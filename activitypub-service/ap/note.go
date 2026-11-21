@@ -243,7 +243,7 @@ func (n *Note) AsArticle(a Addresses, article *entities.AnahitaNode, summary str
 	n.Summary = summary
 	n.URL = a.ArticlePage(article.ID)
 	if article.CoverFilename != "" {
-		n.Image = &Image{Type: "Image", MediaType: mediaType(article.CoverFilename), URL: a.Cover(article.UUID)}
+		n.Image = &Image{Type: "Image", MediaType: mediaType(article.CoverFilename), URL: a.Cover(article.UUID, article.CoverFilename)}
 	}
 	return n
 }

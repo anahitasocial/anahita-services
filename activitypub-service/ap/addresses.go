@@ -2,6 +2,7 @@ package ap
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 
 	"anahita-libs/site"
@@ -122,9 +123,25 @@ func (a Addresses) AliasOf(address string) string {
 // hashtag in the app.
 func (a Addresses) Hashtag(tag string) string { return a.Site.Web("/tags/" + tag) }
 
-// Avatar and Cover are a person's pictures, at addresses that stay.
-func (a Addresses) Avatar(uuid string) string { return a.Site.API("/avatars/" + uuid + "/large") }
-func (a Addresses) Cover(uuid string) string  { return a.Site.API("/covers/" + uuid + "/large") }
+// Avatar and Cover are a profile's pictures, at an address that names
+// which picture it is: the stored file's name, new with each upload. Mastodon
+// downloads a picture again only when its address changes, so at one address
+// that stayed, a new profile photo never reached anybody's server (roadmap
+// row 163). The address answers whatever follows `?v=`, with the picture the
+// profile has now.
+func (a Addresses) Avatar(uuid, filename string) string {
+	return versioned(a.Site.API("/avatars/"+uuid+"/large"), filename)
+}
+func (a Addresses) Cover(uuid, filename string) string {
+	return versioned(a.Site.API("/covers/"+uuid+"/large"), filename)
+}
+
+func versioned(address, filename string) string {
+	if filename == "" {
+		return address
+	}
+	return address + "?v=" + url.QueryEscape(filename)
+}
 
 // NoteUUIDOf is the UUID in the address of one of our own notes, or "" for
 // any other address.
