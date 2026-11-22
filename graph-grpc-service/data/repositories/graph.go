@@ -81,8 +81,8 @@ func (r *graphRepo) BrowseNeighbours(req *graphpb.BrowseNeighboursRequest, viewe
 	// visitor, at offset 100 where a first-page check did not see it.
 	//
 	// The gate was commented out rather than wrong, and the reason is visible
-	// in the count query below: SetPolymorphicAccessQuery reads owner.access,
-	// which the count query had no alias for. The browse query does —
+	// in the count query below: the gate then used, since removed, read
+	// owner.access, which the count query had no alias for. The browse query does —
 	// GetBaseSelectQuery joins it — so only the count needed the join added.
 	query = setNeighbourAccessQuery(query, viewer, req.EdgeTypes)
 	query = setLiveNeighboursQuery(query, req.EdgeTypes, viewer)

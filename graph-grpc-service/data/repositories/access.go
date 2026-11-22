@@ -111,7 +111,12 @@ func SetAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer) sq.SelectBuild
 		)
 	}
 
-	return sb.Where(ownerGate).Where(nodeGate)
+	// A reply is judged by the post at the top of its thread, not by its own
+	// owner and audience (see postOrReply): a hashtag's or a location's page
+	// goes through here, and a reply that carried one was never shown on it.
+	// The gate that judged replies so had stopped being used, and this one
+	// had not been told (roadmap row 170).
+	return sb.Where(postOrReply(sq.And{ownerGate, nodeGate}, viewer))
 }
 
 // relViewerAdminsOwner checks if the viewer is an admin of the owner.

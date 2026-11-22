@@ -113,3 +113,14 @@ Taken a few at a time, those whose copies already disagree first:
    with the SQL. Quoted posts are read with `MediaGRPC.BatchRead`, which reads
    as `Read` does; 7 has no test of its own, text-service having no harness
    for `Read`.
+3. **Phase 3 done 2026-11-22.** What `deadcode` and `staticcheck` found, in
+   every service and `anahita-libs`, removed or moved into the tests that use
+   it, and nothing is left but the `policy` setters other packages' tests
+   call. With it went go-redis (auth-service) and go-sqlmock
+   (`anahita-libs`). Removing `SetPolymorphicAccessQuery`, a gate nothing
+   used, found a bug: the gate a hashtag's or a location's page does use
+   judged a reply by its own audience, so no reply ever showed there; it now
+   judges it by its thread, as the removed one did, and the integration
+   test written for that rule tests the gate in use. A test of `CardLink`
+   moved to `anahita-libs` with the function, and one of how a place is
+   read now reads it through `ReadPlaces`.

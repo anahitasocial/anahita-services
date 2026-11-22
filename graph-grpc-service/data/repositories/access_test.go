@@ -53,9 +53,6 @@ func TestContentAccessBlocksOnOwnerAndAuthor(t *testing.T) {
 		"feed": func(b sq.SelectBuilder) sq.SelectBuilder {
 			return SetFeedAccessQuery(b, testViewer(1))
 		},
-		"polymorphic": func(b sq.SelectBuilder) sq.SelectBuilder {
-			return SetPolymorphicAccessQuery(b, testViewer(1))
-		},
 		"generic": func(b sq.SelectBuilder) sq.SelectBuilder {
 			return SetAccessQuery(b, testViewer(1))
 		},

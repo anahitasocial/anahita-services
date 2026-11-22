@@ -21,6 +21,10 @@ Releases before v1.0.17 are described on GitHub, under
    sign-in makes.
 2. **An empty secure-cookie key is reported once,** as missing, not also as
    the wrong size.
+3. **A reply shows on the page of a hashtag or a location it carries,** to
+   whoever can see the post at the top of its thread, as the docs say. The
+   page judged a reply by its own audience, which a reply does not have, and
+   left every one out.
 
 ### Changed
 

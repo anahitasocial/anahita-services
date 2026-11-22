@@ -191,18 +191,6 @@ func relViewerAdmins(alias string, viewerID int64) sq.Sqlizer {
         )`, constants.EdgeActorAdminEntityType, viewerID)
 }
 
-// func relNotBlockedEitherWay(alias string, viewerID int64) sq.Sqlizer {
-// 	return sq.Expr(`
-//         NOT EXISTS (
-//           SELECT 1 FROM edges e
-//           WHERE e.type = ?
-//             AND (
-//                  (e.node_a_id = ? AND e.node_b_id = `+alias+`.id)
-//               OR (e.node_b_id = ? AND e.node_a_id = `+alias+`.id)
-//             )
-//         )`, constants.EdgeBlockEntityType, viewerID, viewerID)
-// }
-
 // If alias is a person actor: myself ⇒ viewer == alias.id
 // Else (group/event/...): myself ⇒ viewer admins alias
 func relSelfOrAdmin(alias string, viewerID int64) sq.Sqlizer {

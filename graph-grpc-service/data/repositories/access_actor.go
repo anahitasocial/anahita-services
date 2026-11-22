@@ -189,21 +189,6 @@ func relViewerAdminsNode(viewerID int64) sq.Sqlizer {
 	)
 }
 
-// relNotBlockedEitherWay checks if the viewer is not blocked by the node.
-// func relNotBlockedEitherWay(viewerID int64) sq.Sqlizer {
-// 	return sq.Expr(`
-//         NOT EXISTS (
-//           SELECT 1 FROM edges e
-//           WHERE e.type = ?
-//             AND (
-//                (e.node_a_id = ? AND e.node_b_id = node.id)
-//             OR (e.node_b_id = ? AND e.node_a_id = node.id)
-//             )
-//         )`,
-// 		constants.EdgeBlockEntityType, viewerID, viewerID,
-// 	)
-// }
-
 // relSelfOrAdminForNode checks if the viewer is the node itself or an admin of the node.
 // If node is a person: "myself" means viewer == node.id.
 // Else (group/event/...): "myself" means viewer is an admin of node.

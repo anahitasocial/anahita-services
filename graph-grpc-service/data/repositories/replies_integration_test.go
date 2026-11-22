@@ -211,8 +211,11 @@ func TestRepliesDoNotLeakThroughSearchOrTagPages(t *testing.T) {
 		"search": func(sb sq.SelectBuilder) sq.SelectBuilder {
 			return SetSearchAccessQuery(sb, bob)
 		},
+		// The gate a hashtag's or a location's page goes through
+		// (graph.go): the one that was named here before was no longer
+		// used by anything (roadmap row 170).
 		"a hashtag or place page": func(sb sq.SelectBuilder) sq.SelectBuilder {
-			return SetPolymorphicAccessQuery(sb, bob)
+			return SetAccessQuery(sb, bob)
 		},
 	}
 
