@@ -194,7 +194,7 @@ stored: `notification-service/cmd/api/handlers/actions.go`):
 | `answer_tag` | `actor_tag_request` | The tag is still waiting: accept (`PUT /people/:id/tags/:post_id`) or decline (`DELETE`) |
 | `follow` | `actor_follow` | The reader does not follow whoever followed |
 | `notify_off` | `note_add`, `article_add`, `photo_add`, `topic_add`, `video_add`, `audio_add` | The reader is still told of the profile's new posts: Turn off ends the subscription to it, with Undo |
-| `reply` | `reply_add`, `actor_mention`, `actor_mention_reply`, `quote_add` | Always: answer the reply (`comment_id`), or the post |
+| `reply` | `reply_add`, `actor_mention`, `actor_mention_reply`, `quote_add` | Always: the web app leads to the post, to be read and answered there |
 
 An event's notifications have none: whoever is told has answered the event
 already, and changes the answer on its page. An invitation is answered

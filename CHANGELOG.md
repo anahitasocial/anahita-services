@@ -74,6 +74,16 @@ Releases before v1.0.17 are described on GitHub, under
    somebody joined by invitation and heard by nothing. The administrators
    are still emailed.
 
+### Upgrading
+
+1. **An app that reads the Following feed's total** (`GET /feeds/leaders/`)
+   reads `pagination.has_more` instead: the total is 0 now. Anahita Web
+   reads `has_more` from its next release, and before it takes a full page
+   to mean there is more, so it pages as before.
+2. Migration `20261122000025` drops seven indexes from `nodes` and
+   `edges`, run by the migration job as any other; on a large site it
+   takes a moment, and nothing is locked for long.
+
 ## v1.6.1 Birth, 2026-11-21
 
 ### Fixed
