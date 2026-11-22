@@ -28,12 +28,19 @@ Releases before v1.0.17 are described on GitHub, under
 
 ### Changed
 
-1. **A service stops gracefully.** Told to stop, as Kubernetes tells a pod
-   it moves or replaces (`SIGTERM`), it takes no new requests and finishes
-   those it is answering, for up to 20 seconds, within the 30 Kubernetes
-   gives; it used to end at once and drop them. So does every API service,
-   and the graph, file and mail services. web-shell, which sends the web
-   app's pages, stops as it did.
+1. **A service stops gracefully.** Every API service, and the graph, file
+   and mail services, told to stop, as Kubernetes tells a pod it moves or
+   replaces (`SIGTERM`), takes no new requests and finishes those it is
+   answering, for up to 20 seconds, within the 30 Kubernetes gives (Docker
+   Compose gives 10 unless `stop_grace_period` says more). They used to end
+   at once and drop them. web-shell, which sends the web app's pages, stops
+   as it did.
+
+### Upgrading
+
+1. **An app that asks a list for more than 100 gets 100,** and pages for
+   the rest with `start`, as `limit` and `pagination.limit` say. Anahita
+   Web asks for 100 at most, and needs nothing.
 
 ## v1.7.0 Birth, 2026-11-22
 
