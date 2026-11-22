@@ -6,7 +6,6 @@ const (
 	QueueMessageTTL   = 86400000 // 1 day
 
 	// Auth events
-	EventFormatEntityUserSignup   = "entity.auth-service.user.signup.v1"
 	EventFormatEntityUserRegister = "entity.auth-service.user.register.v1"
 
 	// Node events

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
@@ -79,7 +80,9 @@ func (f *fakeUsers) ReadByEmail(email string) (*entities.User, error) {
 	if u, ok := f.byEmail[email]; ok {
 		return u, nil
 	}
-	return nil, fmt.Errorf("no user for %q", email)
+	// Nobody with this address is the database's "no rows", which a handler
+	// may take as the answer it wanted.
+	return nil, fmt.Errorf("no user for %q: %w", email, sql.ErrNoRows)
 }
 
 // ReadByEmailOrUsername matches the address or the alias, as the real one does.
@@ -132,7 +135,24 @@ func (f *fakeUsers) ReadByID(id int64) (*entities.User, error) {
 	if u, ok := f.byID[id]; ok {
 		return u, nil
 	}
-	return nil, fmt.Errorf("no user for id %d", id)
+	return nil, fmt.Errorf("no user for id %d: %w", id, sql.ErrNoRows)
+}
+
+// IsUsername says whether somebody already goes by this name.
+func (f *fakeUsers) IsUsername(username string) (bool, error) {
+	for _, u := range f.byID {
+		if strings.EqualFold(u.Alias, username) {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+// Add keeps a new account, as the real repository inserts it.
+func (f *fakeUsers) Add(user *entities.User) (*entities.User, error) {
+	f.byID[user.ID] = user
+	f.byEmail[user.Email] = user
+	return user, nil
 }
 
 func (f *fakeUsers) EditPassword(password string, id int64) error {
@@ -648,6 +668,19 @@ func (f *fakeActors) Read(id int64, viewer *lib_entities.Viewer) (*lib_entities.
 }
 
 func (f *fakeActors) TouchLastVisit(int64) (bool, error) { return true, nil }
+
+// Add makes a profile, numbered from 1000.
+func (f *fakeActors) Add(node *lib_entities.AnahitaNode, _ *lib_entities.Viewer) (*lib_entities.AnahitaNode, error) {
+	if f.err != nil {
+		return nil, f.err
+	}
+	if f.byID == nil {
+		f.byID = map[int64]*lib_entities.AnahitaNode{}
+	}
+	node.ID = int64(1000 + len(f.byID))
+	f.byID[node.ID] = node
+	return node, nil
+}
 
 // newActorNode builds the minimum a lifecycle notification needs.
 func newActorNode(id int64, name, alias string) *lib_entities.AnahitaNode {

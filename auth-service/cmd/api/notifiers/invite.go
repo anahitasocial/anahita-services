@@ -3,13 +3,9 @@ package notifiers
 import (
 	"errors"
 	"fmt"
-	"log"
 
-	"auth/constants"
 	"auth/data/entities"
 	"auth/messages"
-
-	an_event "anahita-libs/event"
 )
 
 type inviteNotifier struct {
@@ -46,28 +42,6 @@ func (h *inviteNotifier) EmailInvite(user *entities.User, recipientEmail string,
 		messages.InviteActionLabel,
 		actionURL,
 	)
-}
-
-// NotifyAccept publishes the in-app event for an invite acceptance.
-// The notification-service handles fan-out to whichever recipients
-// it's configured to broadcast member-change events to.
-//
-// Kept separate from EmailAccept so the email path and the in-app
-// path can fail independently — a transient SMTP failure shouldn't
-// suppress the in-app notification, and vice versa.
-func (h *inviteNotifier) NotifyAccept(user *entities.User) error {
-	payload := &an_event.EventPayload{
-		Name:          an_event.EventFormatEntityUserSignup,
-		SourceService: constants.ConfigServiceName,
-		SubjectID:     user.ID,
-	}
-
-	log.Println("Publishing event", payload.Name)
-	if err := h.Publisher.Publish(payload, payload.Name); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // EmailAccept broadcasts the "new member joined" email to every admin

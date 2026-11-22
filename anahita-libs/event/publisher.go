@@ -98,6 +98,11 @@ func (p *Publisher) Publish(payload *EventPayload, routing_key string) error {
 	if payload.Name == "" {
 		payload.Name = routing_key
 	}
+	// None at all: a test, or a tool that sends nothing. Said, not a panic.
+	if p == nil {
+		log.Printf("event %s not sent: no publisher", payload.Name)
+		return errors.New("event: no publisher")
+	}
 
 	channel, err := p.channel()
 	if err != nil {

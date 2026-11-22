@@ -10,6 +10,22 @@ made.
 Releases before v1.0.17 are described on GitHub, under
 [Releases](https://github.com/anahitasocial/anahita-services/releases).
 
+## Embryo
+
+### Fixed
+
+1. **Joining by invitation signs in with a session that can be ended.**
+   Somebody who accepted an invitation was signed in with a session that was
+   never recorded against them, so a password reset or their account's
+   deletion left it working until it expired. It is now the same session a
+   sign-in makes.
+
+### Removed
+
+1. **The `entity.auth-service.user.signup.v1` event,** published when
+   somebody joined by invitation and heard by nothing. The administrators
+   are still emailed.
+
 ## v1.6.1 Birth, 2026-11-21
 
 ### Fixed

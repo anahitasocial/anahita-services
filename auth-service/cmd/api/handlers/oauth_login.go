@@ -355,7 +355,7 @@ func (h *oauthHandler) AddTotp(c echo.Context) error {
 // revoked remotely, which silently defeats password reset — and a
 // second copy of this sequence is a second place to forget the third
 // step.
-func (h *oauthHandler) writeViewerSession(c echo.Context, user *entities.User) error {
+func (h *Env) writeViewerSession(c echo.Context, user *entities.User) error {
 	viewer := libs_entities.NewViewer()
 	viewer.ID = user.ID
 	viewer.Email = user.Email
@@ -402,7 +402,7 @@ func (h *oauthHandler) writeViewerSession(c echo.Context, user *entities.User) e
 // a bookkeeping stamp — an unresponsive graph would otherwise hold the login
 // form open while the person's credentials were already accepted. Landing a
 // few milliseconds after the redirect costs nothing that matters.
-func (h *oauthHandler) touchLastVisit(user *entities.User) {
+func (h *Env) touchLastVisit(user *entities.User) {
 	personID := user.ID
 
 	go func() {

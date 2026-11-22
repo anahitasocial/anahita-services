@@ -3,14 +3,9 @@ package notifiers
 import (
 	"errors"
 	"fmt"
-	"log"
 
-	"auth/constants"
 	"auth/data/entities"
 	"auth/messages"
-
-	an_entities "anahita-libs/data/entities"
-	an_event "anahita-libs/event"
 )
 
 type signupNotifier struct {
@@ -19,23 +14,6 @@ type signupNotifier struct {
 
 func newSignupNotifier(env *Env) *signupNotifier {
 	return &signupNotifier{env}
-}
-
-// NotifySignup publishes the in-app event for a new self-serve org
-// signup. The notification-service handles fan-out from there.
-func (h *signupNotifier) NotifySignup(person *an_entities.Person) error {
-	payload := &an_event.EventPayload{
-		Name:          an_event.EventFormatEntityUserSignup,
-		SourceService: constants.ConfigServiceName,
-		SubjectID:     person.ID,
-	}
-
-	log.Println("Publishing event", payload.Name)
-	if err := h.Publisher.Publish(payload, payload.Name); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // EmailConfirmCode sends the code that proves control of an address, to a new

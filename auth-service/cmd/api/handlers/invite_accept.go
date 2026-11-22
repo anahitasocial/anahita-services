@@ -3,7 +3,6 @@ package handlers
 import (
 	"anahita-libs/policy"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -427,45 +426,21 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 			token.RecipientEmail, err)
 	}
 
-	// Auto-login: build the viewer and persist it to the IdP session.
-	// Brand-new user, no TOTP, so it's safe to mint the session
-	// directly without going through the TOTP step.
-	//
-	// TODO: extract this into a shared establishIdPSession helper
-	// alongside readIdPViewer. Three callers now want this logic
-	// (login finalizeLogin, the old signup register, and Accept).
-	viewer := libs_entities.NewViewer()
-	viewer.ID = user.ID
-	viewer.Email = user.Email
-	viewer.Type = user.Type
-	viewer.Authenticated = true
-
-	viewerJSON, err := json.Marshal(viewer)
-	if err != nil {
+	// Signed in at once: a brand-new account, with no TOTP to ask for. The
+	// same session sign-in writes (writeViewerSession), indexed against
+	// its owner, so that a password reset or the account's deletion ends
+	// it. Written here by hand, it was not, and nothing could revoke it
+	// (the user, 2026-11-22; roadmap row 170).
+	if err := h.writeViewerSession(c, user); err != nil {
 		log.Println(err)
 		return h.renderError(c, "Something Went Wrong",
 			"Your account was created but we couldn't sign you in automatically. Please try signing in manually.")
 	}
 
-	if _, err := h.Session.Add(c, constants.UserSessionKey, string(viewerJSON)); err != nil {
-		log.Println(err)
-		return h.renderError(c, "Something Went Wrong",
-			"Your account was created but we couldn't sign you in automatically. Please try signing in manually.")
-	}
-
-	// Fire-and-forget notifications.
-	//
-	// NotifyAccept publishes the in-app event; the notification-service
-	// owns fan-out to admin dashboards from there.
-	//
-	// EmailAccept broadcasts to every admin and super-admin in the
-	// org, naming both the joiner and the inviter. Sending failures
-	// for individual admins do not stop the rest of the broadcast.
-	go func() {
-		if err := h.Notif.Invite.NotifyAccept(user); err != nil {
-			log.Println(err)
-		}
-	}()
+	// The administrators are told by email, every one of them, naming the
+	// one who joined and who invited them; a failure to reach one does not
+	// stop the rest. Nothing else is told: an event for it was published
+	// once, and nothing listened (roadmap row 170).
 	go func() {
 		if err := h.Notif.Invite.EmailAccept(user, inviter); err != nil {
 			log.Println(err)

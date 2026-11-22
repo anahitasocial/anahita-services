@@ -43,7 +43,7 @@ func personSessionIndexKey(userID int64) string {
 // this one session later; failing the sign-in over it would cost the
 // person their login now. Logged loudly because a silently empty
 // index turns password reset into theatre.
-func (h *oauthHandler) indexIdPSession(userID int64, sessionID string) {
+func (h *Env) indexIdPSession(userID int64, sessionID string) {
 	if sessionID == "" {
 		log.Printf("session index: empty session id, not indexing (user=%d)", userID)
 		return

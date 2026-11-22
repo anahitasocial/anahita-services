@@ -30,7 +30,7 @@ func freshSignInKey(userID int64) string {
 
 // markFreshSignIn records that the person just signed in. Best-effort: a
 // failure costs one email, never the sign-in.
-func (h *oauthHandler) markFreshSignIn(userID int64) {
+func (h *Env) markFreshSignIn(userID int64) {
 	if h.Session == nil {
 		return
 	}
