@@ -77,9 +77,7 @@ func (config *Config) Validate() error {
 
 	if len(config.SecureCookieKey) == 0 {
 		missingFields = append(missingFields, ErrMissingSecureCookieKey)
-	}
-
-	if len(config.SecureCookieKey) != 32 {
+	} else if len(config.SecureCookieKey) != 32 {
 		missingFields = append(missingFields, ErrWrongSizeSecureCookieKey)
 	}
 

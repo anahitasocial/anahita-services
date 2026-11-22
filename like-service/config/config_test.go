@@ -56,8 +56,9 @@ func TestConfig_Validate_MissingFields(t *testing.T) {
 	if !contains(msg, ErrMissingSecureCookieKey) {
 		t.Errorf("expected error to contain %q, got %q", ErrMissingSecureCookieKey, msg)
 	}
-	if !contains(msg, ErrWrongSizeSecureCookieKey) {
-		t.Errorf("expected error to contain %q, got %q", ErrWrongSizeSecureCookieKey, msg)
+	// Empty is missing, said once, not also the wrong size (roadmap row 170).
+	if contains(msg, ErrWrongSizeSecureCookieKey) {
+		t.Errorf("an empty key was also reported as the wrong size: %q", msg)
 	}
 	if !contains(msg, ErrMissingDSN) {
 		t.Errorf("expected error to contain %q, got %q", ErrMissingDSN, msg)

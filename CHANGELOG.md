@@ -19,6 +19,8 @@ Releases before v1.0.17 are described on GitHub, under
    never recorded against them, so a password reset or their account's
    deletion left it working until it expired. It is now the same session a
    sign-in makes.
+2. **An empty secure-cookie key is reported once,** as missing, not also as
+   the wrong size.
 
 ### Removed
 

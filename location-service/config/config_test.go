@@ -42,10 +42,13 @@ func TestConfig_Validate_AllMissing(t *testing.T) {
 	}
 	msg := err.Error()
 	if !contains(msg, ErrMissingSecureCookieKey) ||
-		!contains(msg, ErrWrongSizeSecureCookieKey) ||
 		!contains(msg, ErrMissingFileAddr) ||
 		!contains(msg, ErrMissingGraphAddr) {
 		t.Errorf("unexpected error message: %s", msg)
+	}
+	// Empty is missing, said once, not also the wrong size (roadmap row 170).
+	if contains(msg, ErrWrongSizeSecureCookieKey) {
+		t.Errorf("an empty key was also reported as the wrong size: %q", msg)
 	}
 }
 

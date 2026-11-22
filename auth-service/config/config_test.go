@@ -74,9 +74,12 @@ func TestValidate_AllMissing(t *testing.T) {
 	}
 	msg := err.Error()
 	if !contains(msg, ErrMissingDSN) ||
-		!contains(msg, ErrMissingSecureCookieKey) ||
-		!contains(msg, ErrWrongSizeSecureCookieKey) {
+		!contains(msg, ErrMissingSecureCookieKey) {
 		t.Errorf("unexpected error message: %s", msg)
+	}
+	// Empty is missing, said once, not also the wrong size (roadmap row 170).
+	if contains(msg, ErrWrongSizeSecureCookieKey) {
+		t.Errorf("an empty key was also reported as the wrong size: %q", msg)
 	}
 }
 
