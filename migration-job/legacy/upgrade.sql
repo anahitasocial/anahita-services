@@ -222,7 +222,6 @@ UPDATE nodes
 SET filename = REPLACE(filename, 'com_socialengine/', '')
 WHERE filename LIKE 'com_socialengine/%';
 
-
 -- Add a few additional fields to nodes table
 ALTER TABLE nodes ADD COLUMN `features` TEXT AFTER `access`;
 
@@ -391,21 +390,12 @@ ALTER TABLE nodes DROP COLUMN new_notification_ids;
 
 -- Add indices
 
-CREATE INDEX idx_edges_node_a_id ON edges (node_a_id);
-CREATE INDEX idx_edges_node_b_id ON edges (node_b_id);
-CREATE INDEX idx_edges_type     ON edges (type);
-
 -- Composite indices for frequent relationship lookups
 CREATE INDEX idx_edges_aid_type_bid ON edges (node_a_id, type, node_b_id);
 CREATE INDEX idx_edges_bid_type_aid ON edges (node_b_id, type, node_a_id);
 
-CREATE INDEX idx_nodes_id        ON nodes (id);
-CREATE INDEX idx_nodes_owner_id  ON nodes (owner_id);
-CREATE INDEX idx_nodes_type      ON nodes (type);
 CREATE INDEX idx_nodes_access    ON nodes (access);
 CREATE INDEX idx_nodes_created_on ON nodes (created_on);
-
-CREATE INDEX idx_nodes_parent_id ON nodes (parent_id);
 
 CREATE INDEX idx_edges_lookup ON edges (node_a_id, node_b_id, type);
 CREATE INDEX idx_nodes_feed   ON nodes (owner_id, type, created_on);
@@ -1837,7 +1827,6 @@ CREATE TABLE IF NOT EXISTS activitypub_quote_stamps (
     UNIQUE KEY `quote` (`quoted_node_id`, `quote_uri`(191))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-
 -- The servers this installation will have nothing to do with.
 CREATE TABLE IF NOT EXISTS federation_domain_blocks (
     `domain` varchar(255) NOT NULL,
@@ -2074,11 +2063,6 @@ CREATE TABLE IF NOT EXISTS channel_feed_items (
     KEY node_id (node_id),
     KEY channel_state (channel_id, state)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-
-
-
-
 
 -- --------------------------------------------------------
 

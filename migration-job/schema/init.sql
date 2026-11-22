@@ -673,21 +673,12 @@ CREATE TABLE IF NOT EXISTS events (
 
 -- Add indices
 
-CREATE INDEX idx_edges_node_a_id ON edges (node_a_id);
-CREATE INDEX idx_edges_node_b_id ON edges (node_b_id);
-CREATE INDEX idx_edges_type     ON edges (type);
-
 -- Composite indices for frequent relationship lookups
 CREATE INDEX idx_edges_aid_type_bid ON edges (node_a_id, type, node_b_id);
 CREATE INDEX idx_edges_bid_type_aid ON edges (node_b_id, type, node_a_id);
 
-CREATE INDEX idx_nodes_id        ON nodes (id);
-CREATE INDEX idx_nodes_owner_id  ON nodes (owner_id);
-CREATE INDEX idx_nodes_type      ON nodes (type);
 CREATE INDEX idx_nodes_access    ON nodes (access);
 CREATE INDEX idx_nodes_created_at ON nodes (created_at);
-
-CREATE INDEX idx_nodes_parent_id ON nodes (parent_id);
 
 CREATE INDEX idx_edges_lookup ON edges (node_a_id, node_b_id, type);
 CREATE INDEX idx_nodes_feed   ON nodes (owner_id, type, created_at);
