@@ -7,13 +7,12 @@ import (
 	"anahita-libs/site"
 	"fmt"
 	"log"
-	"strings"
 )
 
 func (h *personHandler) HandleEvents(payload *event.EventPayload) error {
-	action := strings.Split(payload.Name, ".")[4]
+	action := payload.Action()
 
-	if action == "added" || action == "edited" {
+	if action == event.ActionAdded || action == event.ActionEdited {
 		if err := h.updateTags(payload); err != nil {
 			log.Println(err)
 			return err

@@ -60,41 +60,41 @@ func (h *Handlers) HandleEvent(payload *event.EventPayload) error {
 
 	var err error
 	switch {
-	case strings.HasPrefix(payload.Name, "edge.follow.") && strings.HasSuffix(payload.Name, ".added.v1"):
+	case strings.HasPrefix(payload.Name, "edge.follow.") && payload.Action() == event.ActionAdded:
 		err = h.localFollowed(ctx, payload.ObjectID, payload.TargetID)
-	case strings.HasPrefix(payload.Name, "edge.follow.") && strings.HasSuffix(payload.Name, ".deleted.v1"):
+	case strings.HasPrefix(payload.Name, "edge.follow.") && payload.Action() == event.ActionDeleted:
 		err = h.localUnfollowed(ctx, payload.ObjectID, payload.TargetID)
 
 	// Somebody here asked to follow somebody elsewhere, or took it back.
-	case strings.HasPrefix(payload.Name, "edge.follow-request.") && strings.HasSuffix(payload.Name, ".added.v1"):
+	case strings.HasPrefix(payload.Name, "edge.follow-request.") && payload.Action() == event.ActionAdded:
 		err = h.localAsked(ctx, payload.ObjectID, payload.TargetID)
-	case strings.HasPrefix(payload.Name, "edge.follow-request.") && strings.HasSuffix(payload.Name, ".deleted.v1"):
+	case strings.HasPrefix(payload.Name, "edge.follow-request.") && payload.Action() == event.ActionDeleted:
 		err = h.localUnasked(ctx, payload.ObjectID, payload.TargetID)
 
 	// Somebody here blocked somebody elsewhere, or unblocked them.
-	case strings.HasPrefix(payload.Name, "edge.block.") && strings.HasSuffix(payload.Name, ".added.v1"):
+	case strings.HasPrefix(payload.Name, "edge.block.") && payload.Action() == event.ActionAdded:
 		err = h.localBlocked(ctx, payload.ObjectID, payload.TargetID)
-	case strings.HasPrefix(payload.Name, "edge.block.") && strings.HasSuffix(payload.Name, ".deleted.v1"):
+	case strings.HasPrefix(payload.Name, "edge.block.") && payload.Action() == event.ActionDeleted:
 		err = h.localUnblocked(ctx, payload.ObjectID, payload.TargetID)
 
 	// Somebody liked something, or took a like back. The payload names
 	// who (the subject) and what (the object).
-	case strings.HasPrefix(payload.Name, "edge.voteup.") && strings.HasSuffix(payload.Name, ".added.v1"):
+	case strings.HasPrefix(payload.Name, "edge.voteup.") && payload.Action() == event.ActionAdded:
 		err = h.localLiked(ctx, payload.SubjectID, payload.ObjectID)
-	case strings.HasPrefix(payload.Name, "edge.voteup.") && strings.HasSuffix(payload.Name, ".deleted.v1"):
+	case strings.HasPrefix(payload.Name, "edge.voteup.") && payload.Action() == event.ActionDeleted:
 		err = h.localUnliked(ctx, payload.SubjectID, payload.ObjectID)
 
 	// Something reposted, or a repost taken back. Its node is gone by the
 	// time the second is heard: what it was is in the record of what went.
-	case strings.HasPrefix(payload.Name, "node.repost.") && strings.HasSuffix(payload.Name, ".added.v1"):
+	case strings.HasPrefix(payload.Name, "node.repost.") && payload.Action() == event.ActionAdded:
 		err = h.reposted(ctx, payload.ObjectID)
-	case strings.HasPrefix(payload.Name, "node.repost.") && strings.HasSuffix(payload.Name, ".deleted.v1"):
+	case strings.HasPrefix(payload.Name, "node.repost.") && payload.Action() == event.ActionDeleted:
 		err = h.removed(ctx, payload.ObjectID)
 
 	// A person's profile edited, or their account disabled, archived,
 	// deleted, purged, or brought back. What decides is asked of the person
 	// as they are now.
-	case strings.HasPrefix(payload.Name, "node.actor.") && !strings.HasSuffix(payload.Name, ".added.v1"):
+	case strings.HasPrefix(payload.Name, "node.actor.") && payload.Action() != event.ActionAdded:
 		err = h.profileChanged(ctx, payload.ObjectID)
 
 	// A location added to a post, or taken off it, from its page: a post
@@ -105,7 +105,7 @@ func (h *Handlers) HandleEvent(payload *event.EventPayload) error {
 	// Somebody tagged in a photo or a video, their tag approved, or taken
 	// off it (roadmap row 103): it goes again with who is in it now. A tag
 	// still waiting changes nothing that goes out.
-	case strings.HasPrefix(payload.Name, "edge.tag.") && !strings.HasSuffix(payload.Name, ".requested.v1") &&
+	case strings.HasPrefix(payload.Name, "edge.tag.") && payload.Action() != event.ActionRequested &&
 		goesOutKind(payload.ObjectType):
 		err = h.relocated(ctx, payload.ObjectID)
 
@@ -113,7 +113,7 @@ func (h *Handlers) HandleEvent(payload *event.EventPayload) error {
 	// articles go out, a channel's among them; the rest of what decides is
 	// asked of the post itself. Topics stay here.
 	case strings.HasPrefix(payload.Name, "node.medium.") && goesOutKind(payload.ObjectType):
-		if strings.HasSuffix(payload.Name, ".deleted.v1") {
+		if payload.Action() == event.ActionDeleted {
 			err = h.removed(ctx, payload.ObjectID)
 		} else {
 			err = h.posted(ctx, payload.ObjectID)

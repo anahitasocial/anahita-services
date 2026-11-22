@@ -38,8 +38,8 @@ func (h *Handlers) HandleEvent(payload *event.EventPayload) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	added := strings.HasSuffix(payload.Name, ".added.v1")
-	deleted := strings.HasSuffix(payload.Name, ".deleted.v1")
+	added := payload.Action() == event.ActionAdded
+	deleted := payload.Action() == event.ActionDeleted
 
 	var err error
 	switch {

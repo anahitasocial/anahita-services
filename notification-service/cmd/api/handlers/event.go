@@ -29,7 +29,7 @@ func (h *eventHandler) HandleEvents(payload *event.EventPayload) error {
 	// back there: the news of it goes. The payload names who reposted and
 	// what, since the repost itself is gone.
 	if strings.HasPrefix(payload.Name, "federation.repost.") {
-		if !strings.HasSuffix(payload.Name, ".deleted.v1") {
+		if payload.Action() != event.ActionDeleted {
 			return nil
 		}
 		gone := entities.NewNotification()
@@ -50,11 +50,11 @@ func (h *eventHandler) HandleEvents(payload *event.EventPayload) error {
 	// A note kept from another server, or one that was and is gone. A
 	// change to it is news to nobody.
 	if strings.HasPrefix(payload.Name, "federation.medium.") {
-		if strings.HasSuffix(payload.Name, ".added.v1") {
+		if payload.Action() == event.ActionAdded {
 			return h.remoteNoteAdded(payload)
 		}
 		// Taken away where it was written: the news of it goes too.
-		if strings.HasSuffix(payload.Name, ".deleted.v1") {
+		if payload.Action() == event.ActionDeleted {
 			return h.Repos.Notifications.DeleteAbout(payload.ObjectID)
 		}
 		return nil
@@ -68,36 +68,36 @@ func (h *eventHandler) HandleEvents(payload *event.EventPayload) error {
 	if strings.Contains(payload.Name, "node.medium.") {
 		// An edit tells nobody (the user, 2026-10-19): a name it newly
 		// adds is a mention, told as one by actor-service.
-		if strings.Contains(payload.Name, ".added.v1") {
+		if payload.Action() == event.ActionAdded {
 			err = h.eventFormatNodeMediumAdded(payload)
-		} else if strings.Contains(payload.Name, ".deleted.v1") {
+		} else if payload.Action() == event.ActionDeleted {
 			err = h.eventFormatNodeMediumDeleted(payload)
 		}
 	}
 
 	// Repost node events
 	if strings.Contains(payload.Name, "node.repost.") {
-		if strings.Contains(payload.Name, ".added.v1") {
+		if payload.Action() == event.ActionAdded {
 			err = h.eventFormatNodeRepostAdded(payload)
-		} else if strings.Contains(payload.Name, ".deleted.v1") {
+		} else if payload.Action() == event.ActionDeleted {
 			err = h.eventFormatNodeRepostDeleted(payload)
 		}
 	}
 
 	// Admin edge events
 	if strings.Contains(payload.Name, "edge.admin.") {
-		if strings.Contains(payload.Name, ".added.v1") {
+		if payload.Action() == event.ActionAdded {
 			err = h.eventFormatEdgeAdminAdded(payload)
-		} else if strings.Contains(payload.Name, ".deleted.v1") {
+		} else if payload.Action() == event.ActionDeleted {
 			err = h.eventFormatEdgeAdminDeleted(payload)
 		}
 	}
 
 	// A post naming somebody, and no longer naming them after an edit.
 	if strings.HasPrefix(payload.Name, "edge.mention.") {
-		if strings.HasSuffix(payload.Name, ".added.v1") {
+		if payload.Action() == event.ActionAdded {
 			err = h.eventFormatEdgeMentionAdded(payload)
-		} else if strings.HasSuffix(payload.Name, ".deleted.v1") {
+		} else if payload.Action() == event.ActionDeleted {
 			err = h.eventFormatEdgeMentionDeleted(payload)
 		}
 	}
@@ -106,26 +106,26 @@ func (h *eventHandler) HandleEvents(payload *event.EventPayload) error {
 	// taken off (roadmap row 103).
 	if strings.HasPrefix(payload.Name, "edge.tag.") {
 		switch {
-		case strings.HasSuffix(payload.Name, ".requested.v1"):
+		case payload.Action() == event.ActionRequested:
 			err = h.eventFormatEdgeTagRequested(payload)
-		case strings.HasSuffix(payload.Name, ".added.v1"):
+		case payload.Action() == event.ActionAdded:
 			err = h.eventFormatEdgeTagAdded(payload)
-		case strings.HasSuffix(payload.Name, ".deleted.v1"):
+		case payload.Action() == event.ActionDeleted:
 			err = h.eventFormatEdgeTagDeleted(payload)
 		}
 	}
 
 	// A block: what the two were told of each other goes. The graph has
 	// ended the follows and the subscriptions already.
-	if strings.HasPrefix(payload.Name, "edge.block.") && strings.HasSuffix(payload.Name, ".added.v1") {
+	if strings.HasPrefix(payload.Name, "edge.block.") && payload.Action() == event.ActionAdded {
 		err = h.Repos.Notifications.DeleteBetween(payload.ObjectID, payload.TargetID)
 	}
 
 	// Follow edge events
 	if strings.Contains(payload.Name, "edge.follow.") {
-		if strings.Contains(payload.Name, ".added.v1") {
+		if payload.Action() == event.ActionAdded {
 			err = h.eventFormatEdgeFollowAdded(payload)
-		} else if strings.Contains(payload.Name, ".deleted.v1") {
+		} else if payload.Action() == event.ActionDeleted {
 			err = h.eventFormatEdgeFollowDeleted(payload)
 		}
 	}
@@ -133,22 +133,22 @@ func (h *eventHandler) HandleEvents(payload *event.EventPayload) error {
 	// Requests to follow. Not caught by the test above: that one ends in
 	// a full stop, and this name goes on with a hyphen.
 	if strings.Contains(payload.Name, "edge.follow-request.") {
-		if strings.Contains(payload.Name, ".added.v1") {
+		if payload.Action() == event.ActionAdded {
 			err = h.eventFormatEdgeFollowRequestAdded(payload)
-		} else if strings.Contains(payload.Name, ".deleted.v1") {
+		} else if payload.Action() == event.ActionDeleted {
 			err = h.eventFormatEdgeFollowRequestDeleted(payload)
-		} else if strings.Contains(payload.Name, ".accepted.v1") {
+		} else if payload.Action() == event.ActionAccepted {
 			err = h.eventFormatEdgeFollowRequestAccepted(payload)
 		}
 	}
 
 	// Invitations to follow an actor.
 	if strings.Contains(payload.Name, "edge.invite.") {
-		if strings.Contains(payload.Name, ".added.v1") {
+		if payload.Action() == event.ActionAdded {
 			err = h.eventFormatEdgeInviteAdded(payload)
-		} else if strings.Contains(payload.Name, ".accepted.v1") {
+		} else if payload.Action() == event.ActionAccepted {
 			err = h.eventFormatEdgeInviteAccepted(payload)
-		} else if strings.Contains(payload.Name, ".declined.v1") || strings.Contains(payload.Name, ".deleted.v1") {
+		} else if payload.Action() == event.ActionDeclined || payload.Action() == event.ActionDeleted {
 			err = h.eventFormatEdgeInviteEnded(payload)
 		}
 	}
@@ -156,22 +156,22 @@ func (h *eventHandler) HandleEvents(payload *event.EventPayload) error {
 	// Events, the kind people go to. The name starts with it, where the
 	// others here are found anywhere in theirs.
 	if strings.HasPrefix(payload.Name, "event.") {
-		if strings.HasSuffix(payload.Name, ".answered.v1") {
+		if payload.Action() == event.ActionAnswered {
 			err = h.eventFormatEventAnswered(payload)
-		} else if strings.HasSuffix(payload.Name, ".changed.v1") {
+		} else if payload.Action() == event.ActionChanged {
 			err = h.eventFormatEventTold(payload, NotificationTypeEventChanged)
-		} else if strings.HasSuffix(payload.Name, ".cancelled.v1") {
+		} else if payload.Action() == event.ActionCancelled {
 			err = h.eventFormatEventTold(payload, NotificationTypeEventCancelled)
-		} else if strings.HasSuffix(payload.Name, ".reminded.v1") {
+		} else if payload.Action() == event.ActionReminded {
 			err = h.eventFormatEventTold(payload, NotificationTypeEventReminder)
 		}
 	}
 
 	// Voteup edge events
 	if strings.Contains(payload.Name, "edge.voteup.") {
-		if strings.Contains(payload.Name, ".added.v1") {
+		if payload.Action() == event.ActionAdded {
 			err = h.eventFormatEdgeVoteupAdded(payload)
-		} else if strings.Contains(payload.Name, ".deleted.v1") {
+		} else if payload.Action() == event.ActionDeleted {
 			err = h.eventFormatEdgeVoteupDeleted(payload)
 		}
 	}

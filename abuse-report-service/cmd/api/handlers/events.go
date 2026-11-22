@@ -29,9 +29,9 @@ func (h *eventsHandler) Handle(payload *event.EventPayload) error {
 		return nil
 	}
 
-	gone := strings.Contains(payload.Name, ".purged.")
+	gone := payload.Action() == event.ActionPurged
 	if !strings.HasPrefix(payload.Name, "node.actor.") {
-		gone = gone || strings.Contains(payload.Name, ".deleted.")
+		gone = gone || payload.Action() == event.ActionDeleted
 	}
 	if !gone {
 		return nil

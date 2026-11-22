@@ -23,7 +23,7 @@ func (h *eventsHandler) Handle(payload *event.EventPayload) error {
 	if payload == nil || payload.ObjectID == 0 {
 		return nil
 	}
-	if !strings.HasPrefix(payload.Name, "node.actor.") || !strings.Contains(payload.Name, ".purged.") {
+	if !strings.HasPrefix(payload.Name, "node.actor.") || payload.Action() != event.ActionPurged {
 		return nil
 	}
 

@@ -111,6 +111,48 @@ disagree first:
 
 ## Status
 
+Where each item stands: ✅ done, ⬜ still to do, ➖ left out, ➡️ moved to
+another row. What each one came to is in the notes after the table.
+
+| Item | What | Where it stands |
+| --- | --- | --- |
+| 1 | An invitation's session that nothing could revoke | ✅ 2026-11-22 |
+| 2 | The signup event nothing heard | ✅ 2026-11-22, removed |
+| 3 | An empty cookie key reported twice | ✅ 2026-11-22 |
+| 4 | Every list's SQL written to the log | ✅ 2026-11-22 |
+| 5 | The hashtag pattern compiled for every post | ✅ 2026-11-22 |
+| 6 | Feed defaults read from disk on every request | ✅ 2026-11-22 |
+| 7 | A post's relationships asked for twice | ✅ 2026-11-22 |
+| 8 | like-service's gRPC clients built twice | ✅ 2026-11-22 |
+| 9 | A like's eight to ten calls | ✅ 2026-11-22 |
+| 10 | Quoted posts read one at a time | ✅ 2026-11-22 |
+| 11 | An event list's hosts read one at a time | ✅ 2026-11-22 |
+| 12 | Notifications deleted one at a time; mail templates parsed each time | ✅ 2026-11-22 |
+| 13 | auth-service's old OAuth path | ✅ 2026-11-22, removed |
+| 14 | Handler leftovers and functions nothing calls | ✅ 2026-11-22, removed |
+| 15 | Commented-out access helpers, empty files, cosmetic | ✅ 2026-11-22, removed |
+| 16 | The Following feed counted on every page | ✅ 2026-11-22, `has_more` (v1.7.0) |
+| 17 | A profile's Liked and Tagged tabs | ✅ 2026-11-22, measured quick: nothing to do |
+| 18 | Search on a full-text index | ➡️ row 141, scaling |
+| 19 | Trending cached | ➖ 32 to 82 ms, not worth a cache |
+| 20 | Federation fan-out | ✅ 2026-11-22 |
+| 21 | Twin indexes on `nodes` and `edges` | ✅ 2026-11-22, migration `20261122000025` |
+| 22 | The post-to-gRPC converter kept twice | ✅ 2026-11-22 |
+| 23 | Where a kind of post lives, written in six places | ✅ 2026-11-22, `posts/kinds.go` |
+| 24a | Settings handlers of text, photo and video posts | ✅ 2026-11-22, `handlers.PostSettings` |
+| 24b | Configuration in every service | ✅ 2026-11-22, `settings.Common` |
+| 24c | Start-up, with a graceful stop | ✅ 2026-11-22, `anahita-libs/server` |
+| 24d | One helper for reading and checking a request | ✅ 2026-11-22, `handlers.Bound` |
+| 24e | The access-context builder | ✅ 2026-11-22, `handlers.AccessContext` |
+| 24f | hashtag-service's and location-service's shared handlers | ✅ 2026-11-22, `handlers.TaggedWith` |
+| 24g | Event names parsed once | ✅ 2026-11-22, `EventPayload.Action` |
+| 24h | The reconnecting publisher's copies | ⬜ |
+| 24i | Pagination in one shape, with its cap | ⬜ |
+| 24j | The smaller helpers kept two or three times | ⬜ |
+| 25 | Splitting what mixes several jobs | ✅ 2026-11-22 |
+
+### Notes
+
 1. Planned 2026-11-22.
 2. **Phases 1 and 2 done 2026-11-22.** The invitation's session is written by
    `writeViewerSession` (`auth-service`, `invite_accept.go`), tested end to end
@@ -228,4 +270,11 @@ disagree first:
     on, now `handlers.TaggedWith` in `anahita-libs`, with a test of its own
     (`TestThePostsATagIsOnAreListedAlike`). About 110 lines went, not the
     250 first thought.
+14. **Item 24, sixth part, event names, done 2026-11-22.** `Action()` on
+    `EventPayload`, with a constant for each action, reads what an event
+    says was done from its name once; the 50 or so tests of the name by
+    `strings.Contains`, `HasSuffix` and by splitting it in eight services
+    read it instead. actor-service's person events took the fifth part of
+    a split name without asking whether there was one, and would have
+    stopped on a shorter name.
 

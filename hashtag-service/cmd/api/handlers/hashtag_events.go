@@ -14,7 +14,7 @@ import (
 func (h *hashtagHandler) HandleEvents(payload *event.EventPayload) error {
 	log.Println("Hashtag event received", payload.Name)
 
-	if strings.Contains(payload.Name, ".added.") || strings.Contains(payload.Name, ".edited.") {
+	if payload.Action() == event.ActionAdded || payload.Action() == event.ActionEdited {
 		if err := h.updateHashtags(payload); err != nil {
 			log.Println(err)
 			return err

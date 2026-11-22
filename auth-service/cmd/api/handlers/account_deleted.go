@@ -54,12 +54,14 @@ func newAccountDeletedHandler(env *Env) *accountDeletedHandler {
 // subscribed to the whole actor topic and most of what arrives is somebody
 // editing their bio.
 func (h *accountDeletedHandler) HandleEvents(payload *event.EventPayload) error {
-	parts := strings.Split(payload.Name, ".")
+	// node.actor.<service>.<kind>.<action>.v1: the kind of profile, and
+	// what was done to it.
+	parts, action := strings.Split(payload.Name, "."), payload.Action()
 	if len(parts) < 5 {
 		return nil
 	}
 
-	if parts[4] == "purged" {
+	if action == event.ActionPurged {
 		return h.handlePurged(payload.ObjectID)
 	}
 
@@ -75,16 +77,16 @@ func (h *accountDeletedHandler) HandleEvents(payload *event.EventPayload) error 
 	//
 	// The routing key carries the entity: node.actor.group.group.deleted.v1.
 	if parts[3] == "group" {
-		switch parts[4] {
-		case "deleted":
+		switch action {
+		case event.ActionDeleted:
 			h.notifyGroupAdmins(payload.ObjectID, payload.ViewerID, false)
-		case "restored":
+		case event.ActionRestored:
 			h.notifyGroupAdmins(payload.ObjectID, payload.ViewerID, true)
 		}
 		return nil
 	}
 
-	if parts[4] != "deleted" {
+	if action != event.ActionDeleted {
 		return nil
 	}
 
