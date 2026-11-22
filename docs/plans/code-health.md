@@ -222,4 +222,10 @@ disagree first:
     written out, in twelve services (876 lines went, for 169). The other
     108 that read a request answer or log in a way of their own, and keep
     it.
+13. **Item 24, fifth part, hashtag and location services, done
+    2026-11-22.** The two had grown apart since the review, each helper of
+    its own kind; what they still shared was the list of the posts a tag is
+    on, now `handlers.TaggedWith` in `anahita-libs`, with a test of its own
+    (`TestThePostsATagIsOnAreListedAlike`). About 110 lines went, not the
+    250 first thought.
 
