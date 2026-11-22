@@ -65,14 +65,8 @@ func main() {
 	authorize := an_mw.Authorize(config, jwks)
 	setViewer := an_mw.SetViewer(config, jwks)
 
-	// create amqp connection
-	amqpConn, err := event.ConnectToAMQP(config)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	// create event publisher
-	publisher, err := event.NewEventPublisher(amqpConn)
+	// The bus, connected to again whenever it closes the connection.
+	publisher, err := event.NewPublisher(config)
 	if err != nil {
 		log.Panic(err)
 	}

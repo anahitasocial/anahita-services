@@ -456,6 +456,15 @@ a connection is safe to share and reconnects by itself. Before roadmap row
 98, each call opened a connection of its own, with a new handshake, and
 left it open.
 
+**Events** go over RabbitMQ, through `anahita-libs/event`. A service that
+sends them makes its `Publisher` with `NewPublisher`, which connects again
+on the next event when RabbitMQ has closed the connection, after a restart
+say, and logs every event it could not send. Before 2026-11-22 a sender
+connected once: when RabbitMQ restarted after it, everything it sent was
+lost without a word until the service itself was restarted. A service that
+listens stops when its connection closes, and is started again, or listens
+again, as activitypub-service and atproto-service do.
+
 ## What a node is called elsewhere
 
 Inside the installation a node is its number, and a person is also their

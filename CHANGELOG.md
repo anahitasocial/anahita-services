@@ -10,6 +10,18 @@ made.
 Releases before v1.0.17 are described on GitHub, under
 [Releases](https://github.com/anahitasocial/anahita-services/releases).
 
+## Embryo
+
+### Fixed
+
+1. **Events kept being sent after RabbitMQ restarts.** A service that sends
+   events (graph-grpc-service, feed-service, like-service, actor-service and
+   auth-service) connected once and never again: when RabbitMQ restarted
+   after it, as it can when a site is upgraded, every event it sent was lost
+   without a word, and new posts did not reach Bluesky, notifications or
+   search. It now connects again on the next event, and logs any event it
+   could not send.
+
 ## v1.6.0 Birth, 2026-11-21
 
 ### Removed

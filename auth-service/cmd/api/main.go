@@ -100,13 +100,8 @@ func main() {
 		log.Printf("oauth: sealed %d signing key(s) that were stored in the clear", sealed)
 	}
 
-	// 5. Event publishing infrastructure.
-	amqpConn, err := event.ConnectToAMQP(cfg)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	publisher, err := event.NewEventPublisher(amqpConn)
+	// The bus, connected to again whenever it closes the connection.
+	publisher, err := event.NewPublisher(cfg)
 	if err != nil {
 		log.Panic(err)
 	}
