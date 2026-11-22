@@ -69,8 +69,8 @@ func (srv *ActorAdminsGRPC) Add(actor *entities.AnahitaNode, admin *entities.Ana
 	}
 
 	resp, err := client.Add(context.Background(), &graphpb.ActorAdminAddRequest{
-		Actor: graphNodeToGrpc(actor),
-		Admin: graphNodeToGrpc(admin),
+		Actor: NodeToGrpc(actor),
+		Admin: NodeToGrpc(admin),
 		Viewer: &graphpb.Viewer{
 			Id:         viewer.ID,
 			PersonType: viewer.PersonType,
@@ -96,8 +96,8 @@ func (srv *ActorAdminsGRPC) Delete(actor *entities.AnahitaNode, admin *entities.
 	}
 
 	resp, err := client.Delete(context.Background(), &graphpb.ActorAdminDeleteRequest{
-		Actor: graphNodeToGrpc(actor),
-		Admin: graphNodeToGrpc(admin),
+		Actor: NodeToGrpc(actor),
+		Admin: NodeToGrpc(admin),
 		Viewer: &graphpb.Viewer{
 			Id:         viewer.ID,
 			PersonType: viewer.PersonType,

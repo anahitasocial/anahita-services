@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"anahita-libs/data/entities"
+	"anahita-libs/data/services"
 	"anahita-libs/proto/graphpb"
 	"context"
 	"errors"
@@ -55,7 +56,7 @@ func (h *nodeHandler) Browse(ctx context.Context, req *graphpb.NodeBrowseRequest
 	}
 
 	return &graphpb.NodeBrowseResponse{
-		Nodes: nodesToGrpc(nodes),
+		Nodes: services.NodesToGrpc(nodes),
 	}, nil
 }
 
@@ -68,7 +69,7 @@ func (h *nodeHandler) Read(ctx context.Context, req *graphpb.NodeReadRequest) (*
 	}
 
 	return &graphpb.NodeReadResponse{
-		Node: nodeToGrpc(node),
+		Node: services.NodeToGrpc(node),
 	}, nil
 }
 
@@ -84,7 +85,7 @@ func (h *nodeHandler) ReadByAlias(ctx context.Context, req *graphpb.NodeReadByAl
 	}
 
 	return &graphpb.NodeReadByAliasResponse{
-		Node: nodeToGrpc(node),
+		Node: services.NodeToGrpc(node),
 	}, nil
 }
 
@@ -100,7 +101,7 @@ func (h *nodeHandler) ReadByUUID(ctx context.Context, req *graphpb.NodeReadByUUI
 	}
 
 	return &graphpb.NodeReadByUUIDResponse{
-		Node: nodeToGrpc(node),
+		Node: services.NodeToGrpc(node),
 	}, nil
 }
 
@@ -112,7 +113,7 @@ func (h *nodeHandler) ReadByURI(ctx context.Context, req *graphpb.NodeReadByURIR
 	}
 
 	return &graphpb.NodeReadByURIResponse{
-		Node: nodeToGrpc(node),
+		Node: services.NodeToGrpc(node),
 	}, nil
 }
 
@@ -136,7 +137,7 @@ func (h *nodeHandler) UpsertRemote(ctx context.Context, req *graphpb.NodeUpsertR
 	}
 
 	return &graphpb.NodeUpsertRemoteResponse{
-		Node:    nodeToGrpc(node),
+		Node:    services.NodeToGrpc(node),
 		Created: created,
 	}, nil
 }
@@ -180,7 +181,7 @@ func (h *nodeHandler) Edit(ctx context.Context, req *graphpb.NodeEditRequest) (*
 	}
 
 	return &graphpb.NodeEditResponse{
-		Node: nodeToGrpc(node),
+		Node: services.NodeToGrpc(node),
 	}, nil
 }
 
@@ -194,7 +195,7 @@ func (h *nodeHandler) Add(ctx context.Context, req *graphpb.NodeAddRequest) (*gr
 	}
 
 	return &graphpb.NodeAddResponse{
-		Node: nodeToGrpc(node),
+		Node: services.NodeToGrpc(node),
 	}, nil
 }
 
@@ -291,7 +292,7 @@ func (h *nodeHandler) BatchRead(ctx context.Context, req *graphpb.NodeBatchReadR
 		return nil, err
 	}
 	return &graphpb.NodeBatchReadResponse{
-		Nodes: nodesToGrpc(nodes),
+		Nodes: services.NodesToGrpc(nodes),
 	}, nil
 }
 
@@ -310,7 +311,7 @@ func (h *nodeHandler) BatchReadByAliases(ctx context.Context, req *graphpb.NodeB
 	}
 
 	return &graphpb.NodeBatchReadByAliasesResponse{
-		Nodes: nodesToGrpc(nodes),
+		Nodes: services.NodesToGrpc(nodes),
 	}, nil
 }
 
@@ -329,7 +330,7 @@ func (h *nodeHandler) BatchEdit(ctx context.Context, req *graphpb.NodeBatchEditR
 	}
 
 	return &graphpb.NodeBatchEditResponse{
-		Nodes: nodesToGrpc(nodes),
+		Nodes: services.NodesToGrpc(nodes),
 	}, nil
 }
 
@@ -348,7 +349,7 @@ func (h *nodeHandler) BatchAdd(ctx context.Context, req *graphpb.NodeBatchAddReq
 	}
 
 	return &graphpb.NodeBatchAddResponse{
-		Nodes: nodesToGrpc(nodes),
+		Nodes: services.NodesToGrpc(nodes),
 	}, err
 }
 
@@ -385,7 +386,7 @@ func (h *nodeHandler) BrowseMutualConnections(ctx context.Context, req *graphpb.
 	}
 
 	return &graphpb.BrowseMutualConnectionsResponse{
-		Nodes: nodesToGrpc(nodes),
+		Nodes: services.NodesToGrpc(nodes),
 	}, nil
 }
 

@@ -3,6 +3,7 @@ package handlers
 import (
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/data/services"
 	"anahita-libs/event"
 	"anahita-libs/proto/graphpb"
 	"context"
@@ -113,7 +114,7 @@ func (h *mediumHandler) Browse(ctx context.Context, req *graphpb.MediumBrowseReq
 	h.markSaved(viewer.ID, nodes)
 
 	return &graphpb.MediumBrowseResponse{
-		Media: nodesToGrpc(nodes),
+		Media: services.NodesToGrpc(nodes),
 	}, nil
 }
 
@@ -149,7 +150,7 @@ func (h *mediumHandler) Read(ctx context.Context, req *graphpb.MediumReadRequest
 	h.markSaved(req.Viewer.Id, []*entities.AnahitaNode{node})
 
 	return &graphpb.MediumReadResponse{
-		Medium: nodeToGrpc(node),
+		Medium: services.NodeToGrpc(node),
 	}, nil
 }
 
@@ -197,7 +198,7 @@ func (h *mediumHandler) BatchRead(ctx context.Context, req *graphpb.MediumBatchR
 	h.markSaved(viewer.ID, nodes)
 
 	return &graphpb.MediumBatchReadResponse{
-		Media: nodesToGrpc(nodes),
+		Media: services.NodesToGrpc(nodes),
 	}, nil
 }
 
@@ -308,7 +309,7 @@ func (h *mediumHandler) Edit(ctx context.Context, req *graphpb.MediumEditRequest
 	}
 
 	return &graphpb.MediumEditResponse{
-		Medium: nodeToGrpc(node),
+		Medium: services.NodeToGrpc(node),
 	}, nil
 }
 
@@ -403,7 +404,7 @@ func (h *mediumHandler) Add(ctx context.Context, req *graphpb.MediumAddRequest) 
 	go h.announceAdded(node, viewer, 0)
 
 	return &graphpb.MediumAddResponse{
-		Medium: nodeToGrpc(node),
+		Medium: services.NodeToGrpc(node),
 	}, nil
 }
 

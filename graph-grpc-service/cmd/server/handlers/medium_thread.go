@@ -3,6 +3,7 @@ package handlers
 import (
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/data/services"
 	"anahita-libs/event"
 	"anahita-libs/proto/graphpb"
 	"context"
@@ -107,7 +108,7 @@ func (h *mediumHandler) Thread(ctx context.Context, req *graphpb.MediumThreadReq
 	h.markSaved(viewer.ID, replies)
 
 	return &graphpb.MediumThreadResponse{
-		Replies:   nodesToGrpc(replies),
+		Replies:   services.NodesToGrpc(replies),
 		HiddenIds: hidden,
 	}, nil
 }
@@ -229,7 +230,7 @@ func (h *mediumHandler) BrowseQuotes(ctx context.Context, req *graphpb.QuotesBro
 
 	h.markSaved(viewer.ID, quotes)
 
-	return &graphpb.QuotesBrowseResponse{Quotes: nodesToGrpc(quotes)}, nil
+	return &graphpb.QuotesBrowseResponse{Quotes: services.NodesToGrpc(quotes)}, nil
 }
 
 // withoutMuted takes out of a thread what the viewer would rather not see:

@@ -31,7 +31,12 @@ func (a *AnahitaNode) GetAvatarFile(size string) string {
 		return ""
 	}
 
+	// A name with no extension, which no picture stored here has, is no
+	// file at all, not a crash.
 	name := strings.Split(a.GetAvatarFilename(), ".")
+	if len(name) != 2 {
+		return ""
+	}
 	return fmt.Sprintf("%s_%s.%s", name[0], size, name[1])
 }
 

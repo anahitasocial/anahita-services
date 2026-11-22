@@ -26,7 +26,11 @@ func (a *AnahitaNode) GetCoverFile(size string) string {
 		return ""
 	}
 
+	// As a profile photo's: a name with no extension is no file at all.
 	name := strings.Split(a.CoverFilename, ".")
+	if len(name) != 2 {
+		return ""
+	}
 	return fmt.Sprintf("%s_%s.%s", name[0], size, name[1])
 }
 

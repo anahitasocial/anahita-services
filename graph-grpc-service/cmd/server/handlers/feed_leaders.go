@@ -3,6 +3,7 @@ package handlers
 import (
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/data/services"
 	"anahita-libs/proto/graphpb"
 	"context"
 )
@@ -71,6 +72,6 @@ func (h *feedLeadersHandler) Browse(ctx context.Context, req *graphpb.FeedLeader
 	markThreads(h.env, results)
 
 	return &graphpb.FeedLeadersBrowseResponse{
-		Nodes: nodesToGrpc(results),
+		Nodes: services.NodesToGrpc(results),
 	}, nil
 }

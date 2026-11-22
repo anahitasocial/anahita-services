@@ -161,3 +161,14 @@ disagree first:
    card is read after the answer (`addCard`), four at a time, and not put
    on a post changed since. Measured on a test database rather than a copy
    of banu.io, whose servers' followers are few. Each has a test.
+6. **Item 22, the post-to-gRPC converter, done 2026-11-22.** One converter,
+   `services.NodeToGrpc` in `anahita-libs`, which graph-grpc-service now
+   uses too; the two had drifted, the clients' never sending the UUID or
+   when an actor is to be deleted, the graph's never whether the viewer has
+   blocked them. Nothing read the missing fields across, so nothing people
+   see changes. `TestEveryFieldCrossesBothWays` fills every field of the
+   proto and fails, by name, on one that does not cross both ways, apart
+   from three left out on purpose: when a person last visited, an actor's
+   features (set by graph-grpc-service on what it sends) and whether the
+   viewer quoted a post (set by nothing). With it, a profile or cover
+   photo's name with no extension is no file rather than a crash.

@@ -3,6 +3,7 @@ package handlers
 import (
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/data/services"
 	"anahita-libs/proto/graphpb"
 	"context"
 	"graph/requests"
@@ -36,7 +37,7 @@ func (h *repostHandler) Browse(ctx context.Context, req *graphpb.RepostBrowseReq
 
 	nodes := make([]*graphpb.Node, len(results))
 	for i, result := range results {
-		nodes[i] = nodeToGrpc(result)
+		nodes[i] = services.NodeToGrpc(result)
 	}
 
 	return &graphpb.RepostBrowseResponse{
@@ -62,7 +63,7 @@ func (h *repostHandler) BrowseAuthors(ctx context.Context, req *graphpb.RepostBr
 	}
 
 	return &graphpb.RepostBrowseAuthorsResponse{
-		Authors: nodesToGrpc(nodes),
+		Authors: services.NodesToGrpc(nodes),
 	}, nil
 }
 
@@ -80,7 +81,7 @@ func (h *repostHandler) Read(ctx context.Context, req *graphpb.RepostReadRequest
 	}
 
 	return &graphpb.RepostReadResponse{
-		Repost: nodeToGrpc(node),
+		Repost: services.NodeToGrpc(node),
 	}, nil
 }
 
@@ -125,7 +126,7 @@ func (h *repostHandler) Add(ctx context.Context, req *graphpb.RepostAddRequest) 
 
 	// Implement the logic to add a repost
 	return &graphpb.RepostAddResponse{
-		Repost: nodeToGrpc(node),
+		Repost: services.NodeToGrpc(node),
 	}, nil
 }
 

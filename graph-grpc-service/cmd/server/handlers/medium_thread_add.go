@@ -3,6 +3,7 @@ package handlers
 import (
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/data/services"
 	"anahita-libs/proto/graphpb"
 	"context"
 	"log"
@@ -123,7 +124,7 @@ func (h *mediumHandler) AddThread(ctx context.Context, req *graphpb.MediumThread
 
 	response := &graphpb.MediumThreadAddResponse{}
 	for _, part := range made {
-		response.Parts = append(response.Parts, nodeToGrpc(part))
+		response.Parts = append(response.Parts, services.NodeToGrpc(part))
 	}
 	return response, nil
 }

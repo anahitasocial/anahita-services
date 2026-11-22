@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/data/services"
 	"context"
 	"errors"
 	"log"
@@ -81,6 +82,6 @@ func (h *feedCustomHandler) Browse(ctx context.Context, req *graphpb.FeedCustomB
 	markThreads(h.env, results)
 
 	return &graphpb.FeedCustomBrowseResponse{
-		Nodes: nodesToGrpc(results),
+		Nodes: services.NodesToGrpc(results),
 	}, nil
 }

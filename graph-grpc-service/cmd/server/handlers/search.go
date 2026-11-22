@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"anahita-libs/data/entities"
+	"anahita-libs/data/services"
 	"anahita-libs/proto/graphpb"
 	"context"
 )
@@ -49,7 +50,7 @@ func (h *searchHandler) Browse(ctx context.Context, req *graphpb.SearchBrowseReq
 	}
 
 	return &graphpb.SearchBrowseResponse{
-		Nodes: nodesToGrpc(nodes),
+		Nodes: services.NodesToGrpc(nodes),
 	}, nil
 }
 

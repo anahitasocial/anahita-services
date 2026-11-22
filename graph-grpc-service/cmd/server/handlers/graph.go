@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"anahita-libs/data/entities"
+	"anahita-libs/data/services"
 	"anahita-libs/proto/graphpb"
 	"context"
 	"graph/requests"
@@ -36,7 +37,7 @@ func (h *graphHandler) BrowseNeighbours(ctx context.Context, req *graphpb.Browse
 	// log.Printf("BrowseNeighbours response IDs: %v, Total: %d", ids, total)
 
 	return &graphpb.BrowseNeighboursResponse{
-		Nodes: nodesToGrpc(result),
+		Nodes: services.NodesToGrpc(result),
 		Total: total,
 	}, nil
 }
@@ -59,7 +60,7 @@ func (h *graphHandler) BrowseConnectionNodes(ctx context.Context, req *graphpb.B
 	}
 
 	return &graphpb.BrowseConnectionNodesResponse{
-		Nodes: nodesToGrpc(result),
+		Nodes: services.NodesToGrpc(result),
 		Total: total,
 	}, nil
 }
@@ -85,7 +86,7 @@ func (h *graphHandler) BrowseOrderedByDegree(ctx context.Context, req *graphpb.B
 	}
 
 	return &graphpb.BrowseOrderedByDegreeResponse{
-		Nodes: nodesToGrpc(result),
+		Nodes: services.NodesToGrpc(result),
 		Total: total,
 	}, nil
 }
@@ -122,7 +123,7 @@ func (h *graphHandler) Trending(ctx context.Context, req *graphpb.TrendingReques
 	}
 
 	return &graphpb.TrendingResponse{
-		Nodes:    nodesToGrpc(result),
+		Nodes:    services.NodesToGrpc(result),
 		Profiles: profiles,
 	}, nil
 }

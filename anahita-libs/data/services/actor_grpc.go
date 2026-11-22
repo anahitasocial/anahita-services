@@ -273,7 +273,7 @@ func (srv *ActorsGRPC) Edit(item *entities.AnahitaNode, viewer *entities.Viewer)
 	}
 
 	resp, err := client.Edit(context.Background(), &graphpb.ActorEditRequest{
-		Actor: graphNodeToGrpc(item),
+		Actor: NodeToGrpc(item),
 		Viewer: &graphpb.Viewer{
 			Id:         viewer.ID,
 			PersonType: viewer.PersonType,
@@ -302,7 +302,7 @@ func (srv *ActorsGRPC) Add(item *entities.AnahitaNode, viewer *entities.Viewer) 
 	}
 
 	resp, err := client.Add(context.Background(), &graphpb.ActorAddRequest{
-		Actor: graphNodeToGrpc(item),
+		Actor: NodeToGrpc(item),
 		Viewer: &graphpb.Viewer{
 			Id:         viewer.ID,
 			PersonType: viewer.PersonType,

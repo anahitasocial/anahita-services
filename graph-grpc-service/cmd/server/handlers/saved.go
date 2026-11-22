@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/data/services"
 	"context"
 	"log"
 	"sort"
@@ -124,7 +125,7 @@ func (h *mediumHandler) BrowseSaved(ctx context.Context, req *graphpb.SavedBrows
 	}
 
 	return &graphpb.SavedBrowseResponse{
-		Nodes: nodesToGrpc(nodes),
+		Nodes: services.NodesToGrpc(nodes),
 		Total: total,
 	}, nil
 }
@@ -198,7 +199,7 @@ func (h *mediumHandler) BrowseCitedBy(ctx context.Context, req *graphpb.CitedByB
 	}
 
 	return &graphpb.CitedByBrowseResponse{
-		Nodes: nodesToGrpc(nodes),
+		Nodes: services.NodesToGrpc(nodes),
 		Total: total,
 	}, nil
 }
@@ -213,7 +214,7 @@ func (h *mediumHandler) BrowseAuthored(ctx context.Context, req *graphpb.Authore
 		return nil, err
 	}
 
-	return &graphpb.AuthoredBrowseResponse{Nodes: nodesToGrpc(nodes)}, nil
+	return &graphpb.AuthoredBrowseResponse{Nodes: services.NodesToGrpc(nodes)}, nil
 }
 
 // newestFirst puts two lists of posts, each newest first, into one, and takes

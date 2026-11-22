@@ -243,7 +243,7 @@ func (srv *GraphNodeGRPC) UpsertRemote(node *entities.AnahitaNode) (*entities.An
 		return nil, false, nil
 	}
 
-	resp, err := client.UpsertRemote(context.Background(), &graphpb.NodeUpsertRemoteRequest{Node: graphNodeToGrpc(node)})
+	resp, err := client.UpsertRemote(context.Background(), &graphpb.NodeUpsertRemoteRequest{Node: NodeToGrpc(node)})
 	if err != nil {
 		return nil, false, err
 	}
@@ -299,7 +299,7 @@ func (srv *GraphNodeGRPC) Edit(node *entities.AnahitaNode) (*entities.AnahitaNod
 	}
 
 	req := &graphpb.NodeEditRequest{
-		Node: graphNodeToGrpc(node),
+		Node: NodeToGrpc(node),
 	}
 
 	resp, err := client.Edit(context.Background(), req)
@@ -324,7 +324,7 @@ func (srv *GraphNodeGRPC) Add(node *entities.AnahitaNode) (*entities.AnahitaNode
 	}
 
 	req := &graphpb.NodeAddRequest{
-		Node: graphNodeToGrpc(node),
+		Node: NodeToGrpc(node),
 	}
 
 	resp, err := client.Add(context.Background(), req)
@@ -520,7 +520,7 @@ func (srv *GraphNodeGRPC) BatchEdit(nodes []*entities.AnahitaNode) ([]*entities.
 
 	var grpcNodes []*graphpb.Node
 	for _, n := range nodes {
-		grpcNodes = append(grpcNodes, graphNodeToGrpc(n))
+		grpcNodes = append(grpcNodes, NodeToGrpc(n))
 	}
 
 	resp, err := client.BatchEdit(context.Background(), &graphpb.NodeBatchEditRequest{
@@ -548,7 +548,7 @@ func (srv *GraphNodeGRPC) BatchAdd(nodes []*entities.AnahitaNode) ([]*entities.A
 
 	var grpcNodes []*graphpb.Node
 	for _, n := range nodes {
-		grpcNodes = append(grpcNodes, graphNodeToGrpc(n))
+		grpcNodes = append(grpcNodes, NodeToGrpc(n))
 	}
 
 	resp, err := client.BatchAdd(context.Background(), &graphpb.NodeBatchAddRequest{

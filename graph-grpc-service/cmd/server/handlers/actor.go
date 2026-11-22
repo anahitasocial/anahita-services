@@ -3,6 +3,7 @@ package handlers
 import (
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/data/services"
 	"anahita-libs/event"
 	"anahita-libs/proto/graphpb"
 	"context"
@@ -106,7 +107,7 @@ func (h *actorHandler) Browse(ctx context.Context, req *graphpb.ActorBrowseReque
 	}
 
 	return &graphpb.ActorBrowseResponse{
-		Actors: nodesToGrpc(actors),
+		Actors: services.NodesToGrpc(actors),
 	}, nil
 }
 
@@ -135,7 +136,7 @@ func (h *actorHandler) Read(ctx context.Context, req *graphpb.ActorReadRequest) 
 		return nil, err
 	}
 
-	actor := nodeToGrpc(node)
+	actor := services.NodeToGrpc(node)
 	defaults, err := loader.Load(actor.Type)
 	if err != nil {
 		log.Printf("Failed to load default features for %s: %v", actor.Type, err)
@@ -184,7 +185,7 @@ func (h *actorHandler) BatchRead(ctx context.Context, req *graphpb.ActorBatchRea
 		actor.IsSubscribedByViewer = subscriptionStatuses[actor.ID].IsSubscribed
 	}
 
-	actors := nodesToGrpc(result)
+	actors := services.NodesToGrpc(result)
 
 	// The actor_features defaults, merged in exactly as Read does. Without
 	// them an actor read in a batch carried only its raw features column —
@@ -226,7 +227,7 @@ func (h *actorHandler) Edit(ctx context.Context, req *graphpb.ActorEditRequest) 
 		return nil, err
 	}
 
-	actor := nodeToGrpc(result)
+	actor := services.NodeToGrpc(result)
 
 	if actor.Type != "" {
 		loader := features.NewFeatureLoader(h.env.Config.GetActorFeaturesPath())
@@ -286,7 +287,7 @@ func (h *actorHandler) Add(ctx context.Context, req *graphpb.ActorAddRequest) (*
 		return nil, err
 	}
 
-	actor := nodeToGrpc(result)
+	actor := services.NodeToGrpc(result)
 
 	if actor.Type != "" {
 		loader := features.NewFeatureLoader(h.env.Config.GetActorFeaturesPath())

@@ -255,13 +255,33 @@ func grpcToGraphNode(m *graphpb.Node) *entities.AnahitaNode {
 	return n
 }
 
-func graphNodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
+// NodesToGrpc is NodeToGrpc for a list.
+func NodesToGrpc(nodes []*entities.AnahitaNode) []*graphpb.Node {
+	grpcNodes := make([]*graphpb.Node, 0, len(nodes))
+	for _, node := range nodes {
+		grpcNodes = append(grpcNodes, NodeToGrpc(node))
+	}
+	return grpcNodes
+}
+
+// NodeToGrpc is a node as it crosses to or from graph-grpc-service: the one
+// converter both sides use, so that what one sends the other is sent too
+// (roadmap row 170: there were two, and they had drifted, one never sending
+// the UUID, the other whether the viewer has blocked them).
+//
+// Left out on purpose, and named in the test that guards the rest
+// (TestEveryFieldCrossesBothWays): when a person last visited, which the
+// graph reads and nothing is told (nobody is tracked); an actor's features,
+// which graph-grpc-service sets on what it sends (actor_features); and
+// whether the viewer quoted a post, which nothing sets.
+func NodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 	if node == nil {
 		return nil
 	}
 
 	grpcNode := &graphpb.Node{
 		Id:                        node.ID,
+		Uuid:                      node.UUID,
 		Uri:                       node.URI,
 		OriginDomain:              node.OriginDomain,
 		Type:                      node.Type,
@@ -337,38 +357,42 @@ func graphNodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		FeaturesRaw:               string(node.FeaturesRaw),
 	}
 
+	// Only set when the actor is actually scheduled for deletion.
+	// timestamppb.New on a nil-derived zero time would send the epoch, which a
+	// client reads as "deleted long ago" — the opposite of the truth.
+	if node.DeletedAt != nil {
+		grpcNode.DeletedAt = timestamppb.New(*node.DeletedAt)
+	}
+
+	// Likewise only when featured: the epoch would read as "featured long ago"
+	// and put every actor in the list.
 	if node.FeaturedAt != nil {
 		grpcNode.FeaturedAt = timestamppb.New(*node.FeaturedAt)
 	}
 
 	// Only create Owner if it has data
 	if node.Owner != nil && node.Owner.ID != 0 {
-		grpcNode.Owner = graphNodeToGrpc(node.Owner)
+		grpcNode.Owner = NodeToGrpc(node.Owner)
 	}
 
-	// Only create Parent if it has data
+	// Only create Parent if it has data: its own owner goes with it.
 	if node.Parent != nil && node.Parent.ID != 0 {
-		grpcNode.Parent = graphNodeToGrpc(node.Parent)
-	}
-
-	// Only create Parent Owner if it has data
-	if node.Parent != nil && node.Parent.Owner != nil && node.Parent.Owner.ID != 0 {
-		grpcNode.Parent.Owner = graphNodeToGrpc(node.Parent.Owner)
+		grpcNode.Parent = NodeToGrpc(node.Parent)
 	}
 
 	// Only create Author if it has data
 	if node.Author != nil && node.Author.ID != 0 {
-		grpcNode.Author = graphNodeToGrpc(node.Author)
+		grpcNode.Author = NodeToGrpc(node.Author)
 	}
 
 	// Only create Editor if it has data
 	if node.Editor != nil && node.Editor.ID != 0 {
-		grpcNode.Editor = graphNodeToGrpc(node.Editor)
+		grpcNode.Editor = NodeToGrpc(node.Editor)
 	}
 
 	grpcNode.ThreadCount = node.ThreadCount
 	if node.ThreadNext != nil {
-		grpcNode.ThreadNext = graphNodeToGrpc(node.ThreadNext)
+		grpcNode.ThreadNext = NodeToGrpc(node.ThreadNext)
 	}
 
 	return grpcNode

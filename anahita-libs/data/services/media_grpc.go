@@ -254,7 +254,7 @@ func (srv *MediaGRPC) Edit(item *entities.AnahitaNode, viewer *entities.Viewer) 
 	}
 
 	resp, err := client.Edit(context.Background(), &graphpb.MediumEditRequest{
-		Medium: graphNodeToGrpc(item),
+		Medium: NodeToGrpc(item),
 		Viewer: &graphpb.Viewer{
 			Id:         viewer.ID,
 			PersonType: viewer.PersonType,
@@ -290,7 +290,7 @@ func (srv *MediaGRPC) AddWithLocations(item *entities.AnahitaNode, viewer *entit
 	}
 
 	resp, err := client.Add(context.Background(), &graphpb.MediumAddRequest{
-		Medium: graphNodeToGrpc(item),
+		Medium: NodeToGrpc(item),
 		Viewer: &graphpb.Viewer{
 			Id:         viewer.ID,
 			PersonType: viewer.PersonType,
@@ -337,7 +337,7 @@ func (srv *MediaGRPC) AddThread(parentID int64, parts []*entities.AnahitaNode, v
 		LocationIds: locationIDs,
 	}
 	for position, part := range parts {
-		req.Parts = append(req.Parts, graphNodeToGrpc(part))
+		req.Parts = append(req.Parts, NodeToGrpc(part))
 		if each, ok := partFiles[position]; ok {
 			req.PartFiles = append(req.PartFiles, &graphpb.ThreadPartFiles{
 				Position:  int32(position),

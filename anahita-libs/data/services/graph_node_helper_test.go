@@ -2,11 +2,16 @@ package services
 
 import (
 	"encoding/json"
+	"reflect"
+	"strings"
 	"testing"
 	"time"
 
 	"anahita-libs/data/entities"
 	"anahita-libs/proto/graphpb"
+
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // A field that survives the database, the proto and the response but is
@@ -29,7 +34,7 @@ func TestNodeMappingRoundTripPreservesEditableFields(t *testing.T) {
 	original.Enabled = true
 	original.Verified = true
 
-	got := grpcToGraphNode(graphNodeToGrpc(original))
+	got := grpcToGraphNode(NodeToGrpc(original))
 	if got == nil {
 		t.Fatal("round trip produced nil")
 	}
@@ -66,7 +71,7 @@ func TestEmptyWebsiteRoundTripsAsEmpty(t *testing.T) {
 	original.ID = 42
 	original.WebsiteURL = ""
 
-	got := grpcToGraphNode(graphNodeToGrpc(original))
+	got := grpcToGraphNode(NodeToGrpc(original))
 	if got.WebsiteURL != "" {
 		t.Errorf("an empty website became %q", got.WebsiteURL)
 	}
@@ -121,14 +126,92 @@ func TestFeaturedAtRoundTrips(t *testing.T) {
 	original.ID = 42
 	original.FeaturedAt = &featured
 
-	got := grpcToGraphNode(graphNodeToGrpc(original))
+	got := grpcToGraphNode(NodeToGrpc(original))
 	if got.FeaturedAt == nil || !got.FeaturedAt.Equal(featured) {
 		t.Errorf("featured_at did not survive the round trip: got %v, want %v",
 			got.FeaturedAt, featured)
 	}
 
 	original.FeaturedAt = nil
-	if got := grpcToGraphNode(graphNodeToGrpc(original)); got.FeaturedAt != nil {
+	if got := grpcToGraphNode(NodeToGrpc(original)); got.FeaturedAt != nil {
 		t.Errorf("an actor that is not featured came back featured at %v", *got.FeaturedAt)
 	}
+}
+
+// THE RULE THIS GUARDS (roadmap row 170): every field of a node crosses
+// to and from graph-grpc-service, through the one converter both sides
+// use, except those left out on purpose and named here. A field added to
+// the proto and to one direction only fails this, by name.
+func TestEveryFieldCrossesBothWays(t *testing.T) {
+	leftOut := map[string]bool{
+		"LastVisitedAt":    true, // read by the graph, told to nobody
+		"Features":         true, // set by graph-grpc-service on what it sends
+		"IsQuotedByViewer": true, // set by nothing
+	}
+
+	sent := &graphpb.Node{}
+	value := reflect.ValueOf(sent).Elem()
+	kind := value.Type()
+	when := timestamppb.New(time.Date(2026, 11, 22, 9, 30, 0, 0, time.UTC))
+	for i := 0; i < kind.NumField(); i++ {
+		field := kind.Field(i)
+		if !field.IsExported() || leftOut[field.Name] {
+			continue
+		}
+		v := value.Field(i)
+		switch v.Kind() {
+		case reflect.String:
+			v.SetString(`{"a":1}`) // JSON, for the fields that carry it
+			if strings.HasSuffix(field.Name, "Filename") {
+				v.SetString("abc.jpg")
+			}
+		case reflect.Bool:
+			v.SetBool(true)
+		case reflect.Int32, reflect.Int64:
+			v.SetInt(7)
+		case reflect.Uint32, reflect.Uint64:
+			v.SetUint(7)
+		case reflect.Float32, reflect.Float64:
+			v.SetFloat(1.5)
+		case reflect.Pointer:
+			switch field.Type {
+			case reflect.TypeOf(when):
+				v.Set(reflect.ValueOf(when))
+			case reflect.TypeOf(sent):
+				v.Set(reflect.ValueOf(&graphpb.Node{Id: 9, Uuid: "u-9", Type: "t"}))
+			default:
+				t.Fatalf("%s: a kind of field this test does not fill (%s)", field.Name, field.Type)
+			}
+		default:
+			t.Fatalf("%s: a kind of field this test does not fill (%s)", field.Name, field.Type)
+		}
+	}
+
+	back := reflect.ValueOf(NodeToGrpc(grpcToGraphNode(sent))).Elem()
+	for i := 0; i < kind.NumField(); i++ {
+		field := kind.Field(i)
+		if !field.IsExported() || leftOut[field.Name] {
+			continue
+		}
+		want, got := value.Field(i).Interface(), back.Field(i).Interface()
+		if wantNode, ok := want.(*graphpb.Node); ok {
+			gotNode, _ := got.(*graphpb.Node)
+			if gotNode == nil || gotNode.Id != wantNode.Id || gotNode.Uuid != wantNode.Uuid {
+				t.Errorf("%s did not cross both ways: %v", field.Name, got)
+			}
+			continue
+		}
+		if !proto.Equal(protoOf(want), protoOf(got)) && !reflect.DeepEqual(want, got) {
+			t.Errorf("%s did not cross both ways: sent %v, got %v", field.Name, want, got)
+		}
+	}
+}
+
+// protoOf is a timestamp as a message, to be compared as one; anything else
+// compares as nothing, and is then compared as it is.
+func protoOf(v any) proto.Message {
+	if ts, ok := v.(*timestamppb.Timestamp); ok && ts != nil {
+		return ts
+	}
+	return (*timestamppb.Timestamp)(nil)
 }
