@@ -199,12 +199,6 @@ spec:
                   name: anahita-config
                   key: SUPPORT_WEBSITE
                   optional: true
-            - name: CORNER_RADIUS
-              valueFrom:
-                configMapKeyRef:
-                  name: anahita-config
-                  key: CORNER_RADIUS
-                  optional: true
             - name: TOTP_ISSUER
               valueFrom:
                 configMapKeyRef:

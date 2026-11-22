@@ -151,12 +151,3 @@ func TestNodeInfoGivesTheSitesLogo(t *testing.T) {
 		t.Errorf("logoUrl = %v, want SITE_LOGO_URL", got)
 	}
 }
-
-// How round the web app's corners are is the site's, read by the app at run
-// time (roadmap row 168).
-func TestNodeInfoSaysHowRoundTheCornersAre(t *testing.T) {
-	metadata := nodeInfoMetadata(t)
-	if _, ok := metadata["cornerRadius"].(float64); !ok {
-		t.Fatalf("cornerRadius is missing or not a number: %#v", metadata["cornerRadius"])
-	}
-}

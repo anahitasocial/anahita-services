@@ -10,6 +10,21 @@ made.
 Releases before v1.0.17 are described on GitHub, under
 [Releases](https://github.com/anahitasocial/anahita-services/releases).
 
+## Embryo
+
+### Removed
+
+1. **`CORNER_RADIUS`,** with NodeInfo's `cornerRadius`. How round the
+   corners are is the web app's to say, not the server's: anahita-web's
+   `REACT_APP_CORNER_RADIUS` and `REACT_APP_CORNER_RADIUS_MOBILE` set it
+   when the app is built.
+
+### Upgrading
+
+1. A site that set `CORNER_RADIUS` sets `REACT_APP_CORNER_RADIUS` in its
+   web app's build instead (anahita-web's `docs/configuration.md`), and
+   may take `CORNER_RADIUS` out of `config.env`: nothing reads it now.
+
 ## v1.5.0 Birth, 2026-11-21
 
 ### Added

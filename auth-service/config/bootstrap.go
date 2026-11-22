@@ -3,7 +3,6 @@ package config
 import (
 	"anahita-libs/getenv"
 	"fmt"
-	"log"
 	"os"
 	"slices"
 	"strings"
@@ -261,33 +260,6 @@ func (config *Config) GetSupportPhone() string {
 // GetSupportWebsite returns the support site, or "" when there is none.
 func (config *Config) GetSupportWebsite() string {
 	return strings.TrimSpace(config.SupportWebsite)
-}
-
-// CornerRadii are the names CORNER_RADIUS takes, and how round each is in
-// pixels: Material UI's own names for its shape tokens (roadmap row 168).
-var CornerRadii = map[string]int{
-	"none": 0,
-	"sm":   4,
-	"md":   8,
-	"lg":   16,
-	"xl":   24,
-}
-
-// DefaultCornerRadius is CORNER_RADIUS when it is unset: Material UI's own
-// 4 pixels, the look before the setting.
-const DefaultCornerRadius = "sm"
-
-// GetCornerRadius returns how round the web app's corners are, in pixels,
-// from CORNER_RADIUS's name; a name it does not know is the default.
-func (config *Config) GetCornerRadius() int {
-	name := strings.ToLower(strings.TrimSpace(config.CornerRadius))
-	if radius, ok := CornerRadii[name]; ok {
-		return radius
-	}
-	if name != "" {
-		log.Printf("CORNER_RADIUS is %q, not none, sm, md, lg or xl: %s is used", config.CornerRadius, DefaultCornerRadius)
-	}
-	return CornerRadii[DefaultCornerRadius]
 }
 
 // GetSuperAdminEmail returns the address the first super administrator is
