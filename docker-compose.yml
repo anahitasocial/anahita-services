@@ -126,7 +126,7 @@ services:
       # NodeInfo, so changing one is a restart and not a frontend rebuild.
       SUPPORT_PHONE: ${SUPPORT_PHONE:-}
       SUPPORT_WEBSITE: ${SUPPORT_WEBSITE:-}
-      # How round the web app's corners are, in pixels, 0 to 24; 4 when
+      # How round the web app's corners are: none, sm, md, lg or xl; sm when
       # unset. Published through NodeInfo, so a change is a restart.
       CORNER_RADIUS: ${CORNER_RADIUS:-}
       # Label authenticator apps show for 2FA entries. Optional —

@@ -15,9 +15,10 @@ Releases before v1.0.17 are described on GitHub, under
 ### Added
 
 1. **Rounder or squarer corners.** `CORNER_RADIUS` sets how round the web
-   app's corners are, in pixels from 0 to 24, for everybody who has not
-   chosen their own. Unset, it is 4, as before. It is published through
-   NodeInfo, so a change is a restart.
+   app's corners are, for everybody who has not chosen their own, by
+   Material UI's names: `none`, `sm` (4 pixels), `md` (8), `lg` (16) or `xl`
+   (24). Unset, it is `sm`, as before. It is published through NodeInfo, in
+   pixels, so a change is a restart.
 
 ### Changed
 

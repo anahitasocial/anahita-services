@@ -375,7 +375,7 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 			"supportWebsite": h.Config.GetSupportWebsite(),
 
 			// How round the web app's corners are, in pixels, for whoever
-			// has not chosen their own (CORNER_RADIUS).
+			// has not chosen their own (CORNER_RADIUS, by name).
 			"cornerRadius": h.Config.GetCornerRadius(),
 		},
 	}

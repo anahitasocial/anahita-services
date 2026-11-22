@@ -296,7 +296,7 @@ servers read, and the web app reads it too.
    `invitationsAccepted`, `termsOfServiceUrl`, `privacyPolicyUrl`,
    `supportEmail`, `supportPhone`, `supportWebsite` and `nodeDescription`;
    `cornerRadius`, how round the app's corners are in pixels
-   (`CORNER_RADIUS`).
+   (`CORNER_RADIUS`, by name).
    Also `invitesFrom`, `groupsFrom`, `eventsFrom` and `locationsFrom`, the
    least role that may invite, create a group, create an event or add a
    location; `photoMaxFiles`, the most

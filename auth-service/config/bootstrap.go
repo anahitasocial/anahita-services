@@ -3,6 +3,7 @@ package config
 import (
 	"anahita-libs/getenv"
 	"fmt"
+	"log"
 	"os"
 	"slices"
 	"strings"
@@ -262,24 +263,31 @@ func (config *Config) GetSupportWebsite() string {
 	return strings.TrimSpace(config.SupportWebsite)
 }
 
-// DefaultCornerRadius and MaxCornerRadius bound CORNER_RADIUS: 4 pixels is
-// Material UI's own, the look before the setting; past 24 a card's corners
-// are no longer corners (roadmap row 168).
-const (
-	DefaultCornerRadius = 4
-	MaxCornerRadius     = 24
-)
+// CornerRadii are the names CORNER_RADIUS takes, and how round each is in
+// pixels: Material UI's own names for its shape tokens (roadmap row 168).
+var CornerRadii = map[string]int{
+	"none": 0,
+	"sm":   4,
+	"md":   8,
+	"lg":   16,
+	"xl":   24,
+}
+
+// DefaultCornerRadius is CORNER_RADIUS when it is unset: Material UI's own
+// 4 pixels, the look before the setting.
+const DefaultCornerRadius = "sm"
 
 // GetCornerRadius returns how round the web app's corners are, in pixels,
-// held between 0 and MaxCornerRadius.
+// from CORNER_RADIUS's name; a name it does not know is the default.
 func (config *Config) GetCornerRadius() int {
-	switch {
-	case config.CornerRadius < 0:
-		return 0
-	case config.CornerRadius > MaxCornerRadius:
-		return MaxCornerRadius
+	name := strings.ToLower(strings.TrimSpace(config.CornerRadius))
+	if radius, ok := CornerRadii[name]; ok {
+		return radius
 	}
-	return config.CornerRadius
+	if name != "" {
+		log.Printf("CORNER_RADIUS is %q, not none, sm, md, lg or xl: %s is used", config.CornerRadius, DefaultCornerRadius)
+	}
+	return CornerRadii[DefaultCornerRadius]
 }
 
 // GetSuperAdminEmail returns the address the first super administrator is
