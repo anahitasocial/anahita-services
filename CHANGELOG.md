@@ -24,6 +24,9 @@ Releases before v1.0.17 are described on GitHub, under
 2. **A post the bus lost still reaches Bluesky.** A post written to
    Bluesky when its making is heard is now also found, within a few
    minutes, when the word of it never came, as the fediverse has done.
+3. **A long post from a channel's feed keeps its link's card on Bluesky.**
+   Cut to fit, it carried a card of itself on this site; it now carries the
+   card of the item it links to, with its picture.
 
 ## v1.6.0 Birth, 2026-11-21
 

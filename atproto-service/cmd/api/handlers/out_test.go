@@ -20,6 +20,7 @@ import (
 	"anahita-libs/event"
 	"anahita-libs/federation"
 	"anahita-libs/linkpreviews"
+	"anahita-libs/permissions"
 )
 
 const (
@@ -891,6 +892,44 @@ func TestTheCardOfALinkGoesWithItsPicture(t *testing.T) {
 	out, _ := json.Marshal(w.writer.records["app.bsky.feed.post/"+w.sent.rows[0].RKey])
 	if want := `"thumb":{"$type":"blob","ref":{"$link":"blob1"}`; !strings.Contains(string(out), want) {
 		t.Errorf("the card lacks %s:\n%s", want, out)
+	}
+}
+
+// A channel's note from its feed, cut to fit, keeps the card of its link,
+// with its picture: the whole of it is there. A person's note cut to fit
+// leads to itself here instead (the user, 2026-11-22).
+func TestALongNoteFromAFeedKeepsItsLinksCard(t *testing.T) {
+	w, _ := writingWorld(t)
+	w.connect()
+
+	w.files.content[linkpreviews.StoragePrefix+"card.jpg"] = aPicture(t)
+	card := linkpreviews.IntoMeta(nil, &linkpreviews.Snapshot{URL: "https://example.com/story", Title: "The story", ImageKey: "card.jpg"})
+	long := "**The story**\n\n" + strings.Repeat("Rain fell and the wind blew. ", 12) + "\n\nhttps://example.com/story"
+	w.nodes.kept = append(w.nodes.kept,
+		&entities.AnahitaNode{
+			ID: 97, Type: constants.NodeMediumNoteEntityType, Enabled: true, OwnerID: anaID, CreatedBy: anaID,
+			Access: constants.AnahitaAccessPublic, Body: long, Meta: permissions.WithFromFeed(card),
+		},
+		&entities.AnahitaNode{
+			ID: 98, Type: constants.NodeMediumNoteEntityType, Enabled: true, OwnerID: anaID, CreatedBy: anaID,
+			Access: constants.AnahitaAccessPublic, Body: long, Meta: card,
+		},
+	)
+	for _, id := range []int64{97, 98} {
+		w.heard("node.medium.text-service.note.added.v1", event.EventPayload{ObjectType: constants.NodeMediumNoteEntityType, ObjectID: id})
+		if failed := w.drain(); len(failed) != 0 {
+			t.Fatal(failed)
+		}
+	}
+	fromFeed, _ := json.Marshal(w.writer.records["app.bsky.feed.post/"+w.sent.rows[0].RKey])
+	for _, want := range []string{`"uri":"https://example.com/story"`, `"thumb":{"$type":"blob"`} {
+		if !strings.Contains(string(fromFeed), want) {
+			t.Errorf("the feed's note lacks %s:\n%s", want, fromFeed)
+		}
+	}
+	persons, _ := json.Marshal(w.writer.records["app.bsky.feed.post/"+w.sent.rows[1].RKey])
+	if want := `/notes/98"`; !strings.Contains(string(persons), want) {
+		t.Errorf("a person's long note does not lead to itself here:\n%s", persons)
 	}
 }
 

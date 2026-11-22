@@ -628,8 +628,10 @@ func (h *Handlers) record(ctx context.Context, w *write, upload uploader) (any, 
 	}
 	// Cut to what Bluesky takes: the card is of the post itself, here,
 	// where the rest of it is (the user, 2026-10-17), when it carries
-	// nothing else. A post has pictures or a card, not both.
-	if post.Cut && post.Embed == nil {
+	// nothing else. A post has pictures or a card, not both. Not a
+	// channel's note from its feed: the whole of it is at its link, whose
+	// card it keeps, with its picture (the user, 2026-11-22).
+	if post.Cut && post.Embed == nil && !permissions.FromFeed(note.Meta) {
 		post.WithCard(h.Site.Web(fmt.Sprintf("/notes/%d", note.ID)), cutTitle(note), h.Site.Domain, nil)
 	}
 	// One with pictures or a video ends with a link to the rest instead,

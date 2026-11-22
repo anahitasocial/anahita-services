@@ -1690,7 +1690,9 @@ its own. The card says to use one and where to make it.
    beside it (`bsky.ShortLink`, roadmap row 144), and what is longer than
    three hundred letters is cut
    with a mark to say so; a note so cut carries a card of itself here,
-   where the rest is. A post with pictures or a video has no room for a
+   where the rest is. Not a channel's note from its feed, which is only the
+   item's title, summary and link: it keeps the card of its link, picture
+   and all, since the whole of it is there. A post with pictures or a video has no room for a
    card, so when it is cut its words end instead with the address of the
    post here, on a line of its own. A post that quotes one that is on
    Bluesky, from there or one of this installation's written there, is a
