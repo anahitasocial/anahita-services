@@ -3,6 +3,7 @@ package handlers
 import (
 	"actor/responses"
 	an_constants "anahita-libs/constants"
+	an_handlers "anahita-libs/handlers"
 	"anahita-libs/requests"
 	libs_responses "anahita-libs/responses"
 	"log"
@@ -24,12 +25,7 @@ func (h *personHandler) EditGraphAccess(c echo.Context) error {
 		req    = &requests.ActorEditGraphAccessRequest{}
 		viewer = getViewer(c)
 	)
-	if err := c.Bind(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-	if err := c.Validate(req); err != nil {
-		log.Println(err)
+	if !an_handlers.Bound(c, req) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
@@ -72,12 +68,7 @@ func (h *groupHandler) EditGraphAccess(c echo.Context) error {
 		req    = &requests.ActorEditGraphAccessRequest{}
 		viewer = getViewer(c)
 	)
-	if err := c.Bind(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-	if err := c.Validate(req); err != nil {
-		log.Println(err)
+	if !an_handlers.Bound(c, req) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 	if req.GraphAccess == an_constants.AnahitaAccessLeaders || req.GraphAccess == an_constants.AnahitaAccessMutuals {

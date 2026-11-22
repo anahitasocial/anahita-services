@@ -16,8 +16,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/labstack/echo/v4"
 	"strings"
+
+	"github.com/labstack/echo/v4"
 )
 
 type personHandler struct {
@@ -45,13 +46,7 @@ func (h *personHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	if err := c.Bind(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	if err := c.Validate(req); err != nil {
-		log.Println(err)
+	if !an_handlers.Bound(c, req) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
@@ -128,13 +123,7 @@ func (h *personHandler) Read(c echo.Context) error {
 		viewer = getViewer(c)
 	)
 
-	if err := c.Bind(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	if err := c.Validate(req); err != nil {
-		log.Println(err)
+	if !an_handlers.Bound(c, req) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
@@ -421,12 +410,7 @@ func (h *personHandler) Archive(c echo.Context) error {
 		viewer = getViewer(c)
 	)
 
-	if err := c.Bind(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-	if err := c.Validate(req); err != nil {
-		log.Println(err)
+	if !an_handlers.Bound(c, req) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
@@ -612,12 +596,7 @@ func (h *personHandler) DeletionCounts(c echo.Context) error {
 		viewer = getViewer(c)
 	)
 
-	if err := c.Bind(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-	if err := c.Validate(req); err != nil {
-		log.Println(err)
+	if !an_handlers.Bound(c, req) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 

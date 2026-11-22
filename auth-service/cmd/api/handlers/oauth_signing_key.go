@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	an_handlers "anahita-libs/handlers"
 	"errors"
 	"log"
 	"net/http"
@@ -74,12 +75,7 @@ func (h *oauthHandler) ReadSigningKey(c echo.Context) error {
 
 	req := requests.NewOAuthSigningKeyRequest().Read
 
-	if err := c.Bind(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-	if err := c.Validate(req); err != nil {
-		log.Println(err)
+	if !an_handlers.Bound(c, req) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
@@ -123,12 +119,7 @@ func (h *oauthHandler) EditSigningKey(c echo.Context) error {
 
 	req := requests.NewOAuthSigningKeyRequest().Edit
 
-	if err := c.Bind(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-	if err := c.Validate(req); err != nil {
-		log.Println(err)
+	if !an_handlers.Bound(c, req) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 

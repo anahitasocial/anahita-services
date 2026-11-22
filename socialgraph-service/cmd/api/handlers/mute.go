@@ -4,6 +4,7 @@ import (
 	"anahita-libs/constants"
 	an_entities "anahita-libs/data/entities"
 	"anahita-libs/data/services"
+	an_handlers "anahita-libs/handlers"
 	an_requests "anahita-libs/requests"
 	"anahita-libs/responses"
 	"log"
@@ -45,12 +46,7 @@ func (h *muteHandler) Browse(c echo.Context) error {
 		viewer   = getViewer(c)
 	)
 
-	if err := c.Bind(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-	if err := c.Validate(req); err != nil {
-		log.Println(err)
+	if !an_handlers.Bound(c, req) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 	if err := c.Bind(actorReq); err != nil {
@@ -144,12 +140,7 @@ func (h *muteHandler) Add(c echo.Context) error {
 		viewer = getViewer(c)
 	)
 
-	if err := c.Bind(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-	if err := c.Validate(req); err != nil {
-		log.Println(err)
+	if !an_handlers.Bound(c, req) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
@@ -196,12 +187,7 @@ func (h *muteHandler) Delete(c echo.Context) error {
 		viewer = getViewer(c)
 	)
 
-	if err := c.Bind(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-	if err := c.Validate(req); err != nil {
-		log.Println(err)
+	if !an_handlers.Bound(c, req) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 

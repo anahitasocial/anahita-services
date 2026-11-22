@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"anahita-libs/data/entities"
+	an_handlers "anahita-libs/handlers"
 	"anahita-libs/responses"
 	"log"
 	"net/http"
@@ -29,13 +30,7 @@ func (h *subscriptionHandler) Add(c echo.Context) error {
 		viewer = getViewer(c)
 	)
 
-	if err := c.Bind(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	if err := c.Validate(req); err != nil {
-		log.Println(err)
+	if !an_handlers.Bound(c, req) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
@@ -114,13 +109,7 @@ func (h *subscriptionHandler) Delete(c echo.Context) error {
 		viewer = getViewer(c)
 	)
 
-	if err := c.Bind(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	if err := c.Validate(req); err != nil {
-		log.Println(err)
+	if !an_handlers.Bound(c, req) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 

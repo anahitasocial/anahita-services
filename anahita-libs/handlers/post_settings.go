@@ -56,19 +56,6 @@ func AccessContext(socialgraph services.SocialgraphGRPCInterface, post *entities
 // reply is not quoted.
 const replyFollowsItsThread = "reply_follows_its_thread"
 
-// bound reads a request into req, and answers 400 when it cannot.
-func bound(c echo.Context, req any) bool {
-	if err := c.Bind(req); err != nil {
-		log.Println(err)
-		return false
-	}
-	if err := c.Validate(req); err != nil {
-		log.Println(err)
-		return false
-	}
-	return true
-}
-
 // read reads the post a request is about. When it cannot, it has answered
 // the request, and the post is nil.
 func (s PostSettings) read(c echo.Context, id int64, viewer *entities.Viewer) (*entities.AnahitaNode, error) {
@@ -130,7 +117,7 @@ func (s PostSettings) saved(c echo.Context, post *entities.AnahitaNode, viewer *
 // PATCH /{kind}/:id/access
 func (s PostSettings) EditAccess(c echo.Context) error {
 	req, viewer := requests.NewMediumRequest().EditAccess, an_mw.GetViewer(c)
-	if !bound(c, req) {
+	if !Bound(c, req) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
@@ -165,7 +152,7 @@ func (s PostSettings) EditAccess(c echo.Context) error {
 // PATCH /{kind}/:id/comment-status
 func (s PostSettings) EditCommentStatus(c echo.Context) error {
 	req, viewer := requests.NewMediumRequest().EditCommentStatus, an_mw.GetViewer(c)
-	if !bound(c, req) {
+	if !Bound(c, req) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 	post, _, answered := s.editable(c, req.ID, viewer)
@@ -183,7 +170,7 @@ func (s PostSettings) EditCommentStatus(c echo.Context) error {
 // PATCH /{kind}/:id/reply-access
 func (s PostSettings) EditReplyAccess(c echo.Context) error {
 	req, viewer := &requests.MediumEditReplyAccessRequest{}, an_mw.GetViewer(c)
-	if !bound(c, req) {
+	if !Bound(c, req) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 	replyAccess, valid := RequestReplyAccess(req.ReplyAccess)
@@ -206,7 +193,7 @@ func (s PostSettings) EditReplyAccess(c echo.Context) error {
 // PATCH /{kind}/:id/quote-policy
 func (s PostSettings) EditQuotePolicy(c echo.Context) error {
 	req, viewer := &requests.MediumEditQuotePolicyRequest{}, an_mw.GetViewer(c)
-	if !bound(c, req) {
+	if !Bound(c, req) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 	quotePolicy, valid := RequestQuotePolicy(req.QuotePolicy)
@@ -229,7 +216,7 @@ func (s PostSettings) EditQuotePolicy(c echo.Context) error {
 // PATCH /{kind}/:id/warning
 func (s PostSettings) EditWarning(c echo.Context) error {
 	req, viewer := &requests.MediumEditWarningRequest{}, an_mw.GetViewer(c)
-	if !bound(c, req) {
+	if !Bound(c, req) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 

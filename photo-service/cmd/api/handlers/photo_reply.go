@@ -58,12 +58,7 @@ func (h *photoHandler) AddReply(c echo.Context) error {
 	if err != nil || parentID <= 0 {
 		return c.NoContent(http.StatusBadRequest)
 	}
-	if err := c.Bind(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-	if err := c.Validate(req); err != nil {
-		log.Println(err)
+	if !handlers.Bound(c, req) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 	if len(req.Uploads) == 0 {

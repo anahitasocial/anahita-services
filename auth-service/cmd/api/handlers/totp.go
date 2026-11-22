@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	an_handlers "anahita-libs/handlers"
 	"bytes"
 	"encoding/json"
 	"image/png"
@@ -37,13 +38,7 @@ func (h *totpHandler) Verify(c echo.Context) error {
 		totpValidator = newTotpValidatorHandler(h.Env)
 	)
 
-	if err := c.Bind(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	if err := c.Validate(req); err != nil {
-		log.Println(err)
+	if !an_handlers.Bound(c, req) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
@@ -139,13 +134,7 @@ func (h *totpHandler) Add(c echo.Context) error {
 		req    = &requests.TotpPassword{}
 	)
 
-	if err := c.Bind(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	if err := c.Validate(req); err != nil {
-		log.Println(err)
+	if !an_handlers.Bound(c, req) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
@@ -244,13 +233,7 @@ func (h *totpHandler) AddRecoveryCodes(c echo.Context) error {
 	)
 
 	req := &requests.TotpRecoveryCodes{}
-	if err := c.Bind(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	if err := c.Validate(req); err != nil {
-		log.Println(err)
+	if !an_handlers.Bound(c, req) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 

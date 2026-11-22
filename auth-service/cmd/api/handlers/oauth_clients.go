@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	an_handlers "anahita-libs/handlers"
 	"crypto/rand"
 	"encoding/base64"
 	"log"
@@ -47,12 +48,7 @@ func (h *oauthHandler) ReadClient(c echo.Context) error {
 	req := requests.NewOAuthClientRequest().Read
 	viewer := getViewer(c)
 
-	if err := c.Bind(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-	if err := c.Validate(req); err != nil {
-		log.Println(err)
+	if !an_handlers.Bound(c, req) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
@@ -97,12 +93,7 @@ func (h *oauthHandler) AddClient(c echo.Context) error {
 		return stepUpRequired(c, err)
 	}
 
-	if err := c.Bind(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-	if err := c.Validate(req); err != nil {
-		log.Println(err)
+	if !an_handlers.Bound(c, req) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
@@ -161,12 +152,7 @@ func (h *oauthHandler) EditClient(c echo.Context) error {
 	req := requests.NewOAuthClientRequest().Edit
 	viewer := getViewer(c)
 
-	if err := c.Bind(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-	if err := c.Validate(req); err != nil {
-		log.Println(err)
+	if !an_handlers.Bound(c, req) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
@@ -223,12 +209,7 @@ func (h *oauthHandler) DeleteClient(c echo.Context) error {
 	req := requests.NewOAuthClientRequest().Delete
 	viewer := getViewer(c)
 
-	if err := c.Bind(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-	if err := c.Validate(req); err != nil {
-		log.Println(err)
+	if !an_handlers.Bound(c, req) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
@@ -279,12 +260,7 @@ func (h *oauthHandler) RotateClientSecret(c echo.Context) error {
 	req := requests.NewOAuthClientRequest().Read
 	viewer := getViewer(c)
 
-	if err := c.Bind(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-	if err := c.Validate(req); err != nil {
-		log.Println(err)
+	if !an_handlers.Bound(c, req) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 

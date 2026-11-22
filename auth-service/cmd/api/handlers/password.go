@@ -2,6 +2,7 @@ package handlers
 
 import (
 	libs_constants "anahita-libs/constants"
+	an_handlers "anahita-libs/handlers"
 	"fmt"
 	"log"
 	"net/http"
@@ -435,12 +436,7 @@ func (h *passwordHandler) Edit(c echo.Context) error {
 	}
 
 	req := &requests.PasswordEdit{}
-	if err := c.Bind(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-	if err := c.Validate(req); err != nil {
-		log.Println(err)
+	if !an_handlers.Bound(c, req) {
 		return c.NoContent(http.StatusBadRequest)
 	}
 

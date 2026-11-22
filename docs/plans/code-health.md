@@ -216,4 +216,10 @@ disagree first:
     had: told to stop, a service finishes what is in flight, for up to 20
     seconds (`TestAServiceFinishesWhatItIsAnsweringBeforeItStops`); tried on
     the dev stack with hashtag-service, auth-service and graph-grpc-service.
+12. **Item 24, fourth part, reading a request, done 2026-11-22.**
+    `handlers.Bound` in `anahita-libs`: a request read and checked, logging
+    why when it is not, in 129 places where the same ten lines were
+    written out, in twelve services (876 lines went, for 169). The other
+    108 that read a request answer or log in a way of their own, and keep
+    it.
 
