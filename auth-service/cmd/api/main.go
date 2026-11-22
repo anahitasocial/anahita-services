@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -19,6 +18,7 @@ import (
 	"anahita-libs/data"
 	"anahita-libs/event"
 	"anahita-libs/middleware"
+	"anahita-libs/server"
 	"anahita-libs/sessions"
 	"anahita-libs/validators"
 
@@ -26,8 +26,6 @@ import (
 	"github.com/labstack/echo/v4"
 	echo_middleware "github.com/labstack/echo/v4/middleware"
 )
-
-const webPort = "80"
 
 // Compile-time assertion that auth-service's Config satisfies the
 // anahita-libs middleware contract. If a method is added to
@@ -303,9 +301,9 @@ func main() {
 	// for sanity-checking — issuer mismatch is a common misconfig that
 	// looks like "auth is broken" without an obvious cause.
 	log.Printf("oauth: issuer=%s jwks=%s", cfg.GetOAuthIssuer(), cfg.GetOAuthJWKSURL())
-	log.Printf("auth-service listening on :%s", webPort)
+	log.Printf("auth-service listening on :%s", server.Port)
 
-	if err := e.Start(fmt.Sprintf(":%v", webPort)); err != nil {
-		e.Logger.Fatal(err)
-	}
+	// Served until told to stop, then stopped gracefully: a sign-in in
+	// flight finishes first.
+	server.Run(e)
 }

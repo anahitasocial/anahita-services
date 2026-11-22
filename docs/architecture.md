@@ -446,6 +446,7 @@ which is under Apache 2.0 so that services of others' own can make them
 | `permissions` | Who may do what to which node, the rules every service applies |
 | `handlers` | The HTTP handlers several services share, such as threads, a post's language, and its settings (`post_settings.go`: who may see it, reply to it and quote it, its content warning and its pin), the same for every kind of post |
 | `middleware`, `cors` | HTTP middleware, and `ClientIPExtractor`, which every service sets so that the visitor's address is never one a client typed |
+| `server` | How a service starts and stops: the HTTP server every API service runs (`New`: the visitor's address, logging, a panic answered 500, the body limit, request checks, `/ping`), its sign-in middleware (`SignIn`), and serving until Kubernetes says stop, then finishing what is in flight for up to 20 seconds (`Run`, and `ServeGRPC` for the gRPC services) |
 | `getenv` | Reading a setting from the environment, with a fallback |
 | `settings` | The settings every service reads alike (`Common`: where it runs, its cookie key, Valkey, the database, the event bus, the graph and file services, the issuer of sign-in tokens), which each service's `Config` embeds, and `Missing`, which says which of them a service needs and has not |
 | `images` | Reading an image people send: its kind judged from its bytes, turned the right way up, fitted and written out again (`Accept`, `FitLongest`, `AsPhoto`, `SquareImage`), HEIF converted |

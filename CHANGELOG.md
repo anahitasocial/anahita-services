@@ -21,6 +21,15 @@ Releases before v1.0.17 are described on GitHub, under
    followers) kept its answer open until the last was read, so a busy site
    could run out of connections sooner than it needed to.
 
+### Changed
+
+1. **A service stops gracefully.** Told to stop, as Kubernetes tells a pod
+   it moves or replaces (`SIGTERM`), it takes no new requests and finishes
+   those it is answering, for up to 20 seconds, within the 30 Kubernetes
+   gives; it used to end at once and drop them. So does every API service,
+   and the graph, file and mail services. web-shell, which sends the web
+   app's pages, stops as it did.
+
 ## v1.7.0 Birth, 2026-11-22
 
 ### Fixed

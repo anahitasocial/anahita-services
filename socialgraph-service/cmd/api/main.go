@@ -1,24 +1,18 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"net/http"
 
 	"anahita-libs/constants"
 	"anahita-libs/data"
-	an_mw "anahita-libs/middleware"
-	"anahita-libs/validators"
+	"anahita-libs/server"
 	"socialgraph/config"
 
 	"socialgraph/cmd/api/handlers"
 	"socialgraph/cmd/api/permissions"
 	"socialgraph/data/services"
 
-	"github.com/go-playground/validator/v10"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 )
 
 const (
@@ -26,17 +20,6 @@ const (
 )
 
 func main() {
-	var err error
-
-	e := echo.New()
-	e.IPExtractor = an_mw.ClientIPExtractor()
-	e.Use(middleware.RequestLogger())
-	e.Use(middleware.Recover())
-	e.Use(middleware.BodyLimit(constants.RequestBodyMaxSizeLimit))
-
-	// set custom validator
-	e.Validator = validators.NewRequestValidator(validator.New())
-
 	// create config
 	config := config.NewConfig()
 	if err := config.Validate(); err != nil {
@@ -50,21 +33,11 @@ func main() {
 	}
 	defer conn.Close()
 
-	if config.IsDev() {
-		e.Debug = true
-	}
+	e := server.New(config.IsDev(), constants.RequestBodyMaxSizeLimit)
 
-	// JWKS client. One per process. Public keys are fetched from
-	// auth-service's JWKS endpoint and cached, so access tokens are
-	// verified locally on every request without a roundtrip.
-	jwks := an_mw.NewJWKSClient(config.GetOAuthJWKSURL())
-
-	// Pre-built middleware for use in routes. Authorize rejects
-	// unauthenticated requests; SetViewer identifies the caller when a
-	// token is present but lets anonymous requests through. Handlers
-	// read the resulting viewer via an_mw.GetViewer.
-	authorize := an_mw.Authorize(config, jwks)
-	setViewer := an_mw.SetViewer(config, jwks)
+	// Who asks, from the token: authorize refuses a request with none,
+	// setViewer lets it through.
+	authorize, setViewer := server.SignIn(config)
 
 	// create permissions env
 	// One set of clients, for the permissions and the handlers alike.
@@ -83,17 +56,9 @@ func main() {
 	}
 	h := handlers.NewHandlers(hEnv)
 
-	// heartbeat
-	e.GET("/ping", func(c echo.Context) error {
-		return c.String(http.StatusOK, "pong")
-	})
-
 	// create routes
 	NewRoutes(h, authorize, setViewer).Init(e)
 
-	// start server
-	err = e.Start(fmt.Sprintf(":%v", webPort))
-	if err != nil {
-		e.Logger.Fatal(err)
-	}
+	// Served until told to stop, then stopped gracefully.
+	server.Run(e)
 }

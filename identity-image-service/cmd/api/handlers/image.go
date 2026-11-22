@@ -3,8 +3,8 @@ package handlers
 import (
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
-	"anahita-libs/responses"
 	images "anahita-libs/images"
+	"anahita-libs/responses"
 	"errors"
 	"identityimage/constants"
 	"io"

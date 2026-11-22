@@ -209,4 +209,11 @@ disagree first:
     `out.go` and feed-service's `custom_feed.go` split by what each part
     does, moved as they were. `anahita-libs/utils` is `anahita-libs/images`,
     as its package was called already.
+11. **Item 24, third part, start-up, done 2026-11-22.** `anahita-libs/server`:
+    `New`, `SignIn`, `Run` and `ServeGRPC`, used by every API service and
+    the three gRPC services; web-shell, which serves the web app's pages
+    with Go's own server, stays as it is. A graceful stop, which no service
+    had: told to stop, a service finishes what is in flight, for up to 20
+    seconds (`TestAServiceFinishesWhatItIsAnsweringBeforeItStops`); tried on
+    the dev stack with hashtag-service, auth-service and graph-grpc-service.
 

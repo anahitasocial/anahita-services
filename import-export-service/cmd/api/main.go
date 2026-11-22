@@ -2,7 +2,7 @@ package main
 
 import (
 	"anahita-libs/data"
-	"fmt"
+	"anahita-libs/server"
 	"log"
 	"net/http"
 
@@ -12,23 +12,20 @@ import (
 
 	"anahita-libs/constants"
 	"anahita-libs/data/services"
-	an_mw "anahita-libs/middleware"
 	"anahita-libs/sessions"
-	"anahita-libs/validators"
 
-	"github.com/go-playground/validator/v10"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
-const webPort = "80"
-
 func main() {
-	e := echo.New()
-	e.IPExtractor = an_mw.ClientIPExtractor()
-	e.Use(middleware.RequestLogger())
-	e.Use(middleware.Recover())
+	config := config.NewConfig()
+	if err := config.Validate(); err != nil {
+		log.Fatalf("config validation failed: %v", err)
+	}
+
+	e := server.New(config.IsDev(), "")
 	// Every request kept small but an import's file, which has its own
 	// limit on its route (UploadLimit).
 	e.Use(middleware.BodyLimitWithConfig(middleware.BodyLimitConfig{
@@ -38,18 +35,7 @@ func main() {
 		},
 	}))
 
-	e.Validator = validators.NewRequestValidator(validator.New())
-
-	config := config.NewConfig()
-	if err := config.Validate(); err != nil {
-		log.Fatalf("config validation failed: %v", err)
-	}
-	if config.IsDev() {
-		e.Debug = true
-	}
-
-	jwks := an_mw.NewJWKSClient(config.GetOAuthJWKSURL())
-	authorize := an_mw.Authorize(config, jwks)
+	authorize, _ := server.SignIn(config)
 
 	db, err := data.Open(config.GetDSN(), data.Pool{MaxOpen: 10, MaxIdle: 5})
 	if err != nil {
@@ -65,15 +51,10 @@ func main() {
 		Session:   stepUpStore(config),
 	}
 
-	e.GET("/ping", func(c echo.Context) error {
-		return c.String(http.StatusOK, "pong")
-	})
-
 	NewRoutes(env, authorize).Init(e)
 
-	if err := e.Start(fmt.Sprintf(":%v", webPort)); err != nil {
-		e.Logger.Fatal(err)
-	}
+	// Served until told to stop, then stopped gracefully.
+	server.Run(e)
 }
 
 // stepUpStore connects to Valkey for the marker that says somebody has just

@@ -2,6 +2,7 @@ package main
 
 import (
 	"anahita-libs/grpctls"
+	"anahita-libs/server"
 	"fmt"
 	"log"
 	"net"
@@ -74,9 +75,9 @@ func startGrpcServer(h *handlers.Handlers) error {
 
 	log.Printf("gRPC server started at port %s", gRpcPort)
 
-	if err := s.Serve(lis); err != nil {
-		return err
-	}
+	// Served until told to stop, then stopped gracefully: the calls in
+	// flight finish first.
+	server.ServeGRPC(s, lis)
 
 	return nil
 }

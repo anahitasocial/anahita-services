@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"anahita-libs/data/entities"
-	"anahita-libs/photos"
 	images "anahita-libs/images"
+	"anahita-libs/photos"
 	"errors"
 )
 
