@@ -790,9 +790,16 @@ the words it is, with the line that leads to the quoted post.
 `interactionPolicy.canQuote` and kept as its quote policy, followed when
 its author changes it: the public, approved at once or by hand, is
 anyone; its author's followers are followers; anything else, or nothing
-said, is nobody, as FEP-044f has it. Quote is not offered where it says no
+said, is nobody, as Mastodon has it. Quote is not offered where it says no
 ([Quotes](permissions.md#quotes)). FEP-044f has the policy only as a hint:
 the stamp is what lets a quote go out.
+
+**Taking consent back is not built** (roadmap row 169). FEP-044f has an
+author revoke a quote by deleting its stamp. Here, taking one's post out of
+a quote from another server changes only what Anahita shows: the stamp is
+still served, and no `Delete` is sent. A `Delete` of a stamp that comes in
+is not heeded, and a quote's stamp is checked only when the quote arrives
+or is changed.
 
 ## Posts coming in
 
