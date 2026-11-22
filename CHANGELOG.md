@@ -61,6 +61,12 @@ Releases before v1.0.17 are described on GitHub, under
 6. **A post from the fediverse is answered at once, and given its link's
    card after,** as its pictures are: reading the page could keep the
    server that sent it waiting up to six seconds.
+7. **A post's settings are answered alike for every kind of post:** who
+   may see it, reply to it and quote it, its content warning and its pin,
+   by the one handler that text, photo and video posts each kept a copy
+   of. A content warning asked of a reply somebody may not change is
+   answered as its thread decides, as a note's was, and a deleted reply's
+   with `410`.
 
 ### Removed
 

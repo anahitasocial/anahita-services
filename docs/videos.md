@@ -433,7 +433,7 @@ once; each needs processor and working space of its own.
 | What | Where |
 | --- | --- |
 | Beginning and finishing an upload, and how it is getting on | `video-service/cmd/api/handlers/video_uploads.go` |
-| Video posts: read, edit, delete, audience, replies, pin | `video-service/cmd/api/handlers/` (`video.go`, `video_access.go`, `video_reply.go`, `video_pin.go`) |
+| Video posts: read, edit, delete, audience, replies, pin | `video-service/cmd/api/handlers/` (`video.go`, `video_reply.go`, `post_settings.go`); a post's settings are every kind's, in `anahita-libs/handlers/post_settings.go` |
 | Sending viewers to a video's files | `video-service/cmd/api/handlers/video_files.go` |
 | Downloading | `video-service/cmd/api/handlers/video_download.go`, over `anahita-libs/permissions/download.go` (`CanDownload`) |
 | The worker | `video-service/worker/worker.go`, `video-service/cmd/worker/main.go`, tested in `worker_test.go` |

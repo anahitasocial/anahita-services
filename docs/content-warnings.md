@@ -245,7 +245,7 @@ this was built keeps what it was kept with until it is next changed there.
 | The kinds, and checking what a request says | `anahita-libs/data/entities/warning.go` (`NormalizeWarning`) |
 | Setting it, 400 `warning_invalid`, 403 `warning_not_allowed` | `anahita-libs/handlers/warning.go` (`SetWarning`), tested in `warning_test.go` |
 | Sent with a post | `anahita-libs/responses/warning.go`, used in `medium.go`, `parent.go`, `node.go` |
-| `PATCH /…/:id/warning` | `text-service/cmd/api/handlers/medium_warning.go`, `photo-service/…/photo_warning.go`, `video-service/…/video_warning.go` |
+| `PATCH /…/:id/warning` | `anahita-libs/handlers/post_settings.go` (`PostSettings.EditWarning`), for every kind of post |
 | Where it is stored | table `nodes`; `graph-grpc-service/data/repositories/nodes_add.go`, `nodes_edit.go`, `helpers.go`; `node.proto` fields 101 to 103 |
 | A video's, until it is made | `video-service/data/repositories/uploads.go`, `video-service/worker/worker.go` |
 | In a person's download | `import-export-service/archive/archive.go` |

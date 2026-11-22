@@ -444,7 +444,7 @@ which is under Apache 2.0 so that services of others' own can make them
 | `data` | Connecting to MySQL (`Open`, with a service's own pool), and the entities and the clients of the gRPC services (`data/entities`, `data/services`, with `BatchPresignNodes` for a list's pictures) |
 | `requests`, `responses`, `validators` | Request/response shapes and validation |
 | `permissions` | Who may do what to which node, the rules every service applies |
-| `handlers` | The HTTP handlers several services share, such as threads and a post's audience and language |
+| `handlers` | The HTTP handlers several services share, such as threads, a post's language, and its settings (`post_settings.go`: who may see it, reply to it and quote it, its content warning and its pin), the same for every kind of post |
 | `middleware`, `cors` | HTTP middleware, and `ClientIPExtractor`, which every service sets so that the visitor's address is never one a client typed |
 | `getenv` | Reading a setting from the environment, with a fallback |
 | `geocoding`, `utils` | Supporting helpers |

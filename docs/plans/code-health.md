@@ -181,4 +181,15 @@ disagree first:
    kind only once its file or pictures were read, else `/notes/`; the
    embeds had no audio, so an embedded audio post was not cited. Each now reads the table, and
    `TestEveryKindOfPostHasOnePageAndOneAnswer` guards it.
+8. **Item 24, first part, the settings handlers, done 2026-11-22.** Who may
+   see a post, its replies' switch and who may reply, who may quote it, its
+   content warning and its pin: `PostSettings` in
+   `anahita-libs/handlers/post_settings.go`, with the access-context
+   builder (`AccessContext`). text-service, photo-service and video-service
+   each keep a file of one-line methods that give it their clients
+   (`post_settings.go`); eighteen files of 1,559 lines went, for 479. Where
+   the copies differed, text-service's was kept, the most complete: a
+   channel's item refused alike, and a reply's warning judged by its thread
+   with its status. Tested once, for every kind
+   (`TestAPostsSettingsAreChangedByWhoeverMayEditIt`).
 
