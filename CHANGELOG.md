@@ -10,6 +10,17 @@ made.
 Releases before v1.0.17 are described on GitHub, under
 [Releases](https://github.com/anahitasocial/anahita-services/releases).
 
+## Embryo
+
+### Fixed
+
+1. **Reading how the viewer and the profiles on a page stand to each other
+   holds one database connection, not up to nine.** Each of the nine
+   relations it reads (following either way, blocks, blocked servers,
+   mutes, admins, requests, invitations, events open to a host's
+   followers) kept its answer open until the last was read, so a busy site
+   could run out of connections sooner than it needed to.
+
 ## v1.7.0 Birth, 2026-11-22
 
 ### Fixed
