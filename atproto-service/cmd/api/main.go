@@ -9,10 +9,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"log"
 	"os"
-	"sync"
 	"time"
 
 	"atproto/bsky"
@@ -86,7 +84,7 @@ func main() {
 		},
 		Transfers: services.NewFileTransfersGRPC(config),
 		Cards:     federation.NewCards(config.LinkPreviewURL),
-		Announce:  (&announcer{config: config}).Publish,
+		Announce:  event.NewLazyPublisher(config).Publish,
 		Limiter:   sessions.NewSession(config),
 		CDN:       config.CDNURL,
 		Settle:    3 * time.Second,
@@ -321,42 +319,6 @@ func sleep(ctx context.Context, d time.Duration) {
 	case <-ctx.Done():
 	case <-time.After(d):
 	}
-}
-
-// announcer says things on the bus, connecting when it first has something
-// to say and again after the bus has been away.
-type announcer struct {
-	config *config.Config
-
-	mu        sync.Mutex
-	conn      io.Closer
-	publisher *event.Publisher
-}
-
-func (a *announcer) Publish(payload *event.EventPayload, name string) error {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-
-	if a.publisher == nil {
-		conn, err := event.ConnectToAMQP(a.config)
-		if err != nil {
-			return err
-		}
-		publisher, err := event.NewEventPublisher(conn)
-		if err != nil {
-			_ = conn.Close()
-			return err
-		}
-		a.conn, a.publisher = conn, publisher
-	}
-
-	err := a.publisher.Publish(payload, name)
-	if err != nil {
-		// Whatever went wrong, begin again next time.
-		_ = a.conn.Close()
-		a.conn, a.publisher = nil, nil
-	}
-	return err
 }
 
 // listenToBus hears what happens here, for as long as the bus is there,

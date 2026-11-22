@@ -39,6 +39,15 @@ func NewPublisher(config ConfigInterface) (*Publisher, error) {
 	return publisher, nil
 }
 
+// NewLazyPublisher is NewPublisher connecting only when it first has an
+// event to send, and again whenever the bus closed the connection: a
+// service that publishes now and then starts whether the bus is up or not.
+// activitypub-service and atproto-service each kept a copy of this, their
+// announcer (roadmap row 170).
+func NewLazyPublisher(config ConfigInterface) *Publisher {
+	return &Publisher{config: config}
+}
+
 // NewEventPublisher sends events over a connection made elsewhere, which it
 // does not open again when it is closed.
 func NewEventPublisher(conn *amqp.Connection) (*Publisher, error) {
@@ -64,10 +73,10 @@ func (p *Publisher) channel() (*amqp.Channel, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	if p.conn == nil {
+	if p.conn == nil && p.config == nil {
 		return nil, errors.New("not connected to the bus")
 	}
-	if !p.conn.IsClosed() {
+	if p.conn != nil && !p.conn.IsClosed() {
 		channel, err := p.conn.Channel()
 		if err == nil || p.config == nil {
 			return channel, err
@@ -83,9 +92,11 @@ func (p *Publisher) channel() (*amqp.Channel, error) {
 	if err != nil {
 		return nil, err
 	}
-	_ = p.conn.Close()
+	if p.conn != nil {
+		_ = p.conn.Close()
+		log.Println("event: connected to the bus again")
+	}
 	p.conn = conn
-	log.Println("event: connected to the bus again")
 	if err := p.setup(); err != nil {
 		return nil, err
 	}

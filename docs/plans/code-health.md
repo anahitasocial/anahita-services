@@ -146,7 +146,7 @@ another row. What each one came to is in the notes after the table.
 | 24e | The access-context builder | ✅ 2026-11-22, `handlers.AccessContext` |
 | 24f | hashtag-service's and location-service's shared handlers | ✅ 2026-11-22, `handlers.TaggedWith` |
 | 24g | Event names parsed once | ✅ 2026-11-22, `EventPayload.Action` |
-| 24h | The reconnecting publisher's copies | ⬜ |
+| 24h | The reconnecting publisher's copies | ✅ 2026-11-22, `event.NewLazyPublisher` |
 | 24i | Pagination in one shape, with its cap | ⬜ |
 | 24j | The smaller helpers kept two or three times | ⬜ |
 | 25 | Splitting what mixes several jobs | ✅ 2026-11-22 |
@@ -277,4 +277,12 @@ another row. What each one came to is in the notes after the table.
     read it instead. actor-service's person events took the fifth part of
     a split name without asking whether there was one, and would have
     stopped on a shorter name.
+15. **Item 24, seventh part, the publisher's copies, done 2026-11-22.**
+    activitypub-service and atproto-service each kept an `announcer`, a
+    publisher that connects when it first has something to say and again
+    after the bus has gone. The shared publisher reconnects already; it
+    gains `NewLazyPublisher` for the first part, and both copies went. The
+    copies' first connection waited up to 30 seconds for the bus; the
+    shared one tries once, and the next event tries again, as it does
+    after a restart.
 
