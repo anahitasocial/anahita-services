@@ -25,6 +25,12 @@ Releases before v1.0.17 are described on GitHub, under
    whoever can see the post at the top of its thread, as the docs say. The
    page judged a reply by its own audience, which a reply does not have, and
    left every one out.
+4. **An audio post shown in an article or a topic is cited,** as every other
+   kind of post is: the address of one on a line of its own was shown by
+   the web app and not counted as a citation.
+5. **A post sent to the fediverse always leads to the page of its kind.**
+   A video or audio post whose file was not ready, or a photo post whose
+   pictures could not be read, could lead to `/notes/12`.
 
 ### Changed
 

@@ -16,6 +16,7 @@ import (
 	"unicode/utf8"
 
 	"anahita-libs/constants"
+	"anahita-libs/posts"
 )
 
 // The node a custom feed is kept as, with its definition in the node's meta.
@@ -148,16 +149,15 @@ type Exclude struct {
 	Actors   []int64  `json:"actors"`
 }
 
-// The words a definition uses for kinds of post and of profile, and the
-// types they stand for.
-var mediaTypes = map[string]string{
-	"note":    "node.medium.text-service.note.v1",
-	"article": "node.medium.text-service.article.v1",
-	"topic":   "node.medium.text-service.topic.v1",
-	"photo":   constants.NodeMediumPhotoEntityType,
-	"video":   "node.medium.video-service.video.v1",
-	"audio":   "node.medium.video-service.audio.v1",
-}
+// The words a definition uses for kinds of post, and the types they stand
+// for (anahita-libs/posts); and those for kinds of profile, below.
+var mediaTypes = func() map[string]string {
+	types := map[string]string{}
+	for _, kind := range posts.Kinds {
+		types[kind.Name] = kind.Type
+	}
+	return types
+}()
 
 var mediaOrder = []string{"note", "article", "topic", "photo", "video", "audio"}
 

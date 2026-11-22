@@ -436,6 +436,7 @@ which is under Apache 2.0 so that services of others' own can make them
 | `policy` | The installation's settings on who may see what, which several services must agree on |
 | `federation` | What the services that speak to other servers share: the text of a post there and back (Markdown to HTML that is safe to send, HTML that arrived to Markdown that is safe to keep); the queue of what is to be sent; copying pictures, avatars and covers in, removing them after a while and copying them back when asked (`media.go`); the cards of links; the limits on what is kept from elsewhere (`retention.go`); custom emoji; and the servers the site refuses |
 | `site` | Where the installation is, as the internet sees it: its domain, and the addresses of its web app and API. See [What a node is called elsewhere](#what-a-node-is-called-elsewhere) |
+| `posts` | What every post shares: how long a short post may be, and the kinds of post (`kinds.go`), each with its type, its word, its page in the web app and whether it goes to the fediverse and Bluesky, which every service reads from there |
 | `language` | The language a post is written in |
 | `feeds` | What a custom feed is made of, and the rules a definition keeps |
 | `linkpreviews` | What a link's preview is, and the copy of one a note keeps |

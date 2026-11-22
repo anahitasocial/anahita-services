@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/posts"
 	"context"
 	"log"
 	"strings"
@@ -8,7 +9,6 @@ import (
 
 	"anahita-libs/constants"
 	"anahita-libs/event"
-	"anahita-libs/videos"
 )
 
 // What happens here that this service has to know of.
@@ -67,10 +67,9 @@ func (h *Handlers) HandleEvent(payload *event.EventPayload) error {
 	case strings.HasPrefix(payload.Name, "node.repost.") && deleted:
 		err = h.localRemoved(ctx, payload.ObjectID)
 
-	// Notes, photo posts, video posts and articles; topics stay here.
-	case strings.HasPrefix(payload.Name, "node.medium.") &&
-		(payload.ObjectType == constants.NodeMediumNoteEntityType || payload.ObjectType == constants.NodeMediumPhotoEntityType ||
-			videos.IsOurs(payload.ObjectType) || payload.ObjectType == constants.NodeMediumArticleEntityType):
+	// Notes, photo posts, video and audio posts, and articles; topics stay
+	// here (anahita-libs/posts).
+	case strings.HasPrefix(payload.Name, "node.medium.") && posts.Federates(payload.ObjectType):
 		if deleted {
 			err = h.localRemoved(ctx, payload.ObjectID)
 		} else {

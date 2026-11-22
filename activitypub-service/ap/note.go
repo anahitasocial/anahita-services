@@ -84,7 +84,6 @@ const VideoMax = 40 * 1024 * 1024
 // sent, and the page it is read at. A video with no sound, as a GIF posted
 // here is, is shown by Mastodon as a GIF: silently, on a loop.
 func (n *Note) WithVideo(a Addresses, post *entities.AnahitaNode, video *videos.Video, file *videos.Rendition) *Note {
-	n.URL = a.VideoPage(post.ID)
 	if file == nil {
 		return n
 	}
@@ -106,7 +105,6 @@ func (n *Note) WithVideo(a Addresses, post *entities.AnahitaNode, video *videos.
 // Audio, with its cover, and the page an audio post is read at (roadmap
 // row 137). The sound is sent from the same address a video's file is.
 func (n *Note) WithAudio(a Addresses, post *entities.AnahitaNode, audio *videos.Audio) *Note {
-	n.URL = a.AudioPage(post.ID)
 	if audio == nil {
 		return n
 	}
@@ -125,7 +123,6 @@ func (n *Note) WithAudio(a Addresses, post *entities.AnahitaNode, audio *videos.
 // WithPictures gives the note the pictures of the photo post it is, and
 // the page a photo post is read at.
 func (n *Note) WithPictures(a Addresses, post *entities.AnahitaNode, files []*entities.PhotoFile) *Note {
-	n.URL = a.PhotoPage(post.ID)
 	for position, file := range files {
 		n.Attachment = append(n.Attachment, SentPicture{
 			Type:      "Document",
@@ -204,7 +201,7 @@ func NewNote(a Addresses, note, author *entities.AnahitaNode, links federation.L
 		Type:         "Note",
 		AttributedTo: a.Actor(author.UUID),
 		Content:      rendered.HTML,
-		URL:          a.NotePage(note.ID),
+		URL:          a.PostPage(note),
 		To:           []string{Public},
 		Cc:           []string{a.Followers(author.UUID)},
 	}
@@ -234,14 +231,12 @@ func NewNote(a Addresses, note, author *entities.AnahitaNode, links federation.L
 }
 
 // AsArticle makes the post an Article: its title, its opening as its
-// summary, all of it as its content, the page it is read at, and its
-// cover. Mastodon shows one as its title and a link to that page;
+// summary, all of it as its content, and its cover. Mastodon shows one as its title and a link to that page;
 // WriteFreely, Ghost, Friendica and the like show the article.
 func (n *Note) AsArticle(a Addresses, article *entities.AnahitaNode, summary string) *Note {
 	n.Type = "Article"
 	n.Name = strings.TrimSpace(article.Name)
 	n.Summary = summary
-	n.URL = a.ArticlePage(article.ID)
 	if article.CoverFilename != "" {
 		n.Image = &Image{Type: "Image", MediaType: mediaType(article.CoverFilename), URL: a.Cover(article.UUID, article.CoverFilename)}
 	}

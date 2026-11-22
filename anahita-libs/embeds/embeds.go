@@ -8,6 +8,7 @@
 package embeds
 
 import (
+	"anahita-libs/posts"
 	"net/url"
 	"regexp"
 	"strconv"
@@ -22,16 +23,6 @@ const (
 	MaxPosts = 20
 	MaxPages = 10
 )
-
-// The kinds of post an address of this installation can be to, by the
-// first part of its path.
-var kinds = map[string]string{
-	"articles": "article",
-	"topics":   "topic",
-	"notes":    "note",
-	"photos":   "photo",
-	"videos":   "video",
-}
 
 // A link whose words are its own address, as some editors write an address
 // on a line of its own: [https://a.example/](https://a.example/).
@@ -151,7 +142,9 @@ func postAt(address string) (Post, bool) {
 	if match == nil {
 		return Post{}, false
 	}
-	kind, ok := kinds[match[1]]
+	// The kinds of post an address of this installation can be to, by the
+	// first part of its path (anahita-libs/posts).
+	kind, ok := posts.KindAt(match[1])
 	if !ok {
 		return Post{}, false
 	}
@@ -159,5 +152,5 @@ func postAt(address string) (Post, bool) {
 	if err != nil || id <= 0 {
 		return Post{}, false
 	}
-	return Post{Kind: kind, ID: id}, true
+	return Post{Kind: kind.Name, ID: id}, true
 }

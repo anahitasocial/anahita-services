@@ -3,11 +3,13 @@ package repositories
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"slices"
+	"strings"
 	"time"
 
 	"anahita-libs/constants"
-	"anahita-libs/videos"
+	"anahita-libs/posts"
 )
 
 // What the bus may have lost.
@@ -157,6 +159,8 @@ func (repo *Missed) MovedAndFollowed(olderThan time.Time, limit int) ([]int64, e
 		constants.EdgeMovedEntityType, olderThan.UTC(), limit)
 }
 
+// notesNotSent takes the kinds of post that go out, as many as there are
+// (anahita-libs/posts), where `%s` is.
 const notesNotSent = `
 SELECT note.id
 FROM nodes AS note
@@ -167,7 +171,7 @@ LEFT JOIN nodes AS root
        ON root.id = note.root_id
 LEFT JOIN activitypub_objects AS sent
        ON sent.node_id = note.id
-WHERE note.type IN (?, ?, ?, ?, ?)
+WHERE note.type IN (%s)
   AND note.library_only = 0
   AND note.enabled = 1
   AND note.deleted_at IS NULL
@@ -213,9 +217,14 @@ LIMIT ?`
 // NotesNotSent is people's posts and channels' that should have gone out and
 // did not, the oldest first.
 func (repo *Missed) NotesNotSent(since, olderThan time.Time, limit int) ([]int64, error) {
-	people, err := repo.ids(notesNotSent,
-		constants.NodeMediumNoteEntityType, constants.NodeMediumPhotoEntityType, videos.NodeType, videos.AudioNodeType, constants.NodeMediumArticleEntityType,
-		constants.AnahitaAccessPublic, since, olderThan, limit)
+	kinds := posts.FederatingTypes()
+	args := make([]any, 0, len(kinds)+4)
+	for _, kind := range kinds {
+		args = append(args, kind)
+	}
+	args = append(args, constants.AnahitaAccessPublic, since, olderThan, limit)
+	query := fmt.Sprintf(notesNotSent, strings.TrimSuffix(strings.Repeat("?, ", len(kinds)), ", "))
+	people, err := repo.ids(query, args...)
 	if err != nil {
 		return nil, err
 	}

@@ -13,7 +13,7 @@ import (
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	"anahita-libs/event"
-	"anahita-libs/videos"
+	"anahita-libs/posts"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
@@ -372,12 +372,8 @@ func (h *Handlers) localUnblocked(ctx context.Context, sourceID, targetID int64)
 }
 
 // goesOutKind is a kind of post that goes to other servers: notes, photo
-// posts, video posts and articles. Topics stay here.
+// posts, video and audio posts, and articles. Topics stay here
+// (anahita-libs/posts).
 func goesOutKind(nodeType string) bool {
-	switch nodeType {
-	case constants.NodeMediumNoteEntityType, constants.NodeMediumPhotoEntityType,
-		videos.NodeType, videos.AudioNodeType, constants.NodeMediumArticleEntityType:
-		return true
-	}
-	return false
+	return posts.Federates(nodeType)
 }

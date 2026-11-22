@@ -27,13 +27,14 @@ func TestFind(t *testing.T) {
 		"[https://example.org/notes/a\\_b](https://example.org/notes/a_b)",
 		"[words](https://example.org/notes/8)",
 		"https://example.org/@anahita-project",
+		"https://example.org/audio/9",
 		"https://example.org/@ana/photos",
 		"https://example.org/@anahita-project",
 	}, "\n")
 
 	got := Find(text, ours)
 
-	wantPosts := []Post{{Kind: "photo", ID: 12}, {Kind: "article", ID: 40}, {Kind: "note", ID: 7}}
+	wantPosts := []Post{{Kind: "photo", ID: 12}, {Kind: "article", ID: 40}, {Kind: "note", ID: 7}, {Kind: "audio", ID: 9}}
 	if !reflect.DeepEqual(got.Posts, wantPosts) {
 		t.Errorf("posts: got %v, want %v", got.Posts, wantPosts)
 	}

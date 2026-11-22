@@ -1,14 +1,12 @@
 package handlers
 
 import (
+	"anahita-libs/posts"
 	"context"
 	"log"
 	"time"
 
 	"atproto/data/repositories"
-
-	"anahita-libs/constants"
-	"anahita-libs/videos"
 )
 
 // The posts the bus lost. A post is written to Bluesky when its making is
@@ -29,13 +27,7 @@ const (
 )
 
 // The kinds of post written to Bluesky (localPosted).
-var missedKinds = []string{
-	constants.NodeMediumNoteEntityType,
-	constants.NodeMediumPhotoEntityType,
-	constants.NodeMediumArticleEntityType,
-	videos.NodeType,
-	videos.AudioNodeType,
-}
+var missedKinds = posts.FederatingTypes()
 
 // writeMissed writes the posts made a while ago whose making was not heard,
 // and says how many of them it wrote. One found and not written is one that

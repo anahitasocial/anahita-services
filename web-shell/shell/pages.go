@@ -9,6 +9,7 @@ import (
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/linkpreviews"
+	"anahita-libs/posts"
 	"anahita-libs/videos"
 )
 
@@ -217,16 +218,8 @@ func actor(node *entities.AnahitaNode, kind string) *Subject {
 	return subject
 }
 
-// The page a post is read at, by its kind of path. A post is described
-// only at its own: /notes/12 for a note, and not for a photo with that id.
-var postTypes = map[string]string{
-	"notes":    "note",
-	"photos":   "photo",
-	"videos":   "video",
-	"audio":    "audio",
-	"articles": "article",
-	"topics":   "topic",
-}
+// A post is described only at the page of its own kind: /notes/12 for a
+// note, and not for a photo with that id (anahita-libs/posts).
 
 func post(reader Reader, id int64, kind string) *Subject {
 	node, err := reader.Medium(id)
@@ -236,7 +229,7 @@ func post(reader Reader, id int64, kind string) *Subject {
 	if !strings.HasPrefix(node.Type, constants.NodeMediumPrefixEntityType) {
 		return nil
 	}
-	if kind != "" && !strings.Contains(node.Type, "."+postTypes[kind]+".") {
+	if at, ok := posts.KindAt(kind); kind != "" && (!ok || at.Type != node.Type) {
 		return nil
 	}
 	// A reply is read by whoever can read the post at the top of its

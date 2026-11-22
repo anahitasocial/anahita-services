@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"anahita-libs/permissions"
+	"anahita-libs/posts"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -605,7 +606,7 @@ func (h *Handlers) record(ctx context.Context, w *write, upload uploader) (any, 
 	// An article is read here, whatever its length: its card leads to it,
 	// with its title, its opening and its cover.
 	if note.Type == constants.NodeMediumArticleEntityType {
-		post.WithCard(h.Site.Web(fmt.Sprintf("/articles/%d", note.ID)), cutTitle(note), articleOpening(note), h.coverPicture(note, upload))
+		post.WithCard(h.Site.Web(webPathOf(note)), cutTitle(note), articleOpening(note), h.coverPicture(note, upload))
 	}
 	// An audio post is listened to here: its card leads to it, with its
 	// title, its opening and its cover.
@@ -975,19 +976,9 @@ func (h *Handlers) token(ctx context.Context, account *repositories.Account, fre
 	return session.AccessJWT, nil
 }
 
-// webPathOf is where a post is read in the web app.
+// webPathOf is where a post is read in the web app (anahita-libs/posts).
 func webPathOf(note *entities.AnahitaNode) string {
-	switch note.Type {
-	case constants.NodeMediumPhotoEntityType:
-		return fmt.Sprintf("/photos/%d", note.ID)
-	case videos.NodeType:
-		return fmt.Sprintf("/videos/%d", note.ID)
-	case videos.AudioNodeType:
-		return fmt.Sprintf("/audio/%d", note.ID)
-	case constants.NodeMediumArticleEntityType:
-		return fmt.Sprintf("/articles/%d", note.ID)
-	}
-	return fmt.Sprintf("/notes/%d", note.ID)
+	return posts.Page(note.Type, note.ID)
 }
 
 // cutTitle is what the card of a post cut for Bluesky is called: its title

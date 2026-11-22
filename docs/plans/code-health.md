@@ -172,3 +172,13 @@ disagree first:
    features (set by graph-grpc-service on what it sends) and whether the
    viewer quoted a post (set by nothing). With it, a profile or cover
    photo's name with no extension is no file rather than a crash.
+7. **Item 23, the kinds of post, done 2026-11-22.** One table,
+   `anahita-libs/posts/kinds.go`: each kind's type, word, page and whether
+   it goes out. It was written in six places: the quote's link, Bluesky's
+   card and the sweep (atproto-service), the fediverse's pages and sweep
+   (activitypub-service), embeds, web-shell and custom feeds. Bluesky's had
+   no topics, which never go there; the fediverse's set a post's page by
+   kind only once its file or pictures were read, else `/notes/`; the
+   embeds had no audio, so an embedded audio post was not cited. Each now reads the table, and
+   `TestEveryKindOfPostHasOnePageAndOneAnswer` guards it.
+

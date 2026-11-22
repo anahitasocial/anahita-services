@@ -5,6 +5,8 @@ import (
 	"net/url"
 	"strings"
 
+	"anahita-libs/data/entities"
+	"anahita-libs/posts"
 	"anahita-libs/site"
 )
 
@@ -45,25 +47,16 @@ func (a Addresses) QuoteRequest(uuid string) string { return a.Note(uuid) + "/qu
 // elsewhere that quotes one here, the stamp's own.
 func (a Addresses) QuoteStamp(uuid string) string { return a.Site.API("/ap/quotes/" + uuid) }
 
-// NotePage is where a note is read, in the web app.
-func (a Addresses) NotePage(id int64) string { return a.Site.Web(fmt.Sprintf("/notes/%d", id)) }
-
 // LocationPage is where a location is read, in the web app.
 func (a Addresses) LocationPage(id int64, alias string) string {
 	return a.Site.Web(fmt.Sprintf("/locations/%d-%s/", id, alias))
 }
 
-// PhotoPage is where a photo post is read, in the web app.
-func (a Addresses) PhotoPage(id int64) string { return a.Site.Web(fmt.Sprintf("/photos/%d", id)) }
-
-// VideoPage is where a video post is read, in the web app.
-func (a Addresses) VideoPage(id int64) string { return a.Site.Web(fmt.Sprintf("/videos/%d", id)) }
-
-// AudioPage is where an audio post is read, in the web app (roadmap row 137).
-func (a Addresses) AudioPage(id int64) string { return a.Site.Web(fmt.Sprintf("/audio/%d", id)) }
-
-// ArticlePage is where an article is read, in the web app.
-func (a Addresses) ArticlePage(id int64) string { return a.Site.Web(fmt.Sprintf("/articles/%d", id)) }
+// PostPage is where a post is read, in the web app, by its kind:
+// /notes/12, /photos/12 (anahita-libs/posts).
+func (a Addresses) PostPage(post *entities.AnahitaNode) string {
+	return a.Site.Web(posts.Page(post.Type, post.ID))
+}
 
 // Video and VideoPoster are a video post's file and the still shown before
 // it plays, as other servers fetch them, by the post's UUID.

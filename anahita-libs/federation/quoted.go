@@ -1,12 +1,10 @@
 package federation
 
 import (
-	"fmt"
+	"anahita-libs/posts"
 	"strings"
 
-	"anahita-libs/constants"
 	"anahita-libs/data/entities"
-	"anahita-libs/videos"
 )
 
 // QuotedAddress is the address of the post a post quotes, as a quote names
@@ -32,24 +30,7 @@ func QuotedAddress(quoted *entities.AnahitaNode, public bool, web func(path stri
 	if !public || web == nil {
 		return ""
 	}
-	return web(pathOf(quoted))
-}
-
-// pathOf is a post's page here, by its kind.
-func pathOf(post *entities.AnahitaNode) string {
-	switch post.Type {
-	case constants.NodeMediumPhotoEntityType:
-		return fmt.Sprintf("/photos/%d", post.ID)
-	case videos.NodeType:
-		return fmt.Sprintf("/videos/%d", post.ID)
-	case videos.AudioNodeType:
-		return fmt.Sprintf("/audio/%d", post.ID)
-	case constants.NodeMediumArticleEntityType:
-		return fmt.Sprintf("/articles/%d", post.ID)
-	case "node.medium.text-service.topic.v1":
-		return fmt.Sprintf("/topics/%d", post.ID)
-	}
-	return fmt.Sprintf("/notes/%d", post.ID)
+	return web(posts.Page(quoted.Type, quoted.ID))
 }
 
 // blueskyPage is a Bluesky post's page, from its at:// address:

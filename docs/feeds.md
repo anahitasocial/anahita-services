@@ -76,7 +76,7 @@ The web app offers this as one choice of three: **Everyone** (neither), **Profil
 | Key | Keeps |
 | --- | --- |
 | `actor_types` | Posts on these kinds of profile: `person`, `group`, `event`. `person` includes people on the fediverse and on Bluesky. Empty for any |
-| `media_types` | These kinds of post: `note`, `article`, `topic`, `photo`, `video`. Empty for every kind |
+| `media_types` | These kinds of post: `note`, `article`, `topic`, `photo`, `video`, `audio`. Empty for every kind |
 | `hashtags_any` | Posts carrying any of these hashtags |
 | `keywords_any` | Posts with any of these words in the title or the text, in any case |
 | `locations_any` | Posts tagged with any of these locations, by id |
