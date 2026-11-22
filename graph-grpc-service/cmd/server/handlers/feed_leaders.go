@@ -16,25 +16,6 @@ func NewFeedLeadersHandler(env *Env) *feedLeadersHandler {
 	return &feedLeadersHandler{env: env}
 }
 
-// Count return the total number of feed nodes from leaders
-func (h *feedLeadersHandler) Count(ctx context.Context, req *graphpb.FeedLeadersCountRequest) (*graphpb.FeedLeadersCountResponse, error) {
-
-	viewer := entities.NewViewer()
-	viewer.ID = req.Viewer.Id
-	viewer.PersonType = req.Viewer.PersonType
-	viewer.Username = req.Viewer.Username
-	viewer.Email = req.Viewer.Email
-
-	total, err := h.env.Repos.FeedLeaders.Count(req, viewer)
-	if err != nil {
-		return nil, err
-	}
-
-	return &graphpb.FeedLeadersCountResponse{
-		Total: total,
-	}, nil
-}
-
 // Browse return a list of feed nodes from leaders
 func (h *feedLeadersHandler) Browse(ctx context.Context, req *graphpb.FeedLeadersBrowseRequest) (*graphpb.FeedLeadersBrowseResponse, error) {
 

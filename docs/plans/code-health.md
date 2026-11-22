@@ -124,3 +124,21 @@ Taken a few at a time, those whose copies already disagree first:
    test written for that rule tests the gate in use. A test of `CardLink`
    moved to `anahita-libs` with the function, and one of how a place is
    read now reads it through `ReadPlaces`.
+4. **Phase 4 begun 2026-11-22**, on a copy of banu.io's data (28,536 nodes,
+   10,769 edges), timed from a Mac, the median of five:
+
+   | Query | Before | After |
+   | --- | --- | --- |
+   | Following, its count | 463 ms | not run |
+   | Following, a page | 20–24 ms | 15–22 ms |
+   | A profile's tabs, page and count | 14–46 ms | unchanged |
+   | Search "coffee", its count | 282–307 ms | open |
+   | Search "coffee", a page | 175–311 ms | open |
+   | Trending hashtags, a day to a month | 35–115 ms | 32–82 ms |
+
+   16: the Following feed is not counted; feed-service asks for one post
+   more than the page and answers `has_more`, and the gRPC `Count` it called
+   is removed. 17 needs nothing: a profile's tabs are quick. 21: the seven
+   twin indexes dropped (`20261122000025`); nodes' and edges' indexes went
+   from 61 to 54 MB and nothing read slower. Search (18), trending (19) and
+   the fan-out (20) are for the user to choose.

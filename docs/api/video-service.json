@@ -830,6 +830,10 @@
       "Pagination": {
         "description": "Pagination is where a page is among everything there is to list.",
         "properties": {
+          "has_more": {
+            "description": "Whether there is a page after this one, for a list not counted (the home feed): set only there, and left out of the others.",
+            "type": "boolean"
+          },
           "limit": {
             "description": "The most a page holds: what was asked for as `limit`.",
             "format": "int64",
@@ -843,7 +847,7 @@
             "type": "integer"
           },
           "total": {
-            "description": "How many there are in all.",
+            "description": "How many there are in all. 0 for a list too costly to count, which says `has_more` instead.",
             "format": "int64",
             "minimum": 0,
             "type": "integer"

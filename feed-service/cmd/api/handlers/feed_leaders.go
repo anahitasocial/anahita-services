@@ -28,12 +28,9 @@ func (h *feedLeadersHandler) Browse(c echo.Context) error {
 	var (
 		err         error
 		req         = requests.NewFeedLeadersRequest().Browse
-		gnCountReq  = services.NewFeedLeadersRequest().Count
 		gnBrowseReq = services.NewFeedLeadersRequest().Browse
 		viewer      = getViewer(c)
 	)
-
-	log.Printf("Viewer ID: %v, Username: %v, PersonType: %v, Email: %v", viewer.ID, viewer.Username, viewer.PersonType, viewer.Email)
 
 	if ok, err := h.Perms.Feeds.CanBrowse(viewer); !ok {
 		log.Println(err)
@@ -61,17 +58,13 @@ func (h *feedLeadersHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	gnCountReq.IncludeReposts = req.IncludeReposts
-	gnCountReq.MediumEntityTypes = feedDefaults.MediaEntityTypes
-	gnCountReq.LeaderEntityTypes = feedDefaults.ActorEntityTypes
-	resp.Pagination.Total, err = h.Srv.FeedLeadersGRPC.Count(gnCountReq, viewer)
-	if err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-
+	// Not counted: counting the home feed is reading all of it, every
+	// access rule on every post, for each page (a fiftieth of a second for
+	// a page, half a second for its count, on a copy of banu.io; roadmap row
+	// 170). One more than the page is asked for instead, which says whether
+	// there is a page after it, as a custom feed's does.
 	gnBrowseReq.IncludeReposts = req.IncludeReposts
-	gnBrowseReq.Limit = req.Limit
+	gnBrowseReq.Limit = req.Limit + 1
 	gnBrowseReq.Offset = req.Offset
 	gnBrowseReq.MediumEntityTypes = feedDefaults.MediaEntityTypes
 	gnBrowseReq.LeaderEntityTypes = feedDefaults.ActorEntityTypes
@@ -80,6 +73,11 @@ func (h *feedLeadersHandler) Browse(c echo.Context) error {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+	more := uint64(len(nodes)) > req.Limit
+	if more {
+		nodes = nodes[:req.Limit]
+	}
+	resp.Pagination.HasMore = &more
 	if len(nodes) == 0 {
 		return c.JSON(http.StatusOK, resp)
 	}

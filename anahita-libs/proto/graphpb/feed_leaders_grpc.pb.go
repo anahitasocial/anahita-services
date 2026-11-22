@@ -19,7 +19,6 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	FeedLeadersService_Count_FullMethodName  = "/graph.FeedLeadersService/Count"
 	FeedLeadersService_Browse_FullMethodName = "/graph.FeedLeadersService/Browse"
 )
 
@@ -27,7 +26,6 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type FeedLeadersServiceClient interface {
-	Count(ctx context.Context, in *FeedLeadersCountRequest, opts ...grpc.CallOption) (*FeedLeadersCountResponse, error)
 	Browse(ctx context.Context, in *FeedLeadersBrowseRequest, opts ...grpc.CallOption) (*FeedLeadersBrowseResponse, error)
 }
 
@@ -37,16 +35,6 @@ type feedLeadersServiceClient struct {
 
 func NewFeedLeadersServiceClient(cc grpc.ClientConnInterface) FeedLeadersServiceClient {
 	return &feedLeadersServiceClient{cc}
-}
-
-func (c *feedLeadersServiceClient) Count(ctx context.Context, in *FeedLeadersCountRequest, opts ...grpc.CallOption) (*FeedLeadersCountResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(FeedLeadersCountResponse)
-	err := c.cc.Invoke(ctx, FeedLeadersService_Count_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *feedLeadersServiceClient) Browse(ctx context.Context, in *FeedLeadersBrowseRequest, opts ...grpc.CallOption) (*FeedLeadersBrowseResponse, error) {
@@ -63,7 +51,6 @@ func (c *feedLeadersServiceClient) Browse(ctx context.Context, in *FeedLeadersBr
 // All implementations must embed UnimplementedFeedLeadersServiceServer
 // for forward compatibility.
 type FeedLeadersServiceServer interface {
-	Count(context.Context, *FeedLeadersCountRequest) (*FeedLeadersCountResponse, error)
 	Browse(context.Context, *FeedLeadersBrowseRequest) (*FeedLeadersBrowseResponse, error)
 	mustEmbedUnimplementedFeedLeadersServiceServer()
 }
@@ -75,9 +62,6 @@ type FeedLeadersServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedFeedLeadersServiceServer struct{}
 
-func (UnimplementedFeedLeadersServiceServer) Count(context.Context, *FeedLeadersCountRequest) (*FeedLeadersCountResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Count not implemented")
-}
 func (UnimplementedFeedLeadersServiceServer) Browse(context.Context, *FeedLeadersBrowseRequest) (*FeedLeadersBrowseResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Browse not implemented")
 }
@@ -100,24 +84,6 @@ func RegisterFeedLeadersServiceServer(s grpc.ServiceRegistrar, srv FeedLeadersSe
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&FeedLeadersService_ServiceDesc, srv)
-}
-
-func _FeedLeadersService_Count_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(FeedLeadersCountRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(FeedLeadersServiceServer).Count(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: FeedLeadersService_Count_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FeedLeadersServiceServer).Count(ctx, req.(*FeedLeadersCountRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _FeedLeadersService_Browse_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -145,10 +111,6 @@ var FeedLeadersService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "graph.FeedLeadersService",
 	HandlerType: (*FeedLeadersServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "Count",
-			Handler:    _FeedLeadersService_Count_Handler,
-		},
 		{
 			MethodName: "Browse",
 			Handler:    _FeedLeadersService_Browse_Handler,

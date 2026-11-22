@@ -7,21 +7,6 @@ option go_package = "/graphpb";
 import "proto/graphpb/context.proto";
 import "proto/graphpb/node.proto";
 
-message FeedLeadersCountRequest {
-    // 1 was include_comments. Comments became replies, which a feed leaves
-    // out.
-    reserved 1;
-    bool include_reposts = 2;
-    bool include_liked = 3;
-    repeated string leader_entity_types = 4;
-    repeated string medium_entity_types = 5;
-    Viewer viewer = 6;
-}
-
-message FeedLeadersCountResponse {
-    uint64 total = 1;
-}
-
 message FeedLeadersBrowseRequest {
     // 1 was include_comments. Comments became replies, which a feed leaves
     // out.
@@ -40,6 +25,5 @@ message FeedLeadersBrowseResponse {
 }
 
 service FeedLeadersService {
-    rpc Count(FeedLeadersCountRequest) returns (FeedLeadersCountResponse);
     rpc Browse(FeedLeadersBrowseRequest) returns (FeedLeadersBrowseResponse);
 }

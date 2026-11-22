@@ -4,18 +4,13 @@ import (
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/proto/graphpb"
-	"time"
 
-	"context"
 	"database/sql"
 
 	sq "github.com/Masterminds/squirrel"
 )
 
 type FeedLeadersRepoInterface interface {
-	// Count returns the number of Feeds
-	Count(req *graphpb.FeedLeadersCountRequest, viewer *entities.Viewer) (uint64, error)
-
 	// Browse returns a list of Feeds
 	Browse(req *graphpb.FeedLeadersBrowseRequest, viewer *entities.Viewer) ([]*entities.AnahitaNode, error)
 }
@@ -25,7 +20,6 @@ func NewFeedLeadersRepo(db *sql.DB) FeedLeadersRepoInterface {
 	return &FeedLeadersRepo{
 		followEntityType: constants.EdgeFollowEntityType,
 		db:               db,
-		dbTimeout:        constants.DBTimeout,
 	}
 }
 
@@ -36,62 +30,6 @@ func NewFeedLeadersRepo(db *sql.DB) FeedLeadersRepoInterface {
 type FeedLeadersRepo struct {
 	db               *sql.DB
 	followEntityType string
-	dbTimeout        time.Duration
-}
-
-// Count returns the number of nodes
-func (repo *FeedLeadersRepo) Count(req *graphpb.FeedLeadersCountRequest, viewer *entities.Viewer) (uint64, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
-	defer cancel()
-
-	sb := sq.Select("COUNT(*)").
-		From("nodes AS node").
-		LeftJoin("nodes AS owner ON owner.id = node.owner_id")
-
-	nodeTypes := req.MediumEntityTypes
-	if req.IncludeReposts {
-		nodeTypes = append(nodeTypes, constants.NodeBaseRepostType)
-	}
-
-	// Branch 0: viewer's media, without their reposts: a repost is for
-	// others to see, and is on the viewer's profile, under Reposts.
-	branchViewerMedia := sq.And{
-		sq.Eq{"node.type": req.MediumEntityTypes}, // slice → IN (...)
-		sq.Eq{"node.owner_id": viewer.ID},
-	}
-
-	branches := []sq.Sqlizer{branchViewerMedia}
-
-	// Branch 1: leaders' media
-	branchMedia := sq.And{
-		sq.Eq{"node.type": nodeTypes}, // slice → IN (...)
-		sq.Expr(`EXISTS (
-           SELECT 1 FROM edges le
-           WHERE le.type = ?
-             AND le.node_a_id = ?
-             AND le.node_b_id = node.owner_id
-        )`, repo.followEntityType, viewer.ID),
-	}
-
-	branches = append(branches, branchMedia)
-
-	sb = sb.Where(sq.Or(branches))
-	// Replies are read in their thread, not in a feed.
-	sb = sb.Where("node.root_id IS NULL")
-
-	sb = SetFeedAccessQuery(sb, viewer)
-	sb = SetMutedQuery(sb, viewer)
-
-	sqlStr, args, err := sb.ToSql()
-	if err != nil {
-		return 0, err
-	}
-
-	var count uint64
-	if err := repo.db.QueryRowContext(ctx, sqlStr, args...).Scan(&count); err != nil {
-		return 0, err
-	}
-	return count, nil
 }
 
 // Browse returns a list of Feeds

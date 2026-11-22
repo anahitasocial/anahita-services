@@ -21,126 +21,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type FeedLeadersCountRequest struct {
-	state             protoimpl.MessageState `protogen:"open.v1"`
-	IncludeReposts    bool                   `protobuf:"varint,2,opt,name=include_reposts,json=includeReposts,proto3" json:"include_reposts,omitempty"`
-	IncludeLiked      bool                   `protobuf:"varint,3,opt,name=include_liked,json=includeLiked,proto3" json:"include_liked,omitempty"`
-	LeaderEntityTypes []string               `protobuf:"bytes,4,rep,name=leader_entity_types,json=leaderEntityTypes,proto3" json:"leader_entity_types,omitempty"`
-	MediumEntityTypes []string               `protobuf:"bytes,5,rep,name=medium_entity_types,json=mediumEntityTypes,proto3" json:"medium_entity_types,omitempty"`
-	Viewer            *Viewer                `protobuf:"bytes,6,opt,name=viewer,proto3" json:"viewer,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
-}
-
-func (x *FeedLeadersCountRequest) Reset() {
-	*x = FeedLeadersCountRequest{}
-	mi := &file_proto_graphpb_feed_leaders_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *FeedLeadersCountRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*FeedLeadersCountRequest) ProtoMessage() {}
-
-func (x *FeedLeadersCountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_feed_leaders_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use FeedLeadersCountRequest.ProtoReflect.Descriptor instead.
-func (*FeedLeadersCountRequest) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_feed_leaders_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *FeedLeadersCountRequest) GetIncludeReposts() bool {
-	if x != nil {
-		return x.IncludeReposts
-	}
-	return false
-}
-
-func (x *FeedLeadersCountRequest) GetIncludeLiked() bool {
-	if x != nil {
-		return x.IncludeLiked
-	}
-	return false
-}
-
-func (x *FeedLeadersCountRequest) GetLeaderEntityTypes() []string {
-	if x != nil {
-		return x.LeaderEntityTypes
-	}
-	return nil
-}
-
-func (x *FeedLeadersCountRequest) GetMediumEntityTypes() []string {
-	if x != nil {
-		return x.MediumEntityTypes
-	}
-	return nil
-}
-
-func (x *FeedLeadersCountRequest) GetViewer() *Viewer {
-	if x != nil {
-		return x.Viewer
-	}
-	return nil
-}
-
-type FeedLeadersCountResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Total         uint64                 `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *FeedLeadersCountResponse) Reset() {
-	*x = FeedLeadersCountResponse{}
-	mi := &file_proto_graphpb_feed_leaders_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *FeedLeadersCountResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*FeedLeadersCountResponse) ProtoMessage() {}
-
-func (x *FeedLeadersCountResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_feed_leaders_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use FeedLeadersCountResponse.ProtoReflect.Descriptor instead.
-func (*FeedLeadersCountResponse) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_feed_leaders_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *FeedLeadersCountResponse) GetTotal() uint64 {
-	if x != nil {
-		return x.Total
-	}
-	return 0
-}
-
 type FeedLeadersBrowseRequest struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	IncludeReposts    bool                   `protobuf:"varint,2,opt,name=include_reposts,json=includeReposts,proto3" json:"include_reposts,omitempty"`
@@ -156,7 +36,7 @@ type FeedLeadersBrowseRequest struct {
 
 func (x *FeedLeadersBrowseRequest) Reset() {
 	*x = FeedLeadersBrowseRequest{}
-	mi := &file_proto_graphpb_feed_leaders_proto_msgTypes[2]
+	mi := &file_proto_graphpb_feed_leaders_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -168,7 +48,7 @@ func (x *FeedLeadersBrowseRequest) String() string {
 func (*FeedLeadersBrowseRequest) ProtoMessage() {}
 
 func (x *FeedLeadersBrowseRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_feed_leaders_proto_msgTypes[2]
+	mi := &file_proto_graphpb_feed_leaders_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -181,7 +61,7 @@ func (x *FeedLeadersBrowseRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FeedLeadersBrowseRequest.ProtoReflect.Descriptor instead.
 func (*FeedLeadersBrowseRequest) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_feed_leaders_proto_rawDescGZIP(), []int{2}
+	return file_proto_graphpb_feed_leaders_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *FeedLeadersBrowseRequest) GetIncludeReposts() bool {
@@ -242,7 +122,7 @@ type FeedLeadersBrowseResponse struct {
 
 func (x *FeedLeadersBrowseResponse) Reset() {
 	*x = FeedLeadersBrowseResponse{}
-	mi := &file_proto_graphpb_feed_leaders_proto_msgTypes[3]
+	mi := &file_proto_graphpb_feed_leaders_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -254,7 +134,7 @@ func (x *FeedLeadersBrowseResponse) String() string {
 func (*FeedLeadersBrowseResponse) ProtoMessage() {}
 
 func (x *FeedLeadersBrowseResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_feed_leaders_proto_msgTypes[3]
+	mi := &file_proto_graphpb_feed_leaders_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -267,7 +147,7 @@ func (x *FeedLeadersBrowseResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FeedLeadersBrowseResponse.ProtoReflect.Descriptor instead.
 func (*FeedLeadersBrowseResponse) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_feed_leaders_proto_rawDescGZIP(), []int{3}
+	return file_proto_graphpb_feed_leaders_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *FeedLeadersBrowseResponse) GetNodes() []*Node {
@@ -281,15 +161,7 @@ var File_proto_graphpb_feed_leaders_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_feed_leaders_proto_rawDesc = "" +
 	"\n" +
-	" proto/graphpb/feed_leaders.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x18proto/graphpb/node.proto\"\xf4\x01\n" +
-	"\x17FeedLeadersCountRequest\x12'\n" +
-	"\x0finclude_reposts\x18\x02 \x01(\bR\x0eincludeReposts\x12#\n" +
-	"\rinclude_liked\x18\x03 \x01(\bR\fincludeLiked\x12.\n" +
-	"\x13leader_entity_types\x18\x04 \x03(\tR\x11leaderEntityTypes\x12.\n" +
-	"\x13medium_entity_types\x18\x05 \x03(\tR\x11mediumEntityTypes\x12%\n" +
-	"\x06viewer\x18\x06 \x01(\v2\r.graph.ViewerR\x06viewerJ\x04\b\x01\x10\x02\"0\n" +
-	"\x18FeedLeadersCountResponse\x12\x14\n" +
-	"\x05total\x18\x01 \x01(\x04R\x05total\"\xa3\x02\n" +
+	" proto/graphpb/feed_leaders.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x18proto/graphpb/node.proto\"\xa3\x02\n" +
 	"\x18FeedLeadersBrowseRequest\x12'\n" +
 	"\x0finclude_reposts\x18\x02 \x01(\bR\x0eincludeReposts\x12#\n" +
 	"\rinclude_liked\x18\x03 \x01(\bR\fincludeLiked\x12.\n" +
@@ -299,9 +171,8 @@ const file_proto_graphpb_feed_leaders_proto_rawDesc = "" +
 	"\x06offset\x18\a \x01(\x04R\x06offset\x12%\n" +
 	"\x06viewer\x18\b \x01(\v2\r.graph.ViewerR\x06viewerJ\x04\b\x01\x10\x02\">\n" +
 	"\x19FeedLeadersBrowseResponse\x12!\n" +
-	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes2\xab\x01\n" +
-	"\x12FeedLeadersService\x12H\n" +
-	"\x05Count\x12\x1e.graph.FeedLeadersCountRequest\x1a\x1f.graph.FeedLeadersCountResponse\x12K\n" +
+	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes2a\n" +
+	"\x12FeedLeadersService\x12K\n" +
 	"\x06Browse\x12\x1f.graph.FeedLeadersBrowseRequest\x1a .graph.FeedLeadersBrowseResponseB\n" +
 	"Z\b/graphpbb\x06proto3"
 
@@ -317,28 +188,23 @@ func file_proto_graphpb_feed_leaders_proto_rawDescGZIP() []byte {
 	return file_proto_graphpb_feed_leaders_proto_rawDescData
 }
 
-var file_proto_graphpb_feed_leaders_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_proto_graphpb_feed_leaders_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_proto_graphpb_feed_leaders_proto_goTypes = []any{
-	(*FeedLeadersCountRequest)(nil),   // 0: graph.FeedLeadersCountRequest
-	(*FeedLeadersCountResponse)(nil),  // 1: graph.FeedLeadersCountResponse
-	(*FeedLeadersBrowseRequest)(nil),  // 2: graph.FeedLeadersBrowseRequest
-	(*FeedLeadersBrowseResponse)(nil), // 3: graph.FeedLeadersBrowseResponse
-	(*Viewer)(nil),                    // 4: graph.Viewer
-	(*Node)(nil),                      // 5: graph.Node
+	(*FeedLeadersBrowseRequest)(nil),  // 0: graph.FeedLeadersBrowseRequest
+	(*FeedLeadersBrowseResponse)(nil), // 1: graph.FeedLeadersBrowseResponse
+	(*Viewer)(nil),                    // 2: graph.Viewer
+	(*Node)(nil),                      // 3: graph.Node
 }
 var file_proto_graphpb_feed_leaders_proto_depIdxs = []int32{
-	4, // 0: graph.FeedLeadersCountRequest.viewer:type_name -> graph.Viewer
-	4, // 1: graph.FeedLeadersBrowseRequest.viewer:type_name -> graph.Viewer
-	5, // 2: graph.FeedLeadersBrowseResponse.nodes:type_name -> graph.Node
-	0, // 3: graph.FeedLeadersService.Count:input_type -> graph.FeedLeadersCountRequest
-	2, // 4: graph.FeedLeadersService.Browse:input_type -> graph.FeedLeadersBrowseRequest
-	1, // 5: graph.FeedLeadersService.Count:output_type -> graph.FeedLeadersCountResponse
-	3, // 6: graph.FeedLeadersService.Browse:output_type -> graph.FeedLeadersBrowseResponse
-	5, // [5:7] is the sub-list for method output_type
-	3, // [3:5] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	2, // 0: graph.FeedLeadersBrowseRequest.viewer:type_name -> graph.Viewer
+	3, // 1: graph.FeedLeadersBrowseResponse.nodes:type_name -> graph.Node
+	0, // 2: graph.FeedLeadersService.Browse:input_type -> graph.FeedLeadersBrowseRequest
+	1, // 3: graph.FeedLeadersService.Browse:output_type -> graph.FeedLeadersBrowseResponse
+	3, // [3:4] is the sub-list for method output_type
+	2, // [2:3] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_proto_graphpb_feed_leaders_proto_init() }
@@ -354,7 +220,7 @@ func file_proto_graphpb_feed_leaders_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_graphpb_feed_leaders_proto_rawDesc), len(file_proto_graphpb_feed_leaders_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -12221,15 +12221,16 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-Pagination" data-search="pagination limit offset total">
+<div class="route schema" id="schema-Pagination" data-search="pagination has_more limit offset total">
 <h3>Pagination</h3>
 <p>Where a page is among everything there is to list.</p>
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
+<tr><td><code>has_more</code></td><td>boolean</td><td>Whether there is a page after this one, for a list not counted (the home feed): set only there, and left out of the others.</td></tr>
 <tr><td><code>limit</code> <span class="required">always</span></td><td>integer</td><td>The most a page holds: what was asked for as <code>limit</code>. At least 0.</td></tr>
 <tr><td><code>offset</code> <span class="required">always</span></td><td>integer</td><td>How many come before this page: what was asked for as <code>start</code>. At least 0.</td></tr>
-<tr><td><code>total</code> <span class="required">always</span></td><td>integer</td><td>How many there are in all. At least 0.</td></tr>
+<tr><td><code>total</code> <span class="required">always</span></td><td>integer</td><td>How many there are in all. 0 for a list too costly to count, which says <code>has_more</code> instead. At least 0.</td></tr>
 </tbody>
 </table>
 </div>

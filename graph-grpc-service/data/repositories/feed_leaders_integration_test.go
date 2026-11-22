@@ -55,13 +55,6 @@ func TestFeedLeadersLeavesOutOwnReposts(t *testing.T) {
 	req := &graphpb.FeedLeadersBrowseRequest{MediumEntityTypes: feedNoteTypes, IncludeReposts: true, Limit: 50}
 	nodes, err := leaders.Browse(req, feedViewer(1))
 	seen := nodeIDs(t, nodes, err)
-	total, err := leaders.Count(&graphpb.FeedLeadersCountRequest{MediumEntityTypes: feedNoteTypes, IncludeReposts: true}, feedViewer(1))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if int(total) != len(seen) {
-		t.Errorf("counted %d, listed %d", total, len(seen))
-	}
 
 	for id, want := range map[int64]bool{11: true, 20: true, 22: true, 21: false, 10: false} {
 		if seen[id] != want {

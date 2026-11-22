@@ -37,6 +37,16 @@ Releases before v1.0.17 are described on GitHub, under
    read once, a post's hashtags found without compiling their pattern each
    time, notifications nobody may read removed in one go, and email
    templates parsed once.
+3. **The Following feed is not counted.** Counting it read the whole feed
+   on every page, every access rule on every post: half a second a page on
+   a copy of banu.io, against a fiftieth of a second for the page itself.
+   `GET /feeds/leaders/` now answers with `pagination.has_more`, and a
+   `total` of 0; the web app reads `has_more`
+   ([API](docs/api.md#lists)).
+4. **Seven indexes that were twins of others are dropped** from `nodes` and
+   `edges` (migration `20261122000025`): each was on the same column as the
+   primary key or another index. Nothing read slower without them on
+   a copy of banu.io, and every post written has fewer indexes to update.
 
 ### Removed
 

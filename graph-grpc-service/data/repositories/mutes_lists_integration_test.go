@@ -84,13 +84,6 @@ func TestAMuteTakesThemOutOfTheMutersLists(t *testing.T) {
 		req := &graphpb.FeedLeadersBrowseRequest{MediumEntityTypes: feedNoteTypes, IncludeReposts: true, Limit: 50}
 		nodes, err := leaders.Browse(req, feedViewer(viewer))
 		seen := nodeIDs(t, nodes, err)
-		total, err := leaders.Count(&graphpb.FeedLeadersCountRequest{MediumEntityTypes: feedNoteTypes, IncludeReposts: true}, feedViewer(viewer))
-		if err != nil {
-			t.Fatal(err)
-		}
-		if int(total) != len(seen) {
-			t.Errorf("Following for %d: counted %d, listed %d", viewer, total, len(seen))
-		}
 		return seen
 	}
 	profile := func(actor, viewer int64) map[int64]bool {

@@ -103,8 +103,10 @@ reference says which. A few answers of one thing come in the same envelope,
 **Custom feeds are paged by what came before**, since counting one would mean
 reading all of it: `GET /feeds/<id>/items` takes `cursor` instead of `start`,
 and answers with `pagination.next_cursor` and `pagination.has_more`, and no
-total ([feeds.md](feeds.md)). The home feed and a profile's are paged by
-`start`, as other lists are.
+total ([feeds.md](feeds.md)). **The home feed** (`GET /feeds/leaders/`) is
+paged by `start`, as other lists are, but is not counted either: it answers
+with `pagination.has_more` and a `total` of 0. A profile's is paged by
+`start`, with its total.
 
 ## Lengths
 

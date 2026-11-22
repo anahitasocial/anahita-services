@@ -6,8 +6,12 @@ type Pagination struct {
 	Offset uint64 `json:"offset"`
 	// The most a page holds: what was asked for as `limit`.
 	Limit uint64 `json:"limit"`
-	// How many there are in all.
+	// How many there are in all. 0 for a list too costly to count, which
+	// says `has_more` instead.
 	Total uint64 `json:"total"`
+	// Whether there is a page after this one, for a list not counted (the
+	// home feed): set only there, and left out of the others.
+	HasMore *bool `json:"has_more,omitempty"`
 }
 
 // Unpaged is a list sent whole, not a page of it: the answer of a route
