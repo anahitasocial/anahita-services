@@ -65,14 +65,6 @@ func Normalize(tag string) (string, bool) {
 	return primary + "-" + strings.ToUpper(parts[2]), true
 }
 
-// Primary returns the language part of a tag: "fr" for "fr-CA".
-func Primary(tag string) string {
-	if cut := strings.IndexAny(tag, "-_"); cut != -1 {
-		tag = tag[:cut]
-	}
-	return strings.ToLower(tag)
-}
-
 // iso6391 is every two-letter language code.
 var iso6391 = func() map[string]bool {
 	const codes = "aa ab ae af ak am an ar as av ay az ba be bg bh bi bm bn bo br bs ca ce ch co cr cs cu cv cy " +

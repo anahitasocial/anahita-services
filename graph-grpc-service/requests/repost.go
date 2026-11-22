@@ -1,29 +1,9 @@
 package requests
 
-import "anahita-libs/constants"
-
 type RepostRequest struct {
 	Browse *RepostBrowseRequest
 	Add    *RepostAddRequest
 	Delete *RepostDeleteRequest
-}
-
-func NewRepostRequest() *RepostRequest {
-	return &RepostRequest{
-		Browse: &RepostBrowseRequest{
-			Offset:      0,
-			Limit:       constants.RequestLimitDefault,
-			OrderingDir: constants.DirDesc,
-			Ordering:    constants.OrderingCreatedAt,
-			ParentID:    0,
-		},
-		Add: &RepostAddRequest{
-			ParentID: 0,
-		},
-		Delete: &RepostDeleteRequest{
-			ParentID: 0,
-		},
-	}
 }
 
 type RepostBrowseRequest struct {

@@ -70,19 +70,3 @@ func (p *notificationsPermissions) CanDelete(viewer *an_entities.Viewer, notific
 
 	return false, errors.New(ErrNotificationDeleteNotAllowed)
 }
-
-func (p *notificationsPermissions) CanAdministrate(viewer *an_entities.Viewer, notification *entities.Notification) (bool, error) {
-	if !viewer.HasScope(libs_constants.OAuthScopeNotificationsWrite) {
-		return false, errors.New(ErrInsufficientScope)
-	}
-
-	if viewer.IsAdmin() || viewer.IsSuperAdmin() {
-		return true, nil
-	}
-
-	if notification.RecipientID == viewer.ID {
-		return true, nil
-	}
-
-	return false, errors.New(ErrNotificationAdminNotAllowed)
-}

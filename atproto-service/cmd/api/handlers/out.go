@@ -1020,20 +1020,6 @@ func (h *Handlers) quotedAddress(note *entities.AnahitaNode) (string, *entities.
 	return federation.QuotedAddress(quoted, public, h.Site.Web), quoted
 }
 
-// uploaded is a picture in this installation's storage, given to the
-// account's server, or nil.
-func (h *Handlers) uploaded(path string, upload uploader) *bsky.OutBlob {
-	content, mimeType := h.stored(path)
-	if content == nil {
-		return nil
-	}
-	blob, err := upload(content, mimeType)
-	if err != nil {
-		return nil
-	}
-	return blob
-}
-
 // quoteStaysOff says whether a post that quotes stays off Bluesky
 // (roadmap row 162): it quotes a post from the fediverse, or one here that
 // is not on Bluesky, or is not open to everybody. Consent to be quoted on

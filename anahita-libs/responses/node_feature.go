@@ -51,18 +51,3 @@ func NewNodeFeature(feature *entities.AnahitaNodeFeature) *NodeFeature {
 		Ordering:       feature.Ordering,
 	}
 }
-
-func NewNodeFeatures(features []*entities.AnahitaNodeFeature) []*NodeFeature {
-	if features == nil {
-		return []*NodeFeature{}
-	}
-
-	result := make([]*NodeFeature, 0, len(features))
-	for _, f := range features {
-		if nf := NewNodeFeature(f); nf != nil {
-			result = append(result, nf)
-		}
-	}
-
-	return result
-}

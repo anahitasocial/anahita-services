@@ -38,22 +38,14 @@ func NewCustomFeedHandler(env *Env) *customFeedHandler {
 	return &customFeedHandler{Env: env}
 }
 
-// Who a feed may be shown to. Not "people I follow" or "mutuals": a feed is
-// shared widely or kept.
-var customFeedAccess = []string{
-	constants.AnahitaAccessMyself,
-	constants.AnahitaAccessFollowers,
-	constants.AnahitaAccessRegistered,
-	constants.AnahitaAccessPublic,
-}
-
 // CustomFeedFields is what makes a custom feed.
 type CustomFeedFields struct {
 	// What it is called.
 	Name string `json:"name" validate:"required,max=100"`
 	// What it is for, in its owner's words.
 	Body string `json:"body" validate:"omitempty,max=500"`
-	// Who may see it: `myself`, `followers`, `registered` or `public`.
+	// Who may see it: `myself`, `followers`, `registered` or `public`. Not
+	// "people I follow" or "mutuals": a feed is shared widely or kept.
 	Access string `json:"access" validate:"omitempty,oneof=myself followers registered public"`
 	// Its picture, by name: one of feeds.Icons. The default when left out.
 	Icon string `json:"icon" validate:"omitempty,max=20"`

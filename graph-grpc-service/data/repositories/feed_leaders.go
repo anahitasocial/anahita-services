@@ -35,7 +35,6 @@ func NewFeedLeadersRepo(db *sql.DB) FeedLeadersRepoInterface {
 // liked is not in it (2026-10-29); the request's include_liked is not read.
 type FeedLeadersRepo struct {
 	db               *sql.DB
-	repostEntityType string
 	followEntityType string
 	dbTimeout        time.Duration
 }

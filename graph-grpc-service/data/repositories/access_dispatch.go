@@ -138,15 +138,3 @@ func isActorEdges(edgeTypes []string) bool {
 	}
 	return true
 }
-
-// typeFilter wraps a single optional type as the slice the dispatcher takes.
-//
-// Several requests carry one node_type rather than a list. An empty one means
-// "no filter", which must stay an empty slice so the dispatcher falls to the
-// owner-based gate rather than treating "" as an actor type.
-func typeFilter(nodeType string) []string {
-	if nodeType == "" {
-		return nil
-	}
-	return []string{nodeType}
-}

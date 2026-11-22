@@ -129,8 +129,3 @@ func (p *repostPermissions) CanDelete(viewer *entities.Viewer, repost *entities.
 
 	return false, errors.New("you are not allowed to delete this repost")
 }
-
-// CanAdministrate returns true if the viewer is allowed to administrate the repost
-func (p *repostPermissions) CanAdministrate(viewer *entities.Viewer, entity interface{}) (bool, error) {
-	return false, errors.New("you are not allowed to administrate this repost")
-}

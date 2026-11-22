@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"anahita-libs/data/entities"
-	"anahita-libs/permissions"
 )
 
 // errNoTarget is there being no such node to like, or to read the likes
@@ -76,13 +75,4 @@ func (h *likeHandler) refreshLikeTarget(read *entities.AnahitaNode) (*entities.A
 		node.Owner = read.Owner
 	}
 	return node, nil
-}
-
-// postFlags sets who may reply to and like post, as the media services do
-// for the same post. post.Owner has to be loaded — readLikeTarget does.
-func postFlags(post *entities.AnahitaNode, viewer *entities.Viewer, rel *entities.ActorRelation) {
-	comment := permissions.CanReplyToPost(viewer, post, rel)
-	like := permissions.CanLike(viewer, post, rel)
-	post.Authorized.Comment = &comment
-	post.Authorized.Like = &like
 }

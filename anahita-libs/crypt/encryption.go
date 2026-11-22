@@ -25,11 +25,6 @@ type Encryption struct{}
 // sealed under another key or the cipher before.
 var ErrUnreadable = errors.New("crypt: value cannot be read")
 
-// NewEncryption creates a new encryption instance.
-func NewEncryption() *Encryption {
-	return &Encryption{}
-}
-
 // Encrypt seals a value with the key: a nonce of its own, then the sealed
 // value with its tag, base64 encoded.
 func (e *Encryption) Encrypt(key []byte, value string) (string, error) {

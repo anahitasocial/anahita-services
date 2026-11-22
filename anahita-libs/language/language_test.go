@@ -53,11 +53,3 @@ func TestEveryTwoLetterCodeIsKnown(t *testing.T) {
 		}
 	}
 }
-
-func TestPrimary(t *testing.T) {
-	for in, want := range map[string]string{"fr-CA": "fr", "en": "en", "PT_br": "pt", "": ""} {
-		if got := Primary(in); got != want {
-			t.Errorf("Primary(%q) = %q, want %q", in, got, want)
-		}
-	}
-}

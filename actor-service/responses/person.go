@@ -109,16 +109,3 @@ func (r *PersonResponse) MapNodeItem(node *entities.Person) *PersonNodeItem {
 		Language:       node.Language,
 	}
 }
-
-func (r *PersonResponse) MapNodeItems(nodes []*entities.Person) []*PersonNodeItem {
-	if nodes == nil {
-		return nil
-	}
-
-	items := make([]*PersonNodeItem, 0, len(nodes))
-	for _, node := range nodes {
-		items = append(items, r.MapNodeItem(node))
-	}
-
-	return items
-}

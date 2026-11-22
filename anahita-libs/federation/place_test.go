@@ -6,15 +6,24 @@ import (
 	"testing"
 )
 
+// firstPlace is the first place a `location` says, as ReadPlaces reads it.
+func firstPlace(location json.RawMessage) *Place {
+	places := ReadPlaces(location, nil)
+	if len(places) == 0 {
+		return nil
+	}
+	return &places[0]
+}
+
 func TestAPlaceIsReadAsTheVocabularyHasIt(t *testing.T) {
 	// As Pixelfed sends it: `country` is its own, and not read.
-	got := ReadPlace(json.RawMessage(`{"type":"Place","name":"Vancouver","latitude":49.28,"longitude":-123.12,"country":"Canada"}`))
+	got := firstPlace(json.RawMessage(`{"type":"Place","name":"Vancouver","latitude":49.28,"longitude":-123.12,"country":"Canada"}`))
 	if got == nil || got.Name != "Vancouver" || got.Latitude != 49.28 || got.Longitude != -123.12 {
 		t.Fatalf("got %+v", got)
 	}
 
 	// The first that is a place with a point, of several.
-	many := ReadPlace(json.RawMessage(`[{"type":"Link","href":"https://example.org"},{"type":["Place"],"latitude":1,"longitude":2}]`))
+	many := firstPlace(json.RawMessage(`[{"type":"Link","href":"https://example.org"},{"type":["Place"],"latitude":1,"longitude":2}]`))
 	if many == nil || many.Latitude != 1 {
 		t.Errorf("of several: %+v", many)
 	}
@@ -26,7 +35,7 @@ func TestAPlaceIsReadAsTheVocabularyHasIt(t *testing.T) {
 		`{"type":"Note","latitude":1,"longitude":2}`,
 		`"Vancouver"`,
 	} {
-		if p := ReadPlace(json.RawMessage(none)); p != nil {
+		if p := firstPlace(json.RawMessage(none)); p != nil {
 			t.Errorf("%q read as %+v", none, p)
 		}
 	}
@@ -34,7 +43,7 @@ func TestAPlaceIsReadAsTheVocabularyHasIt(t *testing.T) {
 
 func TestAPlaceIsSentAsTheVocabularyHasIt(t *testing.T) {
 	raw, _ := json.Marshal(Place{Name: "Here", Latitude: 1.5, Longitude: -2}.AsLocation())
-	back := ReadPlace(raw)
+	back := firstPlace(raw)
 	if back == nil || back.Name != "Here" || back.Latitude != 1.5 || back.Longitude != -2 {
 		t.Errorf("sent %s, read back %+v", raw, back)
 	}

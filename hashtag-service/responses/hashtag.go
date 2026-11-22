@@ -44,19 +44,6 @@ func (r *HashtagNodeResponse) MapHashtagNodeItem(node *entities.AnahitaNode) *Ha
 	}
 }
 
-func (r *HashtagNodeResponse) MapHashtagNode(node *entities.AnahitaNode) *HashtagNode {
-	if node == nil {
-		return nil
-	}
-
-	hashtagNodeItem := r.MapHashtagNodeItem(node)
-
-	return &HashtagNode{
-		HashtagNodeItem: *hashtagNodeItem,
-		EdgeCount:       node.EdgeCount,
-	}
-}
-
 func (r *HashtagNodeResponse) MapHashtagNodeItems(nodes []*entities.AnahitaNode) []*HashtagNodeItem {
 	if nodes == nil {
 		return nil

@@ -1,18 +1,7 @@
 package requests
 
-import "anahita-libs/constants"
-
 type FeedActorRepostsRequest struct {
 	Browse *FeedActorRepostsBrowseRequest
-}
-
-func NewFeedActorRepostsRequest() *FeedActorRepostsRequest {
-	return &FeedActorRepostsRequest{
-		Browse: &FeedActorRepostsBrowseRequest{
-			Offset: 0,
-			Limit:  constants.RequestLimitDefault,
-		},
-	}
 }
 
 type FeedActorRepostsBrowseRequest struct {

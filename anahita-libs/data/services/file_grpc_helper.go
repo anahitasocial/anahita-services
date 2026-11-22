@@ -159,34 +159,6 @@ func BatchPresignCover(srv FilesGRPCInterface, items []entities.AnahitaNodeCover
 	}
 }
 
-// PresignPortrait pre-signs the portrait URLs
-func PresignPortrait(srv FilesGRPCInterface, item entities.AnahitaNodePortraitInterface) {
-	var (
-		reqFile = NewFileRequest().Presign
-	)
-
-	portraits, err := item.GetPortraits()
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	for size, portrait := range portraits {
-		if portrait.Url != "" {
-			reqFile.Path = portrait.Url
-			portrait.Url, err = srv.Presign(reqFile)
-			if err != nil {
-				log.Println(err)
-			}
-
-			// Update the portrait in the map using SetPortrait
-			if err := item.SetPortrait(portrait, size); err != nil {
-				log.Println("Error setting portrait:", err)
-			}
-		}
-	}
-}
-
 // BatchPresignPortrait pre-signs the portrait URLs for a batch of items
 func BatchPresignPortrait(srv FilesGRPCInterface, items []entities.AnahitaNodePortraitInterface) {
 	var paths []string

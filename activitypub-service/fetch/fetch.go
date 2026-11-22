@@ -76,13 +76,6 @@ func NewWith(userAgent string, signer Signer, allow safehttp.Allow) *Client {
 	}
 }
 
-// newFrom is a client over an http.Client that is given. For tests, which
-// need one that trusts the test's own certificate.
-func newFrom(client *http.Client, signer Signer) *Client {
-	client.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
-	return &Client{http: client, signer: signer, userAgent: "test", now: time.Now}
-}
-
 // LabAddresses allows any address on the web's secure port. For the
 // federation lab only: there every server is at a private address.
 func LabAddresses(ip net.IP, port string) bool {

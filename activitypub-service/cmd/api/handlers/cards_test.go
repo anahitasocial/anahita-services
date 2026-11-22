@@ -18,20 +18,6 @@ func (f *fakeCards) Preview(_ context.Context, address string) *linkpreviews.Pre
 	return &linkpreviews.Preview{URL: address, Title: "Bumble shares soar", SiteName: "BBC News", ImageKey: "abc.jpg", Status: linkpreviews.StatusOK}
 }
 
-func TestTheLinkACardIsOf(t *testing.T) {
-	for body, want := range map[string]string{
-		"Read [this](https://www.bbc.com/news/1) now":                                                "https://www.bbc.com/news/1",
-		"[@alice@mastodon.example](https://mastodon.example/@alice) see https://www.bbc.com/news/1.": "https://www.bbc.com/news/1",
-		"[#news](https://mastodon.example/tags/news) and nothing else":                               "",
-		"#beans @ana no link here":                                                                   "",
-		"[https://www.bbc.com/news/1](https://www.bbc.com/news/1)":                                   "https://www.bbc.com/news/1",
-	} {
-		if got := cardLink(body); got != want {
-			t.Errorf("%q: %q, want %q", body, got, want)
-		}
-	}
-}
-
 // A post from elsewhere with a link in it is kept with the card this
 // installation made of the page, and one without is kept without.
 func TestAPostFromElsewhereIsGivenItsCard(t *testing.T) {

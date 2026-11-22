@@ -19,14 +19,6 @@ func getViewer(c echo.Context) *entities.Viewer {
 	return an_mw.GetViewer(c)
 }
 
-func extractIdsFromActors(actors []*entities.AnahitaNode) []int64 {
-	ids := make([]int64, 0, len(actors))
-	for _, actor := range actors {
-		ids = append(ids, actor.ID)
-	}
-	return ids
-}
-
 func mapActorNodesById(actors []*entities.AnahitaNode) map[int64]*entities.AnahitaNode {
 	ids := make(map[int64]*entities.AnahitaNode, len(actors))
 	for _, actor := range actors {

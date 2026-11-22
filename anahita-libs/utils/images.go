@@ -50,56 +50,6 @@ const JPEGQuality = 85
 
 var jpegOptions = &jpeg.Options{Quality: JPEGQuality}
 
-// ResizeImage resizes the image based on the provided width and height
-func ResizeImage(input []byte, width, height int) ([]byte, error) {
-	// Detect image format
-	contentType := http.DetectContentType(input)
-	var img image.Image
-	var err error
-
-	// Decode image based on format
-	if contentType == "image/jpeg" {
-		img, err = jpeg.Decode(bytes.NewReader(input))
-		if err != nil {
-			return nil, fmt.Errorf("failed to decode jpeg: %w", err)
-		}
-	} else if contentType == "image/png" {
-		img, err = png.Decode(bytes.NewReader(input))
-		if err != nil {
-			return nil, fmt.Errorf("failed to decode png: %w", err)
-		}
-	} else {
-		return nil, fmt.Errorf("unsupported image format: %s", contentType)
-	}
-
-	// If height is 0, calculate the height to maintain aspect ratio
-	if height == 0 {
-		aspectRatio := float64(img.Bounds().Dy()) / float64(img.Bounds().Dx())
-		height = int(float64(width) * aspectRatio)
-	}
-
-	// Resize the image
-	resizedImage := imaging.Resize(img, width, height, imaging.Lanczos)
-
-	// Buffer to store the resized image
-	var buf bytes.Buffer
-
-	// Encode the resized image back to the original format
-	if contentType == "image/jpeg" {
-		err = jpeg.Encode(&buf, resizedImage, jpegOptions)
-		if err != nil {
-			return nil, fmt.Errorf("failed to encode jpeg: %w", err)
-		}
-	} else if contentType == "image/png" {
-		err = png.Encode(&buf, resizedImage)
-		if err != nil {
-			return nil, fmt.Errorf("failed to encode png: %w", err)
-		}
-	}
-
-	return buf.Bytes(), nil
-}
-
 // CorrectOrientation corrects the image orientation based on EXIF metadata from []byte input
 func CorrectOrientation(input []byte) ([]byte, error) {
 	// Detect the content type of the image (JPEG, PNG, etc.)

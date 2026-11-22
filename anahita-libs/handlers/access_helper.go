@@ -72,15 +72,3 @@ func DeterminePersonNodeAccess(accessLevel string) string {
 		return constants.AnahitaAccessMyself
 	}
 }
-
-// DetermineActorNodeWhoCanAddFollowers determines who can add followers to an actor node
-func DetermineActorNodeWhoCanAddFollowers(whoCanAddFollowers string) string {
-	switch whoCanAddFollowers {
-	case "admins":
-		return constants.AnahitaAccessAdmins
-	case "followers":
-		return constants.AnahitaAccessFollowers
-	default:
-		return constants.AnahitaAccessAdmins // Default to admins if not specified
-	}
-}

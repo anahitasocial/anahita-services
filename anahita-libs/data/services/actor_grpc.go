@@ -109,8 +109,7 @@ func NewActorsGRPC(config ActorGRPCConfigInterface) ActorsGRPCInterface {
 
 // ActorsGRPC is the media service
 type ActorsGRPC struct {
-	config     ActorGRPCConfigInterface
-	entityType string
+	config ActorGRPCConfigInterface
 }
 
 // getClient returns the client, on the one connection to the service this

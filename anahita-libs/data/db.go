@@ -1,7 +1,6 @@
 package data
 
 import (
-	"github.com/DATA-DOG/go-sqlmock"
 	_ "github.com/go-sql-driver/mysql"
 
 	"database/sql"
@@ -56,15 +55,4 @@ func ConnectToDB(dsn string) *sql.DB {
 	}
 	log.Println("Connected to database!")
 	return db
-}
-
-// NewMock returns store instance and SqlMock handler for testing
-func NewMock() (*sql.DB, sqlmock.Sqlmock, error) {
-	db, mock, err := sqlmock.New()
-	if err != nil {
-		return nil, mock, err
-	}
-	defer db.Close()
-
-	return db, mock, nil
 }

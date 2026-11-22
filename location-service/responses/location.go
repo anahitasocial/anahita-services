@@ -69,19 +69,6 @@ func (r *LocationNodeResponse) MapLocationNodeItem(node *entities.AnahitaNode) *
 	}
 }
 
-func (r *LocationNodeResponse) MapLocationNode(node *entities.AnahitaNode) *LocationNode {
-	if node == nil {
-		return nil
-	}
-
-	locationNodeItem := r.MapLocationNodeItem(node)
-
-	return &LocationNode{
-		LocationNodeItem: *locationNodeItem,
-		EdgeCount:        node.EdgeCount,
-	}
-}
-
 func (r *LocationNodeResponse) MapLocationNodeItems(nodes []*entities.AnahitaNode) []*LocationNodeItem {
 	if nodes == nil {
 		return nil

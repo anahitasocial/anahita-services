@@ -1467,7 +1467,7 @@
               "schema": {
                 "properties": {
                   "access": {
-                    "description": "Who may see it: `myself`, `followers`, `registered` or `public`.",
+                    "description": "Who may see it: `myself`, `followers`, `registered` or `public`. Not \"people I follow\" or \"mutuals\": a feed is shared widely or kept.",
                     "enum": [
                       "myself",
                       "followers",
@@ -2197,7 +2197,7 @@
               "schema": {
                 "properties": {
                   "access": {
-                    "description": "Who may see it: `myself`, `followers`, `registered` or `public`.",
+                    "description": "Who may see it: `myself`, `followers`, `registered` or `public`. Not \"people I follow\" or \"mutuals\": a feed is shared widely or kept.",
                     "enum": [
                       "myself",
                       "followers",

@@ -118,3 +118,10 @@ func TestOnlyHTTPSAndOnlyPublicAddresses(t *testing.T) {
 		t.Error("the lab's rule is wrong")
 	}
 }
+
+// newFrom is a client over an http.Client that is given: one that trusts
+// the test's own certificate.
+func newFrom(client *http.Client, signer Signer) *Client {
+	client.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
+	return &Client{http: client, signer: signer, userAgent: "test", now: time.Now}
+}

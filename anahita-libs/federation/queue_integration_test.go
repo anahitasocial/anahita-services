@@ -291,3 +291,32 @@ func TestATableIsNamedAsOne(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+// TableSQL is the statement that makes a queue's table. A service's
+// migration is this, with its own table's name.
+func TableSQL(table string) string {
+	return `CREATE TABLE IF NOT EXISTS ` + table + ` (
+    id bigint unsigned NOT NULL AUTO_INCREMENT,
+    -- Said by whoever adds a row, to add it once however often they try:
+    -- the activity and the inbox it is for. NULL for no such promise.
+    dedupe_key varchar(191) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
+    -- Who here it is sent for.
+    actor_id bigint unsigned NOT NULL,
+    -- Where it goes.
+    target varchar(512) NOT NULL,
+    payload mediumblob NOT NULL,
+    -- pending or failed. What was sent is removed. What a worker has taken
+    -- is pending still, with next_attempt_at put off: see Claim.
+    status varchar(16) NOT NULL DEFAULT 'pending',
+    attempts int unsigned NOT NULL DEFAULT 0,
+    next_attempt_at datetime NOT NULL,
+    -- When a worker last took it.
+    claimed_at datetime DEFAULT NULL,
+    last_error varchar(500) DEFAULT NULL,
+    created_at datetime NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_dedupe_key (dedupe_key),
+    KEY status_next_attempt_at (status, next_attempt_at),
+    KEY actor_id (actor_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci`
+}

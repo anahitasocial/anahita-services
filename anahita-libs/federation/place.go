@@ -33,33 +33,6 @@ const placesMax = 5
 // The longest name kept of a place.
 const placeNameMax = 100
 
-// ReadPlace is the place a `location` says, when it is a Place with a point
-// on the Earth: the first such, when it lists several. Nil otherwise: a
-// place with no coordinates, or a Link, or anything else, is no place here.
-// `country` and other keys that are not the vocabulary's are not read.
-func ReadPlace(location json.RawMessage) *Place {
-	trimmed := strings.TrimSpace(string(location))
-	if trimmed == "" || trimmed == "null" {
-		return nil
-	}
-
-	var many []json.RawMessage
-	if strings.HasPrefix(trimmed, "[") {
-		if err := json.Unmarshal(location, &many); err != nil {
-			return nil
-		}
-	} else {
-		many = []json.RawMessage{location}
-	}
-
-	for _, one := range many {
-		if place := readOnePlace(one); place != nil {
-			return place
-		}
-	}
-	return nil
-}
-
 // readOnePlace is one object as a Place with a point on the Earth, or nil.
 func readOnePlace(one json.RawMessage) *Place {
 	var shape struct {

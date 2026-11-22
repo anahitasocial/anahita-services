@@ -1,20 +1,7 @@
 package requests
 
-import "anahita-libs/constants"
-
 type VoteupRequest struct {
 	Browse *VoteupBrowseRequest
-}
-
-func NewVoteupRequest() *VoteupRequest {
-	return &VoteupRequest{
-		Browse: &VoteupBrowseRequest{
-			Offset:    0,
-			Limit:     constants.RequestLimitDefault,
-			Direction: "asc",
-			Ordering:  "newest",
-		},
-	}
 }
 
 type VoteupBrowseRequest struct {
