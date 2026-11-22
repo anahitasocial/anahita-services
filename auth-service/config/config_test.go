@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"anahita-libs/constants"
+	"anahita-libs/settings"
 )
 
 func setEnv(key, value string) func() {
@@ -47,19 +48,21 @@ func TestNewConfigDefaults(t *testing.T) {
 // want to invalidate exactly one field.
 func validConfig() *Config {
 	return &Config{
-		DSN:                 "dsn",
-		SecureCookieKey:     "12345678901234567890123456789012",
-		ValkeyAddr:          "localhost:6379",
+		Common: settings.Common{
+			DSN:             "dsn",
+			SecureCookieKey: "12345678901234567890123456789012",
+			ValkeyAddr:      "localhost:6379",
+			FileServiceAddr: "file:50051",
+			AmqpAddr:        "amqp://localhost:5672",
+			OAuthIssuer:     "https://auth.example.com",
+			OAuthJWKSURL:    "https://auth.example.com/.well-known/jwks.json",
+		},
 		DomainName:          "example.com",
 		SystemEmail:         "system@example.com",
 		SupportEmail:        "support@example.com",
 		MailServiceAddr:     "mail:50051",
-		FileServiceAddr:     "file:50051",
-		AmqpAddr:            "amqp://localhost:5672",
 		CryptBackend:        constants.CryptBackendLocal,
 		CryptLocalKey:       "abcdefghijklmnopqrstuvwxyz012345",
-		OAuthIssuer:         "https://auth.example.com",
-		OAuthJWKSURL:        "https://auth.example.com/.well-known/jwks.json",
 		OAuthSeedClientPath: defaultOAuthSeedClientPath,
 		OAuthKeyLifetime:    24 * time.Hour,
 		OAuthSignerBackend:  constants.OAuthSignerBackendLocal,
@@ -73,12 +76,12 @@ func TestValidate_AllMissing(t *testing.T) {
 		t.Fatal("expected error for missing fields")
 	}
 	msg := err.Error()
-	if !contains(msg, ErrMissingDSN) ||
-		!contains(msg, ErrMissingSecureCookieKey) {
+	if !contains(msg, settings.ErrMissingDSN) ||
+		!contains(msg, settings.ErrMissingSecureCookieKey) {
 		t.Errorf("unexpected error message: %s", msg)
 	}
 	// Empty is missing, said once, not also the wrong size (roadmap row 170).
-	if contains(msg, ErrWrongSizeSecureCookieKey) {
+	if contains(msg, settings.ErrWrongSizeSecureCookieKey) {
 		t.Errorf("an empty key was also reported as the wrong size: %q", msg)
 	}
 }
@@ -88,7 +91,7 @@ func TestValidate_WrongSecureCookieKeyLength(t *testing.T) {
 	cfg.SecureCookieKey = "short"
 
 	err := cfg.Validate()
-	if err == nil || !contains(err.Error(), ErrWrongSizeSecureCookieKey) {
+	if err == nil || !contains(err.Error(), settings.ErrWrongSizeSecureCookieKey) {
 		t.Errorf("expected error for wrong secure cookie key length, got %v", err)
 	}
 }
@@ -170,7 +173,7 @@ func TestValidate_UnknownCryptBackend(t *testing.T) {
 }
 
 func TestIsDevStagingProd(t *testing.T) {
-	cfg := &Config{Env: "dev"}
+	cfg := &Config{Common: settings.Common{Env: "dev"}}
 	if !cfg.IsDev() {
 		t.Error("expected IsDev true")
 	}
@@ -186,12 +189,14 @@ func TestIsDevStagingProd(t *testing.T) {
 
 func TestGetters(t *testing.T) {
 	cfg := &Config{
-		DSN:             "dsn",
-		SecureCookieKey: "key",
-		ValkeyAddr:      "addr",
-		ValkeyPassword:  "pass",
-		ValkeyDB:        2,
-		FileServiceAddr: "fileaddr",
+		Common: settings.Common{
+			DSN:             "dsn",
+			SecureCookieKey: "key",
+			ValkeyAddr:      "addr",
+			ValkeyPassword:  "pass",
+			ValkeyDB:        2,
+			FileServiceAddr: "fileaddr",
+		},
 	}
 	if cfg.GetDSN() != "dsn" ||
 		cfg.GetSecureCookieKey() != "key" ||

@@ -2,6 +2,7 @@ package config
 
 import (
 	"anahita-libs/constants"
+	"anahita-libs/settings"
 	"strings"
 	"testing"
 )
@@ -106,12 +107,14 @@ func TestValidateAcceptsUnsetAndEveryKnownGroupsFrom(t *testing.T) {
 // they are about rather than on something else that is missing.
 func validConfig() *Config {
 	return &Config{
-		SecureCookieKey:  strings.Repeat("k", 32),
-		AmqpAddr:         "amqp://localhost",
-		FileServiceAddr:  "file:50051",
-		GraphServiceAddr: "graph:50051",
-		OAuthIssuer:      "https://auth.example.com",
-		OAuthJWKSURL:     "https://auth.example.com/.well-known/jwks.json",
+		Common: settings.Common{
+			SecureCookieKey:  strings.Repeat("k", 32),
+			AmqpAddr:         "amqp://localhost",
+			FileServiceAddr:  "file:50051",
+			GraphServiceAddr: "graph:50051",
+			OAuthIssuer:      "https://auth.example.com",
+			OAuthJWKSURL:     "https://auth.example.com/.well-known/jwks.json",
+		},
 	}
 }
 

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/settings"
 	"context"
 	"net/http"
 	"net/http/httptest"
@@ -49,7 +50,7 @@ func hubCall(h *websubHandler, handler echo.HandlerFunc, method, signature, quer
 
 func TestAHubChecksAndCallsBack(t *testing.T) {
 	channels := &hubChannels{hub: "https://hub.example/"}
-	h := &websubHandler{&Env{Config: &config.Config{SecureCookieKey: "k"}, Srv: &services.Services{Channels: channels}}}
+	h := &websubHandler{&Env{Config: &config.Config{Common: settings.Common{SecureCookieKey: "k"}}, Srv: &services.Services{Channels: channels}}}
 	sig := websub.Signature(900, "k")
 
 	rec := hubCall(h, h.Verify, http.MethodGet, sig, "hub.mode=subscribe&hub.challenge=abc123&hub.lease_seconds=3600")

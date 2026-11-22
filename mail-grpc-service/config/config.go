@@ -1,8 +1,8 @@
 package config
 
 import (
-	an_constants "anahita-libs/constants"
 	"anahita-libs/getenv"
+	"anahita-libs/settings"
 	"errors"
 	"log"
 	"os"
@@ -44,8 +44,9 @@ type Smtp struct {
 }
 
 type Config struct {
+	settings.Common
+
 	Smtp Smtp
-	Env  string
 
 	// DeveloperEmail is where every outbound message goes in development.
 	//
@@ -98,7 +99,7 @@ func NewConfig() *Config {
 	smtpSecure, smtpSecureValid := parseBoolEnv("SMTP_SECURE", false)
 
 	config := &Config{
-		Env:            getenv.String("ENV", an_constants.ConfigEnvDev),
+		Common:         settings.ReadCommon(),
 		DeveloperEmail: os.Getenv("DEVELOPER_EMAIL"),
 		SiteName:       os.Getenv("SITE_NAME"),
 		SiteLogoURL:    os.Getenv("SITE_LOGO_URL"),
@@ -172,18 +173,6 @@ func (config *Config) MustValidate() {
 	if err := config.Validate(); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func (config *Config) IsDev() bool {
-	return config.Env == an_constants.ConfigEnvDev
-}
-
-func (config *Config) IsStaging() bool {
-	return config.Env == an_constants.ConfigEnvStaging
-}
-
-func (config *Config) IsProd() bool {
-	return config.Env == an_constants.ConfigEnvProd
 }
 
 // GetSmtpUser returns the SMTP user

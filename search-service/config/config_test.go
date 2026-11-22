@@ -1,6 +1,7 @@
 package config
 
 import (
+	"anahita-libs/settings"
 	"os"
 	"strings"
 	"testing"
@@ -41,39 +42,43 @@ func TestConfig_Validate_AllMissing(t *testing.T) {
 		t.Fatal("expected error for missing fields, got nil")
 	}
 	msg := err.Error()
-	if !contains(msg, ErrMissingSecureCookieKey) ||
-		!contains(msg, ErrMissingDSN) ||
-		!contains(msg, ErrMissingFileAddr) ||
-		!contains(msg, ErrMissingGraphAddr) {
+	if !contains(msg, settings.ErrMissingSecureCookieKey) ||
+		!contains(msg, settings.ErrMissingDSN) ||
+		!contains(msg, settings.ErrMissingFileAddr) ||
+		!contains(msg, settings.ErrMissingGraphAddr) {
 		t.Errorf("unexpected error message: %v", msg)
 	}
 	// Empty is missing, said once, not also the wrong size (roadmap row 170).
-	if contains(msg, ErrWrongSizeSecureCookieKey) {
+	if contains(msg, settings.ErrWrongSizeSecureCookieKey) {
 		t.Errorf("an empty key was also reported as the wrong size: %q", msg)
 	}
 }
 
 func TestConfig_Validate_SecureCookieKeyWrongSize(t *testing.T) {
 	cfg := &Config{
-		SecureCookieKey:  "short",
-		DSN:              "dsn",
-		FileServiceAddr:  "file",
-		GraphServiceAddr: "graph",
+		Common: settings.Common{
+			SecureCookieKey:  "short",
+			DSN:              "dsn",
+			FileServiceAddr:  "file",
+			GraphServiceAddr: "graph",
+		},
 	}
 	err := cfg.Validate()
-	if err == nil || !contains(err.Error(), ErrWrongSizeSecureCookieKey) {
+	if err == nil || !contains(err.Error(), settings.ErrWrongSizeSecureCookieKey) {
 		t.Errorf("expected error for wrong size secure cookie key, got %v", err)
 	}
 }
 
 func TestConfig_Validate_Success(t *testing.T) {
 	cfg := &Config{
-		SecureCookieKey:  "12345678901234567890123456789012",
-		DSN:              "dsn",
-		FileServiceAddr:  "file",
-		GraphServiceAddr: "graph",
-		OAuthIssuer:      "https://auth.example.com",
-		OAuthJWKSURL:     "https://auth.example.com/.well-known/jwks.json",
+		Common: settings.Common{
+			SecureCookieKey:  "12345678901234567890123456789012",
+			DSN:              "dsn",
+			FileServiceAddr:  "file",
+			GraphServiceAddr: "graph",
+			OAuthIssuer:      "https://auth.example.com",
+			OAuthJWKSURL:     "https://auth.example.com/.well-known/jwks.json",
+		},
 	}
 	err := cfg.Validate()
 	if err != nil {
@@ -83,17 +88,19 @@ func TestConfig_Validate_Success(t *testing.T) {
 
 func TestConfig_Validate_MissingOAuth(t *testing.T) {
 	cfg := &Config{
-		SecureCookieKey:  "12345678901234567890123456789012",
-		DSN:              "dsn",
-		FileServiceAddr:  "file",
-		GraphServiceAddr: "graph",
+		Common: settings.Common{
+			SecureCookieKey:  "12345678901234567890123456789012",
+			DSN:              "dsn",
+			FileServiceAddr:  "file",
+			GraphServiceAddr: "graph",
+		},
 	}
 	err := cfg.Validate()
 	if err == nil {
 		t.Fatal("expected error for missing OAuth fields, got nil")
 	}
-	if !contains(err.Error(), ErrMissingOAuthIssuer) ||
-		!contains(err.Error(), ErrMissingOAuthJWKSURL) {
+	if !contains(err.Error(), settings.ErrMissingOAuthIssuer) ||
+		!contains(err.Error(), settings.ErrMissingOAuthJWKSURL) {
 		t.Errorf("unexpected error message: %s", err.Error())
 	}
 }
@@ -110,7 +117,7 @@ func TestNewConfig_DerivesJWKSURLFromIssuer(t *testing.T) {
 }
 
 func TestConfig_IsEnv(t *testing.T) {
-	cfg := &Config{Env: "dev"}
+	cfg := &Config{Common: settings.Common{Env: "dev"}}
 	if !cfg.IsDev() {
 		t.Error("expected IsDev to be true")
 	}
@@ -126,13 +133,15 @@ func TestConfig_IsEnv(t *testing.T) {
 
 func TestConfig_Getters(t *testing.T) {
 	cfg := &Config{
-		DSN:              "dsn",
-		SecureCookieKey:  "key",
-		ValkeyAddr:       "addr",
-		ValkeyPassword:   "pass",
-		ValkeyDB:         42,
-		FileServiceAddr:  "file",
-		GraphServiceAddr: "graph",
+		Common: settings.Common{
+			DSN:              "dsn",
+			SecureCookieKey:  "key",
+			ValkeyAddr:       "addr",
+			ValkeyPassword:   "pass",
+			ValkeyDB:         42,
+			FileServiceAddr:  "file",
+			GraphServiceAddr: "graph",
+		},
 	}
 	if cfg.GetDSN() != "dsn" ||
 		cfg.GetSecureCookieKey() != "key" ||

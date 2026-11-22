@@ -2,24 +2,15 @@ package config
 
 import (
 	"anahita-libs/getenv"
+	"anahita-libs/settings"
 	"errors"
 	"os"
 	"strings"
-
-	"anahita-libs/constants"
 )
 
 type Config struct {
-	Env              string
-	DSN              string
-	SecureCookieKey  string
-	ValkeyAddr       string
-	ValkeyPassword   string
-	ValkeyDB         int
-	FileServiceAddr  string
-	GraphServiceAddr string
-	OAuthIssuer      string
-	OAuthJWKSURL     string
+	settings.Common
+
 	// The site's address and name, for the links and the heading in an
 	// archive.
 	PublicWebURL string
@@ -32,25 +23,13 @@ type Config struct {
 
 func NewConfig() *Config {
 	config := &Config{
-		Env:              getenv.String("ENV", constants.ConfigEnvDev),
-		DSN:              os.Getenv("DSN"),
-		SecureCookieKey:  os.Getenv("SECURE_COOKIE_KEY"),
-		ValkeyAddr:       getenv.RenamedString("VALKEY_ADDR", "REDIS_ADDR", "localhost:6379"),
-		ValkeyPassword:   getenv.Renamed("VALKEY_PASSWORD", "REDIS_PASSWORD"),
-		ValkeyDB:         getenv.RenamedInt("VALKEY_DB", "REDIS_DB", 0),
-		FileServiceAddr:  os.Getenv("FILE_SERVICE_ADDR"),
-		GraphServiceAddr: os.Getenv("GRAPH_SERVICE_ADDR"),
-		OAuthIssuer:      os.Getenv("OAUTH_ISSUER"),
-		OAuthJWKSURL:     os.Getenv("OAUTH_JWKS_URL"),
-		PublicWebURL:     strings.TrimRight(os.Getenv("PUBLIC_WEB_URL"), "/"),
-		SiteName:         getenv.String("SITE_NAME", "Anahita"),
-		EveryDays:        getenv.Int("EXPORT_EVERY_DAYS", 7),
-		KeepDays:         getenv.Int("EXPORT_KEEP_DAYS", 7),
+		Common:       settings.ReadCommon(),
+		PublicWebURL: strings.TrimRight(os.Getenv("PUBLIC_WEB_URL"), "/"),
+		SiteName:     getenv.String("SITE_NAME", "Anahita"),
+		EveryDays:    getenv.Int("EXPORT_EVERY_DAYS", 7),
+		KeepDays:     getenv.Int("EXPORT_KEEP_DAYS", 7),
 	}
 
-	if config.OAuthJWKSURL == "" && config.OAuthIssuer != "" {
-		config.OAuthJWKSURL = strings.TrimRight(config.OAuthIssuer, "/") + "/.well-known/jwks.json"
-	}
 	if config.EveryDays < 0 {
 		config.EveryDays = 0
 	}
@@ -98,17 +77,4 @@ func (config *Config) ValidateWorker() error {
 	})
 }
 
-func (config *Config) IsDev() bool     { return config.Env == constants.ConfigEnvDev }
-func (config *Config) IsStaging() bool { return config.Env == constants.ConfigEnvStaging }
-func (config *Config) IsProd() bool    { return config.Env == constants.ConfigEnvProd }
-
-func (config *Config) GetDSN() string              { return config.DSN }
-func (config *Config) GetSecureCookieKey() string  { return config.SecureCookieKey }
-func (config *Config) GetValkeyAddr() string       { return config.ValkeyAddr }
-func (config *Config) GetValkeyPassword() string   { return config.ValkeyPassword }
-func (config *Config) GetValkeyDB() int            { return config.ValkeyDB }
-func (config *Config) GetFileServiceAddr() string  { return config.FileServiceAddr }
-func (config *Config) GetGraphServiceAddr() string { return config.GraphServiceAddr }
-func (config *Config) GetOAuthIssuer() string      { return config.OAuthIssuer }
-func (config *Config) GetOAuthJWKSURL() string     { return config.OAuthJWKSURL }
-func (config *Config) GetDomainName() string       { return os.Getenv("DOMAIN_NAME") }
+func (config *Config) GetDomainName() string { return os.Getenv("DOMAIN_NAME") }

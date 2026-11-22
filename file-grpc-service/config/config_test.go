@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"anahita-libs/constants"
+	"anahita-libs/settings"
 )
 
 // every variable this package reads, cleared before each test so one on the
@@ -193,7 +194,7 @@ func TestValidateNamesEveryProblemAtOnce(t *testing.T) {
 }
 
 func TestConfig_IsEnv(t *testing.T) {
-	cfg := &Config{Env: constants.ConfigEnvDev}
+	cfg := &Config{Common: settings.Common{Env: constants.ConfigEnvDev}}
 	if !cfg.IsDev() {
 		t.Error("expected IsDev true")
 	}

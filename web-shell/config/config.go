@@ -2,17 +2,14 @@ package config
 
 import (
 	"anahita-libs/getenv"
+	"anahita-libs/settings"
 	"errors"
 	"os"
 	"strings"
-
-	"anahita-libs/constants"
 )
 
 type Config struct {
-	Env              string
-	FileServiceAddr  string
-	GraphServiceAddr string
+	settings.Common
 	// Where the web app's build is: the folder with index.html in it.
 	WebBuildDir string
 	// The address people reach the web app at, "https://www.example.org".
@@ -23,11 +20,9 @@ type Config struct {
 
 func NewConfig() *Config {
 	return &Config{
-		Env:              getenv.String("ENV", constants.ConfigEnvDev),
-		FileServiceAddr:  os.Getenv("FILE_SERVICE_ADDR"),
-		GraphServiceAddr: os.Getenv("GRAPH_SERVICE_ADDR"),
-		WebBuildDir:      getenv.String("WEB_BUILD_DIR", "/app/web"),
-		PublicWebURL:     strings.TrimRight(os.Getenv("PUBLIC_WEB_URL"), "/"),
+		Common:       settings.ReadCommon(),
+		WebBuildDir:  getenv.String("WEB_BUILD_DIR", "/app/web"),
+		PublicWebURL: strings.TrimRight(os.Getenv("PUBLIC_WEB_URL"), "/"),
 	}
 }
 
@@ -45,16 +40,4 @@ func (config *Config) Validate() error {
 	}
 
 	return nil
-}
-
-func (config *Config) IsDev() bool {
-	return config.Env == constants.ConfigEnvDev
-}
-
-func (config *Config) GetFileServiceAddr() string {
-	return config.FileServiceAddr
-}
-
-func (config *Config) GetGraphServiceAddr() string {
-	return config.GraphServiceAddr
 }

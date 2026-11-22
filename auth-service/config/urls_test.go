@@ -1,6 +1,9 @@
 package config
 
-import "testing"
+import (
+	"anahita-libs/settings"
+	"testing"
+)
 
 // Both public base URLs fall back to localhost outside prod and staging —
 // correct on a laptop, wrong on any SHARED development deployment, where every
@@ -11,7 +14,7 @@ import "testing"
 // override that fixed only one would leave the message half wrong.
 
 func TestPublicURLsFallBackWhenUnset(t *testing.T) {
-	cfg := &Config{Env: "dev", DomainName: "example.com"}
+	cfg := &Config{Common: settings.Common{Env: "dev"}, DomainName: "example.com"}
 
 	if got := cfg.GetAuthURL(); got != "http://localhost" {
 		t.Errorf("GetAuthURL() = %q; the derived default must not change for "+
@@ -24,7 +27,9 @@ func TestPublicURLsFallBackWhenUnset(t *testing.T) {
 
 func TestPublicURLsTakeAnExplicitOverride(t *testing.T) {
 	cfg := &Config{
-		Env:         "dev",
+		Common: settings.Common{
+			Env: "dev",
+		},
 		DomainName:  "example.com",
 		AuthURL:     "https://auth.dev.example.com",
 		FrontendURL: "https://dev.example.com",
@@ -43,7 +48,9 @@ func TestPublicURLsTakeAnExplicitOverride(t *testing.T) {
 // answer and some do not.
 func TestPublicURLsTrimATrailingSlash(t *testing.T) {
 	cfg := &Config{
-		Env:         "dev",
+		Common: settings.Common{
+			Env: "dev",
+		},
 		AuthURL:     "https://auth.dev.example.com/",
 		FrontendURL: "https://dev.example.com/",
 	}
@@ -61,7 +68,7 @@ func TestPublicURLsTrimATrailingSlash(t *testing.T) {
 // deliberately: an installation serving auth from a different host than
 // auth.<domain> has no other way to say so. Pinned so the choice is visible.
 func TestOverrideAppliesInProductionToo(t *testing.T) {
-	cfg := &Config{Env: "prod", DomainName: "example.com"}
+	cfg := &Config{Common: settings.Common{Env: "prod"}, DomainName: "example.com"}
 	if got := cfg.GetAuthURL(); got != "https://auth.example.com" {
 		t.Fatalf("derived prod URL = %q", got)
 	}

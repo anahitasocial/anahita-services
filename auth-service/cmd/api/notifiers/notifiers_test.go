@@ -14,6 +14,7 @@ import (
 	authrequests "auth/requests"
 
 	libservices "anahita-libs/data/services"
+	"anahita-libs/settings"
 )
 
 // fakeUsers stands in for the users repository, which one notifier needs:
@@ -97,7 +98,9 @@ func newTestNotifiers(t *testing.T) (*Notifiers, *recordingMail) {
 
 	return NewNotifiers(&Env{
 		Config: &config.Config{
-			Env:         "prod",
+			Common: settings.Common{
+				Env: "prod",
+			},
 			DomainName:  "example.com",
 			SiteName:    testSiteName,
 			SystemEmail: "system@example.com",

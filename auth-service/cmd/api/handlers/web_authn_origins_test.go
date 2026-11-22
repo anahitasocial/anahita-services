@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/settings"
 	"slices"
 	"testing"
 
@@ -12,7 +13,7 @@ import (
 // API's, where the web app sends people to sign in. banu.io's were refused
 // from https://api.banu.io until it was listed (2026-10-28).
 func TestPasskeysAreAcceptedWhereTheyAreUsed(t *testing.T) {
-	env := &Env{Config: &config.Config{Env: "prod", DomainName: "banu.io"}}
+	env := &Env{Config: &config.Config{Common: settings.Common{Env: "prod"}, DomainName: "banu.io"}}
 	origins := webAuthnOrigins(env)
 
 	for _, want := range []string{"https://banu.io", "https://auth.banu.io", "https://api.banu.io"} {
@@ -22,7 +23,7 @@ func TestPasskeysAreAcceptedWhereTheyAreUsed(t *testing.T) {
 	}
 
 	// On a dev stack the auth host and the API are one address: listed once.
-	dev := webAuthnOrigins(&Env{Config: &config.Config{Env: "dev"}})
+	dev := webAuthnOrigins(&Env{Config: &config.Config{Common: settings.Common{Env: "dev"}}})
 	seen := map[string]int{}
 	for _, origin := range dev {
 		seen[origin]++

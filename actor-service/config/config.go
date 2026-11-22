@@ -3,6 +3,7 @@ package config
 import (
 	"anahita-libs/constants"
 	"anahita-libs/getenv"
+	"anahita-libs/settings"
 	"errors"
 	"log"
 	"os"
@@ -10,17 +11,9 @@ import (
 )
 
 const (
-	ErrMissingSecureCookieKey   = "Secure cookie key is missing"
-	ErrWrongSizeSecureCookieKey = "Secure cookie key must be 32 bytes long"
-	ErrMissingValkeyAddr        = "Valkey address is missing"
-	ErrMissingAmqpAddr          = "AMQP address is missing"
-	ErrMissingFileAddr          = "File gRPC service address is missing"
-	ErrMissingGraphAddr         = "Graph gRPC service address is missing"
-	ErrMissingOAuthIssuer       = "OAuth issuer is missing"
-	ErrMissingOAuthJWKSURL      = "OAuth JWKS URL is missing"
-	ErrInvalidGroupsFrom        = "GROUPS_FROM must be one of: "
-	ErrInvalidEventsFrom        = "EVENTS_FROM must be one of: "
-	ErrInvalidChannelsFrom      = "CHANNELS_FROM must be one of: "
+	ErrInvalidGroupsFrom   = "GROUPS_FROM must be one of: "
+	ErrInvalidEventsFrom   = "EVENTS_FROM must be one of: "
+	ErrInvalidChannelsFrom = "CHANNELS_FROM must be one of: "
 )
 
 // Config is what actor-service is told from its environment.
@@ -29,17 +22,9 @@ const (
 // writes profiles through graph-grpc-service and owns no tables, so it is
 // given no database credentials to lose.
 type Config struct {
-	Env              string
-	SecureCookieKey  string
-	ValkeyAddr       string
-	ValkeyPassword   string
-	ValkeyDB         int
-	AmqpAddr         string
-	FileServiceAddr  string
-	GraphServiceAddr string
-	OAuthIssuer      string
-	OAuthJWKSURL     string
-	GroupsFrom       string
+	settings.Common
+
+	GroupsFrom string
 	// Who may make an event of their own. See GetEventsFrom.
 	EventsFrom string
 	// Who may make a channel (roadmap row 147). See GetChannelsFrom.
@@ -51,60 +36,21 @@ type Config struct {
 
 func NewConfig() *Config {
 	config := &Config{
-		Env:              getenv.String("ENV", constants.ConfigEnvDev),
-		SecureCookieKey:  os.Getenv("SECURE_COOKIE_KEY"),
-		ValkeyAddr:       getenv.RenamedString("VALKEY_ADDR", "REDIS_ADDR", "localhost:6379"),
-		ValkeyPassword:   getenv.Renamed("VALKEY_PASSWORD", "REDIS_PASSWORD"),
-		ValkeyDB:         getenv.RenamedInt("VALKEY_DB", "REDIS_DB", 0),
-		AmqpAddr:         os.Getenv("AMQP_ADDR"),
-		FileServiceAddr:  os.Getenv("FILE_SERVICE_ADDR"),
-		GraphServiceAddr: os.Getenv("GRAPH_SERVICE_ADDR"),
-		OAuthIssuer:      os.Getenv("OAUTH_ISSUER"),
-		OAuthJWKSURL:     os.Getenv("OAUTH_JWKS_URL"),
-		GroupsFrom:       os.Getenv("GROUPS_FROM"),
-		EventsFrom:       os.Getenv("EVENTS_FROM"),
+		Common:     settings.ReadCommon(),
+		GroupsFrom: os.Getenv("GROUPS_FROM"),
+		EventsFrom: os.Getenv("EVENTS_FROM"),
 		// WEBSITES_FROM, its old name, still read for one release.
 		ChannelsFrom: getenv.Renamed("CHANNELS_FROM", "WEBSITES_FROM"),
 		WebOrigin:    strings.TrimRight(os.Getenv("WEB_ORIGIN"), "/"),
-	}
-
-	// If JWKS URL is unset, derive it from the issuer — auth-service is
-	// its own JWKS publisher in the standard OIDC layout.
-	if config.OAuthJWKSURL == "" && config.OAuthIssuer != "" {
-		config.OAuthJWKSURL = strings.TrimRight(config.OAuthIssuer, "/") + "/.well-known/jwks.json"
 	}
 
 	return config
 }
 
 func (config *Config) Validate() error {
-	var missingFields []string
-
-	if len(config.SecureCookieKey) == 0 {
-		missingFields = append(missingFields, ErrMissingSecureCookieKey)
-	} else if len(config.SecureCookieKey) != 32 {
-		missingFields = append(missingFields, ErrWrongSizeSecureCookieKey)
-	}
-
-	if config.AmqpAddr == "" {
-		missingFields = append(missingFields, ErrMissingAmqpAddr)
-	}
-
-	if config.FileServiceAddr == "" {
-		missingFields = append(missingFields, ErrMissingFileAddr)
-	}
-
-	if config.GraphServiceAddr == "" {
-		missingFields = append(missingFields, ErrMissingGraphAddr)
-	}
-
-	if config.OAuthIssuer == "" {
-		missingFields = append(missingFields, ErrMissingOAuthIssuer)
-	}
-
-	if config.OAuthJWKSURL == "" {
-		missingFields = append(missingFields, ErrMissingOAuthJWKSURL)
-	}
+	missingFields := config.Missing(settings.CookieKey, settings.Amqp, settings.FileService,
+		settings.GraphService, settings.OAuthIssuer,
+		settings.OAuthJWKS)
 
 	if len(missingFields) > 0 {
 		return errors.New("missing fields: " + strings.Join(missingFields, ", "))
@@ -137,60 +83,6 @@ func (config *Config) MustValidate() {
 	if err := config.Validate(); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func (config *Config) IsDev() bool {
-	return config.Env == constants.ConfigEnvDev
-}
-
-func (config *Config) IsStaging() bool {
-	return config.Env == constants.ConfigEnvStaging
-}
-
-func (config *Config) IsProd() bool {
-	return config.Env == constants.ConfigEnvProd
-}
-
-func (config *Config) GetSecureCookieKey() string {
-	return config.SecureCookieKey
-}
-
-func (config *Config) GetValkeyAddr() string {
-	return config.ValkeyAddr
-}
-
-func (config *Config) GetValkeyPassword() string {
-	return config.ValkeyPassword
-}
-
-func (config *Config) GetValkeyDB() int {
-	return config.ValkeyDB
-}
-
-func (config *Config) GetAmqpAddr() string {
-	return config.AmqpAddr
-}
-
-func (config *Config) GetFileServiceAddr() string {
-	return config.FileServiceAddr
-}
-
-func (config *Config) GetGraphServiceAddr() string {
-	return config.GraphServiceAddr
-}
-
-// GetOAuthIssuer returns the canonical issuer URL of auth-service.
-// Tokens whose "iss" claim does not match are rejected. Must be
-// identical across every service sharing an auth-service deployment.
-func (config *Config) GetOAuthIssuer() string {
-	return config.OAuthIssuer
-}
-
-// GetOAuthJWKSURL returns the URL of auth-service's JWKS endpoint. The
-// anahita-libs OAuth middleware fetches public keys from here to verify
-// JWT signatures locally.
-func (config *Config) GetOAuthJWKSURL() string {
-	return config.OAuthJWKSURL
 }
 
 // GetWebOrigin returns the web app's address with no slash at its end, or

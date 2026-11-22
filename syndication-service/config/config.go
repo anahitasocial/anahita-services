@@ -3,6 +3,7 @@ package config
 import (
 	"anahita-libs/constants"
 	"anahita-libs/getenv"
+	"anahita-libs/settings"
 	"errors"
 	"log"
 	"os"
@@ -10,31 +11,15 @@ import (
 )
 
 const (
-	ErrMissingDSN               = "DSN is missing"
-	ErrMissingSecureCookieKey   = "Secure cookie key is missing"
-	ErrWrongSizeSecureCookieKey = "Secure cookie key must be 32 bytes long"
-	ErrMissingGraphAddr         = "Graph gRPC service address is missing"
-	ErrMissingOAuthIssuer       = "OAuth issuer is missing"
-	ErrMissingOAuthJWKSURL      = "OAuth JWKS URL is missing"
-	ErrInvalidChannelsFrom      = "CHANNELS_FROM must be one of: "
+	ErrInvalidChannelsFrom = "CHANNELS_FROM must be one of: "
 )
 
 // Config is what syndication-service is told from its environment. The API and
 // the worker read the same; each checks what it needs.
 type Config struct {
-	Env              string
-	SecureCookieKey  string
-	ValkeyAddr       string
-	ValkeyPassword   string
-	ValkeyDB         int
-	FileServiceAddr  string
-	GraphServiceAddr string
-	OAuthIssuer      string
-	OAuthJWKSURL     string
-	DomainName       string
-	// The database, for the channels, their feeds' items and the domains
-	// proved for them.
-	DSN string
+	settings.Common
+
+	DomainName string
 	// Who may connect a channel. See GetChannelsFrom.
 	ChannelsFrom string
 
@@ -49,17 +34,8 @@ type Config struct {
 
 func NewConfig() *Config {
 	config := &Config{
-		Env:              getenv.String("ENV", constants.ConfigEnvDev),
-		SecureCookieKey:  os.Getenv("SECURE_COOKIE_KEY"),
-		ValkeyAddr:       getenv.RenamedString("VALKEY_ADDR", "REDIS_ADDR", "localhost:6379"),
-		ValkeyPassword:   getenv.Renamed("VALKEY_PASSWORD", "REDIS_PASSWORD"),
-		ValkeyDB:         getenv.RenamedInt("VALKEY_DB", "REDIS_DB", 0),
-		FileServiceAddr:  os.Getenv("FILE_SERVICE_ADDR"),
-		GraphServiceAddr: os.Getenv("GRAPH_SERVICE_ADDR"),
-		OAuthIssuer:      os.Getenv("OAUTH_ISSUER"),
-		OAuthJWKSURL:     os.Getenv("OAUTH_JWKS_URL"),
-		DomainName:       os.Getenv("DOMAIN_NAME"),
-		DSN:              os.Getenv("DSN"),
+		Common:     settings.ReadCommon(),
+		DomainName: os.Getenv("DOMAIN_NAME"),
 		// WEBSITES_FROM, WEBSITE_HOURLY_CAP and WEBSITE_READ_EVERY until
 		// roadmap row 147, read for one release.
 		ChannelsFrom:   getenv.Renamed("CHANNELS_FROM", "WEBSITES_FROM"),
@@ -68,34 +44,14 @@ func NewConfig() *Config {
 		ReadEvery:      getenv.RenamedInt("CHANNEL_FEED_READ_EVERY", "WEBSITE_READ_EVERY", 30),
 	}
 
-	if config.OAuthJWKSURL == "" && config.OAuthIssuer != "" {
-		config.OAuthJWKSURL = strings.TrimRight(config.OAuthIssuer, "/") + "/.well-known/jwks.json"
-	}
-
 	return config
 }
 
 // Validate is what the API needs.
 func (config *Config) Validate() error {
-	var missing []string
+	missing := config.Missing(settings.CookieKey, settings.Database, settings.GraphService,
+		settings.OAuthIssuer, settings.OAuthJWKS)
 
-	if len(config.SecureCookieKey) == 0 {
-		missing = append(missing, ErrMissingSecureCookieKey)
-	} else if len(config.SecureCookieKey) != 32 {
-		missing = append(missing, ErrWrongSizeSecureCookieKey)
-	}
-	if config.DSN == "" {
-		missing = append(missing, ErrMissingDSN)
-	}
-	if config.GraphServiceAddr == "" {
-		missing = append(missing, ErrMissingGraphAddr)
-	}
-	if config.OAuthIssuer == "" {
-		missing = append(missing, ErrMissingOAuthIssuer)
-	}
-	if config.OAuthJWKSURL == "" {
-		missing = append(missing, ErrMissingOAuthJWKSURL)
-	}
 	if len(missing) > 0 {
 		return errors.New("missing fields: " + strings.Join(missing, ", "))
 	}
@@ -111,13 +67,7 @@ func (config *Config) Validate() error {
 
 // ValidateWorker is what the worker needs: the database and the graph.
 func (config *Config) ValidateWorker() error {
-	var missing []string
-	if config.DSN == "" {
-		missing = append(missing, ErrMissingDSN)
-	}
-	if config.GraphServiceAddr == "" {
-		missing = append(missing, ErrMissingGraphAddr)
-	}
+	missing := config.Missing(settings.Database, settings.GraphService)
 	if len(missing) > 0 {
 		return errors.New("missing fields: " + strings.Join(missing, ", "))
 	}
@@ -131,54 +81,6 @@ func (config *Config) MustValidate() {
 	if err := config.Validate(); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func (config *Config) IsDev() bool {
-	return config.Env == constants.ConfigEnvDev
-}
-
-func (config *Config) IsStaging() bool {
-	return config.Env == constants.ConfigEnvStaging
-}
-
-func (config *Config) IsProd() bool {
-	return config.Env == constants.ConfigEnvProd
-}
-
-func (config *Config) GetSecureCookieKey() string {
-	return config.SecureCookieKey
-}
-
-func (config *Config) GetValkeyAddr() string {
-	return config.ValkeyAddr
-}
-
-func (config *Config) GetValkeyPassword() string {
-	return config.ValkeyPassword
-}
-
-func (config *Config) GetValkeyDB() int {
-	return config.ValkeyDB
-}
-
-func (config *Config) GetFileServiceAddr() string {
-	return config.FileServiceAddr
-}
-
-func (config *Config) GetGraphServiceAddr() string {
-	return config.GraphServiceAddr
-}
-
-func (config *Config) GetOAuthIssuer() string {
-	return config.OAuthIssuer
-}
-
-func (config *Config) GetOAuthJWKSURL() string {
-	return config.OAuthJWKSURL
-}
-
-func (config *Config) GetDSN() string {
-	return config.DSN
 }
 
 func (config *Config) GetDomainName() string {

@@ -2,6 +2,7 @@ package config
 
 import (
 	"anahita-libs/getenv"
+	"anahita-libs/settings"
 	"errors"
 	"os"
 	"strings"
@@ -10,14 +11,8 @@ import (
 )
 
 type Config struct {
-	Env              string
-	DSN              string
-	GraphServiceAddr string
-	FileServiceAddr  string
-	// The bus the services talk over: where this one hears that somebody
-	// here followed somebody elsewhere.
-	AmqpAddr        string
-	SecureCookieKey string
+	settings.Common
+
 	// For the federation lab only: go to private addresses, where the
 	// lab's servers are.
 	Lab bool
@@ -28,11 +23,6 @@ type Config struct {
 	// (FEDERATION_LOCATIONS): on unless it says `off` (the user, 2026-10-19;
 	// roadmap row 82, part 4).
 	TakesLocations bool
-	ValkeyAddr     string
-	ValkeyPassword string
-	ValkeyDB       int
-	OAuthIssuer    string
-	OAuthJWKSURL   string
 	// How the private half of each person's signing key is kept: encrypted,
 	// by the same means auth-service keeps its secrets.
 	CryptBackend  string
@@ -42,27 +32,13 @@ type Config struct {
 
 func NewConfig() *Config {
 	config := &Config{
-		Env:              getenv.String("ENV", constants.ConfigEnvDev),
-		DSN:              os.Getenv("DSN"),
-		GraphServiceAddr: os.Getenv("GRAPH_SERVICE_ADDR"),
-		FileServiceAddr:  os.Getenv("FILE_SERVICE_ADDR"),
-		AmqpAddr:         os.Getenv("AMQP_ADDR"),
-		SecureCookieKey:  os.Getenv("SECURE_COOKIE_KEY"),
-		Lab:              os.Getenv("ACTIVITYPUB_LAB") == "on",
-		LinkPreviewURL:   os.Getenv("LINK_PREVIEW_URL"),
-		TakesLocations:   strings.ToLower(strings.TrimSpace(os.Getenv("FEDERATION_LOCATIONS"))) != "off",
-		ValkeyAddr:       getenv.RenamedString("VALKEY_ADDR", "REDIS_ADDR", "localhost:6379"),
-		ValkeyPassword:   getenv.Renamed("VALKEY_PASSWORD", "REDIS_PASSWORD"),
-		ValkeyDB:         getenv.RenamedInt("VALKEY_DB", "REDIS_DB", 0),
-		OAuthIssuer:      os.Getenv("OAUTH_ISSUER"),
-		OAuthJWKSURL:     os.Getenv("OAUTH_JWKS_URL"),
-		CryptBackend:     getenv.String("CRYPT_BACKEND", constants.CryptBackendLocal),
-		CryptLocalKey:    os.Getenv("CRYPT_LOCAL_KEY"),
-		AwsKmsKeyId:      os.Getenv("AWS_KMS_KEY_ID"),
-	}
-
-	if config.OAuthJWKSURL == "" && config.OAuthIssuer != "" {
-		config.OAuthJWKSURL = strings.TrimRight(config.OAuthIssuer, "/") + "/.well-known/jwks.json"
+		Common:         settings.ReadCommon(),
+		Lab:            os.Getenv("ACTIVITYPUB_LAB") == "on",
+		LinkPreviewURL: os.Getenv("LINK_PREVIEW_URL"),
+		TakesLocations: strings.ToLower(strings.TrimSpace(os.Getenv("FEDERATION_LOCATIONS"))) != "off",
+		CryptBackend:   getenv.String("CRYPT_BACKEND", constants.CryptBackendLocal),
+		CryptLocalKey:  os.Getenv("CRYPT_LOCAL_KEY"),
+		AwsKmsKeyId:    os.Getenv("AWS_KMS_KEY_ID"),
 	}
 
 	return config
@@ -96,21 +72,7 @@ func (config *Config) Validate() error {
 	return nil
 }
 
-func (config *Config) IsDev() bool     { return config.Env == constants.ConfigEnvDev }
-func (config *Config) IsStaging() bool { return config.Env == constants.ConfigEnvStaging }
-func (config *Config) IsProd() bool    { return config.Env == constants.ConfigEnvProd }
-
-func (config *Config) GetDSN() string              { return config.DSN }
-func (config *Config) GetGraphServiceAddr() string { return config.GraphServiceAddr }
-func (config *Config) GetFileServiceAddr() string  { return config.FileServiceAddr }
-func (config *Config) GetAmqpAddr() string         { return config.AmqpAddr }
-func (config *Config) GetSecureCookieKey() string  { return config.SecureCookieKey }
-func (config *Config) GetValkeyAddr() string       { return config.ValkeyAddr }
-func (config *Config) GetValkeyPassword() string   { return config.ValkeyPassword }
-func (config *Config) GetValkeyDB() int            { return config.ValkeyDB }
-func (config *Config) GetOAuthIssuer() string      { return config.OAuthIssuer }
-func (config *Config) GetOAuthJWKSURL() string     { return config.OAuthJWKSURL }
-func (config *Config) GetDomainName() string       { return os.Getenv("DOMAIN_NAME") }
-func (config *Config) GetCryptBackend() string     { return config.CryptBackend }
-func (config *Config) GetCryptLocalKey() string    { return config.CryptLocalKey }
-func (config *Config) GetAwsKmsKeyId() string      { return config.AwsKmsKeyId }
+func (config *Config) GetDomainName() string    { return os.Getenv("DOMAIN_NAME") }
+func (config *Config) GetCryptBackend() string  { return config.CryptBackend }
+func (config *Config) GetCryptLocalKey() string { return config.CryptLocalKey }
+func (config *Config) GetAwsKmsKeyId() string   { return config.AwsKmsKeyId }

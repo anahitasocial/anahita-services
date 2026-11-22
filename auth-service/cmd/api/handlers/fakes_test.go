@@ -20,6 +20,7 @@ import (
 	lib_entities "anahita-libs/data/entities"
 	libservices "anahita-libs/data/services"
 	"anahita-libs/sessions"
+	"anahita-libs/settings"
 
 	"github.com/labstack/echo/v4"
 )
@@ -592,7 +593,9 @@ type testEnv struct {
 // long-standing mail bugs lived.
 func newTestEnv(users ...*entities.User) *testEnv {
 	cfg := &config.Config{
-		Env:         "dev",
+		Common: settings.Common{
+			Env: "dev",
+		},
 		DomainName:  "example.com",
 		SystemEmail: "system@example.com",
 	}

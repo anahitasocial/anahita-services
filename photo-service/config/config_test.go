@@ -1,6 +1,7 @@
 package config
 
 import (
+	"anahita-libs/settings"
 	"os"
 	"strings"
 	"testing"
@@ -40,43 +41,47 @@ func TestConfig_Validate_AllMissing(t *testing.T) {
 		t.Fatal("expected error, got nil")
 	}
 	msg := err.Error()
-	if !contains(msg, ErrMissingSecureCookieKey) {
-		t.Errorf("expected error to contain %q, got %q", ErrMissingSecureCookieKey, msg)
+	if !contains(msg, settings.ErrMissingSecureCookieKey) {
+		t.Errorf("expected error to contain %q, got %q", settings.ErrMissingSecureCookieKey, msg)
 	}
 	// Empty is missing, said once, not also the wrong size (roadmap row 170).
-	if contains(msg, ErrWrongSizeSecureCookieKey) {
+	if contains(msg, settings.ErrWrongSizeSecureCookieKey) {
 		t.Errorf("an empty key was also reported as the wrong size: %q", msg)
 	}
-	if !contains(msg, ErrMissingGraphAddr) {
-		t.Errorf("expected error to contain %q, got %q", ErrMissingGraphAddr, msg)
+	if !contains(msg, settings.ErrMissingGraphAddr) {
+		t.Errorf("expected error to contain %q, got %q", settings.ErrMissingGraphAddr, msg)
 	}
-	if !contains(msg, ErrMissingFileAddr) {
-		t.Errorf("expected error to contain %q, got %q", ErrMissingFileAddr, msg)
+	if !contains(msg, settings.ErrMissingFileAddr) {
+		t.Errorf("expected error to contain %q, got %q", settings.ErrMissingFileAddr, msg)
 	}
 }
 
 func TestConfig_Validate_WrongCookieKeySize(t *testing.T) {
 	cfg := &Config{
-		SecureCookieKey:  "short-key",
-		GraphServiceAddr: "graph",
-		FileServiceAddr:  "file",
+		Common: settings.Common{
+			SecureCookieKey:  "short-key",
+			GraphServiceAddr: "graph",
+			FileServiceAddr:  "file",
+		},
 	}
 	err := cfg.Validate()
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
-	if !contains(err.Error(), ErrWrongSizeSecureCookieKey) {
-		t.Errorf("expected error to contain %q, got %q", ErrWrongSizeSecureCookieKey, err.Error())
+	if !contains(err.Error(), settings.ErrWrongSizeSecureCookieKey) {
+		t.Errorf("expected error to contain %q, got %q", settings.ErrWrongSizeSecureCookieKey, err.Error())
 	}
 }
 
 func TestConfig_Validate_Success(t *testing.T) {
 	cfg := &Config{
-		SecureCookieKey:  "12345678901234567890123456789012",
-		GraphServiceAddr: "graph",
-		FileServiceAddr:  "file",
-		OAuthIssuer:      "https://auth.example.com",
-		OAuthJWKSURL:     "https://auth.example.com/.well-known/jwks.json",
+		Common: settings.Common{
+			SecureCookieKey:  "12345678901234567890123456789012",
+			GraphServiceAddr: "graph",
+			FileServiceAddr:  "file",
+			OAuthIssuer:      "https://auth.example.com",
+			OAuthJWKSURL:     "https://auth.example.com/.well-known/jwks.json",
+		},
 	}
 	err := cfg.Validate()
 	if err != nil {
@@ -86,16 +91,18 @@ func TestConfig_Validate_Success(t *testing.T) {
 
 func TestConfig_Validate_MissingOAuth(t *testing.T) {
 	cfg := &Config{
-		SecureCookieKey:  "12345678901234567890123456789012",
-		GraphServiceAddr: "graph",
-		FileServiceAddr:  "file",
+		Common: settings.Common{
+			SecureCookieKey:  "12345678901234567890123456789012",
+			GraphServiceAddr: "graph",
+			FileServiceAddr:  "file",
+		},
 	}
 	err := cfg.Validate()
 	if err == nil {
 		t.Fatal("expected error for missing OAuth fields, got nil")
 	}
-	if !contains(err.Error(), ErrMissingOAuthIssuer) ||
-		!contains(err.Error(), ErrMissingOAuthJWKSURL) {
+	if !contains(err.Error(), settings.ErrMissingOAuthIssuer) ||
+		!contains(err.Error(), settings.ErrMissingOAuthJWKSURL) {
 		t.Errorf("unexpected error message: %s", err.Error())
 	}
 }
@@ -112,7 +119,7 @@ func TestNewConfig_DerivesJWKSURLFromIssuer(t *testing.T) {
 }
 
 func TestConfig_EnvChecks(t *testing.T) {
-	cfg := &Config{Env: "dev"}
+	cfg := &Config{Common: settings.Common{Env: "dev"}}
 	if !cfg.IsDev() {
 		t.Error("expected IsDev true")
 	}
@@ -128,12 +135,14 @@ func TestConfig_EnvChecks(t *testing.T) {
 
 func TestConfig_Getters(t *testing.T) {
 	cfg := &Config{
-		SecureCookieKey:  "key",
-		ValkeyAddr:       "addr",
-		ValkeyPassword:   "pass",
-		ValkeyDB:         42,
-		GraphServiceAddr: "graph",
-		FileServiceAddr:  "file",
+		Common: settings.Common{
+			SecureCookieKey:  "key",
+			ValkeyAddr:       "addr",
+			ValkeyPassword:   "pass",
+			ValkeyDB:         42,
+			GraphServiceAddr: "graph",
+			FileServiceAddr:  "file",
+		},
 	}
 	if cfg.GetSecureCookieKey() != "key" {
 		t.Error("GetSecureCookieKey failed")

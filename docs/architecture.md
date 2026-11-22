@@ -447,6 +447,7 @@ which is under Apache 2.0 so that services of others' own can make them
 | `handlers` | The HTTP handlers several services share, such as threads, a post's language, and its settings (`post_settings.go`: who may see it, reply to it and quote it, its content warning and its pin), the same for every kind of post |
 | `middleware`, `cors` | HTTP middleware, and `ClientIPExtractor`, which every service sets so that the visitor's address is never one a client typed |
 | `getenv` | Reading a setting from the environment, with a fallback |
+| `settings` | The settings every service reads alike (`Common`: where it runs, its cookie key, Valkey, the database, the event bus, the graph and file services, the issuer of sign-in tokens), which each service's `Config` embeds, and `Missing`, which says which of them a service needs and has not |
 | `geocoding`, `utils` | Supporting helpers |
 
 **The calls between services** are made by the clients in

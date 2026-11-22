@@ -1,6 +1,7 @@
 package config
 
 import (
+	"anahita-libs/settings"
 	"os"
 	"strings"
 	"testing"
@@ -74,22 +75,22 @@ func TestConfig_Validate_SmtpRules(t *testing.T) {
 	}{
 		{
 			name:    "host and port are enough",
-			cfg:     Config{Env: "prod", Smtp: Smtp{SmtpHost: "smtp.example.com", SmtpPort: 587}},
+			cfg:     Config{Common: settings.Common{Env: "prod"}, Smtp: Smtp{SmtpHost: "smtp.example.com", SmtpPort: 587}},
 			wantErr: false,
 		},
 		{
 			name:    "credentials are optional",
-			cfg:     Config{Env: "prod", Smtp: Smtp{SmtpHost: "mailpit", SmtpPort: 1025}},
+			cfg:     Config{Common: settings.Common{Env: "prod"}, Smtp: Smtp{SmtpHost: "mailpit", SmtpPort: 1025}},
 			wantErr: false,
 		},
 		{
 			name:    "no host",
-			cfg:     Config{Env: "prod", Smtp: Smtp{SmtpPort: 587}},
+			cfg:     Config{Common: settings.Common{Env: "prod"}, Smtp: Smtp{SmtpPort: 587}},
 			wantErr: true,
 		},
 		{
 			name:    "no port",
-			cfg:     Config{Env: "prod", Smtp: Smtp{SmtpHost: "smtp.example.com"}},
+			cfg:     Config{Common: settings.Common{Env: "prod"}, Smtp: Smtp{SmtpHost: "smtp.example.com"}},
 			wantErr: true,
 		},
 	}
@@ -155,7 +156,7 @@ func TestConfig_Validate_MissingFields(t *testing.T) {
 }
 
 func TestConfig_IsDev_IsStaging_IsProd(t *testing.T) {
-	cfg := &Config{Env: "dev"}
+	cfg := &Config{Common: settings.Common{Env: "dev"}}
 	if !cfg.IsDev() {
 		t.Error("expected IsDev true")
 	}

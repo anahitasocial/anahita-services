@@ -192,4 +192,12 @@ disagree first:
    channel's item refused alike, and a reply's warning judged by its thread
    with its status. Tested once, for every kind
    (`TestAPostsSettingsAreChangedByWhoeverMayEditIt`).
+9. **Item 24, second part, configuration, done 2026-11-22.** What every
+   service reads alike, `settings.Common` in `anahita-libs/settings`, with
+   its getters and `Missing`, which checks the common settings a service
+   needs, said as before. All 24 services' `Config` embed it and keep
+   their own settings and checks; 2,337 lines of code went, for 340.
+   file-grpc-service's `AmqpAddr`, read from nowhere, went with them. Six
+   services check in a form of their own and keep it (activitypub, atproto,
+   import-export, mail, file-grpc, web-shell).
 

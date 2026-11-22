@@ -1,8 +1,8 @@
 package config
 
 import (
-	"anahita-libs/constants"
 	"anahita-libs/getenv"
+	"anahita-libs/settings"
 	"errors"
 	"fmt"
 	"log"
@@ -66,9 +66,8 @@ type Storage struct {
 }
 
 type Config struct {
-	Storage  Storage
-	AmqpAddr string
-	Env      string
+	settings.Common
+	Storage Storage
 }
 
 func NewConfig() *Config {
@@ -87,7 +86,7 @@ func NewConfig() *Config {
 	}
 
 	return &Config{
-		Env: getenv.String("ENV", constants.ConfigEnvDev),
+		Common: settings.ReadCommon(),
 		Storage: Storage{
 			Endpoint:       endpoint,
 			PublicEndpoint: os.Getenv("STORAGE_PUBLIC_ENDPOINT"),
@@ -151,18 +150,6 @@ func (config *Config) MustValidate() {
 	if err := config.Validate(); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func (config *Config) IsDev() bool {
-	return config.Env == constants.ConfigEnvDev
-}
-
-func (config *Config) IsStaging() bool {
-	return config.Env == constants.ConfigEnvStaging
-}
-
-func (config *Config) IsProd() bool {
-	return config.Env == constants.ConfigEnvProd
 }
 
 // GetPublicEndpoint is the address presigned URLs are written for.

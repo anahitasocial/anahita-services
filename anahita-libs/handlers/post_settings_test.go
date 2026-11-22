@@ -46,7 +46,9 @@ func (f *settingsMedia) SetPinned(id int64, pinned bool, _ *entities.Viewer) err
 	return nil
 }
 
-type settingsSocialgraph struct{ services.SocialgraphGRPCInterface }
+type settingsSocialgraph struct {
+	services.SocialgraphGRPCInterface
+}
 
 func (settingsSocialgraph) Browse(ids []int64, viewer int64) (map[int64]*entities.ActorRelation, error) {
 	return map[int64]*entities.ActorRelation{}, nil

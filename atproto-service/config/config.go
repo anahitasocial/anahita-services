@@ -2,6 +2,7 @@ package config
 
 import (
 	"anahita-libs/getenv"
+	"anahita-libs/settings"
 	"errors"
 	"os"
 	"strings"
@@ -27,22 +28,11 @@ const (
 )
 
 type Config struct {
-	Env              string
-	DSN              string
-	GraphServiceAddr string
-	FileServiceAddr  string
-	// The bus the services talk over: where this one hears that somebody
-	// here followed somebody on Bluesky.
-	AmqpAddr        string
-	SecureCookieKey string
+	settings.Common
+
 	// Where link-preview-service is, for the cards of links in posts from
 	// Bluesky. Empty for none.
 	LinkPreviewURL string
-	ValkeyAddr     string
-	ValkeyPassword string
-	ValkeyDB       int
-	OAuthIssuer    string
-	OAuthJWKSURL   string
 
 	AppViewURL string
 	// One or more, with commas between.
@@ -59,29 +49,15 @@ type Config struct {
 
 func NewConfig() *Config {
 	config := &Config{
-		Env:              getenv.String("ENV", constants.ConfigEnvDev),
-		DSN:              os.Getenv("DSN"),
-		GraphServiceAddr: os.Getenv("GRAPH_SERVICE_ADDR"),
-		FileServiceAddr:  os.Getenv("FILE_SERVICE_ADDR"),
-		AmqpAddr:         os.Getenv("AMQP_ADDR"),
-		SecureCookieKey:  os.Getenv("SECURE_COOKIE_KEY"),
-		LinkPreviewURL:   os.Getenv("LINK_PREVIEW_URL"),
-		ValkeyAddr:       getenv.RenamedString("VALKEY_ADDR", "REDIS_ADDR", "localhost:6379"),
-		ValkeyPassword:   getenv.Renamed("VALKEY_PASSWORD", "REDIS_PASSWORD"),
-		ValkeyDB:         getenv.RenamedInt("VALKEY_DB", "REDIS_DB", 0),
-		OAuthIssuer:      os.Getenv("OAUTH_ISSUER"),
-		OAuthJWKSURL:     os.Getenv("OAUTH_JWKS_URL"),
-		AppViewURL:       strings.TrimRight(getenv.String("ATPROTO_APPVIEW_URL", defaultAppView), "/"),
-		JetstreamURLs:    list(getenv.String("ATPROTO_JETSTREAM_URL", defaultJetstream)),
-		CDNURL:           strings.TrimRight(getenv.String("ATPROTO_CDN_URL", defaultCDN), "/"),
-		DirectoryURL:     strings.TrimRight(getenv.String("ATPROTO_PLC_URL", defaultDirectory), "/"),
-		CryptBackend:     getenv.String("CRYPT_BACKEND", constants.CryptBackendLocal),
-		CryptLocalKey:    os.Getenv("CRYPT_LOCAL_KEY"),
-		AwsKmsKeyId:      os.Getenv("AWS_KMS_KEY_ID"),
-	}
-
-	if config.OAuthJWKSURL == "" && config.OAuthIssuer != "" {
-		config.OAuthJWKSURL = strings.TrimRight(config.OAuthIssuer, "/") + "/.well-known/jwks.json"
+		Common:         settings.ReadCommon(),
+		LinkPreviewURL: os.Getenv("LINK_PREVIEW_URL"),
+		AppViewURL:     strings.TrimRight(getenv.String("ATPROTO_APPVIEW_URL", defaultAppView), "/"),
+		JetstreamURLs:  list(getenv.String("ATPROTO_JETSTREAM_URL", defaultJetstream)),
+		CDNURL:         strings.TrimRight(getenv.String("ATPROTO_CDN_URL", defaultCDN), "/"),
+		DirectoryURL:   strings.TrimRight(getenv.String("ATPROTO_PLC_URL", defaultDirectory), "/"),
+		CryptBackend:   getenv.String("CRYPT_BACKEND", constants.CryptBackendLocal),
+		CryptLocalKey:  os.Getenv("CRYPT_LOCAL_KEY"),
+		AwsKmsKeyId:    os.Getenv("AWS_KMS_KEY_ID"),
 	}
 
 	return config
@@ -121,24 +97,10 @@ func (config *Config) Validate() error {
 	return nil
 }
 
-func (config *Config) IsDev() bool     { return config.Env == constants.ConfigEnvDev }
-func (config *Config) IsStaging() bool { return config.Env == constants.ConfigEnvStaging }
-func (config *Config) IsProd() bool    { return config.Env == constants.ConfigEnvProd }
-
-func (config *Config) GetDSN() string              { return config.DSN }
-func (config *Config) GetGraphServiceAddr() string { return config.GraphServiceAddr }
-func (config *Config) GetFileServiceAddr() string  { return config.FileServiceAddr }
-func (config *Config) GetAmqpAddr() string         { return config.AmqpAddr }
-func (config *Config) GetSecureCookieKey() string  { return config.SecureCookieKey }
-func (config *Config) GetValkeyAddr() string       { return config.ValkeyAddr }
-func (config *Config) GetValkeyPassword() string   { return config.ValkeyPassword }
-func (config *Config) GetValkeyDB() int            { return config.ValkeyDB }
-func (config *Config) GetOAuthIssuer() string      { return config.OAuthIssuer }
-func (config *Config) GetOAuthJWKSURL() string     { return config.OAuthJWKSURL }
-func (config *Config) GetDomainName() string       { return os.Getenv("DOMAIN_NAME") }
-func (config *Config) GetCryptBackend() string     { return config.CryptBackend }
-func (config *Config) GetCryptLocalKey() string    { return config.CryptLocalKey }
-func (config *Config) GetAwsKmsKeyId() string      { return config.AwsKmsKeyId }
+func (config *Config) GetDomainName() string    { return os.Getenv("DOMAIN_NAME") }
+func (config *Config) GetCryptBackend() string  { return config.CryptBackend }
+func (config *Config) GetCryptLocalKey() string { return config.CryptLocalKey }
+func (config *Config) GetAwsKmsKeyId() string   { return config.AwsKmsKeyId }
 
 // CanKeepSecrets says whether there is a key to keep tokens under.
 func (config *Config) CanKeepSecrets() bool {

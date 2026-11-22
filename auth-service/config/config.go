@@ -4,6 +4,7 @@ import (
 	"anahita-libs/constants"
 	"anahita-libs/crypt"
 	"anahita-libs/getenv"
+	"anahita-libs/settings"
 	"crypto/hmac"
 	"crypto/sha256"
 	"errors"
@@ -17,10 +18,6 @@ import (
 )
 
 const (
-	ErrMissingDSN                 = "DSN is missing"
-	ErrMissingSecureCookieKey     = "Secure cookie key is missing"
-	ErrWrongSizeSecureCookieKey   = "Secure cookie key must be 32 bytes long"
-	ErrMissingValkeyAddr          = "Valkey address is missing"
 	ErrMissingDomainName          = "Domain name is missing"
 	ErrMissingDomainNameFormat    = "Domain name should not contain 'http' or 'www'"
 	ErrMissingSystemEmail         = "system email is missing"
@@ -29,10 +26,6 @@ const (
 	ErrMissingCryptLocalKey       = "crypt local key is missing"
 	ErrWrongSizeCryptLocalKey     = "crypt local key must be 32 bytes long"
 	ErrMissingMailServiceAddr     = "mail service address is missing"
-	ErrMissingFileAddr            = "File gRPC service address is missing"
-	ErrMissingAmqpAddr            = "AMQP address is missing"
-	ErrMissingOAuthIssuer         = "OAuth issuer is missing"
-	ErrMissingOAuthJWKSURL        = "OAuth JWKS URL is missing"
 	ErrMissingOAuthSeedClientPath = "OAuth seed client path is missing"
 	ErrInvalidOAuthKeyLifetime    = "OAuth key lifetime must be positive"
 	ErrMissingOAuthKMSKeyAlias    = "OAuth KMS key alias is missing"
@@ -48,13 +41,9 @@ const (
 )
 
 type Config struct {
-	Env              string
+	settings.Common
+
 	MaxDBConnections int
-	DSN              string
-	SecureCookieKey  string
-	ValkeyAddr       string
-	ValkeyPassword   string
-	ValkeyDB         int
 	DomainName       string
 	SystemEmail      string
 	// SiteName is what this installation calls itself — the "Example" in
@@ -127,11 +116,9 @@ type Config struct {
 	// Changing it does not invalidate existing enrolments — already-
 	// paired authenticators keep the label they were given, so a change
 	// shows up only for people who enrol after it.
-	TotpIssuer       string
-	SupportEmail     string
-	MailServiceAddr  string
-	FileServiceAddr  string
-	GraphServiceAddr string
+	TotpIssuer      string
+	SupportEmail    string
+	MailServiceAddr string
 
 	// AuthURL and FrontendURL override the derived public base URLs.
 	//
@@ -147,8 +134,7 @@ type Config struct {
 	FrontendURL string
 	// The API's public URL, where the web app sends people to sign in
 	// (its REACT_APP_API_BASE_URL). Optional, as the two above are.
-	APIURL   string
-	AmqpAddr string
+	APIURL string
 
 	// Crypt — symmetric encryption of secrets at rest (currently TOTP
 	// secrets).
@@ -170,9 +156,6 @@ type Config struct {
 	// AwsKmsKeyId is the KMS key used when CryptBackend is "kms".
 	AwsKmsKeyId string
 
-	// OAuth
-	OAuthIssuer         string
-	OAuthJWKSURL        string
 	OAuthSeedClientPath string
 	// OAuthPrivateKeyPath is an optional dev-mode shortcut: if set,
 	// SeedSigningKey reads the PEM at this path instead of generating
@@ -249,13 +232,8 @@ type Config struct {
 
 func NewConfig() *Config {
 	config := &Config{
-		Env:              getenv.String("ENV", constants.ConfigEnvDev),
-		DSN:              os.Getenv("DSN"),
+		Common:           settings.ReadCommon(),
 		MaxDBConnections: getenv.Int("MAX_DB_CONNECTIONS", constants.ConfigDefaultDBConnections),
-		SecureCookieKey:  os.Getenv("SECURE_COOKIE_KEY"),
-		ValkeyAddr:       getenv.RenamedString("VALKEY_ADDR", "REDIS_ADDR", "localhost:6379"),
-		ValkeyPassword:   getenv.Renamed("VALKEY_PASSWORD", "REDIS_PASSWORD"),
-		ValkeyDB:         getenv.RenamedInt("VALKEY_DB", "REDIS_DB", 0),
 		DomainName:       os.Getenv("DOMAIN_NAME"),
 		SystemEmail:      os.Getenv("SYSTEM_EMAIL"),
 		SiteName:         os.Getenv("SITE_NAME"),
@@ -264,22 +242,17 @@ func NewConfig() *Config {
 		InstanceName:        os.Getenv("ANAHITA_INSTANCE_NAME"),
 		InstanceDescription: os.Getenv("ANAHITA_INSTANCE_DESCRIPTION"),
 
-		TotpIssuer:       os.Getenv("TOTP_ISSUER"),
-		SupportEmail:     os.Getenv("SUPPORT_EMAIL"),
-		CryptBackend:     getenv.String("CRYPT_BACKEND", constants.CryptBackendLocal),
-		CryptLocalKey:    os.Getenv("CRYPT_LOCAL_KEY"),
-		AwsKmsKeyId:      os.Getenv("AWS_KMS_KEY_ID"),
-		MailServiceAddr:  os.Getenv("MAIL_SERVICE_ADDR"),
-		AmqpAddr:         os.Getenv("AMQP_ADDR"),
-		FileServiceAddr:  os.Getenv("FILE_SERVICE_ADDR"),
-		GraphServiceAddr: os.Getenv("GRAPH_SERVICE_ADDR"),
-		AuthURL:          os.Getenv("AUTH_URL"),
-		FrontendURL:      os.Getenv("FRONTEND_URL"),
-		APIURL:           os.Getenv("API_URL"),
+		TotpIssuer:      os.Getenv("TOTP_ISSUER"),
+		SupportEmail:    os.Getenv("SUPPORT_EMAIL"),
+		CryptBackend:    getenv.String("CRYPT_BACKEND", constants.CryptBackendLocal),
+		CryptLocalKey:   os.Getenv("CRYPT_LOCAL_KEY"),
+		AwsKmsKeyId:     os.Getenv("AWS_KMS_KEY_ID"),
+		MailServiceAddr: os.Getenv("MAIL_SERVICE_ADDR"),
+		AuthURL:         os.Getenv("AUTH_URL"),
+		FrontendURL:     os.Getenv("FRONTEND_URL"),
+		APIURL:          os.Getenv("API_URL"),
 
 		// OAuth
-		OAuthIssuer:         os.Getenv("OAUTH_ISSUER"),
-		OAuthJWKSURL:        os.Getenv("OAUTH_JWKS_URL"),
 		OAuthSeedClientPath: getenv.String("OAUTH_SEED_CLIENT_PATH", defaultOAuthSeedClientPath),
 		OAuthPrivateKeyPath: os.Getenv("OAUTH_PRIVATE_KEY_PATH"),
 		OAuthKeyLifetime:    parseKeyLifetime(),
@@ -294,11 +267,6 @@ func NewConfig() *Config {
 	config.CryptBackend = strings.ToLower(config.CryptBackend)
 
 	config.bootstrapFromEnv()
-
-	// If JWKS URL is unset, derive it from the issuer.
-	if config.OAuthJWKSURL == "" && config.OAuthIssuer != "" {
-		config.OAuthJWKSURL = strings.TrimRight(config.OAuthIssuer, "/") + "/.well-known/jwks.json"
-	}
 
 	return config
 }
@@ -320,17 +288,8 @@ func parseKeyLifetime() time.Duration {
 
 // Validate checks that all required configuration settings are present and correct
 func (config *Config) Validate() error {
-	var missingFields []string
-
-	if len(config.SecureCookieKey) == 0 {
-		missingFields = append(missingFields, ErrMissingSecureCookieKey)
-	} else if len(config.SecureCookieKey) != 32 {
-		missingFields = append(missingFields, ErrWrongSizeSecureCookieKey)
-	}
-
-	if config.DSN == "" {
-		missingFields = append(missingFields, ErrMissingDSN)
-	}
+	missingFields := config.Missing(settings.CookieKey, settings.Database, settings.Valkey,
+		settings.Amqp, settings.OAuthIssuer, settings.OAuthJWKS)
 
 	// Valkey is not optional. sessions.NewSession falls back to
 	// cookie-backed sessions when this is empty, and that backend
@@ -338,10 +297,6 @@ func (config *Config) Validate() error {
 	// server-side to delete. Session revocation silently becomes a
 	// no-op, which means password reset stops invalidating an
 	// attacker's IdP session while appearing to succeed.
-	if config.ValkeyAddr == "" {
-		missingFields = append(missingFields, ErrMissingValkeyAddr)
-	}
-
 	if config.DomainName == "" {
 		missingFields = append(missingFields, ErrMissingDomainName)
 	} else if strings.Contains(config.DomainName, "http") || strings.Contains(config.DomainName, "www") {
@@ -381,18 +336,6 @@ func (config *Config) Validate() error {
 
 	if config.MailServiceAddr == "" {
 		missingFields = append(missingFields, ErrMissingMailServiceAddr)
-	}
-
-	if config.AmqpAddr == "" {
-		missingFields = append(missingFields, ErrMissingAmqpAddr)
-	}
-
-	if config.OAuthIssuer == "" {
-		missingFields = append(missingFields, ErrMissingOAuthIssuer)
-	}
-
-	if config.OAuthJWKSURL == "" {
-		missingFields = append(missingFields, ErrMissingOAuthJWKSURL)
 	}
 
 	if config.OAuthSeedClientPath == "" {
@@ -439,26 +382,6 @@ func (config *Config) MustValidate() {
 	}
 }
 
-func (config *Config) IsDev() bool {
-	return config.Env == constants.ConfigEnvDev
-}
-
-func (config *Config) IsStaging() bool {
-	return config.Env == constants.ConfigEnvStaging
-}
-
-func (config *Config) IsProd() bool {
-	return config.Env == constants.ConfigEnvProd
-}
-
-func (config *Config) GetDSN() string {
-	return config.DSN
-}
-
-func (config *Config) GetSecureCookieKey() string {
-	return config.SecureCookieKey
-}
-
 // GetCodeKey is the key one-time codes are hashed with before they are stored.
 //
 // Derived from SecureCookieKey rather than given a setting of its own. It has
@@ -473,18 +396,6 @@ func (config *Config) GetCodeKey() []byte {
 	mac := hmac.New(sha256.New, []byte(config.SecureCookieKey))
 	mac.Write([]byte("anahita one-time code v1"))
 	return mac.Sum(nil)
-}
-
-func (config *Config) GetValkeyAddr() string {
-	return config.ValkeyAddr
-}
-
-func (config *Config) GetValkeyPassword() string {
-	return config.ValkeyPassword
-}
-
-func (config *Config) GetValkeyDB() int {
-	return config.ValkeyDB
 }
 
 // GetCryptBackend returns the backend used to encrypt secrets at rest.
@@ -508,11 +419,6 @@ func (config *Config) GetAwsKmsKeyId() string {
 // GetMailServiceAddr returns the mail service address
 func (config *Config) GetMailServiceAddr() string {
 	return config.MailServiceAddr
-}
-
-// GetAmqpAddr returns the AMQP address
-func (config *Config) GetAmqpAddr() string {
-	return config.AmqpAddr
 }
 
 // GetDomainName returns the domain name
@@ -645,21 +551,6 @@ func (config *Config) GetTotpIssuer() string {
 	return config.DomainName
 }
 
-// GetGraphServiceAddr returns the graph service address.
-//
-// Optional. auth-service needs it for exactly one thing — resolving who
-// administers a group, so a group deletion can be reported to the people
-// responsible for it. An installation that leaves it unset loses that one
-// notification and nothing else, which is why it is not in Validate().
-func (config *Config) GetGraphServiceAddr() string {
-	return config.GraphServiceAddr
-}
-
-// GetFileServiceAddr returns the file service address
-func (config *Config) GetFileServiceAddr() string {
-	return config.FileServiceAddr
-}
-
 // GetCompleteDomainName returns the URL of the public marketing site.
 //
 // NOT the app. In production this is the www host, while the SPA is
@@ -677,28 +568,6 @@ func (config *Config) GetCompleteDomainName() string {
 	}
 
 	return fmt.Sprintf("https://www.%s", config.DomainName)
-}
-
-// GetOAuthIssuer returns the canonical issuer URL of auth-service.
-// This value is stamped into the "iss" claim of every JWT minted by
-// this service and is enforced as the expected issuer by the
-// anahita-libs OAuth middleware in every microservice.
-//
-// Must be identical across all microservices that share an
-// auth-service deployment (e.g. "https://auth.anahita.io").
-func (config *Config) GetOAuthIssuer() string {
-	return config.OAuthIssuer
-}
-
-// GetOAuthJWKSURL returns the URL of auth-service's JWKS endpoint.
-// The anahita-libs OAuth middleware fetches public keys from here to
-// verify JWT signatures locally.
-//
-// If unset, NewConfig derives this from the issuer URL by appending
-// "/.well-known/jwks.json" — auth-service is its own JWKS publisher in
-// the standard OIDC layout.
-func (config *Config) GetOAuthJWKSURL() string {
-	return config.OAuthJWKSURL
 }
 
 // GetOAuthSeedClientPath returns the filesystem path to the JSON file

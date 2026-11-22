@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"anahita-libs/proto/mailpb"
+	"anahita-libs/settings"
 	"bytes"
 	"context"
 	"log"
@@ -30,7 +31,7 @@ func (p *recordingProvider) Send(ctx context.Context, msg providers.Message) (st
 func newHandler(env string, developer string) (*mailHandler, *recordingProvider) {
 	provider := &recordingProvider{}
 	return NewMailHandler(&Env{
-		Config:   &config.Config{Env: env, DeveloperEmail: developer},
+		Config:   &config.Config{Common: settings.Common{Env: env}, DeveloperEmail: developer},
 		Provider: provider,
 	}), provider
 }
