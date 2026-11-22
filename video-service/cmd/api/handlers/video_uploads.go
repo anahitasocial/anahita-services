@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"anahita-libs/data/entities"
-	"anahita-libs/handlers"
 	"anahita-libs/permissions"
 	"anahita-libs/videos"
 	"video/constants"
@@ -244,7 +243,7 @@ func (h *videoHandler) UploadStart(c echo.Context) error {
 		if parent.RootID > 0 && parent.DeletedAt != nil {
 			return c.NoContent(http.StatusGone)
 		}
-		thread, err := handlers.ThreadOf(c, h.readers(), parent, viewer)
+		thread, err := an_handlers.ThreadOf(c, h.readers(), parent, viewer)
 		if err != nil {
 			log.Println(err)
 			return c.NoContent(http.StatusNotFound)
@@ -289,7 +288,7 @@ func (h *videoHandler) UploadStart(c echo.Context) error {
 		for _, each := range req.ThreadAfter {
 			part, ok := threads.Next(first, each, viewer.ID)
 			if !ok {
-				return handlers.RefuseLanguage(c)
+				return an_handlers.RefuseLanguage(c)
 			}
 			parts = append(parts, part)
 		}
@@ -311,21 +310,21 @@ func (h *videoHandler) UploadStart(c echo.Context) error {
 
 	medium := placeholderVideo(owner, viewer, kind)
 
-	language, valid := handlers.RequestLanguage(req.Language)
+	language, valid := an_handlers.RequestLanguage(req.Language)
 	if !valid {
-		return handlers.RefuseLanguage(c)
+		return an_handlers.RefuseLanguage(c)
 	}
-	replyAccess, valid := handlers.RequestReplyAccess(req.ReplyAccess)
+	replyAccess, valid := an_handlers.RequestReplyAccess(req.ReplyAccess)
 	if !valid {
-		return handlers.RefuseReplyAccess(c)
+		return an_handlers.RefuseReplyAccess(c)
 	}
-	quotePolicy, valid := handlers.RequestQuotePolicy(req.QuotePolicy)
+	quotePolicy, valid := an_handlers.RequestQuotePolicy(req.QuotePolicy)
 	if !valid {
-		return handlers.RefuseQuotePolicy(c)
+		return an_handlers.RefuseQuotePolicy(c)
 	}
 	warning, warningText, valid := entities.NormalizeWarning(req.Warning, req.WarningText)
 	if !valid {
-		return handlers.RefuseWarning(c)
+		return an_handlers.RefuseWarning(c)
 	}
 
 	if parent != nil || inThread {
@@ -335,7 +334,7 @@ func (h *videoHandler) UploadStart(c echo.Context) error {
 			language = parent.Language
 		}
 	} else {
-		medium.Access = handlers.DetermineMediumNodeAccess(req.Access, medium.Owner.Access)
+		medium.Access = an_handlers.DetermineMediumNodeAccess(req.Access, medium.Owner.Access)
 
 		mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)
 		if err != nil {
@@ -348,7 +347,7 @@ func (h *videoHandler) UploadStart(c echo.Context) error {
 		}
 		if !permissions.IsMediumAudienceAllowed(mediumAccessCtx, req.Access) {
 			log.Printf("refused: audience %q is not allowed on this profile", req.Access)
-			return handlers.RefuseAudience(c, mediumAccessCtx)
+			return an_handlers.RefuseAudience(c, mediumAccessCtx)
 		}
 	}
 
@@ -381,7 +380,7 @@ func (h *videoHandler) UploadStart(c echo.Context) error {
 		QuotePolicy:   quotePolicy,
 		Warning:       warning,
 		WarningText:   warningText,
-		AllowDownload: handlers.DefaultAllowDownload(req.AllowDownload, owner),
+		AllowDownload: an_handlers.DefaultAllowDownload(req.AllowDownload, owner),
 		LibraryOnly:   req.LibraryOnly,
 		DeclaredBytes: req.Size,
 		ParentID:      req.ParentID,

@@ -3,7 +3,6 @@ package handlers
 import (
 	"actor/constants"
 	an_constants "anahita-libs/constants"
-	"anahita-libs/data/services"
 	an_services "anahita-libs/data/services"
 	"anahita-libs/requests"
 	"anahita-libs/responses"
@@ -145,7 +144,7 @@ func (h *adminHandler) Add(c echo.Context) error {
 	// add the admin as a follower to the group
 	if !adminVsActorRel.IsFollowing {
 		// Add the admin as a follower to the group
-		followReq := services.NewSocialgraphFollowRequest().Add
+		followReq := an_services.NewSocialgraphFollowRequest().Add
 		followReq.Source = actor
 		followReq.Target = admin
 		followReq.Viewer = viewer

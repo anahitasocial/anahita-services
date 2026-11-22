@@ -275,7 +275,7 @@ func (h *oauthHandler) AddTotp(c echo.Context) error {
 		return c.Redirect(http.StatusFound, "/oauth/login?error=session_expired")
 	}
 
-	if user.Enabled == false {
+	if !user.Enabled {
 		log.Printf("totp: person disabled mid-flow (person=%d)", user.ID)
 		_ = h.Session.Delete(c, sessionKeyPendingTOTP)
 		return h.renderLoginError(c, "Invalid email or password.")

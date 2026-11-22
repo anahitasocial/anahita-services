@@ -63,7 +63,7 @@ func (h *totpHandler) Verify(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	} else {
 		user.TotpLastVerifiedAt = time.Now()
-		user, err = h.Repos.Users.Edit(user)
+		_, err = h.Repos.Users.Edit(user)
 		if err != nil {
 			log.Println(err)
 			return c.NoContent(http.StatusInternalServerError)
@@ -216,7 +216,7 @@ func (h *totpHandler) Add(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	user, err = h.Repos.Users.Edit(user)
+	_, err = h.Repos.Users.Edit(user)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)

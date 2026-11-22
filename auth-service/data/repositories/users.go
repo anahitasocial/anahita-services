@@ -156,9 +156,8 @@ func (repo *Users) ReadByID(id int64) (*entities.User, error) {
 		return nil, err
 	}
 
-	item := entities.NewUser()
 	row := repo.db.QueryRowContext(ctx, sql, args...)
-	item, err = scanUser(row)
+	item, err := scanUser(row)
 
 	if err != nil {
 		return nil, err
@@ -190,9 +189,8 @@ func (repo *Users) ReadByEmail(email string) (*entities.User, error) {
 		return nil, err
 	}
 
-	item := entities.NewUser()
 	row := repo.db.QueryRowContext(ctx, sql, args...)
-	item, err = scanUser(row)
+	item, err := scanUser(row)
 
 	if err != nil {
 		return nil, err
@@ -224,9 +222,8 @@ func (repo *Users) ReadByUsername(username string) (*entities.User, error) {
 		return nil, err
 	}
 
-	item := entities.NewUser()
 	row := repo.db.QueryRowContext(ctx, sql, args...)
-	item, err = scanUser(row)
+	item, err := scanUser(row)
 
 	if err != nil {
 		return nil, err
@@ -264,9 +261,8 @@ func (repo *Users) ReadByEmailOrUsername(emailOrUsername string) (*entities.User
 		return nil, err
 	}
 
-	item := entities.NewUser()
 	row := repo.db.QueryRowContext(ctx, sql, args...)
-	item, err = scanUser(row)
+	item, err := scanUser(row)
 
 	if err != nil {
 		return nil, err

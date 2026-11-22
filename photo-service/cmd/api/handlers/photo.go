@@ -3,7 +3,6 @@ package handlers
 import (
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
-	"anahita-libs/handlers"
 	an_handlers "anahita-libs/handlers"
 	"anahita-libs/permissions"
 	"anahita-libs/requests"
@@ -104,7 +103,7 @@ func (h *photoHandler) Browse(c echo.Context) error {
 
 	batchPresignPaths(h.Env, nodes)
 	// What the viewer may do with each, as a post's own page says.
-	handlers.SetListPostFlags(c, h.Srv.ActorsGRPC, h.Srv.SocialgraphGRPC, nodes, viewer)
+	an_handlers.SetListPostFlags(c, h.Srv.ActorsGRPC, h.Srv.SocialgraphGRPC, nodes, viewer)
 
 	mediaResp := &responses.MediumNodeResponse{}
 	resp.Data = mediaResp.MapMediumNodeItems(nodes)
@@ -204,8 +203,8 @@ func (h *photoHandler) Edit(c echo.Context) error {
 
 	// The language the author says it is written in. Not saying is not an
 	// error; a tag that is not one is.
-	if language, valid := handlers.RequestLanguage(req.Language); !valid {
-		return handlers.RefuseLanguage(c)
+	if language, valid := an_handlers.RequestLanguage(req.Language); !valid {
+		return an_handlers.RefuseLanguage(c)
 	} else if language != "" {
 		medium.Language = language
 	}
@@ -335,14 +334,14 @@ func (h *photoHandler) Add(c echo.Context) error {
 
 	// The language the author says it is written in. Not saying is not an
 	// error; a tag that is not one is.
-	if language, valid := handlers.RequestLanguage(req.Language); !valid {
-		return handlers.RefuseLanguage(c)
+	if language, valid := an_handlers.RequestLanguage(req.Language); !valid {
+		return an_handlers.RefuseLanguage(c)
 	} else if language != "" {
 		medium.Language = language
 	}
 	medium.Enabled = true
 	medium.CommentStatus = true
-	medium.AllowDownload = handlers.DefaultAllowDownload(req.AllowDownload, owner)
+	medium.AllowDownload = an_handlers.DefaultAllowDownload(req.AllowDownload, owner)
 	// A library is one's own: on one's own profile and nowhere else.
 	if req.LibraryOnly && owner.ID != viewer.ID {
 		return c.NoContent(http.StatusBadRequest)
@@ -351,25 +350,25 @@ func (h *photoHandler) Add(c echo.Context) error {
 
 	// Who may reply, when the author says. Not saying leaves it to the
 	// profile; a value that is not one is an error.
-	if replyAccess, valid := handlers.RequestReplyAccess(req.ReplyAccess); !valid {
-		return handlers.RefuseReplyAccess(c)
+	if replyAccess, valid := an_handlers.RequestReplyAccess(req.ReplyAccess); !valid {
+		return an_handlers.RefuseReplyAccess(c)
 	} else if replyAccess != "" {
-		handlers.SetReplyAccess(medium, replyAccess)
+		an_handlers.SetReplyAccess(medium, replyAccess)
 	}
 
 	// Who may quote it, when the author says. Not saying leaves it to
 	// their own setting.
-	if quotePolicy, valid := handlers.RequestQuotePolicy(req.QuotePolicy); !valid {
-		return handlers.RefuseQuotePolicy(c)
+	if quotePolicy, valid := an_handlers.RequestQuotePolicy(req.QuotePolicy); !valid {
+		return an_handlers.RefuseQuotePolicy(c)
 	} else if quotePolicy != "" {
 		medium.QuotePolicy = quotePolicy
 	}
 
 	// Its content warning, when the author gives it one.
-	if valid, _ := handlers.SetWarning(medium, req.Warning, req.WarningText); !valid {
-		return handlers.RefuseWarning(c)
+	if valid, _ := an_handlers.SetWarning(medium, req.Warning, req.WarningText); !valid {
+		return an_handlers.RefuseWarning(c)
 	}
-	medium.Access = handlers.DetermineMediumNodeAccess(req.Access, medium.Owner.Access)
+	medium.Access = an_handlers.DetermineMediumNodeAccess(req.Access, medium.Owner.Access)
 
 	mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)
 	if err != nil {
@@ -385,7 +384,7 @@ func (h *photoHandler) Add(c echo.Context) error {
 	// "admins" on a person's profile, no "only me" on somebody else's.
 	if !permissions.IsMediumAudienceAllowed(mediumAccessCtx, req.Access) {
 		log.Printf("refused: audience %q is not allowed on this profile", req.Access)
-		return handlers.RefuseAudience(c, mediumAccessCtx)
+		return an_handlers.RefuseAudience(c, mediumAccessCtx)
 	}
 
 	// The images are settled before the post is made. It used to be made
@@ -426,7 +425,7 @@ func (h *photoHandler) Add(c echo.Context) error {
 	medium.Mimetype = plan.Files[0].Mimetype
 
 	// On a channel, the channel's own, written by one of its admins.
-	handlers.OwnPost(medium, viewer.ID)
+	an_handlers.OwnPost(medium, viewer.ID)
 	medium, err = h.Srv.MediaGRPC.AddWithLocations(medium, viewer, req.LocationIDs)
 	// A group's or an event's rules changed since they agreed: agreed to
 	// again first (roadmap row 102, part 5c).
@@ -531,9 +530,9 @@ func (h *photoHandler) onAfterFetched(c echo.Context, item *entities.AnahitaNode
 		if item.Authorized == nil {
 			item.Authorized = &entities.AnahitaNodeAuthorized{}
 		}
-		if thread, err := handlers.Thread(c, h.readers(), item.RootID, viewer); err == nil {
-			handlers.SetReplyFlags(thread, item)
-			handlers.SetThreadWrittenBy(h.Srv.ActorsGRPC, thread, []*entities.AnahitaNode{item})
+		if thread, err := an_handlers.Thread(c, h.readers(), item.RootID, viewer); err == nil {
+			an_handlers.SetReplyFlags(thread, item)
+			an_handlers.SetThreadWrittenBy(h.Srv.ActorsGRPC, thread, []*entities.AnahitaNode{item})
 		}
 		return nil
 	}
@@ -555,7 +554,7 @@ func (h *photoHandler) onAfterFetched(c echo.Context, item *entities.AnahitaNode
 
 	// Who may comment on and like it, so the web app shows only the
 	// buttons that will work.
-	handlers.SetPostFlags(c, h.Srv.ActorsGRPC, item, viewer, mediumAccessCtx.OwnerViewerRel)
+	an_handlers.SetPostFlags(c, h.Srv.ActorsGRPC, item, viewer, mediumAccessCtx.OwnerViewerRel)
 
 	return nil
 }

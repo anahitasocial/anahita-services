@@ -128,12 +128,8 @@ func (repo *ActorAdmin) Add(admin *graphpb.Node, actor *graphpb.Node, viewer *en
 	edge.CreatedBy = viewer.ID
 	edge.ModifiedBy = viewer.ID
 
-	edge, err := edgeRepo.Add(edge)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	_, err := edgeRepo.Add(edge)
+	return err
 }
 
 // Delete removes actor_admin relationship from actor

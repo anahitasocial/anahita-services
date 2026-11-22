@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"anahita-libs/data/entities"
 	an_entities "anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	an_mw "anahita-libs/middleware"
@@ -17,15 +16,15 @@ func getViewer(c echo.Context) *an_entities.Viewer {
 }
 
 // batchPresignPaths presigns the avatar and cover paths of the given actors
-func batchPresignPaths(env *Env, items []*entities.AnahitaNode) {
-	var authorAvatarNodes []entities.AnahitaNodeAvatarInterface
-	var ownerAvatarNodes []entities.AnahitaNodeAvatarInterface
-	var parentPortraitNodes []entities.AnahitaNodePortraitInterface
-	var parentCoverNodes []entities.AnahitaNodeCoverInterface
-	var parentOwnerAvatarNodes []entities.AnahitaNodeAvatarInterface
-	var parentAuthorAvatarNodes []entities.AnahitaNodeAvatarInterface
-	var coverNodes []entities.AnahitaNodeCoverInterface
-	var portraitNodes []entities.AnahitaNodePortraitInterface
+func batchPresignPaths(env *Env, items []*an_entities.AnahitaNode) {
+	var authorAvatarNodes []an_entities.AnahitaNodeAvatarInterface
+	var ownerAvatarNodes []an_entities.AnahitaNodeAvatarInterface
+	var parentPortraitNodes []an_entities.AnahitaNodePortraitInterface
+	var parentCoverNodes []an_entities.AnahitaNodeCoverInterface
+	var parentOwnerAvatarNodes []an_entities.AnahitaNodeAvatarInterface
+	var parentAuthorAvatarNodes []an_entities.AnahitaNodeAvatarInterface
+	var coverNodes []an_entities.AnahitaNodeCoverInterface
+	var portraitNodes []an_entities.AnahitaNodePortraitInterface
 
 	for _, item := range items {
 		if item.Author != nil {
@@ -58,7 +57,7 @@ func batchPresignPaths(env *Env, items []*entities.AnahitaNode) {
 
 	// Every image of each photo post, and of each photo that was reposted,
 	// read with one call for the whole page.
-	photos := make([]*entities.AnahitaNode, 0, len(items)*2)
+	photos := make([]*an_entities.AnahitaNode, 0, len(items)*2)
 	for _, item := range items {
 		photos = append(photos, item, item.Parent)
 	}

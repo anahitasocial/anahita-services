@@ -3,7 +3,6 @@ package handlers
 import (
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
-	"anahita-libs/data/services"
 	an_services "anahita-libs/data/services"
 	an_handlers "anahita-libs/handlers"
 	an_requests "anahita-libs/requests"
@@ -32,7 +31,7 @@ func (h *followRequestHandler) Browse(c echo.Context) error {
 	var (
 		err      error
 		req      = requests.NewSocialgraphRequest().Browse
-		graphReq = services.NewGraphRequest().BrowseConnectionNodes
+		graphReq = an_services.NewGraphRequest().BrowseConnectionNodes
 		actorReq = an_requests.NewActorRequest().BatchRead
 		viewer   = getViewer(c)
 	)
@@ -148,7 +147,7 @@ func (h *followRequestHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	editReq := services.NewSocialgraphFollowRequest().Edit
+	editReq := an_services.NewSocialgraphFollowRequest().Edit
 	editReq.Source = source
 	editReq.Target = target
 	editReq.Viewer = viewer
@@ -199,7 +198,7 @@ func (h *followRequestHandler) Add(c echo.Context) error {
 		log.Println(err)
 		return c.NoContent(http.StatusForbidden)
 	}
-	addReq := services.NewSocialgraphFollowRequest().Add
+	addReq := an_services.NewSocialgraphFollowRequest().Add
 	addReq.Source = source
 	addReq.Target = target
 	addReq.Viewer = viewer
@@ -257,7 +256,7 @@ func (h *followRequestHandler) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	delReq := services.NewSocialgraphFollowRequest().Delete
+	delReq := an_services.NewSocialgraphFollowRequest().Delete
 	delReq.Source = source
 	delReq.Target = target
 	delReq.Viewer = viewer

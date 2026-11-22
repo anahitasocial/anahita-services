@@ -222,7 +222,7 @@ func (h *groupHandler) Edit(c echo.Context) error {
 	actor.WebsiteURL = req.WebsiteURL
 	actor.Enabled = req.Enabled
 	actor.ModifiedBy = viewer.ID
-	actor, err = h.Srv.ActorsGRPC.Edit(actor, viewer)
+	_, err = h.Srv.ActorsGRPC.Edit(actor, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)

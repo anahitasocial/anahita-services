@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"anahita-libs/data/entities"
 	an_entities "anahita-libs/data/entities"
 	an_services "anahita-libs/data/services"
 	an_mw "anahita-libs/middleware"
@@ -17,10 +16,10 @@ func getViewer(c echo.Context) *an_entities.Viewer {
 }
 
 // onAfterFetched presigns the avatar of the actor
-func onAfterActorFetched(env *Env, actors []*entities.AnahitaNode) {
+func onAfterActorFetched(env *Env, actors []*an_entities.AnahitaNode) {
 	// Convert to interface slices for batch operations
-	var avatarNodes []entities.AnahitaNodeAvatarInterface
-	var coverNodes []entities.AnahitaNodeCoverInterface
+	var avatarNodes []an_entities.AnahitaNodeAvatarInterface
+	var coverNodes []an_entities.AnahitaNodeCoverInterface
 	for _, actor := range actors {
 		avatarNodes = append(avatarNodes, actor)
 		coverNodes = append(coverNodes, actor)
@@ -31,7 +30,7 @@ func onAfterActorFetched(env *Env, actors []*entities.AnahitaNode) {
 }
 
 // extractNodeIDs extracts IDs from a list of AnahitaNode
-func extractNodeIDs(nodes []*entities.AnahitaNode) []int64 {
+func extractNodeIDs(nodes []*an_entities.AnahitaNode) []int64 {
 	ids := make([]int64, 0, len(nodes))
 	for _, node := range nodes {
 		ids = append(ids, node.ID)

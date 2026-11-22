@@ -157,7 +157,7 @@ func (h *inboundHandler) Add(c echo.Context) error {
 		return c.JSON(http.StatusUnprocessableEntity, responses.Refusal{Error: "too_many_locations"})
 	}
 
-	edge, err = h.Srv.GraphEdgeGRPC.Add(edge)
+	_, err = h.Srv.GraphEdgeGRPC.Add(edge)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
