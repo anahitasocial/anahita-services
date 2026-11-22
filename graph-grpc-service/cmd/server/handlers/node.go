@@ -26,7 +26,6 @@ func NewNodeHandler(env *Env) *nodeHandler {
 
 // Browse
 func (h *nodeHandler) Browse(ctx context.Context, req *graphpb.NodeBrowseRequest) (*graphpb.NodeBrowseResponse, error) {
-	log.Printf("Received Browse request: %v", req)
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
@@ -62,7 +61,6 @@ func (h *nodeHandler) Browse(ctx context.Context, req *graphpb.NodeBrowseRequest
 
 // Read
 func (h *nodeHandler) Read(ctx context.Context, req *graphpb.NodeReadRequest) (*graphpb.NodeReadResponse, error) {
-	log.Printf("Received Read request: %v", req)
 
 	node, err := h.env.Repos.Nodes.Read(req.Id)
 	if err != nil {
@@ -76,7 +74,6 @@ func (h *nodeHandler) Read(ctx context.Context, req *graphpb.NodeReadRequest) (*
 
 // ReadByAlias
 func (h *nodeHandler) ReadByAlias(ctx context.Context, req *graphpb.NodeReadByAliasRequest) (*graphpb.NodeReadByAliasResponse, error) {
-	log.Printf("Received ReadByAlias request: %v", req)
 
 	gReq := requests.NewNodeRequest().ReadByAlias
 	gReq.Alias = req.Alias
@@ -175,7 +172,6 @@ func (h *nodeHandler) DeleteRemoteActor(ctx context.Context, req *graphpb.NodeDe
 
 // Edit
 func (h *nodeHandler) Edit(ctx context.Context, req *graphpb.NodeEditRequest) (*graphpb.NodeEditResponse, error) {
-	log.Printf("Received Edit request: %v", req)
 
 	node := ProtoNodeToAnahitaNode(req.Node)
 	node, err := h.env.Repos.Nodes.Edit(node)
@@ -190,7 +186,6 @@ func (h *nodeHandler) Edit(ctx context.Context, req *graphpb.NodeEditRequest) (*
 
 // Add
 func (h *nodeHandler) Add(ctx context.Context, req *graphpb.NodeAddRequest) (*graphpb.NodeAddResponse, error) {
-	log.Printf("Received Add request: %v", req)
 
 	node := ProtoNodeToAnahitaNode(req.Node)
 	node, err := h.env.Repos.Nodes.Add(node)
@@ -205,7 +200,6 @@ func (h *nodeHandler) Add(ctx context.Context, req *graphpb.NodeAddRequest) (*gr
 
 // Delete
 func (h *nodeHandler) Delete(ctx context.Context, req *graphpb.NodeDeleteRequest) (*graphpb.NodeDeleteResponse, error) {
-	log.Printf("Received Delete request: %v", req)
 	var err error
 
 	success, err := h.env.Repos.Nodes.Delete(req.Id)
@@ -223,7 +217,6 @@ func (h *nodeHandler) Delete(ctx context.Context, req *graphpb.NodeDeleteRequest
 // Who may is decided by the caller, as for every write here: this service
 // has no notion of a viewer's permissions.
 func (h *nodeHandler) ClearFile(ctx context.Context, req *graphpb.NodeClearFileRequest) (*graphpb.NodeClearFileResponse, error) {
-	log.Printf("Received ClearFile request: %v", req)
 
 	success, err := h.env.Repos.Nodes.ClearFile(req.Id, req.Kind, req.ModifiedBy)
 	if err != nil {
@@ -237,7 +230,6 @@ func (h *nodeHandler) ClearFile(ctx context.Context, req *graphpb.NodeClearFileR
 
 // Count
 func (h *nodeHandler) Count(ctx context.Context, req *graphpb.NodeCountRequest) (*graphpb.NodeCountResponse, error) {
-	log.Printf("Received Count request: %v", req)
 	// var err error
 
 	viewer := entities.NewViewer()
@@ -288,7 +280,6 @@ func (h *nodeHandler) FilterVisible(ctx context.Context, req *graphpb.NodeFilter
 
 // BatchRead
 func (h *nodeHandler) BatchRead(ctx context.Context, req *graphpb.NodeBatchReadRequest) (*graphpb.NodeBatchReadResponse, error) {
-	log.Printf("Received Read request: %v", req)
 
 	gReq := requests.NewNodeRequest().BatchRead
 	gReq.IDs = req.Ids
@@ -306,7 +297,6 @@ func (h *nodeHandler) BatchRead(ctx context.Context, req *graphpb.NodeBatchReadR
 
 // BatchReadByAliases
 func (h *nodeHandler) BatchReadByAliases(ctx context.Context, req *graphpb.NodeBatchReadByAliasesRequest) (*graphpb.NodeBatchReadByAliasesResponse, error) {
-	log.Printf("Received BatchReadByAliases request: %v", req)
 
 	gReq := requests.NewNodeRequest().BatchReadByAliases
 	gReq.Aliases = req.Aliases
@@ -326,7 +316,6 @@ func (h *nodeHandler) BatchReadByAliases(ctx context.Context, req *graphpb.NodeB
 
 // BatchEdit
 func (h *nodeHandler) BatchEdit(ctx context.Context, req *graphpb.NodeBatchEditRequest) (*graphpb.NodeBatchEditResponse, error) {
-	log.Printf("Received BatchEdit request: %v", req)
 	var err error
 
 	nodes := make([]*entities.AnahitaNode, len(req.Nodes))
@@ -346,7 +335,6 @@ func (h *nodeHandler) BatchEdit(ctx context.Context, req *graphpb.NodeBatchEditR
 
 // BatchAdd
 func (h *nodeHandler) BatchAdd(ctx context.Context, req *graphpb.NodeBatchAddRequest) (*graphpb.NodeBatchAddResponse, error) {
-	log.Printf("Received BatchAdd request: %v", req)
 	var err error
 
 	nodes := make([]*entities.AnahitaNode, len(req.Nodes))
@@ -366,7 +354,6 @@ func (h *nodeHandler) BatchAdd(ctx context.Context, req *graphpb.NodeBatchAddReq
 
 // BatchDelete
 func (h *nodeHandler) BatchDelete(ctx context.Context, req *graphpb.NodeBatchDeleteRequest) (*graphpb.NodeBatchDeleteResponse, error) {
-	log.Printf("Received Delete request: %v", req)
 	var err error
 
 	success, err := h.env.Repos.Nodes.BatchDelete(req.Ids)
@@ -381,7 +368,6 @@ func (h *nodeHandler) BatchDelete(ctx context.Context, req *graphpb.NodeBatchDel
 
 // BrowseMutualConnections
 func (h *nodeHandler) BrowseMutualConnections(ctx context.Context, req *graphpb.BrowseMutualConnectionsRequest) (*graphpb.BrowseMutualConnectionsResponse, error) {
-	log.Printf("Received BrowseMutualConnections request: %v", req)
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
@@ -405,7 +391,6 @@ func (h *nodeHandler) BrowseMutualConnections(ctx context.Context, req *graphpb.
 
 // CountConnections
 func (h *nodeHandler) CountConnections(ctx context.Context, req *graphpb.CountConnectionsRequest) (*graphpb.CountConnectionsResponse, error) {
-	log.Printf("Received CountConnections request: %v", req)
 	var err error
 
 	viewer := entities.NewViewer()
@@ -428,7 +413,6 @@ func (h *nodeHandler) CountConnections(ctx context.Context, req *graphpb.CountCo
 
 // ReadConnectionStats
 func (h *nodeHandler) ReadConnectionStats(ctx context.Context, req *graphpb.ReadConnectionStatsRequest) (*graphpb.ReadConnectionStatsResponse, error) {
-	log.Printf("Received ReadConnectionStats request: %v", req)
 	var err error
 
 	viewer := entities.NewViewer()

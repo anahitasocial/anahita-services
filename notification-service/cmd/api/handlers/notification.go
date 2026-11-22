@@ -296,18 +296,17 @@ func (h *notificationHandler) keepReadable(items []*entities.Notification, viewe
 	}
 
 	kept := make([]*entities.Notification, 0, len(items))
-	removed := 0
+	gone := []int64{}
 	for _, item := range items {
 		if (item.Object.ID > 0 && !readable[item.Object.ID]) || (item.CommentID > 0 && !readable[item.CommentID]) {
-			gone := entities.NewNotification()
-			gone.ID = item.ID
-			if err := h.Repos.Notifications.Delete(gone); err != nil {
-				log.Println("notifications: deleting one about what its reader may not see:", err)
-			}
-			removed++
+			gone = append(gone, item.ID)
 			continue
 		}
 		kept = append(kept, item)
 	}
-	return kept, removed
+	// In one go, not one each (roadmap row 170).
+	if err := h.Repos.Notifications.DeleteMany(gone); err != nil {
+		log.Println("notifications: deleting those about what their reader may not see:", err)
+	}
+	return kept, len(gone)
 }

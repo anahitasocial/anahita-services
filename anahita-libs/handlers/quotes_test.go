@@ -4,6 +4,7 @@ import (
 	"errors"
 	"testing"
 
+	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/responses"
 )
@@ -54,6 +55,7 @@ func quotingNote(id int64, quotes int64) *entities.AnahitaNode {
 func quotedPost(id int64) *entities.AnahitaNode {
 	post := entities.NewAnahitaNode()
 	post.ID = id
+	post.Type = constants.NodeMediumNoteEntityType
 	post.Body = "quoted"
 	return post
 }
@@ -145,5 +147,63 @@ func TestNothingIsQuotedWhenTheGateCannotBeAsked(t *testing.T) {
 func TestAQuoteNobodyLookedUpIsNotSent(t *testing.T) {
 	if embed := responses.NewQuoteEmbed(quotingNote(1, 10)); embed != nil {
 		t.Errorf("sent %+v", embed)
+	}
+}
+
+// fakeBatchQuoteReader reads several at once, as services.MediaGRPC does,
+// and counts how it was asked.
+type fakeBatchQuoteReader struct {
+	fakeQuoteReader
+	batches [][]int64
+	reads   int
+}
+
+func (f *fakeBatchQuoteReader) Read(id int64, viewer *entities.Viewer) (*entities.AnahitaNode, error) {
+	f.reads++
+	return f.fakeQuoteReader.Read(id, viewer)
+}
+
+func (f *fakeBatchQuoteReader) BatchRead(ids []int64, _ *entities.Viewer) ([]*entities.AnahitaNode, error) {
+	f.batches = append(f.batches, ids)
+	found := []*entities.AnahitaNode{}
+	for _, id := range ids {
+		if post, ok := f.posts[id]; ok {
+			found = append(found, post)
+		}
+	}
+	return found, nil
+}
+
+// THE RULE THIS GUARDS (roadmap row 170): a feed's quoted posts are read in
+// one call, not one call each, and only those the viewer may see are asked
+// for; a reply, or something that is not a post, is not shown as one.
+func TestAFeedsQuotedPostsAreReadInOneCall(t *testing.T) {
+	reply := quotedPost(12)
+	reply.RootID = 9
+	hashtag := quotedPost(13)
+	hashtag.Type = constants.NodeBaseHashtagEntityType
+	reader := &fakeBatchQuoteReader{fakeQuoteReader: fakeQuoteReader{posts: map[int64]*entities.AnahitaNode{
+		10: quotedPost(10), 11: quotedPost(11), 12: reply, 13: hashtag, 14: quotedPost(14),
+	}}}
+	gate := &fakeVisibility{visible: map[int64]bool{10: true, 12: true, 13: true, 14: true}}
+
+	notes := []*entities.AnahitaNode{
+		quotingNote(1, 10), quotingNote(2, 11), quotingNote(3, 12), quotingNote(4, 13), quotingNote(5, 14), quotingNote(6, 10),
+	}
+	attached := SetQuotes(reader, gate, notes, entities.NewViewer())
+
+	if len(reader.batches) != 1 || reader.reads != 0 {
+		t.Fatalf("%d batch reads and %d single reads, want one batch and none", len(reader.batches), reader.reads)
+	}
+	if asked := reader.batches[0]; len(asked) != 4 {
+		t.Errorf("asked for %v, want only the four the viewer may see, each once", asked)
+	}
+	if len(attached) != 2 || notes[0].Quote == nil || notes[4].Quote == nil || notes[5].Quote == nil {
+		t.Errorf("attached %d, want posts 10 and 14, on the three notes quoting them", len(attached))
+	}
+	for _, i := range []int{1, 2, 3} {
+		if notes[i].Quote != nil || notes[i].QuoteState != constants.QuoteStateUnavailable {
+			t.Errorf("note %d: shown %v, state %q; want nothing shown, unavailable", notes[i].ID, notes[i].Quote != nil, notes[i].QuoteState)
+		}
 	}
 }

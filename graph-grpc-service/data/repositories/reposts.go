@@ -55,7 +55,6 @@ func (repo *RepostsRepo) Browse(req *graphpb.RepostBrowseRequest) ([]int64, erro
 	if err != nil {
 		return nil, err
 	}
-	// log.Println("Reposts Browse SQL:", sqlStr, args)
 
 	rows, err := repo.db.QueryContext(ctx, sqlStr, args...)
 	if err != nil {
@@ -96,7 +95,6 @@ func (repo *RepostsRepo) BrowseAuthors(req *graphpb.RepostBrowseAuthorsRequest) 
 	if err != nil {
 		return nil, err
 	}
-	// log.Println("Leaders GetList SQL:", sqlStr, args)
 
 	rows, err := repo.db.QueryContext(ctx, sqlStr, args...)
 	if err != nil {

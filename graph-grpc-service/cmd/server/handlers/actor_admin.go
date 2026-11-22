@@ -6,7 +6,6 @@ import (
 	"anahita-libs/proto/graphpb"
 	"context"
 	"fmt"
-	"log"
 	"strings"
 )
 
@@ -21,7 +20,6 @@ func NewActorAdminHandler(env *Env) *actorAdminHandler {
 
 // Browse returns a list of admins
 func (h *actorAdminHandler) Browse(ctx context.Context, req *graphpb.ActorAdminBrowseRequest) (*graphpb.ActorAdminBrowseResponse, error) {
-	log.Printf("Received Browse request: %v", req)
 	var err error
 
 	admins, err := h.env.Repos.ActorAdmins.Browse(req.ActorId)
@@ -36,7 +34,6 @@ func (h *actorAdminHandler) Browse(ctx context.Context, req *graphpb.ActorAdminB
 
 // Add adds an admin
 func (h *actorAdminHandler) Add(ctx context.Context, req *graphpb.ActorAdminAddRequest) (*graphpb.ActorAdminAddResponse, error) {
-	log.Printf("Received Add request: %v", req)
 	var err error
 
 	viewer := entities.NewViewer()
@@ -72,7 +69,6 @@ func (h *actorAdminHandler) Add(ctx context.Context, req *graphpb.ActorAdminAddR
 
 // Delete removes an admin
 func (h *actorAdminHandler) Delete(ctx context.Context, req *graphpb.ActorAdminDeleteRequest) (*graphpb.ActorAdminDeleteResponse, error) {
-	log.Printf("Received Delete request: %v", req)
 	var err error
 
 	viewer := entities.NewViewer()

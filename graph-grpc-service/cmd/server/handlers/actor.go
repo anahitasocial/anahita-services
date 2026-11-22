@@ -34,7 +34,6 @@ func NewActorHandler(env *Env) *actorHandler {
 
 // Count return the total number of actors
 func (h *actorHandler) Count(ctx context.Context, req *graphpb.ActorCountRequest) (*graphpb.ActorCountResponse, error) {
-	log.Printf("Received Count request: %v", req)
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
@@ -62,7 +61,6 @@ func (h *actorHandler) Count(ctx context.Context, req *graphpb.ActorCountRequest
 
 // Browse return a list of actors
 func (h *actorHandler) Browse(ctx context.Context, req *graphpb.ActorBrowseRequest) (*graphpb.ActorBrowseResponse, error) {
-	log.Printf("Received Browse request: %v", req)
 	var err error
 
 	viewer := entities.NewViewer()
@@ -114,7 +112,6 @@ func (h *actorHandler) Browse(ctx context.Context, req *graphpb.ActorBrowseReque
 
 // Read return a single actor
 func (h *actorHandler) Read(ctx context.Context, req *graphpb.ActorReadRequest) (*graphpb.ActorReadResponse, error) {
-	log.Printf("Received Get request: %v", req)
 
 	loader := features.NewFeatureLoader(h.env.Config.GetActorFeaturesPath())
 
@@ -160,7 +157,6 @@ func (h *actorHandler) Read(ctx context.Context, req *graphpb.ActorReadRequest) 
 
 // BatchRead return a list of actors
 func (h *actorHandler) BatchRead(ctx context.Context, req *graphpb.ActorBatchReadRequest) (*graphpb.ActorBatchReadResponse, error) {
-	log.Printf("Received BatchRead request: %v", req)
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
@@ -212,7 +208,6 @@ func (h *actorHandler) BatchRead(ctx context.Context, req *graphpb.ActorBatchRea
 
 // Edit update an actor
 func (h *actorHandler) Edit(ctx context.Context, req *graphpb.ActorEditRequest) (*graphpb.ActorEditResponse, error) {
-	log.Printf("Received Edit request: %v", req)
 
 	node, err := h.env.Repos.Nodes.Read(req.Actor.Id)
 	if err != nil {
@@ -278,7 +273,6 @@ func (h *actorHandler) Edit(ctx context.Context, req *graphpb.ActorEditRequest) 
 
 // Add create a new actor
 func (h *actorHandler) Add(ctx context.Context, req *graphpb.ActorAddRequest) (*graphpb.ActorAddResponse, error) {
-	log.Printf("Received Add request: %v", req)
 
 	node := newActorFromRequest(req.Actor)
 
@@ -413,7 +407,6 @@ func (h *actorHandler) publishActorLifecycle(format string, node *entities.Anahi
 // PurgeByOwner still exists and still does exactly that, but it now runs from
 // the sweeper once the grace period has expired, not from a request.
 func (h *actorHandler) Delete(ctx context.Context, req *graphpb.ActorDeleteRequest) (*graphpb.ActorDeleteResponse, error) {
-	log.Printf("Received Delete request: %v", req.Id)
 	actor, err := h.env.Repos.Nodes.Read(req.Id)
 	if err != nil {
 		return nil, err
@@ -474,7 +467,6 @@ func (h *actorHandler) Delete(ctx context.Context, req *graphpb.ActorDeleteReque
 // permission as deleting, on the reasoning that undoing an action should never
 // need more authority than doing it.
 func (h *actorHandler) Restore(ctx context.Context, req *graphpb.ActorRestoreRequest) (*graphpb.ActorRestoreResponse, error) {
-	log.Printf("Received Restore request: %v", req.Id)
 
 	restored, err := h.env.Repos.Nodes.RestoreActor(req.Id)
 	if err != nil {
@@ -600,7 +592,6 @@ const (
 // cannot inherit this one's identity on a remote server, and the deletion log
 // rows recording who did it. Both are deliberate — see docs/plans.
 func (h *actorHandler) RequestPurge(ctx context.Context, req *graphpb.ActorPurgeBatchRequest) (*graphpb.ActorPurgeBatchResponse, error) {
-	log.Printf("Received RequestPurge request for %d actor(s)", len(req.Ids))
 
 	var requestedBy int64
 	if req.Viewer != nil {
@@ -808,8 +799,6 @@ func (h *actorHandler) MakePublicRegistered(ctx context.Context, req *graphpb.Ma
 		performedBy = req.Viewer.Id
 	}
 
-	log.Printf("Received MakePublicRegistered request from %d", performedBy)
-
 	counts, err := h.env.Repos.PublicAccess.MakeRegistered(performedBy)
 	if err != nil {
 		log.Println("make public registered:", err)
@@ -836,7 +825,6 @@ func (h *actorHandler) MakePublicRegistered(ctx context.Context, req *graphpb.Ma
 // and an undo would make it the gentle-sounding option somebody picks instead
 // of deciding.
 func (h *actorHandler) Archive(ctx context.Context, req *graphpb.ActorArchiveRequest) (*graphpb.ActorArchiveResponse, error) {
-	log.Printf("Received Archive request: %v", req.Id)
 
 	actor, err := h.env.Repos.Nodes.Read(req.Id)
 	if err != nil {
@@ -916,7 +904,6 @@ func (h *actorHandler) TouchLastVisit(ctx context.Context, req *graphpb.ActorTou
 // `enabled` had accumulated three meanings, and separating them is the point:
 // this is a switch an administrator flips, not a by-product of deleting.
 func (h *actorHandler) SetEnabled(ctx context.Context, req *graphpb.ActorSetEnabledRequest) (*graphpb.ActorSetEnabledResponse, error) {
-	log.Printf("Received SetEnabled request: %v -> %v", req.Id, req.Enabled)
 
 	actor, err := h.env.Repos.Nodes.Read(req.Id)
 	if err != nil {
@@ -970,7 +957,6 @@ func (h *actorHandler) SetEnabled(ctx context.Context, req *graphpb.ActorSetEnab
 // about the actor's own state moves, and nothing downstream indexes it — and
 // the node_deletion_logs actions are all lifecycle.
 func (h *actorHandler) SetFeatured(ctx context.Context, req *graphpb.ActorSetFeaturedRequest) (*graphpb.ActorSetFeaturedResponse, error) {
-	log.Printf("Received SetFeatured request: %v -> %v", req.Id, req.Featured)
 
 	actor, err := h.env.Repos.Nodes.Read(req.Id)
 	if err != nil {
@@ -1005,7 +991,6 @@ func viewerPersonType(v *graphpb.Viewer) string {
 
 // Ping return a pong message
 func (h *actorHandler) Ping(ctx context.Context, req *graphpb.ActorPingRequest) (*graphpb.ActorPingResponse, error) {
-	log.Printf("Received Ping request: %v", req.Message)
 	return &graphpb.ActorPingResponse{
 		Message: "Pong",
 	}, nil

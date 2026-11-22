@@ -70,15 +70,18 @@ func main() {
 	}
 
 	// create permissions env
+	// One set of clients, for the permissions and the handlers alike.
+	srv := services.NewServices(config)
+
 	pEnv := &permissions.Env{
 		Config: config,
-		Srv:    services.NewServices(config),
+		Srv:    srv,
 	}
 
 	// create handlers
 	hEnv := &handlers.Env{
 		Config:    config,
-		Srv:       services.NewServices(config),
+		Srv:       srv,
 		Perms:     permissions.NewPermissions(pEnv),
 		Publisher: publisher,
 	}

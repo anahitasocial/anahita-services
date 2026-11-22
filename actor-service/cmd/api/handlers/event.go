@@ -16,6 +16,7 @@ import (
 
 	an_constants "anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/data/services"
 	"anahita-libs/permissions"
 	"anahita-libs/responses"
 	"anahita-libs/validators"
@@ -614,11 +615,26 @@ func (h *groupHandler) setEventHosts(events []*entities.AnahitaNode, viewer *ent
 		return
 	}
 
+	// Every host at once, not one call each (roadmap row 170): with the
+	// actor_features defaults merged in, as a single read has them.
+	read, err := h.Srv.ActorsGRPC.BatchRead(&services.ActorGRPCBatchReadRequest{IDs: ids}, viewer)
+	if err != nil {
+		log.Println("event hosts:", err)
+		return
+	}
+	byID := map[int64]*entities.AnahitaNode{}
+	for _, group := range read {
+		// A profile, as a single read of an actor answers only for one.
+		if group != nil && strings.HasPrefix(group.Type, an_constants.NodeActorPrefixEntityType) {
+			byID[group.ID] = group
+		}
+	}
+
 	actorPerms := permissions.NewActorPermissions()
 	shown := []*entities.AnahitaNode{}
 	for _, id := range ids {
-		group, err := h.Srv.ActorsGRPC.Read(id, viewer)
-		if err != nil || group == nil {
+		group := byID[id]
+		if group == nil {
 			continue
 		}
 		rel := rels[id]

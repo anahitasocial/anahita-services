@@ -61,6 +61,23 @@ func (h *likeHandler) readLikeTarget(id int64, viewer *entities.Viewer) (*entiti
 	return node, nil
 }
 
+// refreshLikeTarget reads again a node just liked or unliked, for its new
+// count, keeping what readLikeTarget loaded with it: the post at the top of
+// a reply's thread, and the owner. Neither changes with a like, and reading
+// them again was two more calls for every like (roadmap row 170).
+func (h *likeHandler) refreshLikeTarget(read *entities.AnahitaNode) (*entities.AnahitaNode, error) {
+	node, err := h.Srv.GraphNodeGRPC.Read(read.ID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", errNoTarget, err)
+	}
+	if node.RootID > 0 {
+		node.Parent = read.Parent
+	} else {
+		node.Owner = read.Owner
+	}
+	return node, nil
+}
+
 // postFlags sets who may reply to and like post, as the media services do
 // for the same post. post.Owner has to be loaded — readLikeTarget does.
 func postFlags(post *entities.AnahitaNode, viewer *entities.Viewer, rel *entities.ActorRelation) {

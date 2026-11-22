@@ -5,7 +5,6 @@ import (
 	"anahita-libs/data/entities"
 	"context"
 	"database/sql"
-	"log"
 	"strings"
 	"time"
 
@@ -223,8 +222,6 @@ func FetchNode(db *sql.DB, query sq.SelectBuilder) (*entities.AnahitaNode, error
 		return nil, err
 	}
 
-	// log.Println("FetchNode Query:", sql, args)
-
 	item := entities.NewAnahitaNode()
 	err = db.QueryRowContext(ctx, sql, args...).Scan(
 		&item.ID,
@@ -371,8 +368,6 @@ func FetchNodes(db *sql.DB, query sq.SelectBuilder) ([]*entities.AnahitaNode, er
 	if err != nil {
 		return nil, err
 	}
-
-	log.Println("FetchNode Query:", sql, args)
 
 	rows, err := db.QueryContext(ctx, sql, args...)
 	if err != nil {

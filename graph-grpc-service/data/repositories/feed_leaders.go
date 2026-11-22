@@ -88,8 +88,6 @@ func (repo *FeedLeadersRepo) Count(req *graphpb.FeedLeadersCountRequest, viewer 
 		return 0, err
 	}
 
-	// log.Println("Leaders Count SQL:", sqlStr, args)
-
 	var count uint64
 	if err := repo.db.QueryRowContext(ctx, sqlStr, args...).Scan(&count); err != nil {
 		return 0, err

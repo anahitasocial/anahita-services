@@ -5,7 +5,6 @@ import (
 	"anahita-libs/proto/graphpb"
 	"context"
 	"graph/requests"
-	"log"
 )
 
 type graphHandler struct {
@@ -19,7 +18,6 @@ func NewGraphHandler(env *Env) *graphHandler {
 
 // BrowseNeighbours
 func (h *graphHandler) BrowseNeighbours(ctx context.Context, req *graphpb.BrowseNeighboursRequest) (*graphpb.BrowseNeighboursResponse, error) {
-	log.Printf("Received BrowseNeighbours request: %v", req)
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
@@ -45,7 +43,6 @@ func (h *graphHandler) BrowseNeighbours(ctx context.Context, req *graphpb.Browse
 
 // BrowseConnectionNodes
 func (h *graphHandler) BrowseConnectionNodes(ctx context.Context, req *graphpb.BrowseConnectionNodesRequest) (*graphpb.BrowseConnectionNodesResponse, error) {
-	log.Printf("Received BrowseConnectionNodes request: %v", req)
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
@@ -69,7 +66,6 @@ func (h *graphHandler) BrowseConnectionNodes(ctx context.Context, req *graphpb.B
 
 // BrowseOrderedByDegree
 func (h *graphHandler) BrowseOrderedByDegree(ctx context.Context, req *graphpb.BrowseOrderedByDegreeRequest) (*graphpb.BrowseOrderedByDegreeResponse, error) {
-	log.Printf("Received BrowseOrderedByDegree request: %v", req)
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
@@ -96,25 +92,21 @@ func (h *graphHandler) BrowseOrderedByDegree(ctx context.Context, req *graphpb.B
 
 // ReadNeighbourhood
 func (h *graphHandler) ReadNeighbourhood(ctx context.Context, req *graphpb.ReadNeighbourhoodRequest) (*graphpb.ReadNeighbourhoodResponse, error) {
-	log.Printf("Received ReadNeighbourhood request: %v", req)
 	return &graphpb.ReadNeighbourhoodResponse{}, nil
 }
 
 // Traverse
 func (h *graphHandler) Traverse(ctx context.Context, req *graphpb.TraverseRequest) (*graphpb.TraverseResponse, error) {
-	log.Printf("Received Traverse request: %v", req)
 	return &graphpb.TraverseResponse{}, nil
 }
 
 // ReadShortestPath
 func (h *graphHandler) ReadShortestPath(ctx context.Context, req *graphpb.ReadShortestPathRequest) (*graphpb.ReadShortestPathResponse, error) {
-	log.Printf("Received ReadShortestPath request: %v", req)
 	return &graphpb.ReadShortestPathResponse{}, nil
 }
 
 // Trending
 func (h *graphHandler) Trending(ctx context.Context, req *graphpb.TrendingRequest) (*graphpb.TrendingResponse, error) {
-	log.Printf("Received Trending request: %v", req)
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id

@@ -22,6 +22,18 @@ Releases before v1.0.17 are described on GitHub, under
 2. **An empty secure-cookie key is reported once,** as missing, not also as
    the wrong size.
 
+### Changed
+
+1. **graph-grpc-service no longer logs every request it is sent, nor the SQL
+   of every list.** Each request was written out whole, a new post's words
+   among them; errors are still logged where they happen.
+2. **Quicker feeds, posts and likes:** a feed's quoted posts read in one call,
+   an event list's hosts in one, a post's page asking for the viewer's
+   relations once, a like reading its post again alone, a feed's defaults
+   read once, a post's hashtags found without compiling their pattern each
+   time, notifications nobody may read removed in one go, and email
+   templates parsed once.
+
 ### Removed
 
 1. **The `entity.auth-service.user.signup.v1` event,** published when

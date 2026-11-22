@@ -21,7 +21,6 @@ func NewEdgeHandler(env *Env) *edgeHandler {
 
 // EdgeBrowse
 func (h *edgeHandler) Browse(ctx context.Context, req *graphpb.EdgeBrowseRequest) (*graphpb.EdgeBrowseResponse, error) {
-	log.Printf("Received Browse request: %v", req)
 
 	edgeReq := requests.NewEdgeRequest().Browse
 	edgeReq.NodeAID = req.NodeAId
@@ -45,7 +44,6 @@ func (h *edgeHandler) Browse(ctx context.Context, req *graphpb.EdgeBrowseRequest
 
 // EdgeRead
 func (h *edgeHandler) Read(ctx context.Context, req *graphpb.EdgeReadRequest) (*graphpb.EdgeReadResponse, error) {
-	log.Printf("Received Read request: %v", req)
 
 	edge, err := h.env.Repos.Edges.Read(req.Id)
 	if err != nil {
@@ -59,7 +57,6 @@ func (h *edgeHandler) Read(ctx context.Context, req *graphpb.EdgeReadRequest) (*
 
 // EdgeEdit
 func (h *edgeHandler) Edit(ctx context.Context, req *graphpb.EdgeEditRequest) (*graphpb.EdgeEditResponse, error) {
-	log.Printf("Received Edit request: %v", req)
 
 	edge := entities.NewAnahitaEdge()
 	edge.ID = req.Edge.Id
@@ -89,7 +86,6 @@ func (h *edgeHandler) Edit(ctx context.Context, req *graphpb.EdgeEditRequest) (*
 
 // EdgeAdd
 func (h *edgeHandler) Add(ctx context.Context, req *graphpb.EdgeAddRequest) (*graphpb.EdgeAddResponse, error) {
-	log.Printf("Received Add request: %v", req)
 
 	edge := entities.NewAnahitaEdge()
 	edge.Type = req.Edge.Type
@@ -122,7 +118,6 @@ func (h *edgeHandler) Add(ctx context.Context, req *graphpb.EdgeAddRequest) (*gr
 
 // EdgeDelete
 func (h *edgeHandler) Delete(ctx context.Context, req *graphpb.EdgeDeleteRequest) (*graphpb.EdgeDeleteResponse, error) {
-	log.Printf("Received Delete request: %v", req)
 
 	// What it was, to say so once it is gone when it was a location's tag.
 	gone, _ := h.env.Repos.Edges.Read(req.Id)
@@ -140,7 +135,6 @@ func (h *edgeHandler) Delete(ctx context.Context, req *graphpb.EdgeDeleteRequest
 
 // EdgeCount
 func (h *edgeHandler) Count(ctx context.Context, req *graphpb.EdgeCountRequest) (*graphpb.EdgeCountResponse, error) {
-	log.Printf("Received Count request: %v", req)
 
 	edgeReq := requests.NewEdgeRequest().Count
 	edgeReq.NodeAID = req.NodeAId
@@ -162,7 +156,6 @@ func (h *edgeHandler) Count(ctx context.Context, req *graphpb.EdgeCountRequest) 
 // Named as the RPC is: under another name it was never served, and a
 // call to it reached the embedded nil server and brought the graph down.
 func (h *edgeHandler) CheckExists(ctx context.Context, req *graphpb.EdgeCheckExistsRequest) (*graphpb.EdgeCheckExistsResponse, error) {
-	log.Printf("Received CheckExists request: %v", req)
 
 	edge := entities.NewAnahitaEdge()
 	edge.Type = req.Type
@@ -182,7 +175,6 @@ func (h *edgeHandler) CheckExists(ctx context.Context, req *graphpb.EdgeCheckExi
 
 // EdgeBatchRead
 func (h *edgeHandler) BatchRead(ctx context.Context, req *graphpb.EdgeBatchReadRequest) (*graphpb.EdgeBatchReadResponse, error) {
-	log.Printf("Received BatchRead request: %v", req)
 
 	edges, err := h.env.Repos.Edges.BatchRead(req.Ids)
 	if err != nil {
@@ -196,7 +188,6 @@ func (h *edgeHandler) BatchRead(ctx context.Context, req *graphpb.EdgeBatchReadR
 
 // EdgeBatchReadByFilters
 func (h *edgeHandler) BatchReadByFilters(ctx context.Context, req *graphpb.EdgeBatchReadByFiltersRequest) (*graphpb.EdgeBatchReadByFiltersResponse, error) {
-	log.Printf("Received BatchReadByFilters request: %v", req)
 
 	edgeReq := requests.NewEdgeRequest().BatchReadByFilters
 	edgeReq.NodeAID = req.NodeAId
@@ -218,7 +209,6 @@ func (h *edgeHandler) BatchReadByFilters(ctx context.Context, req *graphpb.EdgeB
 
 // EdgeBatchEdit
 func (h *edgeHandler) BatchEdit(ctx context.Context, req *graphpb.EdgeBatchEditRequest) (*graphpb.EdgeBatchEditResponse, error) {
-	log.Printf("Received BatchEdit request: %v", req)
 
 	edges := []*entities.AnahitaEdge{}
 	for _, edgeReq := range req.Edges {
@@ -257,7 +247,6 @@ func (h *edgeHandler) BatchEdit(ctx context.Context, req *graphpb.EdgeBatchEditR
 
 // EdgeBatchAdd
 func (h *edgeHandler) BatchAdd(ctx context.Context, req *graphpb.EdgeBatchAddRequest) (*graphpb.EdgeBatchAddResponse, error) {
-	log.Printf("Received BatchAdd request: %v", req)
 
 	edges := []*entities.AnahitaEdge{}
 	for _, edgeReq := range req.Edges {
@@ -296,7 +285,6 @@ func (h *edgeHandler) BatchAdd(ctx context.Context, req *graphpb.EdgeBatchAddReq
 
 // EdgeBatchDelete
 func (h *edgeHandler) BatchDelete(ctx context.Context, req *graphpb.EdgeBatchDeleteRequest) (*graphpb.EdgeBatchDeleteResponse, error) {
-	log.Printf("Received BatchDelete request: %v", req)
 
 	// What they ran to, before they go: a citation taken away changes a
 	// count.
@@ -315,7 +303,6 @@ func (h *edgeHandler) BatchDelete(ctx context.Context, req *graphpb.EdgeBatchDel
 
 // EdgeBatchDeleteByFilters
 func (h *edgeHandler) BatchDeleteByFilters(ctx context.Context, req *graphpb.EdgeBatchDeleteByFiltersRequest) (*graphpb.EdgeBatchDeleteByFiltersResponse, error) {
-	log.Printf("Received BatchDeleteByFilters request: %v", req)
 
 	edgeReq := requests.NewEdgeRequest().BatchDeleteByFilters
 	edgeReq.NodeAID = req.NodeAId

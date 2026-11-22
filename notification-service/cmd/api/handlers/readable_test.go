@@ -32,6 +32,15 @@ func (f *fakeGraph) FilterVisible(ids []int64, viewer *an_entities.Viewer) ([]in
 type fakeNotifications struct {
 	repositories.NotificationInterface
 	deleted []int64
+	// How many times it was asked to delete: once for a page, however
+	// many go (roadmap row 170).
+	calls int
+}
+
+func (f *fakeNotifications) DeleteMany(ids []int64) error {
+	f.calls++
+	f.deleted = append(f.deleted, ids...)
+	return nil
 }
 
 func (f *fakeNotifications) Delete(n *entities.Notification) error {
@@ -75,6 +84,9 @@ func TestTheListShowsOnlyWhatItsReaderMayRead(t *testing.T) {
 	}
 	if gone != 2 || len(repo.deleted) != 2 || repo.deleted[0] != 2 || repo.deleted[1] != 4 {
 		t.Errorf("deleted %v (%d), want [2 4]", repo.deleted, gone)
+	}
+	if repo.calls != 1 {
+		t.Errorf("asked to delete %d times, want once for the page", repo.calls)
 	}
 	if len(graph.readers) != 1 {
 		t.Errorf("asked the graph %d times, want once", len(graph.readers))

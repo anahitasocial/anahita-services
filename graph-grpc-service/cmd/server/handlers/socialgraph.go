@@ -4,7 +4,6 @@ import (
 	"anahita-libs/data/services"
 	"anahita-libs/proto/graphpb"
 	"context"
-	"log"
 )
 
 type socialgraphGrpcHandler struct {
@@ -18,7 +17,6 @@ func NewSocialgraphGrpcHandler(env *Env) *socialgraphGrpcHandler {
 
 // Browse relationships for a list of actor
 func (h *socialgraphGrpcHandler) Browse(ctx context.Context, req *graphpb.SocialgraphBrowseRequest) (*graphpb.SocialgraphBrowseResponse, error) {
-	log.Printf("Received Socialgraph Relations Browse request: %v", req)
 	var err error
 
 	res, err := h.env.Repos.SocialgraphRel.GetMany(req.ActorAIds, req.ActorBId)
@@ -38,7 +36,6 @@ func (h *socialgraphGrpcHandler) Browse(ctx context.Context, req *graphpb.Social
 
 // Read a relationship between two users
 func (h *socialgraphGrpcHandler) Read(ctx context.Context, req *graphpb.SocialgraphReadRequest) (*graphpb.SocialgraphReadResponse, error) {
-	log.Printf("Received Socialgraph Relations Read request: %v", req)
 	var err error
 
 	// Fetch the relationship details from the repository

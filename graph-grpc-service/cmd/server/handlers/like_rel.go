@@ -25,7 +25,6 @@ func NewLikeGrpcHandler(env *Env) *likeGrpcHandler {
 
 // Add Adds a like relationship between the source and the target
 func (h *likeGrpcHandler) Add(ctx context.Context, req *graphpb.LikeAddRequest) (*graphpb.LikeAddResponse, error) {
-	log.Printf("Received Add request: %v", req)
 	var err error
 
 	// verify req parameters
@@ -80,7 +79,6 @@ func (h *likeGrpcHandler) Add(ctx context.Context, req *graphpb.LikeAddRequest) 
 
 // Delete Deletes a like relationship between the source and the target
 func (h *likeGrpcHandler) Delete(ctx context.Context, req *graphpb.LikeDeleteRequest) (*graphpb.LikeDeleteResponse, error) {
-	log.Printf("Received Delete request: %v", req)
 	var err error
 
 	if req.Source == nil {
@@ -124,7 +122,6 @@ func (h *likeGrpcHandler) Delete(ctx context.Context, req *graphpb.LikeDeleteReq
 
 // IsLiked Checks if a like relationship exists between the source and the target
 func (h *likeGrpcHandler) IsLiked(ctx context.Context, req *graphpb.LikeIsLikedRequest) (*graphpb.LikeIsLikedResponse, error) {
-	log.Printf("Received IsSubscribedTo request: %v", req)
 	var err error
 
 	if req.SourceId <= 0 {
@@ -147,7 +144,6 @@ func (h *likeGrpcHandler) IsLiked(ctx context.Context, req *graphpb.LikeIsLikedR
 
 // IsLikedMany Checks if like relationships exist between the source and multiple targets
 func (h *likeGrpcHandler) IsLikedMany(ctx context.Context, req *graphpb.LikeIsLikedManyRequest) (*graphpb.LikeIsLikedManyResponse, error) {
-	log.Printf("Received IsSubscribedToMany request: %v", req)
 	var err error
 
 	if req.SourceId <= 0 {

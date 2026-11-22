@@ -208,6 +208,41 @@ func (srv *MediaGRPC) Read(id int64, viewer *entities.Viewer) (*entities.Anahita
 	return grpcToGraphNode(resp.Medium), nil
 }
 
+// BatchRead reads several media at once, as Read reads one: with whether
+// the viewer liked, reposted, saved and subscribed to each. In the order
+// asked for; one that is not there is left out.
+func (srv *MediaGRPC) BatchRead(ids []int64, viewer *entities.Viewer) ([]*entities.AnahitaNode, error) {
+	if len(ids) == 0 {
+		return []*entities.AnahitaNode{}, nil
+	}
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, err
+	}
+	if client == nil {
+		return nil, nil
+	}
+
+	resp, err := client.BatchRead(context.Background(), &graphpb.MediumBatchReadRequest{
+		Ids: ids,
+		Viewer: &graphpb.Viewer{
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	nodes := make([]*entities.AnahitaNode, 0, len(resp.GetMedia()))
+	for _, medium := range resp.GetMedia() {
+		nodes = append(nodes, grpcToGraphNode(medium))
+	}
+	return nodes, nil
+}
+
 // Edit updates a media
 func (srv *MediaGRPC) Edit(item *entities.AnahitaNode, viewer *entities.Viewer) (*entities.AnahitaNode, error) {
 	client, err := srv.getClient()

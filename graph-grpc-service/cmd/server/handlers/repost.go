@@ -6,7 +6,6 @@ import (
 	"anahita-libs/proto/graphpb"
 	"context"
 	"graph/requests"
-	"log"
 )
 
 type repostHandler struct {
@@ -20,7 +19,6 @@ func NewRepostHandler(env *Env) *repostHandler {
 
 // Browse
 func (h *repostHandler) Browse(ctx context.Context, req *graphpb.RepostBrowseRequest) (*graphpb.RepostBrowseResponse, error) {
-	log.Printf("Received Browse request: %v", req)
 
 	ids, err := h.env.Repos.Reposts.Browse(req)
 	if err != nil {
@@ -48,7 +46,6 @@ func (h *repostHandler) Browse(ctx context.Context, req *graphpb.RepostBrowseReq
 
 // BrowseAuthors
 func (h *repostHandler) BrowseAuthors(ctx context.Context, req *graphpb.RepostBrowseAuthorsRequest) (*graphpb.RepostBrowseAuthorsResponse, error) {
-	log.Printf("Received BrowseAuthors request: %v", req)
 
 	ids, err := h.env.Repos.Reposts.BrowseAuthors(req)
 	if err != nil {
@@ -71,7 +68,6 @@ func (h *repostHandler) BrowseAuthors(ctx context.Context, req *graphpb.RepostBr
 
 // Read
 func (h *repostHandler) Read(ctx context.Context, req *graphpb.RepostReadRequest) (*graphpb.RepostReadResponse, error) {
-	log.Printf("Received Read request: %v", req)
 
 	id, err := h.env.Repos.Reposts.ReadIdByAuthorAndParent(req.ParentId, req.AuthorId)
 	if err != nil {
@@ -90,7 +86,6 @@ func (h *repostHandler) Read(ctx context.Context, req *graphpb.RepostReadRequest
 
 // Add
 func (h *repostHandler) Add(ctx context.Context, req *graphpb.RepostAddRequest) (*graphpb.RepostAddResponse, error) {
-	log.Printf("Received Add request: %v", req)
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
@@ -136,7 +131,6 @@ func (h *repostHandler) Add(ctx context.Context, req *graphpb.RepostAddRequest) 
 
 // Delete
 func (h *repostHandler) Delete(ctx context.Context, req *graphpb.RepostDeleteRequest) (*graphpb.RepostDeleteResponse, error) {
-	log.Printf("Received Delete request: %v", req)
 
 	id, err := h.env.Repos.Reposts.ReadIdByAuthorAndParent(req.ParentId, req.AuthorId)
 	if err != nil {
@@ -159,7 +153,6 @@ func (h *repostHandler) Delete(ctx context.Context, req *graphpb.RepostDeleteReq
 
 // Count
 func (h *repostHandler) Count(ctx context.Context, req *graphpb.RepostCountRequest) (*graphpb.RepostCountResponse, error) {
-	log.Printf("Received Count request: %v", req)
 
 	total, err := h.env.Repos.Reposts.Count(req)
 	if err != nil {

@@ -50,7 +50,6 @@ func (repo *FeedActorRepo) Count(req *graphpb.FeedActorCountRequest, viewer *ent
 	if err != nil {
 		return 0, err
 	}
-	// log.Println("ActorFeed Count SQL:", sqlStr, args)
 
 	var count uint64
 	if err := repo.db.QueryRowContext(ctx, sqlStr, args...).Scan(&count); err != nil {

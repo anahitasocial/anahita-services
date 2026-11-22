@@ -5,7 +5,6 @@ import (
 	"anahita-libs/data/entities"
 	"anahita-libs/proto/graphpb"
 	"context"
-	"log"
 )
 
 type feedLeadersHandler struct {
@@ -19,7 +18,6 @@ func NewFeedLeadersHandler(env *Env) *feedLeadersHandler {
 
 // Count return the total number of feed nodes from leaders
 func (h *feedLeadersHandler) Count(ctx context.Context, req *graphpb.FeedLeadersCountRequest) (*graphpb.FeedLeadersCountResponse, error) {
-	log.Printf("Received FeedLeaders Count request: %v", req)
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
@@ -39,7 +37,6 @@ func (h *feedLeadersHandler) Count(ctx context.Context, req *graphpb.FeedLeaders
 
 // Browse return a list of feed nodes from leaders
 func (h *feedLeadersHandler) Browse(ctx context.Context, req *graphpb.FeedLeadersBrowseRequest) (*graphpb.FeedLeadersBrowseResponse, error) {
-	log.Printf("Received FeedLeaders Browse request: %v", req)
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id

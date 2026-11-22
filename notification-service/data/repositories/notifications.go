@@ -57,6 +57,9 @@ type NotificationInterface interface {
 
 	// Delete a notification
 	Delete(notification *entities.Notification) error
+
+	// DeleteMany removes the notifications with these ids, in one go.
+	DeleteMany(ids []int64) error
 }
 
 // NewNotifications creates a new Notification repository
@@ -446,6 +449,23 @@ func (repo *Notification) DeleteBetween(a, b int64) error {
 }
 
 // Delete a notification
+// DeleteMany removes the notifications with these ids in one statement, not
+// one each (roadmap row 170).
+func (repo *Notification) DeleteMany(ids []int64) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
+	defer cancel()
+
+	sql, args, err := sq.Delete("notifications").Where(sq.Eq{"id": ids}).ToSql()
+	if err != nil {
+		return err
+	}
+	_, err = repo.db.ExecContext(ctx, sql, args...)
+	return err
+}
+
 func (repo *Notification) Delete(item *entities.Notification) error {
 	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
 	defer cancel()

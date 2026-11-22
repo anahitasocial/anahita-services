@@ -23,7 +23,6 @@ func NewSocialgraphBlockGrpcHandler(env *Env) *socialgraphBlockGrpcHandler {
 
 // Add adds a block
 func (h *socialgraphBlockGrpcHandler) Add(ctx context.Context, req *graphpb.SocialgraphBlockAddRequest) (*graphpb.SocialgraphBlockAddResponse, error) {
-	log.Printf("Received Add request: %v", req)
 
 	if req.Source.Id == 0 || req.Target.Id == 0 {
 		return nil, errors.New("source and target IDs are required")
@@ -166,7 +165,6 @@ func (h *socialgraphBlockGrpcHandler) Add(ctx context.Context, req *graphpb.Soci
 
 // Delete removes a block
 func (h *socialgraphBlockGrpcHandler) Delete(ctx context.Context, req *graphpb.SocialgraphBlockDeleteRequest) (*graphpb.SocialgraphBlockDeleteResponse, error) {
-	log.Printf("Received Delete request: %v", req)
 
 	if req.Source.Id == 0 || req.Target.Id == 0 {
 		return nil, errors.New("source and target IDs are required")

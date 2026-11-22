@@ -155,7 +155,7 @@ func (h *likeHandler) Add(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	node, err = h.readLikeTarget(req.NodeID, viewer)
+	node, err = h.refreshLikeTarget(node)
 	if err != nil {
 		log.Println(err)
 		if errors.Is(err, errNoTarget) {
@@ -238,7 +238,7 @@ func (h *likeHandler) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	node, err = h.readLikeTarget(req.NodeID, viewer)
+	node, err = h.refreshLikeTarget(node)
 	if err != nil {
 		log.Println(err)
 		if errors.Is(err, errNoTarget) {

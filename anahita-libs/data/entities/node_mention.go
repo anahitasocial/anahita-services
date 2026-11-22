@@ -88,10 +88,15 @@ func (a *AnahitaNode) GetMentions() []string {
 		return []string{}
 	}
 
-	domain := site.FromEnv().Domain
-
 	a.Mentions = []string{}
-	for _, mention := range ParseMentions(a.Body) {
+	mentions := ParseMentions(a.Body)
+	if len(mentions) == 0 {
+		return a.Mentions
+	}
+	// Read only where somebody is named: most nodes name nobody, and every
+	// node read from the graph is looked through (roadmap row 170).
+	domain := site.FromEnv().Domain
+	for _, mention := range mentions {
 		if mention.IsLocal(domain) {
 			a.Mentions = append(a.Mentions, mention.User)
 		}

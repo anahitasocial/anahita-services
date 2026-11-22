@@ -28,6 +28,8 @@ func (h *mediumHandler) Read(c echo.Context) error {
 	var (
 		req    = requests.NewMediumRequest().Read
 		viewer = getViewer(c)
+		// Who the viewer is to the post's writer and profile, read once.
+		accessCtx *permissions.MediumAccessContext
 	)
 
 	if err := c.Bind(req); err != nil {
@@ -56,12 +58,12 @@ func (h *mediumHandler) Read(c echo.Context) error {
 			return c.NoContent(refused)
 		}
 	} else {
-		mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)
+		accessCtx, err = h.getMediumAccessContext(medium, viewer)
 		if err != nil {
 			log.Println(err)
 			return c.NoContent(http.StatusInternalServerError)
 		}
-		if ok, err := h.Perms.Medium.CanRead(mediumAccessCtx); !ok {
+		if ok, err := h.Perms.Medium.CanRead(accessCtx); !ok {
 			log.Println(err)
 			return c.NoContent(http.StatusForbidden)
 		}
@@ -74,7 +76,9 @@ func (h *mediumHandler) Read(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	if err = h.onAfterFetched(c, medium); err != nil {
+	// With what was read of the viewer and the post's writer above, which
+	// is not asked for again (roadmap row 170).
+	if err = h.onAfterFetchedWith(c, medium, accessCtx); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
@@ -136,8 +140,14 @@ func (h *mediumHandler) Delete(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-// onAfterFetched is a callback function that is called after fetching a photo
+// onAfterFetched says what the viewer may do with a post just read.
 func (h *mediumHandler) onAfterFetched(c echo.Context, item *entities.AnahitaNode) error {
+	return h.onAfterFetchedWith(c, item, nil)
+}
+
+// onAfterFetchedWith is onAfterFetched given the post's access context where
+// it was read already, or nil to read it.
+func (h *mediumHandler) onAfterFetchedWith(c echo.Context, item *entities.AnahitaNode, known *permissions.MediumAccessContext) error {
 	var (
 		err    error
 		viewer = getViewer(c)
@@ -166,9 +176,11 @@ func (h *mediumHandler) onAfterFetched(c echo.Context, item *entities.AnahitaNod
 		return nil
 	}
 
-	mediumAccessCtx, err := h.getMediumAccessContext(item, viewer)
-	if err != nil {
-		return err
+	mediumAccessCtx := known
+	if mediumAccessCtx == nil {
+		if mediumAccessCtx, err = h.getMediumAccessContext(item, viewer); err != nil {
+			return err
+		}
 	}
 
 	// Not a channel's own note, which follows its site.

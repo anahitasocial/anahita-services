@@ -25,7 +25,6 @@ func NewSubscriptionGrpcHandler(env *Env) *subscriptionGrpcHandler {
 
 // BrowseSources
 func (h *subscriptionGrpcHandler) BrowseSources(ctx context.Context, req *graphpb.SubscriptionBrowseSourcesRequest) (*graphpb.SubscriptionBrowseSourcesResponse, error) {
-	log.Printf("Received BrowseSources request: %v", req)
 	var err error
 
 	if req.Target == nil {
@@ -63,7 +62,6 @@ func (h *subscriptionGrpcHandler) BrowseSources(ctx context.Context, req *graphp
 
 // Add Adds a subscription relationship between the source and the target
 func (h *subscriptionGrpcHandler) Add(ctx context.Context, req *graphpb.SubscriptionAddRequest) (*graphpb.SubscriptionAddResponse, error) {
-	log.Printf("Received Add request: %v", req)
 	var err error
 
 	// verify req parameters
@@ -129,7 +127,6 @@ func (h *subscriptionGrpcHandler) Add(ctx context.Context, req *graphpb.Subscrip
 
 // Delete
 func (h *subscriptionGrpcHandler) Delete(ctx context.Context, req *graphpb.SubscriptionDeleteRequest) (*graphpb.SubscriptionDeleteResponse, error) {
-	log.Printf("Received Delete request: %v", req)
 	var err error
 
 	if req.Source == nil {
@@ -172,7 +169,6 @@ func (h *subscriptionGrpcHandler) Delete(ctx context.Context, req *graphpb.Subsc
 
 // IsSubscribedTo
 func (h *subscriptionGrpcHandler) IsSubscribedTo(ctx context.Context, req *graphpb.SubscriptionIsSubscribedToRequest) (*graphpb.SubscriptionIsSubscribedToResponse, error) {
-	log.Printf("Received IsSubscribedTo request: %v", req)
 	var err error
 
 	if req.SourceId <= 0 {
@@ -195,7 +191,6 @@ func (h *subscriptionGrpcHandler) IsSubscribedTo(ctx context.Context, req *graph
 
 // IsSubscribedToMany
 func (h *subscriptionGrpcHandler) IsSubscribedToMany(ctx context.Context, req *graphpb.SubscriptionIsSubscribedToManyRequest) (*graphpb.SubscriptionIsSubscribedToManyResponse, error) {
-	log.Printf("Received IsSubscribedToMany request: %v", req)
 	var err error
 
 	if req.SourceId <= 0 {

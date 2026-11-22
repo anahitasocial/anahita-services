@@ -28,7 +28,6 @@ func NewSocialgraphFollowGrpcHandler(env *Env) *socialgraphFollowGrpcHandler {
 // an edge does not write its type. So nothing changed: the request stayed a
 // request, and a notification went out saying the follow had been made.
 func (h *socialgraphFollowGrpcHandler) Edit(ctx context.Context, req *graphpb.SocialgraphFollowEditRequest) (*graphpb.SocialgraphFollowEditResponse, error) {
-	log.Printf("Received Edit request: %v", req)
 
 	if req.Source.Id == 0 || req.Target.Id == 0 {
 		return nil, errors.New("source and target IDs are required")
@@ -92,7 +91,6 @@ func (h *socialgraphFollowGrpcHandler) Edit(ctx context.Context, req *graphpb.So
 // Add makes the source a follower of the target, or records that it asked
 // to be.
 func (h *socialgraphFollowGrpcHandler) Add(ctx context.Context, req *graphpb.SocialgraphFollowAddRequest) (*graphpb.SocialgraphFollowAddResponse, error) {
-	log.Printf("Received Add request: %v", req)
 
 	if req.Source.Id == 0 || req.Target.Id == 0 {
 		return nil, errors.New("source and target IDs are required")
@@ -188,7 +186,6 @@ func (h *socialgraphFollowGrpcHandler) Add(ctx context.Context, req *graphpb.Soc
 
 // Delete ends a follow, or removes a request to follow.
 func (h *socialgraphFollowGrpcHandler) Delete(ctx context.Context, req *graphpb.SocialgraphFollowDeleteRequest) (*graphpb.SocialgraphFollowDeleteResponse, error) {
-	log.Printf("Received Delete request: %v", req)
 
 	if req.Source.Id == 0 || req.Target.Id == 0 {
 		return nil, errors.New("source and target IDs are required")

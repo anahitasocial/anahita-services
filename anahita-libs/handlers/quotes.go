@@ -3,6 +3,7 @@ package handlers
 import (
 	"anahita-libs/responses"
 	"net/http"
+	"strings"
 
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
@@ -49,6 +50,13 @@ func RefuseQuote(c echo.Context, reason string) error {
 // post to whoever asks.
 type QuoteReader interface {
 	Read(id int64, viewer *entities.Viewer) (*entities.AnahitaNode, error)
+}
+
+// quoteBatchReader is a QuoteReader that reads several at once, as
+// services.MediaGRPC does: a feed's quoted posts in one call, not one call
+// for each (roadmap row 170).
+type quoteBatchReader interface {
+	BatchRead(ids []int64, viewer *entities.Viewer) ([]*entities.AnahitaNode, error)
 }
 
 var (
@@ -106,17 +114,42 @@ func SetQuotes(media QuoteReader, filter permissions.VisibilityFilter, nodes []*
 		}
 	}
 
-	read := map[int64]*entities.AnahitaNode{}
+	visible := make([]int64, 0, len(ids))
 	for _, id := range ids {
-		if !seen[id] {
-			continue
+		if seen[id] {
+			visible = append(visible, id)
 		}
-		quoted, err := media.Read(id, viewer)
-		if err != nil || quoted == nil || quoted.DeletedAt != nil || quoted.RootID > 0 {
-			continue
+	}
+
+	read := map[int64]*entities.AnahitaNode{}
+	keep := func(id int64, quoted *entities.AnahitaNode) {
+		// A post, still there, and not a reply: as a single read of a
+		// medium answers only for a post.
+		if quoted == nil || quoted.DeletedAt != nil || quoted.RootID > 0 ||
+			!strings.HasPrefix(quoted.Type, constants.NodeMediumPrefixEntityType) {
+			return
 		}
 		read[id] = quoted
 		attached = append(attached, quoted)
+	}
+	if batch, ok := media.(quoteBatchReader); ok && len(visible) > 0 {
+		if found, err := batch.BatchRead(visible, viewer); err == nil {
+			byID := map[int64]*entities.AnahitaNode{}
+			for _, quoted := range found {
+				if quoted != nil {
+					byID[quoted.ID] = quoted
+				}
+			}
+			for _, id := range visible {
+				keep(id, byID[id])
+			}
+		}
+	} else {
+		for _, id := range visible {
+			if quoted, err := media.Read(id, viewer); err == nil {
+				keep(id, quoted)
+			}
+		}
 	}
 
 	for _, node := range nodes {

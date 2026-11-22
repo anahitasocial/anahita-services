@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	htmltemplate "html/template"
+	"sync"
 	texttemplate "text/template"
 
 	"github.com/vanng822/go-premailer/premailer"
@@ -69,7 +70,7 @@ func renderTemplate(name string, data map[string]any) (text string, html string,
 // URL with query parameters had its ampersands mangled. Every one of these
 // messages is written in prose and carries a link with a token in it.
 func buildPlainTextMessage(name string, data map[string]any) (string, error) {
-	t, err := texttemplate.New("email-plain").ParseFS(templates.FS, name)
+	t, err := plainTemplate(name)
 	if err != nil {
 		return "", err
 	}
@@ -88,7 +89,7 @@ func buildPlainTextMessage(name string, data map[string]any) (string, error) {
 // are interpolated into markup, and a person's name or a token arriving with a
 // stray angle bracket must not become live HTML in somebody's inbox.
 func buildHTMLMessage(name string, data map[string]any) (string, error) {
-	t, err := htmltemplate.New("email-html").ParseFS(templates.FS, name)
+	t, err := htmlTemplate(name)
 	if err != nil {
 		return "", err
 	}
@@ -161,4 +162,37 @@ func toMessage(from string, to, cc, bcc []string, subject, text, html string) pr
 		Text:    text,
 		HTML:    html,
 	}
+}
+
+// The templates are built into the program and do not change while it runs:
+// each is parsed the first time it is wanted and kept, not parsed again for
+// every email (roadmap row 170). A parsed template may be executed by several
+// at once.
+var (
+	plainTemplates sync.Map // name → *texttemplate.Template
+	htmlTemplates  sync.Map // name → *htmltemplate.Template
+)
+
+func plainTemplate(name string) (*texttemplate.Template, error) {
+	if kept, ok := plainTemplates.Load(name); ok {
+		return kept.(*texttemplate.Template), nil
+	}
+	t, err := texttemplate.New("email-plain").ParseFS(templates.FS, name)
+	if err != nil {
+		return nil, err
+	}
+	plainTemplates.Store(name, t)
+	return t, nil
+}
+
+func htmlTemplate(name string) (*htmltemplate.Template, error) {
+	if kept, ok := htmlTemplates.Load(name); ok {
+		return kept.(*htmltemplate.Template), nil
+	}
+	t, err := htmltemplate.New("email-html").ParseFS(templates.FS, name)
+	if err != nil {
+		return nil, err
+	}
+	htmlTemplates.Store(name, t)
+	return t, nil
 }

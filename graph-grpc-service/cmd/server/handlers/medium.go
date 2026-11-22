@@ -24,7 +24,6 @@ func NewMediumHandler(env *Env) *mediumHandler {
 
 // Count return the total number of media
 func (h *mediumHandler) Count(ctx context.Context, req *graphpb.MediumCountRequest) (*graphpb.MediumCountResponse, error) {
-	log.Printf("Received Count request: %v", req)
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
@@ -58,7 +57,6 @@ func (h *mediumHandler) Count(ctx context.Context, req *graphpb.MediumCountReque
 
 // Browse return a list of media
 func (h *mediumHandler) Browse(ctx context.Context, req *graphpb.MediumBrowseRequest) (*graphpb.MediumBrowseResponse, error) {
-	log.Printf("Received Browse request: %v", req)
 	var err error
 
 	viewer := entities.NewViewer()
@@ -121,7 +119,6 @@ func (h *mediumHandler) Browse(ctx context.Context, req *graphpb.MediumBrowseReq
 
 // Read return a single medium
 func (h *mediumHandler) Read(ctx context.Context, req *graphpb.MediumReadRequest) (*graphpb.MediumReadResponse, error) {
-	log.Printf("Received Read request: %v", req.Id)
 	// Media only, for the same reason the actor read is scoped: /photos/ and
 	// /topics/ both answered 200 with a hashtag for a hashtag's id.
 	node, err := h.env.Repos.Nodes.ReadOfType(req.Id, constants.NodeMediumPrefixEntityType)
@@ -158,7 +155,6 @@ func (h *mediumHandler) Read(ctx context.Context, req *graphpb.MediumReadRequest
 
 // BatchRead return a list of media by their IDs
 func (h *mediumHandler) BatchRead(ctx context.Context, req *graphpb.MediumBatchReadRequest) (*graphpb.MediumBatchReadResponse, error) {
-	log.Printf("Received BatchRead request: %v", req.Ids)
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
@@ -207,7 +203,6 @@ func (h *mediumHandler) BatchRead(ctx context.Context, req *graphpb.MediumBatchR
 
 // Edit update a medium
 func (h *mediumHandler) Edit(ctx context.Context, req *graphpb.MediumEditRequest) (*graphpb.MediumEditResponse, error) {
-	log.Printf("Received Edit request: %v", req)
 
 	node, err := h.env.Repos.Nodes.Read(req.Medium.Id)
 	if err != nil {
@@ -341,7 +336,6 @@ func (h *mediumHandler) announceWarned(node *entities.AnahitaNode, viewer *entit
 
 // Add create a new medium
 func (h *mediumHandler) Add(ctx context.Context, req *graphpb.MediumAddRequest) (*graphpb.MediumAddResponse, error) {
-	log.Printf("Received Add request: %v", req)
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
@@ -441,7 +435,6 @@ func (h *mediumHandler) announceAdded(node *entities.AnahitaNode, viewer *entiti
 
 // Delete remove a medium
 func (h *mediumHandler) Delete(ctx context.Context, req *graphpb.MediumDeleteRequest) (*graphpb.MediumDeleteResponse, error) {
-	log.Printf("Received Delete request: %v", req.Id)
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id

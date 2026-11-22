@@ -4,7 +4,6 @@ import (
 	"anahita-libs/data/entities"
 	"anahita-libs/proto/graphpb"
 	"context"
-	"log"
 )
 
 type searchHandler struct {
@@ -18,7 +17,6 @@ func NewSearchHandler(env *Env) *searchHandler {
 
 // Count return the total number of search results
 func (h *searchHandler) Count(ctx context.Context, req *graphpb.SearchCountRequest) (*graphpb.SearchCountResponse, error) {
-	log.Printf("Received Search Count request: %v", req)
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
@@ -38,7 +36,6 @@ func (h *searchHandler) Count(ctx context.Context, req *graphpb.SearchCountReque
 
 // Browse return a list of search results
 func (h *searchHandler) Browse(ctx context.Context, req *graphpb.SearchBrowseRequest) (*graphpb.SearchBrowseResponse, error) {
-	log.Printf("Received Search Browse request: %v", req)
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
