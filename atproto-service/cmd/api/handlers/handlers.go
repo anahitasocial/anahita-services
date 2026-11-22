@@ -63,8 +63,11 @@ type Env struct {
 	// kept tokens are encrypted with, where what waits to be written is
 	// kept, and where an account's server is looked up. Without all of
 	// them nothing is written.
-	Accounts  repositories.AccountsInterface
-	Sent      repositories.SentInterface
+	Accounts repositories.AccountsInterface
+	Sent     repositories.SentInterface
+	// Posts that should have been written and were not: what the bus
+	// lost. Without it nothing is looked for.
+	Missed    repositories.MissedInterface
 	Writer    Writer
 	Crypt     crypt.Crypt
 	Queue     Enqueuer

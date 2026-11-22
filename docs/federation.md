@@ -1629,6 +1629,15 @@ made.
    address only, there is no such cover.
 4. **A follow that the bus lost** is found within a minute: the service
    asks the graph who is followed, and does not rely on having been told.
+5. **A post that the bus lost** is found too, within a minute or so of
+   being two minutes old (`cmd/api/handlers/missed.go`,
+   `data/repositories/missed.go`): a post of the kinds that go, at the top
+   of its author's own profile and open to everybody, made or changed in
+   the last two days and since they connected their account, that was
+   never written there. It is handed to what would have heard of it, which
+   decides again and writes it once (`atproto_sent`); at most 200 a minute.
+   As on the fediverse ([What the bus lost](#what-the-bus-lost)), a like or
+   a repost whose word was lost is not found again.
 
 ### Answering on Bluesky
 

@@ -21,6 +21,9 @@ Releases before v1.0.17 are described on GitHub, under
    without a word, and new posts did not reach Bluesky, notifications or
    search. It now connects again on the next event, and logs any event it
    could not send.
+2. **A post the bus lost still reaches Bluesky.** A post written to
+   Bluesky when its making is heard is now also found, within a few
+   minutes, when the word of it never came, as the fediverse has done.
 
 ## v1.6.0 Birth, 2026-11-21
 

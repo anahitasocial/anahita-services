@@ -84,8 +84,10 @@ func (h *Handlers) backfill(kept *repositories.RemoteActor) {
 // CatchUp reads the earlier posts of whoever is followed and has not had
 // them read: somebody whose following was said on the bus and not heard.
 // And it has the listener told whose posts are wanted, for the same
-// reason.
+// reason. And it writes the posts whose making was not heard (missed.go).
 func (h *Handlers) CatchUp() {
+	h.writeMissed(context.Background(), time.Now().UTC())
+
 	waiting, err := h.Actors.NotBackfilled(20)
 	if err != nil {
 		log.Println("who is followed on Bluesky could not be read:", err)

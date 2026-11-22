@@ -130,6 +130,7 @@ func main() {
 		}
 		env.Accounts = repositories.NewAccounts(db)
 		env.Sent = repositories.NewSent(db)
+		env.Missed = repositories.NewMissed(db)
 		env.Writer = client
 		env.Crypt = secrets
 		env.Queue = queue
