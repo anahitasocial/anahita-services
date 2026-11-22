@@ -12,7 +12,7 @@ import (
 	"anahita-libs/data/services"
 	"anahita-libs/linkpreviews"
 	"anahita-libs/ratelimit"
-	images "anahita-libs/utils"
+	images "anahita-libs/images"
 
 	"github.com/labstack/echo/v4"
 )

@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"testing"
 
-	images "anahita-libs/utils"
+	images "anahita-libs/images"
 )
 
 // The smallest WebP there is: one pixel.

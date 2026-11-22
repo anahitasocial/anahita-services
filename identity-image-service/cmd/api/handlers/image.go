@@ -4,7 +4,7 @@ import (
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	"anahita-libs/responses"
-	images "anahita-libs/utils"
+	images "anahita-libs/images"
 	"errors"
 	"identityimage/constants"
 	"io"

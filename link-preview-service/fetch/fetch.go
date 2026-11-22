@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	images "anahita-libs/utils"
+	images "anahita-libs/images"
 
 	"golang.org/x/net/html/charset"
 )

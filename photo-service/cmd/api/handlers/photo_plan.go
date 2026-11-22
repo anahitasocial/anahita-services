@@ -3,7 +3,7 @@ package handlers
 import (
 	"anahita-libs/data/entities"
 	"anahita-libs/photos"
-	images "anahita-libs/utils"
+	images "anahita-libs/images"
 	"errors"
 )
 

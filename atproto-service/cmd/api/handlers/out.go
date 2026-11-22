@@ -26,7 +26,7 @@ import (
 	"anahita-libs/data/services"
 	"anahita-libs/federation"
 	"anahita-libs/linkpreviews"
-	images "anahita-libs/utils"
+	images "anahita-libs/images"
 	"anahita-libs/videos"
 	"io"
 	"net/http"

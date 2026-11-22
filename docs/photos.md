@@ -128,7 +128,7 @@ on other servers are kept the same way.
 **A WebP, a HEIC or an AVIF** (roadmap row 135), as an iPhone takes its
 photos and websites more and more serve theirs, is made a PNG as it
 arrives, and then a JPEG where nothing in it is see-through, and kept as
-that from then on (`anahita-libs/utils/formats.go`). WebP is read by Go.
+that from then on (`anahita-libs/images/formats.go`). WebP is read by Go.
 HEIC and AVIF are read by `heif-convert`, from Alpine's `libheif-tools`,
 which is in the images of photo-service, identity-image-service,
 activitypub-service and atproto-service; their size is read from the file
@@ -258,7 +258,7 @@ made small enough before it goes. Every length people write is listed in
 | --- | --- |
 | Posting, uploads and changing a post's images | `photo-service/cmd/api/handlers/photo.go` (`Add`), `photo_files.go` (`Upload`, `EditFiles`) |
 | Checking the images of a post, and the refusals | `photo-service/cmd/api/handlers/photo_plan.go` (`planFiles`), tested in `photo_plan_test.go` |
-| Turning an image the right way up and writing it out again | `anahita-libs/utils/images.go` (`Accept`, `CorrectOrientation`, `FitLongest`, `AsPhoto`, `SquareImage`) |
+| Turning an image the right way up and writing it out again | `anahita-libs/images/images.go` (`Accept`, `CorrectOrientation`, `FitLongest`, `AsPhoto`, `SquareImage`) |
 | The sizes | `anahita-libs/data/entities/node_portrait.go` |
 | Limits | `photo-service/constants/constants.go` (`MaxFileSize`, `MaxPixels`, `OriginalMaxSide`); `anahita-libs/constants/photo.go` (`PhotoMaxFiles`), `limits.go` (`AltTextMax`, `AltTextKeptMax`) |
 | The images of each post, and uploads not in a post yet | `graph-grpc-service/data/repositories/photo_files.go`, tables `photo_files` and `photo_uploads` |

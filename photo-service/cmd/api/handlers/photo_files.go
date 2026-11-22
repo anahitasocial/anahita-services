@@ -6,7 +6,7 @@ import (
 	"anahita-libs/data/services"
 	"anahita-libs/photos"
 	"anahita-libs/responses"
-	images "anahita-libs/utils"
+	images "anahita-libs/images"
 	"io"
 	"log"
 	"mime/multipart"

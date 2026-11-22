@@ -9,7 +9,7 @@ import (
 
 	"golang.org/x/image/webp"
 
-	images "anahita-libs/utils"
+	images "anahita-libs/images"
 )
 
 // asPNG gives a picture this installation can work on. A page's picture may

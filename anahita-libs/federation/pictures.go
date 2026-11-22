@@ -10,7 +10,7 @@ import (
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
-	images "anahita-libs/utils"
+	images "anahita-libs/images"
 )
 
 // Keeper copies the pictures of people and posts from other servers into

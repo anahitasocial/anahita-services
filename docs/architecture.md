@@ -410,7 +410,7 @@ lined up. This is what each is, and what it is called where.
    `scripts/s3-migration` moves a bucket from either.
 
 Every uploaded image, of any of the three kinds, goes through one check
-(`images.Accept` in `anahita-libs/utils`): it is judged from its bytes and
+(`images.Accept` in `anahita-libs/images`): it is judged from its bytes and
 not its name, limited in bytes and in pixels before it is opened, and turned
 the right way up. Nothing is stored as it arrived; each stored size is
 written out again, never enlarged, and a square is cut from the middle and
@@ -448,7 +448,8 @@ which is under Apache 2.0 so that services of others' own can make them
 | `middleware`, `cors` | HTTP middleware, and `ClientIPExtractor`, which every service sets so that the visitor's address is never one a client typed |
 | `getenv` | Reading a setting from the environment, with a fallback |
 | `settings` | The settings every service reads alike (`Common`: where it runs, its cookie key, Valkey, the database, the event bus, the graph and file services, the issuer of sign-in tokens), which each service's `Config` embeds, and `Missing`, which says which of them a service needs and has not |
-| `geocoding`, `utils` | Supporting helpers |
+| `images` | Reading an image people send: its kind judged from its bytes, turned the right way up, fitted and written out again (`Accept`, `FitLongest`, `AsPhoto`, `SquareImage`), HEIF converted |
+| `geocoding` | Finding a location by its name, and a name by where it is |
 
 **The calls between services** are made by the clients in
 `data/services` (`GraphNodeGRPC`, `MailGRPC` and the rest). A process
