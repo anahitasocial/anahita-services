@@ -42,7 +42,10 @@ func (k *Keeper) refused(address string) bool {
 	return k.Refused(strings.ToLower(parsed.Hostname()))
 }
 
-func cutRunes(text string, max int) string {
+// CutRunes is text cut to at most max characters, not bytes, so that no
+// character is cut in two. activitypub-service and atproto-service each kept
+// a copy of it (roadmap row 170).
+func CutRunes(text string, max int) string {
 	runes := []rune(text)
 	if len(runes) <= max {
 		return text
@@ -434,7 +437,7 @@ func (k *Keeper) copyPostPicture(ctx context.Context, post *entities.AnahitaNode
 		Mimetype: mimeType,
 		Width:    width,
 		Height:   height,
-		AltText:  cutRunes(picture.Alt, constants.AltTextKeptMax),
+		AltText:  CutRunes(picture.Alt, constants.AltTextKeptMax),
 	}, stored
 }
 

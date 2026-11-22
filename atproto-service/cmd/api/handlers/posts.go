@@ -112,7 +112,7 @@ func (h *Handlers) storePost(author *repositories.RemoteActor, rkey string, post
 		}
 		body += "↪ [bsky.app](" + quoted + ")"
 	}
-	words := cutRunes(body, postMax)
+	words := federation.CutRunes(body, postMax)
 	body = withVideoLink(words, post, author.DID, rkey)
 	if body == "" && kind != constants.NodeMediumPhotoEntityType {
 		// Nothing to show: no words, no video to lead to, and no picture

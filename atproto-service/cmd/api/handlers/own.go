@@ -122,7 +122,7 @@ func (h *Handlers) ownPosted(account *repositories.Account, rkey string, post *b
 		}
 		body += "↪ [bsky.app](" + quoted + ")"
 	}
-	words := cutRunes(body, postMax)
+	words := federation.CutRunes(body, postMax)
 	body = withVideoLink(words, post, account.DID, rkey)
 	if body == "" && len(pictures) == 0 {
 		return nil

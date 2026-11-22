@@ -27,6 +27,7 @@ import (
 	"anahita-libs/ratelimit"
 
 	"anahita-libs/videos"
+
 	"github.com/labstack/echo/v4"
 )
 
@@ -452,7 +453,7 @@ func (h *Handlers) store(authorID int64, note *ap.ReceivedNote, parentID int64) 
 			content = withoutQuoteLine(content)
 		}
 	}
-	words := cutRunes(h.namedHere(federation.WithoutCustomEmoji(federation.PostToMarkdown(content), note.Tag)), receivedNoteMax)
+	words := federation.CutRunes(h.namedHere(federation.WithoutCustomEmoji(federation.PostToMarkdown(content), note.Tag)), receivedNoteMax)
 	node.Body = words
 	// A video or a sound is not kept: the post leads to where it is. Not
 	// a link for a card, which would say its words again.
@@ -678,14 +679,6 @@ func hostOf(address string) string {
 func sameHost(a, b string) bool {
 	host := hostOf(a)
 	return host != "" && host == hostOf(b)
-}
-
-func cutRunes(text string, max int) string {
-	runes := []rune(text)
-	if len(runes) <= max {
-		return text
-	}
-	return string(runes[:max])
 }
 
 // unfollowed is somebody elsewhere taking a follow back, or a request to.

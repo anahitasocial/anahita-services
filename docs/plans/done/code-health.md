@@ -112,7 +112,7 @@ disagree first:
 ## Status
 
 Where each item stands: ✅ done, ⬜ still to do, ➖ left out, ➡️ moved to
-another row. What each one came to is in the notes after the table.
+another row. **Done 2026-11-22.** What each one came to is in the notes after the table.
 
 | Item | What | Where it stands |
 | --- | --- | --- |
@@ -148,7 +148,7 @@ another row. What each one came to is in the notes after the table.
 | 24g | Event names parsed once | ✅ 2026-11-22, `EventPayload.Action` |
 | 24h | The reconnecting publisher's copies | ✅ 2026-11-22, `event.NewLazyPublisher` |
 | 24i | Pagination in one shape, with its cap | ✅ 2026-11-22, the cap: `requests.PageSize`; the shapes stay |
-| 24j | The smaller helpers kept two or three times | ⬜ |
+| 24j | The smaller helpers kept two or three times | ✅ 2026-11-22, the two worth one copy |
 | 25 | Splitting what mixes several jobs | ✅ 2026-11-22 |
 
 ### Notes
@@ -296,4 +296,14 @@ another row. What each one came to is in the notes after the table.
     custom feed's cursor and the Feeds page's `next_start` are what the web
     app reads, and one shape would change the API for nothing people see.
     Edges, read by the services alone, keep their 0 for all.
+17. **Item 24, last part, the smaller helpers, done 2026-11-22.** Of the
+    functions kept with the same body in two services or more (26, 462
+    lines), two were worth one copy: the check every sort column passes
+    before it goes into a query (`data.SafeOrderColumn`, auth-service and
+    graph-grpc-service, each keeping its tests of its own lists), and
+    cutting text by characters (`federation.CutRunes`, both federation
+    services). The rest are a service's own: constructors, `MustValidate`
+    around its own checks, methods of its own handler, or alike by chance;
+    one copy of those would take more lines to connect than it saves.
+18. **Row 170 done 2026-11-22**, the plan moved to `docs/plans/done/`.
 

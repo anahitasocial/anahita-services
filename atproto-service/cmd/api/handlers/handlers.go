@@ -17,8 +17,9 @@ import (
 	"anahita-libs/ratelimit"
 	"anahita-libs/site"
 
-	"github.com/labstack/echo/v4"
 	"net/http"
+
+	"github.com/labstack/echo/v4"
 )
 
 // Reading Bluesky.
@@ -183,12 +184,4 @@ func (h *Handlers) refused(handle string) bool {
 func (h *Handlers) refusedAccount(did string) bool {
 	return h.RefusedAccounts != nil && did != "" &&
 		h.RefusedAccounts.IsRefused(federation.NetworkATProto, did)
-}
-
-func cutRunes(text string, max int) string {
-	runes := []rune(text)
-	if len(runes) <= max {
-		return text
-	}
-	return string(runes[:max])
 }

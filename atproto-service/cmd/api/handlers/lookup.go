@@ -231,7 +231,7 @@ func (h *Handlers) keep(profile *bsky.Profile) (*entities.AnahitaNode, error) {
 	node.Type = constants.NodeActorATProtoPersonEntityType
 	node.URI = bsky.ActorURI(profile.DID)
 	node.OriginDomain = originDomain
-	node.Name = cutRunes(strings.TrimSpace(profile.DisplayName), 255)
+	node.Name = federation.CutRunes(strings.TrimSpace(profile.DisplayName), 255)
 	node.Alias = aliasOf(profile)
 	node.Body = federation.ToMarkdown(bsky.PlainHTML(profile.Description))
 	// Their page on Bluesky: where they are looked at in full.
