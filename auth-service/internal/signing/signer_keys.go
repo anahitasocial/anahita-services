@@ -3,8 +3,6 @@ package signing
 import (
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/sha256"
-	"crypto/subtle"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
@@ -111,12 +109,6 @@ func GenerateKeyID() (string, error) {
 	return generateRandomToken(16)
 }
 
-// GenerateClientSecret generates a random OAuth client secret (plaintext).
-// Callers should hash via HashToken before storing.
-func GenerateClientSecret() (string, error) {
-	return generateRandomToken(32)
-}
-
 // generateRandomToken returns a URL-safe random token of the given byte
 // length, base64-encoded without padding.
 func generateRandomToken(bytes int) (string, error) {
@@ -125,19 +117,4 @@ func generateRandomToken(bytes int) (string, error) {
 		return "", err
 	}
 	return base64.RawURLEncoding.EncodeToString(b), nil
-}
-
-// HashToken returns the base64-encoded SHA-256 hash of the given token.
-// Used for hashing refresh tokens, authorization codes, and client secrets
-// before storing them. SHA-256 is appropriate here (not bcrypt) because
-// these values are high-entropy random strings.
-func HashToken(token string) string {
-	hash := sha256.Sum256([]byte(token))
-	return base64.RawURLEncoding.EncodeToString(hash[:])
-}
-
-// ConstantTimeEqual compares two strings in constant time to prevent
-// timing attacks on secret/hash comparison.
-func ConstantTimeEqual(a, b string) bool {
-	return subtle.ConstantTimeCompare([]byte(a), []byte(b)) == 1
 }

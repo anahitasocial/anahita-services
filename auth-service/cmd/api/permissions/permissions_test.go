@@ -224,19 +224,6 @@ func TestAuthLogCanDeleteRequiresWriteScope(t *testing.T) {
 	}
 }
 
-// An unsaved user has no id, and an auth log belonging to nobody is a row that
-// can never be browsed or revoked.
-func TestAuthLogCanAddRejectsAnUnsavedUser(t *testing.T) {
-	p := NewAuthLogPerm(&Env{})
-
-	if err := p.CanAdd(newUser(0)); err == nil {
-		t.Error("accepted an auth log for a user with no id")
-	}
-	if err := p.CanAdd(newUser(viewerID)); err != nil {
-		t.Errorf("refused a saved user: %v", err)
-	}
-}
-
 // ---------------------------------------------------------------------
 // Passkeys
 // ---------------------------------------------------------------------

@@ -47,8 +47,3 @@ func NewOAuthService(
 		issuer:   issuer,
 	}
 }
-
-// Issuer returns the configured issuer URL.
-func (s *OAuthService) Issuer() string {
-	return s.issuer
-}

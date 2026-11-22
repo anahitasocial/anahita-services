@@ -41,16 +41,6 @@ func (prm *AuthLogPerm) CanBrowse(viewer *libs_entities.Viewer, user *entities.U
 	return nil
 }
 
-// CanAdd checks if the viewer can add an authentication log
-func (prm *AuthLogPerm) CanAdd(user *entities.User) error {
-	if user.ID == 0 {
-		err := errors.New(ErrAuthLogNotAllowedToAddAuthLog)
-		return err
-	}
-
-	return nil
-}
-
 // CanDelete checks if the viewer can delete an authentication log of a person
 func (prm *AuthLogPerm) CanDelete(viewer *libs_entities.Viewer, user *entities.User) error {
 	if !viewer.HasScope(libs_constants.OAuthScopeAccountWrite) {

@@ -10,67 +10,11 @@ import (
 	"auth/data/entities"
 
 	libs_entities "anahita-libs/data/entities"
-
-	"github.com/labstack/echo/v4"
-
-	"anahita-libs/sessions"
 )
 
 // AuthorizationCodeLifetime is the validity window for an authorization
 // code (RFC 6749 recommends 10 minutes maximum).
 const AuthorizationCodeLifetime = 10 * time.Minute
-
-// Session keys used during the /authorize -> consent -> issue flow.
-const (
-	sessionKeyAuthRequest = "oauth_auth_request"
-	sessionKeyCSRFToken   = "oauth_csrf_token"
-)
-
-// StoreAuthRequest saves the JSON-serialized authorization request to the
-// viewer's session so it can be retrieved on the consent POST.
-func (s *OAuthService) StoreAuthRequest(session sessions.SessionInterface, c echo.Context, reqJSON string) error {
-	_, err := session.Add(c, sessionKeyAuthRequest, reqJSON)
-	return err
-}
-
-// RetrieveAuthRequest reads the stored authorization request from session.
-func (s *OAuthService) RetrieveAuthRequest(session sessions.SessionInterface, c echo.Context) (string, error) {
-	return session.Read(c, sessionKeyAuthRequest)
-}
-
-// ClearAuthRequest removes the authorization request from session. Called
-// after the code is issued or on any terminal error.
-func (s *OAuthService) ClearAuthRequest(session sessions.SessionInterface, c echo.Context) error {
-	return session.Delete(c, sessionKeyAuthRequest)
-}
-
-// GenerateCSRFToken creates a random token and stores it in the session
-// under the oauth_csrf_token key. The token is single-use and removed by
-// ValidateCSRFToken.
-func (s *OAuthService) GenerateCSRFToken(session sessions.SessionInterface, c echo.Context) (string, error) {
-	token, err := generateRandomToken(32)
-	if err != nil {
-		return "", err
-	}
-	if _, err := session.Add(c, sessionKeyCSRFToken, token); err != nil {
-		return "", err
-	}
-	return token, nil
-}
-
-// ValidateCSRFToken verifies a submitted CSRF token against the session
-// and deletes it afterwards (single-use semantics).
-func (s *OAuthService) ValidateCSRFToken(session sessions.SessionInterface, c echo.Context, submitted string) error {
-	stored, err := session.Read(c, sessionKeyCSRFToken)
-	if err != nil {
-		return errors.New("csrf token not found in session")
-	}
-	if !ConstantTimeEqual(stored, submitted) {
-		return errors.New("csrf token mismatch")
-	}
-	_ = session.Delete(c, sessionKeyCSRFToken)
-	return nil
-}
 
 // AuthorizationGrant describes the user's granted authorization request
 // that is about to become a persisted authorization code. It exists so

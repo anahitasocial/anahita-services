@@ -95,53 +95,6 @@ func (h *authLogHandler) Browse(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-// Add records a new auth log entry on behalf of an explicit external API caller.
-func (h *authLogHandler) Add(c echo.Context, refreshTokenID int64, clientID string, user *entities.User) (*entities.AuthLog, error) {
-	if err := h.Perms.AuthLog.CanAdd(user); err != nil {
-		return nil, err
-	}
-	return h.buildAndPersist(c, refreshTokenID, clientID, user)
-}
-
-// AddSystem records an auth log entry as a side-effect of token issuance.
-func (h *authLogHandler) AddSystem(c echo.Context, refreshTokenID int64, clientID string, user *entities.User) (*entities.AuthLog, error) {
-	return h.buildAndPersist(c, refreshTokenID, clientID, user)
-}
-
-// buildAndPersist constructs and persists the auth log row.
-//
-// Agent identification strategy:
-//
-//  1. Native clients (Electron, mobile, etc.) send X-Client-OS and
-//     X-Client-App headers explicitly because their User-Agent strings
-//     don't follow standard browser formats and useragent.Parse() can't
-//     extract OS info reliably from them. When these headers are
-//     present, we use them directly and skip UA parsing for OS/Name.
-//
-//  2. Browsers send conventional User-Agent strings that useragent.Parse()
-//     handles correctly. When X-Client-* headers are absent, we parse
-//     the User-Agent and read OS / Name from the result.
-//
-//  3. As a last resort (unknown UA, no client headers) we fall back
-//     to the raw UA string as the agent name and "Unknown" for OS.
-//
-// Device classification stays UA-driven for browsers; native clients
-// fall through to the desktop default.
-func (h *authLogHandler) buildAndPersist(c echo.Context, refreshTokenID int64, clientID string, user *entities.User) (*entities.AuthLog, error) {
-	authLog := h.buildAuthLog(c, refreshTokenID, clientID, user)
-
-	persisted, err := h.Repos.AuthLogs.Add(authLog)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := h.Repos.AuthLogs.Trim(user); err != nil {
-		return nil, err
-	}
-
-	return persisted, nil
-}
-
 // AddOrReuseSystem records token issuance against an existing session
 // row when this is the same browser re-authenticating silently, and
 // only inserts a new row when it is genuinely a new session.

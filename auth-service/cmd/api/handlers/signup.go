@@ -4,7 +4,6 @@ import (
 	"anahita-libs/policy"
 	"crypto/subtle"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -422,26 +421,6 @@ func (h *signupHandler) Add(c echo.Context) error {
 	}
 
 	return h.awaitConfirmation(c, user.Email, tokenID)
-}
-
-// writeSignupSession mints the IdP session for a freshly created account.
-func (h *signupHandler) writeSignupSession(c echo.Context, user *entities.User) error {
-	viewer := lib_entities.NewViewer()
-	viewer.ID = user.ID
-	viewer.Email = user.Email
-	viewer.Type = user.Type
-	viewer.Authenticated = true
-
-	viewerJSON, err := json.Marshal(viewer)
-	if err != nil {
-		return fmt.Errorf("viewer marshal: %w", err)
-	}
-
-	if _, err := h.Session.Add(c, constants.UserSessionKey, string(viewerJSON)); err != nil {
-		return fmt.Errorf("session write: %w", err)
-	}
-
-	return nil
 }
 
 // signupValidationMessage says which field is wrong.

@@ -200,10 +200,6 @@ func signupSubnet(ip string) string {
 	return parsed.Mask(net.CIDRMask(64, 128)).String() + "/64"
 }
 
-func rateLimitKey(scope rateLimitScope, subject string) string {
-	return ratelimit.Key(string(scope), subject)
-}
-
 // rateLimitExceeded counts one attempt against a scope and reports
 // whether the caller is now over budget.
 //

@@ -18,16 +18,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// oauthSigningKeyHandler holds dependencies for the
-// /oauth-signing-keys endpoints.
-type oauthSigningKeyHandler struct {
-	*Env
-}
-
-func newOAuthSigningKeyHandler(env *Env) *oauthSigningKeyHandler {
-	return &oauthSigningKeyHandler{Env: env}
-}
-
 // Browse handles GET /oauth-signing-keys
 //
 // Returns ALL signing keys (active, inactive, expired) for the admin

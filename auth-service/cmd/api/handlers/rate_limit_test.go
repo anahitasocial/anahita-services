@@ -4,6 +4,8 @@ import (
 	"errors"
 	"strings"
 	"testing"
+
+	"anahita-libs/ratelimit"
 )
 
 // The limiter guards every credential-grade path in the service, and two of
@@ -128,4 +130,10 @@ func TestRateLimitKeysDoNotCarryTheSubject(t *testing.T) {
 	if rateLimitKey(rateLimitScopePasswordEmail, "other@example.com") == key {
 		t.Error("two subjects produced the same key")
 	}
+}
+
+// rateLimitKey is the key a scope's counter for one subject is kept under,
+// for a test to look it up in the fake store.
+func rateLimitKey(scope rateLimitScope, subject string) string {
+	return ratelimit.Key(string(scope), subject)
 }

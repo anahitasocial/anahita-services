@@ -355,25 +355,6 @@ func refreshAdmitsAccount(user *entities.User) error {
 	return nil
 }
 
-// ValidateRefreshToken checks a refresh token is valid and belongs to
-// the given client. Exposed for callers that want to verify without
-// exchanging.
-func (s *OAuthService) ValidateRefreshToken(
-	token *entities.OAuthRefreshToken,
-	client *entities.OAuthClient,
-) error {
-	if token.Revoked {
-		return entities.ErrRefreshTokenRevoked
-	}
-	if token.IsExpired() {
-		return entities.ErrRefreshTokenExpired
-	}
-	if token.ClientID != client.ClientID {
-		return errors.New("refresh token does not belong to this client")
-	}
-	return nil
-}
-
 // persistRefreshToken generates a plaintext refresh token, stores its
 // hash, and returns both the plaintext (for the response) and the
 // persisted entity (for callers that want metadata, including the

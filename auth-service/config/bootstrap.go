@@ -213,10 +213,6 @@ func (config *Config) MayInvite(personType string) bool {
 	return libs_constants.MeetsRoleLevel(personType, config.GetInvitesFrom())
 }
 
-// Above every role, so an unknown level is refused rather than waved
-// through.
-const unknownInviteLevel = 99
-
 // GetInvitePendingMax returns how many outstanding invitations one person may
 // hold, which depends on whether they administer the site.
 //

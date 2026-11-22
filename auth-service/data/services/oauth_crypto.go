@@ -13,12 +13,6 @@ import (
 // (see signer_keys.go) — they're crypto primitives the signer needs,
 // not OAuth flow logic.
 
-// GenerateClientSecret generates a random OAuth client secret (plaintext).
-// Callers should hash via HashToken before storing.
-func GenerateClientSecret() (string, error) {
-	return generateRandomToken(32)
-}
-
 // generateRandomToken returns a URL-safe random token of the given
 // byte length, base64-encoded without padding.
 func generateRandomToken(bytes int) (string, error) {

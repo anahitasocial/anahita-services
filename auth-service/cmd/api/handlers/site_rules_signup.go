@@ -156,8 +156,3 @@ func (env *Env) recordRules(c echo.Context, personID int64, version string) {
 		log.Printf("site rules: recording for %d: %v", personID, err)
 	}
 }
-
-// siteRulesVersion is the version the site's rules are at now.
-func siteRulesVersion() string {
-	return siteSays.Site().Rules.Version
-}
