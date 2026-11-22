@@ -107,6 +107,50 @@ VALUES (?, ?, ?, ?, ?, ?, ?)`,
 	return err
 }
 
+// Destination is one place something is sent, with its key: a second row
+// of the same key is not added (Enqueue).
+type Destination struct {
+	Target    string
+	DedupeKey string
+}
+
+// enqueueRows is how many rows one statement adds: a payload is a few
+// kilobytes, and five hundred of them stay well under what MySQL takes in
+// one statement (max_allowed_packet, 64 MB by default).
+const enqueueRows = 500
+
+// EnqueueMany adds one thing to send to many places, as Enqueue adds it to
+// one: for a post, every server that has a follower of its author. In a
+// few statements, not one for each place (roadmap row 170).
+func (q *Queue) EnqueueMany(ctx context.Context, actorID int64, payload []byte, to []Destination) error {
+	if actorID <= 0 || len(payload) == 0 {
+		return errors.New("something to send needs who it is for and what it is")
+	}
+	now := q.now()
+	for start := 0; start < len(to); start += enqueueRows {
+		chunk := to[start:min(start+enqueueRows, len(to))]
+		rows := make([]string, 0, len(chunk))
+		args := make([]any, 0, len(chunk)*7)
+		for _, d := range chunk {
+			if d.Target == "" {
+				return errors.New("something to send needs where it goes")
+			}
+			var key any
+			if d.DedupeKey != "" {
+				key = d.DedupeKey
+			}
+			rows = append(rows, "(?, ?, ?, ?, ?, ?, ?)")
+			args = append(args, key, actorID, d.Target, payload, statusPending, now, now)
+		}
+		if _, err := q.db.ExecContext(ctx, `
+INSERT IGNORE INTO `+q.table+` (dedupe_key, actor_id, target, payload, status, next_attempt_at, created_at)
+VALUES `+strings.Join(rows, ",\n"), args...); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // Claim takes up to `limit` things that are due, oldest first, for this
 // caller alone. Rows another worker is taking at the same moment are passed
 // over, not waited for, so two workers never hold one row and neither is

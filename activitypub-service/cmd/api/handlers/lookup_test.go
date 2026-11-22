@@ -111,7 +111,7 @@ func (f *fakeNodes) UpsertRemote(node *entities.AnahitaNode) (*entities.AnahitaN
 	for _, kept := range f.people {
 		if kept.URI == node.URI {
 			kept.Name, kept.Alias, kept.Body = node.Name, node.Alias, node.Body
-			kept.QuoteID = node.QuoteID
+			kept.QuoteID, kept.Meta = node.QuoteID, node.Meta
 			if node.AvatarFilename != "" {
 				kept.AvatarFilename = node.AvatarFilename
 			}

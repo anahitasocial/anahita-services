@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"os"
 	"sync"
 	"testing"
@@ -319,4 +320,40 @@ func TableSQL(table string) string {
     KEY status_next_attempt_at (status, next_attempt_at),
     KEY actor_id (actor_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci`
+}
+
+// THE RULE THIS GUARDS: one thing sent to many places is queued once for
+// each place, in as many statements as it takes, and a place it is queued
+// for already is not given a second row.
+func TestOneThingIsQueuedForManyPlaces(t *testing.T) {
+	queue, db := testQueue(t)
+	ctx := context.Background()
+
+	if err := queue.Enqueue(ctx, 1, "https://site0.example/inbox", []byte(`{"id":"a"}`), "a>0"); err != nil {
+		t.Fatal(err)
+	}
+
+	// More places than one statement adds.
+	var to []Destination
+	for i := 0; i < enqueueRows*2+3; i++ {
+		to = append(to, Destination{Target: fmt.Sprintf("https://site%d.example/inbox", i), DedupeKey: fmt.Sprintf("a>%d", i)})
+	}
+	if err := queue.EnqueueMany(ctx, 1, []byte(`{"id":"a"}`), to); err != nil {
+		t.Fatal(err)
+	}
+
+	var rows, places int
+	if err := db.QueryRow(`SELECT COUNT(*), COUNT(DISTINCT target) FROM test_deliveries WHERE status = 'pending' AND actor_id = 1`).Scan(&rows, &places); err != nil {
+		t.Fatal(err)
+	}
+	if rows != len(to) || places != len(to) {
+		t.Errorf("%d rows for %d places, want %d of each", rows, places, len(to))
+	}
+
+	if err := queue.EnqueueMany(ctx, 1, []byte(`{"id":"b"}`), []Destination{{Target: ""}}); err == nil {
+		t.Error("something was queued for nowhere")
+	}
+	if err := queue.EnqueueMany(ctx, 0, []byte(`{"id":"b"}`), to); err == nil {
+		t.Error("something was queued for nobody")
+	}
 }

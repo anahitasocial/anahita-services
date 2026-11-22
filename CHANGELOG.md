@@ -47,6 +47,14 @@ Releases before v1.0.17 are described on GitHub, under
    `edges` (migration `20261122000025`): each was on the same column as the
    primary key or another index. Nothing read slower without them on
    a copy of banu.io, and every post written has fewer indexes to update.
+5. **A post goes out to the fediverse quicker.** It is made once and
+   queued for every server in one go, not once for each (a thousand
+   servers: 0.09 seconds, against 2.6); whoever it is sent for is read
+   once a minute, not for each server; and the people it names and those
+   tagged in it are read together.
+6. **A post from the fediverse is answered at once, and given its link's
+   card after,** as its pictures are: reading the page could keep the
+   server that sent it waiting up to six seconds.
 
 ### Removed
 

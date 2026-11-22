@@ -61,6 +61,26 @@ func (f *fakeNodes) ReadByAlias(req *services.GraphNodeReadByAlias) (*entities.A
 	})
 }
 
+func (f *fakeNodes) BatchRead(req *services.GraphNodeBatchReadRequest) ([]*entities.AnahitaNode, error) {
+	var found []*entities.AnahitaNode
+	for _, id := range req.IDs {
+		if node, _ := f.Read(id); node != nil {
+			found = append(found, node)
+		}
+	}
+	return found, nil
+}
+
+func (f *fakeNodes) BatchReadByAliases(req *services.GraphNodeBatchReadByAliasesRequest) ([]*entities.AnahitaNode, error) {
+	var found []*entities.AnahitaNode
+	for _, alias := range req.Aliases {
+		if node, _ := f.ReadByAlias(&services.GraphNodeReadByAlias{Alias: alias, NodeType: req.NodeType}); node != nil {
+			found = append(found, node)
+		}
+	}
+	return found, nil
+}
+
 func (f *fakeNodes) FilterVisible(ids []int64, viewer *entities.Viewer) ([]int64, error) {
 	var seen []int64
 	for _, id := range ids {

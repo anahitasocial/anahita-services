@@ -11,6 +11,7 @@ import (
 
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/data/services"
 	"anahita-libs/event"
 	"anahita-libs/federation"
 )
@@ -418,5 +419,97 @@ func TestAThreadGoesOutInOrder(t *testing.T) {
 	}
 	if strings.Join(order, "\n") != strings.Join(want, "\n") {
 		t.Errorf("sent:\n%s\nwant:\n%s", strings.Join(order, "\n"), strings.Join(want, "\n"))
+	}
+}
+
+type fakePeopleTags struct{ edges []*entities.AnahitaEdge }
+
+func (f *fakePeopleTags) BatchReadByFilters(*services.GraphEdgeBatchReadByFiltersRequest) ([]*entities.AnahitaEdge, error) {
+	return f.edges, nil
+}
+
+// THE RULE THIS GUARDS: who is in a photo goes out with it, in the order
+// they were tagged, read together (roadmap row 170): those whose tag is
+// approved and who are on the fediverse, and nobody else.
+func TestWhoIsInAPhotoGoesOutWithIt(t *testing.T) {
+	w := newWorld()
+	person := func(id int64, alias, uuid string, enabled bool) {
+		p := entities.NewAnahitaNode()
+		p.ID, p.Alias, p.UUID = id, alias, uuid
+		p.Type = constants.NodeActorPersonEntityType
+		p.Access = constants.AnahitaAccessPublic
+		p.Enabled = true
+		w.nodes.people = append(w.nodes.people, p)
+		w.accounts.enabled[id] = enabled
+	}
+	person(8, "naomi", "5b1f0c1e-2d3a-4c5b-8d6e-7f8091a2b3c4", true)
+	person(9, "amos", "6c2a1d2f-3e4b-4d6c-9e7f-8091a2b3c4d5", false) // not on the fediverse
+	person(10, "alex", "7d3b2e3a-4f5c-4e7d-8f80-91a2b3c4d5e6", true) // tag not approved
+	w.h.PeopleTags = &fakePeopleTags{edges: []*entities.AnahitaEdge{
+		{NodeAID: 8, Meta: constants.TagApproved},
+		{NodeAID: 9, Meta: constants.TagApproved},
+		{NodeAID: 10},
+		{NodeAID: anaID, Meta: constants.TagApproved},
+	}}
+
+	photo := entities.NewAnahitaNode()
+	photo.ID = 100
+	photo.Type = constants.NodeMediumPhotoEntityType
+	var got []string
+	for _, named := range w.h.peopleIn(photo) {
+		got = append(got, named.Name)
+	}
+	if want := "@naomi@example.org @ana@example.org"; strings.Join(got, " ") != want {
+		t.Errorf("in the photo: %v, want %s", got, want)
+	}
+}
+
+// aliasesCounted counts how names are read: one at a time, or together.
+type aliasesCounted struct {
+	services.GraphNodeGRPCInterface
+	one, together int
+}
+
+func (a *aliasesCounted) ReadByAlias(req *services.GraphNodeReadByAlias) (*entities.AnahitaNode, error) {
+	a.one++
+	return a.GraphNodeGRPCInterface.ReadByAlias(req)
+}
+
+func (a *aliasesCounted) BatchReadByAliases(req *services.GraphNodeBatchReadByAliasesRequest) ([]*entities.AnahitaNode, error) {
+	a.together++
+	return a.GraphNodeGRPCInterface.BatchReadByAliases(req)
+}
+
+// THE RULE THIS GUARDS (roadmap row 170): everybody a post names is read
+// together, a read for each kind of profile, not one for each name; and
+// each is linked as when they were read one at a time.
+func TestEverybodyAPostNamesIsReadTogether(t *testing.T) {
+	w := newWorld()
+	naomi := entities.NewAnahitaNode()
+	naomi.ID, naomi.Alias, naomi.UUID = 8, "naomi", "5b1f0c1e-2d3a-4c5b-8d6e-7f8091a2b3c4"
+	naomi.Type = constants.NodeActorPersonEntityType
+	naomi.Access = constants.AnahitaAccessPublic
+	naomi.Enabled = true
+	alice := entities.NewAnahitaNode()
+	alice.ID, alice.Alias, alice.URI = 20, "alice@mastodon.example", aliceID
+	alice.Type = constants.NodeActorActivityPubPersonEntityType
+	w.nodes.people = append(w.nodes.people, naomi, alice)
+	w.accounts.enabled[8] = true
+	counted := &aliasesCounted{GraphNodeGRPCInterface: w.h.Nodes}
+	w.h.Nodes = counted
+
+	body := "With @ana, @Naomi and @nobody, and @alice@mastodon.example and @bob@mastodon.example, and @ana again"
+	rendered := federation.ToHTML(body, w.h.linksFor(body))
+
+	if counted.one != 0 || counted.together != 3 {
+		t.Errorf("read %d names one at a time and %d together, want 0 and 3", counted.one, counted.together)
+	}
+	var linked []string
+	for _, named := range rendered.Mentions {
+		linked = append(linked, named.Href)
+	}
+	want := []string{"https://api.example.org/ap/users/" + anaUUID, "https://api.example.org/ap/users/" + naomi.UUID, aliceID}
+	if strings.Join(linked, " ") != strings.Join(want, " ") {
+		t.Errorf("linked %v, want %v", linked, want)
 	}
 }

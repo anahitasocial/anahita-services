@@ -861,7 +861,11 @@ in the note's meta where a note keeps its card. Nothing the other server
 says of the link is used, and no reader is sent to another site for a
 picture. The card is of the first link that is to a page, not of somebody's
 name or a hashtag. A post is kept without one where the page says nothing
-of itself, or does not answer within six seconds.
+of itself, or does not answer within six seconds. The card is read after
+the post is kept and the server that sent it answered, as its pictures
+are, four pages at a time: a post shows for a moment without its card.
+A post changed there before its card was read is given the card of what it
+says now, not of what it said.
 
 A post that was kept before something about keeping posts was put right
 can be read again from its own server:
@@ -1090,7 +1094,10 @@ answered `401`, and nothing is kept of whoever sent it.
 
 What is to be sent to another server is written to a table first
 (`activitypub_deliveries`) and sent from there, signed by the person it is
-sent for. If the other server is down it is tried again after 1, 4, 16, 64
+sent for. A post is written for every server it goes to at once, in a
+statement for each five hundred servers: on a test database, a thousand
+servers took 0.09 seconds, against 2.6 one row at a time. If the other
+server is down it is tried again after 1, 4, 16, 64
 and 256 minutes and then every six hours, for two days; if the other server
 says the inbox is gone, or that what was sent is wrong, it is given up at
 once. What is given up is kept in the table with the reason.

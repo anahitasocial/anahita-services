@@ -117,6 +117,7 @@ type Handlers struct {
 	*Env
 	addresses ap.Addresses
 	signing   signing
+	senders   senders
 }
 
 func NewHandlers(env *Env) *Handlers {

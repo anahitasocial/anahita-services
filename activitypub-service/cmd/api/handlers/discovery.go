@@ -130,9 +130,14 @@ func (h *Handlers) isInstance(resource string) bool {
 	return found && strings.EqualFold(name, h.Site.Domain) && h.isOurDomain(domain)
 }
 
+// aliasHere says whether a name could be a username here: nothing else is
+// looked up.
+func aliasHere(alias string) bool {
+	return alias != "" && len(alias) <= 100 && !strings.ContainsAny(alias, "@./ %")
+}
+
 func (h *Handlers) personByAlias(alias string) *entities.AnahitaNode {
-	// What a username here can be, and nothing else is looked up.
-	if alias == "" || len(alias) > 100 || strings.ContainsAny(alias, "@./ %") {
+	if !aliasHere(alias) {
 		return nil
 	}
 

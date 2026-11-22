@@ -473,10 +473,9 @@ func (h *Handlers) store(authorID int64, note *ap.ReceivedNote, parentID int64) 
 		// that is kept.
 		return nil
 	}
-	// The card of the link in it, read by this installation itself.
-	node.Meta = h.withCard(words)
+	var elsewhere *videos.Elsewhere
 	if media != nil {
-		elsewhere := &videos.Elsewhere{
+		elsewhere = &videos.Elsewhere{
 			Kind:   videos.ElsewhereVideo,
 			Source: media.URL,
 			Page:   note.Page(),
@@ -486,7 +485,7 @@ func (h *Handlers) store(authorID int64, note *ap.ReceivedNote, parentID int64) 
 		if media.IsAudio() {
 			elsewhere.Kind = videos.ElsewhereAudio
 		}
-		node.Meta = videos.WithElsewhere(node.Meta, elsewhere)
+		node.Meta = videos.WithElsewhere(nil, elsewhere)
 	}
 
 	saved, created, err := h.Nodes.UpsertRemote(node)
@@ -500,6 +499,13 @@ func (h *Handlers) store(authorID int64, note *ap.ReceivedNote, parentID int64) 
 	// server that sent it is answered, as its pictures are.
 	if saved != nil && h.Tags != nil && h.TakesLocations {
 		h.later(func() { h.locate(saved, note, authorID) })
+	}
+
+	// The card of the link in it, read by this installation itself. After
+	// the server that sent it is answered, as its pictures are: reading
+	// another site's page can take seconds (roadmap row 170).
+	if saved != nil && h.Cards != nil && federation.CardLink(words) != "" {
+		h.later(func() { h.addCard(saved, node, words, elsewhere) })
 	}
 
 	// Its pictures are fetched after it is kept, and not waited for: the

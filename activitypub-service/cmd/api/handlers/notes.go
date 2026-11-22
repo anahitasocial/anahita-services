@@ -249,16 +249,24 @@ func (h *Handlers) peopleIn(post *entities.AnahitaNode) []federation.Named {
 		log.Printf("post %d: reading who is in it: %v", post.ID, err)
 		return nil
 	}
-	var named []federation.Named
+	// Read together, in the order they were tagged (roadmap row 170).
+	var ids []int64
 	for _, edge := range edges {
-		if edge.Meta != constants.TagApproved {
-			continue
+		if edge.Meta == constants.TagApproved {
+			ids = append(ids, edge.NodeAID)
 		}
-		person, err := h.Nodes.Read(edge.NodeAID)
-		if err != nil || person == nil {
-			continue
-		}
-		if h.federating(person) == nil {
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	people, err := h.Nodes.BatchRead(&services.GraphNodeBatchReadRequest{IDs: ids, Viewer: entities.NewViewer()})
+	if err != nil {
+		log.Printf("post %d: reading who is in it: %v", post.ID, err)
+		return nil
+	}
+	var named []federation.Named
+	for _, person := range people {
+		if person == nil || h.federating(person) == nil {
 			continue
 		}
 		named = append(named, federation.Named{
@@ -272,9 +280,10 @@ func (h *Handlers) peopleIn(post *entities.AnahitaNode) []federation.Named {
 // described is a note as other servers are sent it, a reply with what it
 // answers.
 func (h *Handlers) described(note, author *entities.AnahitaNode, answering *answer) *ap.Note {
-	sent := ap.NewNote(h.addresses, note, author, h.links())
+	links := h.linksFor(note.Body)
+	sent := ap.NewNote(h.addresses, note, author, links)
 	if note.Type == constants.NodeMediumArticleEntityType {
-		sent.AsArticle(h.addresses, note, articleSummary(note, h.links()))
+		sent.AsArticle(h.addresses, note, articleSummary(note, links))
 	}
 	if answering != nil {
 		sent.Answering(answering.ID, answering.Actor, answering.Handle)
@@ -442,34 +451,97 @@ func (h *Handlers) Picture(c echo.Context) error {
 }
 
 // toReaders queues something about a post for everybody it is for: its
-// author's followers and, for a reply, whoever it answers.
+// author's followers and, for a reply, whoever it answers. A follower's
+// server that is also the server of whoever is answered is sent it once.
 func (h *Handlers) toReaders(ctx context.Context, author *entities.AnahitaNode, replyInbox string, activity any, what string) error {
-	if err := h.toFollowers(ctx, author, activity, what); err != nil {
+	inboxes, err := h.Follows.FollowerInboxes(author.ID)
+	if err != nil {
 		return err
 	}
-	if replyInbox == "" {
-		return nil
-	}
-	// The same inbox twice is one row in the queue: a follower's server
-	// that is also the server of whoever is answered is sent it once.
-	return h.send(ctx, author.ID, replyInbox, activity, what)
+	return h.sendMany(ctx, author.ID, append(inboxes, replyInbox), activity, what)
 }
 
-// links says where the people and hashtags a post names are, for the links
-// made of them. Somebody here is linked only when they are on the
+// linksFor says where the people and hashtags a post names are, for the
+// links made of them. Somebody here is linked only when they are on the
 // fediverse; somebody elsewhere, only when they are known here.
-func (h *Handlers) links() federation.Links {
+//
+// Everybody `text` names is read before it is needed, in a read for each
+// kind of profile and not one for each name (roadmap row 170). A name not
+// read ahead, which the words as rendered could hold where the text as
+// written does not seem to, is read on its own when it is met.
+func (h *Handlers) linksFor(text string) federation.Links {
+	here := map[string]*entities.AnahitaNode{}
+	elsewhere := map[string]string{}
+	var hereNames, elsewhereNames []string
+	for _, mention := range entities.ParseMentions(text) {
+		if mention.Host == "" || h.isOurDomain(mention.Host) {
+			name := strings.ToLower(mention.User)
+			if _, ok := here[name]; !ok && aliasHere(name) {
+				here[name] = nil
+				hereNames = append(hereNames, name)
+			}
+			continue
+		}
+		alias := strings.ToLower(mention.User) + "@" + mention.Host
+		if _, ok := elsewhere[alias]; !ok {
+			elsewhere[alias] = ""
+			elsewhereNames = append(elsewhereNames, alias)
+		}
+	}
+
+	// A person, or a channel: they share the space of handles, so one name
+	// is one or the other, and a person is looked for first.
+	if len(hereNames) > 0 {
+		for _, nodeType := range []string{constants.NodeActorPersonEntityType, constants.NodeActorChannelEntityType} {
+			found, err := h.Nodes.BatchReadByAliases(&services.GraphNodeBatchReadByAliasesRequest{Aliases: hereNames, NodeType: nodeType, Viewer: entities.NewViewer()})
+			if err != nil {
+				// Each is read on its own when it is met, as before.
+				log.Printf("reading who a post names: %v", err)
+				here = map[string]*entities.AnahitaNode{}
+				break
+			}
+			for _, profile := range found {
+				name := strings.ToLower(profile.Alias)
+				if seen, ok := here[name]; ok && seen == nil && profile.ID > 0 {
+					here[name] = profile
+				}
+			}
+		}
+	}
+	if len(elsewhereNames) > 0 {
+		found, err := h.Nodes.BatchReadByAliases(&services.GraphNodeBatchReadByAliasesRequest{Aliases: elsewhereNames, NodeType: constants.NodeActorActivityPubPersonEntityType, Viewer: entities.NewViewer()})
+		if err != nil {
+			log.Printf("reading who a post names: %v", err)
+			elsewhere = map[string]string{}
+		}
+		for _, known := range found {
+			if alias := strings.ToLower(known.Alias); known.URI != "" {
+				if _, ok := elsewhere[alias]; ok {
+					elsewhere[alias] = known.URI
+				}
+			}
+		}
+	}
+
 	return federation.Links{
 		Hashtag: h.addresses.Hashtag,
 		Mention: func(user, host string) string {
 			if host == "" || h.isOurDomain(host) {
-				if person := h.federating(h.personByAlias(user)); person != nil {
+				person, ok := here[strings.ToLower(user)]
+				if !ok {
+					person = h.personByAlias(user)
+				}
+				if person = h.federating(person); person != nil {
 					return h.addresses.Actor(person.UUID)
 				}
 				return ""
 			}
+			alias := strings.ToLower(user) + "@" + host
+			if uri, ok := elsewhere[alias]; ok {
+				return uri
+			}
 			req := services.NewGraphNodeRequest().ReadByAlias
-			req.Alias = strings.ToLower(user) + "@" + host
+			req.Alias = alias
 			req.NodeType = constants.NodeActorActivityPubPersonEntityType
 			if known, err := h.Nodes.ReadByAlias(req); err == nil && known != nil && known.URI != "" {
 				return known.URI
@@ -524,12 +596,7 @@ func (h *Handlers) toFollowers(ctx context.Context, author *entities.AnahitaNode
 	if err != nil {
 		return err
 	}
-	for _, inbox := range inboxes {
-		if err := h.send(ctx, author.ID, inbox, activity, what); err != nil {
-			return err
-		}
-	}
-	return nil
+	return h.sendMany(ctx, author.ID, inboxes, activity, what)
 }
 
 // posted is a post having been made here, or changed: other servers are

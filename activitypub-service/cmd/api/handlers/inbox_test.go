@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"sort"
@@ -76,16 +77,22 @@ type queued struct {
 
 type fakeQueue struct{ sent []queued }
 
-func (f *fakeQueue) Enqueue(_ context.Context, actorID int64, target string, payload []byte, key string) error {
+func (f *fakeQueue) EnqueueMany(_ context.Context, actorID int64, payload []byte, to []federation.Destination) error {
+	for _, d := range to {
+		f.enqueue(actorID, d.Target, payload, d.DedupeKey)
+	}
+	return nil
+}
+
+func (f *fakeQueue) enqueue(actorID int64, target string, payload []byte, key string) {
 	for _, have := range f.sent {
 		if have.key == key {
-			return nil
+			return
 		}
 	}
 	var read map[string]any
 	_ = json.Unmarshal(payload, &read)
 	f.sent = append(f.sent, queued{actorID, target, read, key})
-	return nil
 }
 
 type fakeFollows struct {
@@ -578,6 +585,46 @@ func TestWhatIsQueuedIsSentInTheNameItWasQueuedIn(t *testing.T) {
 	delivery.ActorID = 404
 	if err := w.h.Deliver(context.Background(), delivery); !errors.Is(err, federation.ErrPermanent) {
 		t.Errorf("nobody: %v", err)
+	}
+}
+
+// readsCounted counts how often each node is read.
+type readsCounted struct {
+	services.GraphNodeGRPCInterface
+	reads map[int64]int
+}
+
+func (r *readsCounted) Read(id int64) (*entities.AnahitaNode, error) {
+	r.reads[id]++
+	return r.GraphNodeGRPCInterface.Read(id)
+}
+
+// THE RULE THIS GUARDS (roadmap row 170): a post going to many servers
+// reads its author once, not once for each server.
+func TestASenderIsReadOnceForManyServers(t *testing.T) {
+	w := newInboxWorld()
+	w.h.Poster = &fakePoster{}
+	counted := &readsCounted{GraphNodeGRPCInterface: w.h.Nodes, reads: map[int64]int{}}
+	w.h.Nodes = counted
+
+	for i := 0; i < 20; i++ {
+		delivery := federation.Delivery{ActorID: anaID, Target: fmt.Sprintf("https://site%d.example/inbox", i), Payload: []byte(`{"type":"Create"}`)}
+		if err := w.h.Deliver(context.Background(), delivery); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if counted.reads[anaID] != 1 {
+		t.Errorf("read %d times for 20 servers, want once", counted.reads[anaID])
+	}
+
+	// Nobody is remembered who is not there.
+	for i := 0; i < 2; i++ {
+		if err := w.h.Deliver(context.Background(), federation.Delivery{ActorID: 404, Target: "https://site.example/inbox", Payload: []byte(`{}`)}); !errors.Is(err, federation.ErrPermanent) {
+			t.Errorf("nobody: %v", err)
+		}
+	}
+	if counted.reads[404] != 2 {
+		t.Errorf("nobody read %d times, want each time", counted.reads[404])
 	}
 }
 

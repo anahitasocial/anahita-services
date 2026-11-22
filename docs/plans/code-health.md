@@ -151,3 +151,13 @@ disagree first:
    (18) waits for row 141, which plans it, with these figures; trending (19)
    is left out; the fan-out (20) moves to phase 5. The copy of banu.io's
    data was deleted once measured.
+5. **Item 20, the federation fan-out, done 2026-11-22.** A post is
+   marshalled once and queued with `Queue.EnqueueMany`, five hundred rows a
+   statement (on a throwaway MySQL: 100 servers 258 to 29 ms, 1,000 2.6 s
+   to 92 ms, 5,000 14 s to 0.57 s); the sender's UUID is kept a minute
+   (`senderUUID`); tagged people are read with `BatchRead`, and the names
+   a post mentions with `BatchReadByAliases`, a read for each kind of
+   profile, the single read kept for a name not read ahead; the inbox's link
+   card is read after the answer (`addCard`), four at a time, and not put
+   on a post changed since. Measured on a test database rather than a copy
+   of banu.io, whose servers' followers are few. Each has a test.
