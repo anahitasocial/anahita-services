@@ -200,4 +200,13 @@ disagree first:
    file-grpc-service's `AmqpAddr`, read from nowhere, went with them. Six
    services check in a form of their own and keep it (activitypub, atproto,
    import-export, mail, file-grpc, web-shell).
+10. **Item 25 done 2026-11-22.** `getRelations` (graph-grpc-service,
+    `socialgraph_rel.go`, 419 lines to 276): a list of the relations, each
+    a query, read by `idsOf`, which closes its rows before the next; the
+    nine used to stay open until the end, a connection each. Mutes, which
+    say more, in `readMutes`. `TestEveryRelationIsReadWhereItHolds` sets
+    every relation at once, and passed before and after. atproto-service's
+    `out.go` and feed-service's `custom_feed.go` split by what each part
+    does, moved as they were. `anahita-libs/utils` is `anahita-libs/images`,
+    as its package was called already.
 

@@ -231,7 +231,7 @@ A feed is sent with its `icon`, `is_pinned` and `authorized` (`edit`, `delete`, 
 | That a feed never widens what anybody may see | `graph-grpc-service/data/repositories/feed_custom_integration_test.go` |
 | A feed's own visibility | `graph-grpc-service/data/repositories/nodes_visible.go` (`FilterVisible`) |
 | The feeds of the people one follows | `graph-grpc-service/data/repositories/nodes.go` (`ownedByFollowedQuery`), asked for as `OwnedByFollowed` in a node list |
-| The endpoints | `feed-service/cmd/api/handlers/custom_feed.go`. `custom_feed_test.go` runs them over a graph held in memory: who may see, change, copy and delete a feed, the limits, and the home page |
+| The endpoints | `feed-service/cmd/api/handlers/`: `custom_feed.go` (a feed: add, read, edit, copy, delete), `custom_feed_items.go` (what it shows, and a preview), `custom_feed_lists.go` (Mine and Discover), `custom_feed_pins.go` (the home page). `custom_feed_test.go` runs them over a graph held in memory: who may see, change, copy and delete a feed, the limits, and the home page |
 
 ## What is not built
 
