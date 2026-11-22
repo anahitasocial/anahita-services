@@ -72,7 +72,7 @@ func (repo *FeedLeadersRepo) Browse(req *graphpb.FeedLeadersBrowseRequest, viewe
 
 	// Sort & paginate
 	query = query.OrderBy("node.created_at DESC, node.id DESC").
-		Limit(req.Limit).Offset(req.Offset)
+		Limit(pageLimit(req.Limit)).Offset(req.Offset)
 
 	return FetchNodes(repo.db, query)
 }

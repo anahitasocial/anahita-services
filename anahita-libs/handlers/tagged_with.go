@@ -46,6 +46,7 @@ func TaggedWith(c echo.Context, r TagReaders, edgeType string) error {
 	}
 
 	resp := &responses.List[*responses.NodeItem]{}
+	req.Limit = requests.PageSize(req.Limit)
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset
 

@@ -20,6 +20,11 @@ Releases before v1.0.17 are described on GitHub, under
    mutes, admins, requests, invitations, events open to a host's
    followers) kept its answer open until the last was read, so a busy site
    could run out of connections sooner than it needed to.
+2. **A list sends 100 at most, however many are asked for.** Most lists
+   read as many as a request said: search, a profile's posts, the Following
+   feed, the posts of a hashtag or a location among them, so one request
+   could ask the database for every row. Each now holds 100 at most, and
+   says so in its `limit`; 20 when none is asked.
 
 ### Changed
 

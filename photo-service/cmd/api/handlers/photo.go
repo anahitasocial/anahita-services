@@ -49,6 +49,7 @@ func (h *photoHandler) Browse(c echo.Context) error {
 		Pagination responses.Pagination        `json:"pagination"`
 	}
 	resp := &Response{}
+	req.Limit = requests.PageSize(req.Limit)
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset
 

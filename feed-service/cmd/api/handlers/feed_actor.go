@@ -5,6 +5,7 @@ import (
 	"anahita-libs/data/services"
 	an_handlers "anahita-libs/handlers"
 	"anahita-libs/policy"
+	libs_requests "anahita-libs/requests"
 	"anahita-libs/responses"
 	"feed/data/defaults"
 	"feed/requests"
@@ -57,6 +58,7 @@ func (h *feedActorHandler) Browse(c echo.Context) error {
 	}
 
 	resp := &responses.List[*responses.NodeItem]{}
+	req.Limit = libs_requests.PageSize(req.Limit)
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset
 

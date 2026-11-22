@@ -49,7 +49,7 @@ func (repo *RepostsRepo) Browse(req *graphpb.RepostBrowseRequest) ([]int64, erro
 
 	// Sort & paginate
 	query = query.OrderBy("created_at DESC, id DESC").
-		Limit(req.Limit).Offset(req.Offset)
+		Limit(pageLimit(req.Limit)).Offset(req.Offset)
 
 	sqlStr, args, err := query.ToSql()
 	if err != nil {
@@ -89,7 +89,7 @@ func (repo *RepostsRepo) BrowseAuthors(req *graphpb.RepostBrowseAuthorsRequest) 
 
 	// Sort & paginate
 	query = query.OrderBy("node.created_at DESC, node.id DESC").
-		Limit(req.Limit).Offset(req.Offset)
+		Limit(pageLimit(req.Limit)).Offset(req.Offset)
 
 	sqlStr, args, err := query.ToSql()
 	if err != nil {

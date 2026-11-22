@@ -1,5 +1,7 @@
 package requests
 
+import "anahita-libs/constants"
+
 // Browse is the shared paging request.
 //
 // Ordering has no oneof rule, and cannot have one here: the valid sort columns
@@ -36,4 +38,17 @@ func NewBrowse() *Browse {
 type EmailRequest struct {
 	// The address.
 	Email string `query:"email" form:"email" validate:"min=10,max=100,email,required"`
+}
+
+// PageSize is how many a list's page holds: what was asked, up to
+// constants.MaxPageSize, and constants.DefaultPageSize when nothing was
+// (roadmap row 170).
+func PageSize(asked uint64) uint64 {
+	switch {
+	case asked == 0:
+		return constants.DefaultPageSize
+	case asked > constants.MaxPageSize:
+		return constants.MaxPageSize
+	}
+	return asked
 }

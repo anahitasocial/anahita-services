@@ -414,7 +414,7 @@ func (repo *SearchRepo) Browse(req *graphpb.SearchBrowseRequest, viewer *entitie
 	query := repo.filtered(repo.getBaseSelectQuery(req), req, viewer)
 	query = query.OrderBy("node.created_at DESC")
 	query = repo.nearestThenID(query, req)
-	query = query.Limit(req.Limit).Offset(req.Offset)
+	query = query.Limit(pageLimit(req.Limit)).Offset(req.Offset)
 
 	return FetchNodes(repo.db, query)
 }
@@ -498,7 +498,7 @@ func (repo *SearchRepo) browseByRelevance(req *graphpb.SearchBrowseRequest, keyw
 	}
 	ranked = ranked.OrderBy("standing DESC")
 	ranked = repo.nearestThenID(ranked, req)
-	ranked = ranked.Limit(req.Limit).Offset(req.Offset)
+	ranked = ranked.Limit(pageLimit(req.Limit)).Offset(req.Offset)
 
 	ids, err := repo.idsOf(ranked)
 	if err != nil || len(ids) == 0 {

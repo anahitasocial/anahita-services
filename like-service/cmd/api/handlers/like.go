@@ -6,6 +6,7 @@ import (
 	"anahita-libs/data/services"
 	"anahita-libs/event"
 	an_handlers "anahita-libs/handlers"
+	libs_requests "anahita-libs/requests"
 	"anahita-libs/responses"
 	"errors"
 	"feed/constants"
@@ -57,6 +58,7 @@ func (h *likeHandler) Browse(c echo.Context) error {
 	}
 
 	resp := &responses.List[*responses.ActorNodeItem]{}
+	req.Limit = libs_requests.PageSize(req.Limit)
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset
 

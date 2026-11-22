@@ -3,6 +3,7 @@ package handlers
 import (
 	"anahita-libs/data/services"
 	an_handlers "anahita-libs/handlers"
+	libs_requests "anahita-libs/requests"
 	"anahita-libs/responses"
 	"feed/data/defaults"
 	"feed/requests"
@@ -42,6 +43,9 @@ func (h *feedLeadersHandler) Browse(c echo.Context) error {
 	}
 
 	resp := &responses.List[*responses.NodeItem]{}
+	// A page as every list's is, so that the one more asked for below is
+	// one more than a page the graph gives whole.
+	req.Limit = libs_requests.PageSize(req.Limit)
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset
 

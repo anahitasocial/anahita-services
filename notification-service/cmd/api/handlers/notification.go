@@ -5,6 +5,7 @@ import (
 	"anahita-libs/data/services"
 	an_handlers "anahita-libs/handlers"
 	"anahita-libs/permissions"
+	libs_requests "anahita-libs/requests"
 	an_responses "anahita-libs/responses"
 	"log"
 	"net/http"
@@ -45,6 +46,7 @@ func (h *notificationHandler) Browse(c echo.Context) error {
 
 	resp := &an_responses.List[*responses.NotificationItem]{}
 
+	req.Limit = libs_requests.PageSize(req.Limit)
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset
 	resp.Pagination.Total, err = h.Repos.Notifications.Count(req, viewer)

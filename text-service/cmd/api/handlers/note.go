@@ -7,6 +7,7 @@ import (
 	an_handlers "anahita-libs/handlers"
 	"anahita-libs/linkpreviews"
 	"anahita-libs/permissions"
+	libs_requests "anahita-libs/requests"
 	"anahita-libs/responses"
 	"log"
 	"net/http"
@@ -49,6 +50,7 @@ func (h *noteHandler) Browse(c echo.Context) error {
 	}
 
 	resp := &responses.List[*responses.MediumNodeItem]{}
+	req.Limit = libs_requests.PageSize(req.Limit)
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset
 

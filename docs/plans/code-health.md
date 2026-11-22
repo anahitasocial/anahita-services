@@ -147,7 +147,7 @@ another row. What each one came to is in the notes after the table.
 | 24f | hashtag-service's and location-service's shared handlers | ✅ 2026-11-22, `handlers.TaggedWith` |
 | 24g | Event names parsed once | ✅ 2026-11-22, `EventPayload.Action` |
 | 24h | The reconnecting publisher's copies | ✅ 2026-11-22, `event.NewLazyPublisher` |
-| 24i | Pagination in one shape, with its cap | ⬜ |
+| 24i | Pagination in one shape, with its cap | ✅ 2026-11-22, the cap: `requests.PageSize`; the shapes stay |
 | 24j | The smaller helpers kept two or three times | ⬜ |
 | 25 | Splitting what mixes several jobs | ✅ 2026-11-22 |
 
@@ -285,4 +285,15 @@ another row. What each one came to is in the notes after the table.
     copies' first connection waited up to 30 seconds for the bus; the
     shared one tries once, and the next event tries again, as it does
     after a restart.
+16. **Item 24, eighth part, pagination, done 2026-11-22.** The cap was the
+    part that mattered: nine of graph-grpc-service's list queries read as
+    many rows as asked, search among them, open to visitors. They now read
+    a page and one more at most (`pageLimit`, 101), the one more for
+    whoever asks whether there is another page; and 21 list handlers in
+    eleven services take the page to 100 at most, 20 when none is asked
+    (`requests.PageSize`), and say so. On the dev stack a search asked for
+    100,000 sent 100 of 1,918. The answers' shapes stay as they are: a
+    custom feed's cursor and the Feeds page's `next_start` are what the web
+    app reads, and one shape would change the API for nothing people see.
+    Edges, read by the services alone, keep their 0 for all.
 

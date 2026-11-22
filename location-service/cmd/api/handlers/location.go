@@ -5,6 +5,7 @@ import (
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	an_handlers "anahita-libs/handlers"
+	libs_requests "anahita-libs/requests"
 	an_responses "anahita-libs/responses"
 	"anahita-libs/trending"
 	"location/constants"
@@ -50,6 +51,7 @@ func (h *locationHandler) Browse(c echo.Context) error {
 	}
 
 	resp := &an_responses.List[*responses.LocationNodeItem]{}
+	req.Limit = libs_requests.PageSize(req.Limit)
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset
 
@@ -129,6 +131,7 @@ func (h *locationHandler) BrowseOrderedByDegree(c echo.Context) error {
 
 	resp := &an_responses.List[*responses.LocationNodeItem]{}
 
+	req.Limit = libs_requests.PageSize(req.Limit)
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset
 
@@ -203,6 +206,7 @@ func (h *locationHandler) BrowseTrending(c echo.Context) error {
 			resp.Data = append(resp.Data, mapped[0])
 		}
 	}
+	req.Limit = libs_requests.PageSize(req.Limit)
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Total = uint64(len(resp.Data))
 

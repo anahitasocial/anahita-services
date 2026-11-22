@@ -84,7 +84,7 @@ A route that lists is paged by two values in the query:
 | Value | Means |
 | --- | --- |
 | `start` | How many to pass over. 0 unless asked |
-| `limit` | The most to send. 20 unless asked |
+| `limit` | The most to send: 20 unless asked, and 100 at most, more being taken as 100. A few lists hold fewer, and the reference says so |
 
 and answers with what is on the page and where it is:
 

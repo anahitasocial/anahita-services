@@ -132,7 +132,7 @@ func (r *graphRepo) BrowseNeighbours(req *graphpb.BrowseNeighboursRequest, viewe
 		}
 	}
 
-	query = query.Limit(req.Limit).Offset(req.Offset)
+	query = query.Limit(pageLimit(req.Limit)).Offset(req.Offset)
 
 	return FetchNodes(r.db, query)
 }
@@ -374,7 +374,7 @@ func (r *graphRepo) BrowseOrderedByDegree(req *graphpb.BrowseOrderedByDegreeRequ
 		GroupBy("node.id").
 		OrderBy("COUNT(edge.id) DESC")
 
-	query = query.Limit(req.Limit).Offset(req.Offset)
+	query = query.Limit(pageLimit(req.Limit)).Offset(req.Offset)
 
 	// Node type filter
 	if req.NodeType != "" {
@@ -481,7 +481,7 @@ func (r *graphRepo) Trending(req *graphpb.TrendingRequest, viewer *entities.View
 	if req.Limit <= 0 {
 		req.Limit = constants.DefaultPageSize
 	}
-	query = query.Limit(req.Limit)
+	query = query.Limit(pageLimit(req.Limit))
 
 	return FetchNodes(r.db, query)
 }

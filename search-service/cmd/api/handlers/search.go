@@ -3,6 +3,7 @@ package handlers
 import (
 	"anahita-libs/data/services"
 	an_handlers "anahita-libs/handlers"
+	libs_requests "anahita-libs/requests"
 	"anahita-libs/responses"
 	"log"
 	"net/http"
@@ -42,6 +43,7 @@ func (h *searchHandler) Browse(c echo.Context) error {
 
 	resp := &responses.List[*responses.NodeItem]{}
 
+	req.Limit = libs_requests.PageSize(req.Limit)
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset
 

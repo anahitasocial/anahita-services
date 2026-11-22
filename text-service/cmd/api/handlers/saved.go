@@ -4,6 +4,7 @@ import (
 	"anahita-libs/constants"
 	an_handlers "anahita-libs/handlers"
 	"anahita-libs/permissions"
+	libs_requests "anahita-libs/requests"
 	"anahita-libs/responses"
 	"log"
 	"net/http"
@@ -45,6 +46,7 @@ func (h *mediumHandler) Saved(c echo.Context) error {
 	}
 
 	resp := &responses.List[*responses.MediumNodeItem]{Data: []*responses.MediumNodeItem{}}
+	req.Limit = libs_requests.PageSize(req.Limit)
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset
 

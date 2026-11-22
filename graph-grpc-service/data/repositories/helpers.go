@@ -533,3 +533,18 @@ func (o optionalTime) Scan(value any) error {
 	}
 	return nil
 }
+
+// pageLimit is the most rows a list reads: what was asked, up to a page
+// and one more (constants.MaxPageSize + 1), the one more being how a
+// caller knows there is a page after it, as feed-service's Following does;
+// a page (constants.DefaultPageSize) when nothing was asked. Without it a
+// request could ask a list for any number of rows (roadmap row 170).
+func pageLimit(asked uint64) uint64 {
+	switch {
+	case asked == 0:
+		return constants.DefaultPageSize
+	case asked > constants.MaxPageSize+1:
+		return constants.MaxPageSize + 1
+	}
+	return asked
+}

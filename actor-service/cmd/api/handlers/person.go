@@ -53,6 +53,7 @@ func (h *personHandler) Browse(c echo.Context) error {
 	// Each a person, or what is shown of one the viewer may only ask to
 	// follow (LimitedActor, marked restricted).
 	resp := &an_responses.List[any]{Data: []any{}}
+	req.Limit = requests.PageSize(req.Limit)
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset
 
