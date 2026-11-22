@@ -174,6 +174,17 @@ same with a MySQL replica and ProxySQL.
 3. About one session for the first, two more for the second if the test
    asks for it.
 
+Measured on a copy of banu.io (28,536 nodes, 10,769 edges, 2026-11-22,
+code-health row 170): a search for "coffee" takes about 300 ms to count and
+180 to 310 ms for a page, the count shown on the search page's scope tabs.
+Left as it is until this phase, at the user's word: quick enough at
+banu.io's size. Searching as people type stays: each word is searched as
+the start of a word (boolean mode, `coffe*`), so "coffe" still finds
+"coffee"; only the middle of a word ("ffee") is no longer found. Words of
+one or two letters ("AI") are left out of InnoDB's own index
+(`innodb_ft_min_token_size`), not of the ngram parser's: whichever is
+chosen, they are still found.
+
 ## Phase 6: only if the test calls for it
 
 Each is planned on its own when the test shows it is the next limit.

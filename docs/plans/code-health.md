@@ -76,16 +76,23 @@ On a copy of banu.io's data, with `EXPLAIN`, before and after:
 16. The Following feed: driven by whom the viewer follows, and no count on
     every page (one row more than the page instead, as custom feeds do).
 17. A profile's Liked and Tagged tabs, and their counts.
-18. Search: a full-text index, and no separate count.
-19. Trending: cached for a minute.
-20. Federation fan-out: built once, one insert, the sender read once;
-    tagged and mentioned people in one batch; the inbox's link card after
-    the answer, as its pictures are.
+18. Search: a full-text index, and no separate count. Left for row 141
+    (scaling, its phase 5).
+19. Trending: cached for a minute. Left out: 32 to 82 ms.
+20. Federation fan-out: moved to phase 5.
 21. The duplicate indexes on `nodes` and `edges`, dropped by a migration.
 
 ## Phase 5: repeated code
 
-Taken a few at a time, those whose copies already disagree first:
+The federation fan-out, moved here from phase 4 at the user's word, since
+the code it touches is reworked here:
+
+20. Federation fan-out: built once, one insert, the sender read once;
+    tagged and mentioned people in one batch; the inbox's link card after
+    the answer, as its pictures are. Measured on a copy of banu.io first.
+
+Then the repeated code, a few at a time, those whose copies already
+disagree first:
 
 22. The post-to-gRPC converter, kept twice and drifted (one never sends the
     UUID, the other whether the viewer is blocked).
@@ -124,7 +131,7 @@ Taken a few at a time, those whose copies already disagree first:
    test written for that rule tests the gate in use. A test of `CardLink`
    moved to `anahita-libs` with the function, and one of how a place is
    read now reads it through `ReadPlaces`.
-4. **Phase 4 begun 2026-11-22**, on a copy of banu.io's data (28,536 nodes,
+4. **Phase 4 done 2026-11-22**, on a copy of banu.io's data (28,536 nodes,
    10,769 edges), timed from a Mac, the median of five:
 
    | Query | Before | After |
@@ -140,5 +147,7 @@ Taken a few at a time, those whose copies already disagree first:
    more than the page and answers `has_more`, and the gRPC `Count` it called
    is removed. 17 needs nothing: a profile's tabs are quick. 21: the seven
    twin indexes dropped (`20261122000025`); nodes' and edges' indexes went
-   from 61 to 54 MB and nothing read slower. Search (18), trending (19) and
-   the fan-out (20) are for the user to choose.
+   from 61 to 54 MB and nothing read slower. At the user's word: search
+   (18) waits for row 141, which plans it, with these figures; trending (19)
+   is left out; the fan-out (20) moves to phase 5. The copy of banu.io's
+   data was deleted once measured.
