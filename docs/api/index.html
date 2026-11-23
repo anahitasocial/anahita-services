@@ -13987,7 +13987,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-feed.CustomFeedResponse" data-search="feed.customfeedresponse access authorized body created_at definition icon id is_pinned name owner references type updated_at">
+<div class="route schema" id="schema-feed.CustomFeedResponse" data-search="feed.customfeedresponse access authorized body created_at definition icon id is_pinned name owner references slug type updated_at">
 <h3>feed.CustomFeedResponse</h3>
 <p>A feed as it is sent.</p>
 <table>
@@ -14004,6 +14004,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>What it is called.</td></tr>
 <tr><td><code>owner</code></td><td><a href="#schema-NodeItem">NodeItem</a></td><td>Whose it is.</td></tr>
 <tr><td><code>references</code></td><td>list of <a href="#schema-NodeItem">NodeItem</a></td><td>The profiles and places its definition names, the ones the viewer may see, for the editor to show by name. Sent with a single feed.</td></tr>
+<tr><td><code>slug</code> <span class="required">always</span></td><td>string</td><td>Its name as its address reads it, /feeds/12-arts-design, or &#34;&#34; for a name with nothing Latin in it (roadmap row 176). Only the id is read.</td></tr>
 <tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td>Always a custom feed&#39;s type.</td></tr>
 <tr><td><code>updated_at</code> <span class="required">always</span></td><td>time</td><td>When it last changed.</td></tr>
 </tbody>

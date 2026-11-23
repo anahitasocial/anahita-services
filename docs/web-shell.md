@@ -58,6 +58,7 @@ twice.
 | `/articles/<id>`, `/topics/<id>` | Its title | The start of its text | Its cover |
 | `/notes/<id>` | Its writer's name | The start of the note | The picture of the link it carries a card for |
 | `/hashtags/<tag>`, and `/tags/<tag>`, the address other servers are given | `#tag` | The site's | The site's |
+| `/feeds/<id>` and `/feeds/<id>-<name>`, a custom feed open to anybody, of a profile open to anybody (roadmap row 176) | Its name | What it is for | The site's |
 | Any other | The site's name | The site's | `/statics/media/ogimage.jpg` |
 
 A post with a content warning gives no picture, so the site's is used, and
@@ -68,7 +69,8 @@ Text is made plain, with Markdown and HTML taken out, and cut to 200
 characters. A profile's address in its tags (`og:url`, the canonical link)
 is always its alias, `/@ana`, however its page was reached, so a link
 shared from an old `/people/ana` or `/groups/12-garden` is taken by the
-networks that read it as `/@ana` or `/@garden`.
+networks that read it as `/@ana` or `/@garden`. A feed's is its readable
+address, `/feeds/12-arts-design`, however it was reached.
 
 ## What is never described
 

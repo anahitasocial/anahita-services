@@ -26,6 +26,10 @@ Releases before v1.0.17 are described on GitHub, under
    made with `origin` `here` and nothing else to match, everything written
    on the site, newest first. A feed of everything from elsewhere is still
    refused (`too_broad`).
+3. **Feeds at readable addresses:** a feed is sent with its `slug`, its
+   name as its address reads it, and web-shell describes a public feed of a
+   public profile at `/feeds/12-arts-design`, its canonical link, for link
+   previews and search engines.
 
 ### Changed
 

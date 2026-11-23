@@ -12,6 +12,7 @@ import (
 
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/feeds"
 	"anahita-libs/policy"
 	"anahita-libs/videos"
 )
@@ -26,7 +27,16 @@ type fakeReader struct {
 	people map[string]*entities.AnahitaNode
 	actors map[int64]*entities.AnahitaNode
 	media  map[int64]*entities.AnahitaNode
+	feeds  map[int64]*entities.AnahitaNode
 	reads  int
+}
+
+func (f *fakeReader) Feed(id int64) (*entities.AnahitaNode, error) {
+	f.reads++
+	if node := f.feeds[id]; node != nil {
+		return node, nil
+	}
+	return nil, errors.New("not found")
 }
 
 func (f *fakeReader) Person(alias string) (*entities.AnahitaNode, error) {
@@ -508,5 +518,46 @@ func TestAnArticleIsShownByItsCover(t *testing.T) {
 	}
 	if location := get(s, "/_shell/image/post-22").Header().Get("Location"); !strings.Contains(location, "covers/article/22/grinder_large.jpg") {
 		t.Errorf("the article's picture leads to %q", location)
+	}
+}
+
+// A public feed of a public profile is described at its readable address,
+// however it was reached; one shared with fewer is not (roadmap row 176).
+func TestAFeedIsDescribedAtItsReadableAddress(t *testing.T) {
+	s, reader := newServer(t)
+
+	feed := func(id int64, access string) *entities.AnahitaNode {
+		node := &entities.AnahitaNode{}
+		node.ID = id
+		node.Type = feeds.NodeType
+		node.Name = "Arts & Design"
+		node.Body = "Graphic design, interiors and architecture."
+		node.Access = access
+		node.Enabled = true
+		node.OwnerID = 1
+		return node
+	}
+	reader.feeds = map[int64]*entities.AnahitaNode{
+		30: feed(30, constants.AnahitaAccessPublic),
+		31: feed(31, "followers"),
+	}
+
+	for _, path := range []string{"/feeds/30", "/feeds/30-arts-design", "/feeds/30-an-old-name"} {
+		page := get(s, path).Body.String()
+		for _, want := range []string{
+			`<meta property="og:title" content="Arts &amp; Design"/>`,
+			`<meta property="og:description" content="Graphic design, interiors and architecture."/>`,
+			`<link rel="canonical" href="https://www.example.org/feeds/30-arts-design"/>`,
+		} {
+			if !strings.Contains(page, want) {
+				t.Errorf("%s: missing %s", path, want)
+			}
+		}
+	}
+	if page := get(s, "/feeds/31-arts-design").Body.String(); strings.Contains(page, "Arts &amp; Design") {
+		t.Errorf("a feed for followers is described to anybody")
+	}
+	if page := get(s, "/feeds/30/edit").Body.String(); strings.Contains(page, "Arts &amp; Design") {
+		t.Errorf("a feed's edit page is described")
 	}
 }

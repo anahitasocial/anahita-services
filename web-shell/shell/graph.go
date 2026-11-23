@@ -37,6 +37,12 @@ func (g *GraphReader) Actor(id int64, nodeType string) (*entities.AnahitaNode, e
 	return g.Actors.ReadOfType(id, nodeType, entities.NewViewer())
 }
 
+// Feed reads a node as it is kept, which is not access-checked: whether a
+// feed may be described is asked of it (pages.go).
+func (g *GraphReader) Feed(id int64) (*entities.AnahitaNode, error) {
+	return g.Nodes.Read(id)
+}
+
 func (g *GraphReader) Medium(id int64) (*entities.AnahitaNode, error) {
 	return g.Media.Read(id, entities.NewViewer())
 }

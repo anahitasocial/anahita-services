@@ -8,6 +8,7 @@ import (
 
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/feeds"
 	"anahita-libs/linkpreviews"
 	"anahita-libs/posts"
 	"anahita-libs/videos"
@@ -20,6 +21,9 @@ type Reader interface {
 	Actor(id int64, nodeType string) (*entities.AnahitaNode, error)
 	ActorByAlias(alias, nodeType string) (*entities.AnahitaNode, error)
 	Medium(id int64) (*entities.AnahitaNode, error)
+	// Feed is a custom feed, as it is kept: whether it may be described is
+	// asked of it here.
+	Feed(id int64) (*entities.AnahitaNode, error)
 }
 
 // How much of a post or a bio is the description.
@@ -56,6 +60,9 @@ var (
 	// /tags/<name> is what other servers are given for a hashtag's page:
 	// see activitypub-service/ap/addresses.go. The web app sends it on.
 	tagPath   = regexp.MustCompile(`^/(?:hashtags|tags)/([^/]+)/?$`)
+	// A custom feed, /feeds/12-arts-design or /feeds/12 (roadmap row 176);
+	// not its edit page.
+	feedPath = regexp.MustCompile(`^/feeds/(\d+)(?:-[^/]*)?/?$`)
 	imageName = regexp.MustCompile(`^(person|group|event|channel|website|post)-(\d+)$`)
 )
 
@@ -125,6 +132,11 @@ func Resolve(reader Reader, path string) *Subject {
 			return nil
 		}
 		return actor(node, "person")
+	}
+
+	if found := feedPath.FindStringSubmatch(path); found != nil {
+		id, _ := strconv.ParseInt(found[1], 10, 64)
+		return feed(reader, id)
 	}
 
 	if found := tagPath.FindStringSubmatch(path); found != nil {
@@ -253,6 +265,32 @@ var local = map[string]bool{
 	groupType:                            true,
 	constants.NodeActorEventEntityType:   true,
 	constants.NodeActorChannelEntityType: true,
+}
+
+// feed is a custom feed's page, described when it is open to anybody and so
+// is the person whose it is (roadmap row 176): its name, what it is for, and
+// its own address, /feeds/12-arts-design, however it was reached. It has no
+// picture of its own; the site's is used.
+func feed(reader Reader, id int64) *Subject {
+	node, err := reader.Feed(id)
+	if err != nil || node == nil || node.ID == 0 || node.Type != feeds.NodeType || !node.Enabled {
+		return nil
+	}
+	if node.DeletedAt != nil || node.Access != constants.AnahitaAccessPublic {
+		return nil
+	}
+	owner, err := reader.Actor(node.OwnerID, constants.NodeActorPersonEntityType)
+	if err != nil || !IsPublic(owner) || !owner.Enabled {
+		return nil
+	}
+	return &Subject{
+		Tags: Tags{
+			Title:       strings.TrimSpace(node.Name),
+			Description: Plain(node.Body, maxDescription),
+			Type:        "website",
+		},
+		Path: feeds.Page(node.ID, node.Name),
+	}
 }
 
 // A post is described only at the page of its own kind: /notes/12 for a

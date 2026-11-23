@@ -222,7 +222,7 @@ All on feed-service. Writing needs the `media:write` scope.
 | `POST /feeds/<id>/copy` `{ name }` | whoever may see it | A feed of the viewer's own showing the same thing, seen by them alone. Called `name`, or "Copy of" the other's name |
 | `PUT`, `DELETE /feeds/<id>/pin` | whoever may see it | Keeps it on the home page, or takes it off |
 
-A feed is sent with its `icon`, `is_pinned` and `authorized` (`edit`, `delete`, `pin`, `copy`).
+A feed is sent with its `icon`, `is_pinned`, `authorized` (`edit`, `delete`, `pin`, `copy`) and `slug`: its name as its address reads it, `arts-design` for "Arts & Design", or nothing for a name with no Latin letters in it (`feeds.Slug`, roadmap row 176). The web app reads a feed at `/feeds/12-arts-design`, and only the id counts.
 
 ## Where the code is
 

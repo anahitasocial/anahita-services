@@ -6168,6 +6168,10 @@
             },
             "type": "array"
           },
+          "slug": {
+            "description": "Its name as its address reads it, /feeds/12-arts-design, or \"\" for a name with nothing Latin in it (roadmap row 176). Only the id is read.",
+            "type": "string"
+          },
           "type": {
             "description": "Always a custom feed's type.",
             "type": "string"
@@ -6182,6 +6186,7 @@
           "id",
           "type",
           "name",
+          "slug",
           "body",
           "access",
           "icon",

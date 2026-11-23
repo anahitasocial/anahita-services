@@ -77,6 +77,9 @@ type CustomFeedResponse struct {
 	Type string `json:"type"`
 	// What it is called.
 	Name string `json:"name"`
+	// Its name as its address reads it, /feeds/12-arts-design, or "" for a
+	// name with nothing Latin in it (roadmap row 176). Only the id is read.
+	Slug string `json:"slug"`
 	// What it is for, in its owner's words.
 	Body string `json:"body"`
 	// Who may see it.
@@ -176,6 +179,7 @@ func (h *customFeedHandler) respond(feed *entities.AnahitaNode, viewer *entities
 		ID:         feed.ID,
 		Type:       feed.Type,
 		Name:       feed.Name,
+		Slug:       feeds.Slug(feed.Name),
 		Body:       feed.Body,
 		Access:     feed.Access,
 		Icon:       icon,
