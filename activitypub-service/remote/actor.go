@@ -233,10 +233,60 @@ func KeyOwner(ctx context.Context, fetcher Fetcher, keyID string) (string, error
 type jrd struct {
 	Subject string `json:"subject"`
 	Links   []struct {
-		Rel  string `json:"rel"`
-		Type string `json:"type"`
-		Href string `json:"href"`
+		Rel      string `json:"rel"`
+		Type     string `json:"type"`
+		Href     string `json:"href"`
+		Template string `json:"template"`
 	} `json:"links"`
+}
+
+// Where a server sends its own people to act on something from elsewhere
+// (roadmap row 134): FEP-3b86's intents, and OStatus's subscribe, which
+// came before them. Each template has a place for the thing's address.
+const (
+	intentFollow = "https://w3id.org/fep/3b86/Follow"
+	intentObject = "https://w3id.org/fep/3b86/Object"
+	subscribe    = "http://ostatus.org/schema/1.0/subscribe"
+)
+
+// Intent is the page on somebody's own server where they act on the thing
+// at `address`: follow it, when `follow`, or answer, like or repost it.
+// FEP-3b86's intent first, as it advises, then OStatus's subscribe; "" and
+// no error when their server publishes neither. Only an https page.
+func Intent(ctx context.Context, fetcher Fetcher, username, host, address string, follow bool) (string, error) {
+	if username == "" || host == "" {
+		return "", ErrNoSuchOne
+	}
+	query := url.Values{"resource": {"acct:" + strings.ToLower(username) + "@" + strings.ToLower(host)}}
+	var found jrd
+	if _, err := fetcher.JSON(ctx, "https://"+host+"/.well-known/webfinger?"+query.Encode(), &found); err != nil {
+		return "", err
+	}
+
+	templates := map[string]string{}
+	for _, link := range found.Links {
+		if link.Template != "" {
+			templates[link.Rel] = link.Template
+		}
+	}
+	wanted := []string{intentObject, subscribe}
+	if follow {
+		wanted = []string{intentFollow, intentObject, subscribe}
+	}
+	for _, rel := range wanted {
+		template := templates[rel]
+		if template == "" {
+			continue
+		}
+		filled := strings.NewReplacer(
+			"{uri}", url.QueryEscape(address),
+			"{object}", url.QueryEscape(address),
+		).Replace(template)
+		if page, err := httpsURL(filled); err == nil && page.Host != "" {
+			return filled, nil
+		}
+	}
+	return "", nil
 }
 
 // Resolve finds where a handle points: alice@mastodon.example to the

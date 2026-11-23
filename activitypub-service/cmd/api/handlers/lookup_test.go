@@ -290,3 +290,31 @@ func TestTheInstallationDescribesItself(t *testing.T) {
 		t.Errorf("with no address: %d", rec.Code)
 	}
 }
+
+// The address of a post, as somebody here is sent home with to answer it
+// (roadmap row 134): the post is kept, as a repost's is, and answered with
+// its id here and its type. A reply, or a post kept from nobody, is not.
+func TestThePostAnAddressNamesIsFoundAndKept(t *testing.T) {
+	const status = "https://mastodon.example/users/alice/statuses/78"
+	page := `{"id":"` + status + `","type":"Note","attributedTo":"` + aliceID + `","content":"<p>Coffee, again.</p>","to":["https://www.w3.org/ns/activitystreams#Public"]}`
+
+	w, _ := settledWorld()
+	w.fetcher.pages = map[string]string{status: page}
+	rec := w.call(w.h.Lookup, http.MethodGet, "/activitypub/lookup?q="+status, "", anaID)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("looked up: %d %s", rec.Code, rec.Body.String())
+	}
+	var found RemotePerson
+	_ = json.Unmarshal(rec.Body.Bytes(), &found)
+	kept := w.keptAt(status)
+	if kept == nil || found.ID != kept.ID || found.Type != constants.NodeMediumNoteEntityType || found.URI != status {
+		t.Errorf("answered %+v, kept %+v", found, kept)
+	}
+
+	// A reply is not kept by its address alone.
+	const reply = "https://mastodon.example/users/alice/statuses/79"
+	w.fetcher.pages[reply] = `{"id":"` + reply + `","type":"Note","attributedTo":"` + aliceID + `","inReplyTo":"` + status + `","content":"<p>And more.</p>","to":["https://www.w3.org/ns/activitystreams#Public"]}`
+	if rec := w.call(w.h.Lookup, http.MethodGet, "/activitypub/lookup?q="+reply, "", anaID); rec.Code == http.StatusOK {
+		t.Errorf("a reply was found by its address: %s", rec.Body.String())
+	}
+}

@@ -1,4 +1,4 @@
-# Following from another server (roadmap row 134)
+# Following from another server (roadmap row 134, done 2026-11-23)
 
 Asked for by the user on 2026-11-07, and confirmed on 2026-11-22: "I should
 be able to follow someone on any other ActivityPub instance and they should
@@ -10,11 +10,28 @@ cached profile."
 
 | # | What | Status |
 | --- | --- | --- |
-| 1 | WebFinger lists where people here act on something from elsewhere: OStatus `subscribe`, FEP-3b86 `Object` and `Follow` | ⬜ |
-| 2 | `/authorize_interaction?uri=` in the web app: whoever or whatever is named, looked up and opened, after signing in if need be | ⬜ |
-| 3 | The lookup takes a post's address too, keeping a public post from elsewhere as a repost's is kept | ⬜ |
-| 4 | Somebody from elsewhere on a page here: their handle, their server's own page to follow, like, reply or repost from | ⬜ |
-| 5 | The docs; tried with Mastodon's and Pixelfed's own pages where possible; changelogs | ⬜ |
+| 1 | WebFinger lists where people here act on something from elsewhere: OStatus `subscribe`, FEP-3b86 `Object` and `Follow` | ✅ 2026-11-23 |
+| 2 | `/authorize_interaction?uri=` in the web app: whoever or whatever is named, looked up and opened, after signing in if need be | ✅ 2026-11-23: `utils/afterSignIn.js` brings them back after signing in |
+| 3 | The lookup takes a post's address too, keeping a public post from elsewhere as a repost's is kept | ✅ 2026-11-23 |
+| 4 | Somebody from elsewhere on a page here: their handle, their server's own page to follow, like, reply or repost from | ✅ 2026-11-23: + Follow on a profile; on a post, an icon in its row of actions, as a text button wrapped on a mobile |
+| 5 | The docs; tried with Mastodon's and Pixelfed's own pages where possible; changelogs | ✅ 2026-11-23, not with a real Mastodon or Pixelfed |
+
+### Notes
+
+1. Tried on the dev stack: WebFinger lists the three templates; the intent
+   answers `intent_none` with the address for a server with none,
+   `intent_handle` for a handle that is not one, `intent_not_out` for Worf,
+   who is not on the fediverse. A visitor sees + Follow on @rastin and the
+   icon under his post, at both sizes, and the dialog refuses `alice`.
+   `/authorize_interaction` with a handle on `example.invalid` sent the
+   visitor to sign in, brought them back, and said it could not be found;
+   an address of this site opened as it is.
+2. Not tried against a real Mastodon or Pixelfed, so that the dev stack
+   did not reach out under its own domain: the tests use mastodon.social's
+   templates as they were read on 2026-11-22.
+3. On the dev stack the web app asks WebFinger at `localhost` while handles
+   are at the public domain, so + Follow does not show there for visitors,
+   nor does the About card's handle; on a site, both are one domain.
 
 ## Contents
 

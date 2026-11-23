@@ -470,7 +470,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | Plan | Roadmap item | Status |
 | --- | --- | --- |
 | [A profile's link card](plans/profile-cards.md) | row 172 | planned 2026-11-23 |
-| [Following from another server](plans/remote-interaction.md) | row 134 | planned 2026-11-23 |
+| [Following from another server](plans/done/remote-interaction.md) | row 134 | built 2026-11-23 |
 | [Search engine indexing](plans/done/search-engines.md) | row 174 | built 2026-11-22 |
 | [Recommendation service](plans/done/recommendation-service.md) | 3 | built 2026-10-11 |
 | [Content warnings](plans/done/content-warnings.md) | 122 | done 2026-11-16: six kinds, Made with AI the sixth, which starts at Show; an author's or the administrators' (a report's case, `warned`); each reader's Show, Warn or Hide in Settings › Content; both networks in and out |

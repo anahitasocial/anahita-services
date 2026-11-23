@@ -30,6 +30,12 @@ Releases before v1.0.17 are described on GitHub, under
    name as its address reads it, and web-shell describes a public feed of a
    public profile at `/feeds/12-arts-design`, its canonical link, for link
    previews and search engines.
+4. **Following and answering from another server's page,** both ways
+   (roadmap row 134). WebFinger lists, for everybody on the fediverse here,
+   OStatus's `subscribe` and FEP-3b86's `Object` and `Follow`, all at the
+   web app's `/authorize_interaction?uri=`; the lookup takes a post's
+   address too; and `GET /activitypub/intent` tells a visitor from another
+   server where their own server lets them follow or answer something here.
 
 ### Changed
 

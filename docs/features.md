@@ -122,7 +122,7 @@ is gathered at the end, [for planning](#not-built).
 | Bookmarks | yes | Saved posts |
 | Join fediverse groups | planned | Roadmap row 73 |
 | Host groups or communities | yes | [Groups](groups.md) |
-| Interact from another server | planned | Roadmap row 134 |
+| Interact from another server | yes | Both ways: `/authorize_interaction` for people here, and + Follow and answering from one's own server for visitors ([Federation](federation.md#from-a-page-on-another-server)) |
 | Events | yes | [Events](events.md) |
 
 ## Privacy and safety
@@ -222,8 +222,8 @@ Every **no** and **planned** above, gathered for planning.
 4. Verified profile links: [Verified domains](plans/verified-domains.md)
 5. Importing server blocklists:
    [Refusing servers from a file](plans/domain-block-import.md)
-6. Interacting from another server, forwarding reports and joining
-   fediverse groups: roadmap rows 134, 177 and 73, plans to be written
+6. Forwarding reports and joining fediverse groups: roadmap rows 177 and
+   73, plans to be written
 7. An official mobile app, Anahita Mobile
 
 **Decided against, or put off, with why:**

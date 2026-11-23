@@ -65,6 +65,11 @@ func (h *Handlers) WebFinger(c echo.Context) error {
 		Links: []ap.JRDLink{
 			{Rel: "self", Type: "application/activity+json", Href: actor},
 			{Rel: "http://webfinger.net/rel/profile-page", Type: "text/html", Href: profile},
+			// Where they are sent from a page elsewhere (roadmap row 134):
+			// one page of the web app, as Mastodon and Pixelfed have it.
+			{Rel: ap.RelSubscribe, Template: h.Site.Web("/authorize_interaction?uri={uri}")},
+			{Rel: ap.RelIntentObject, Template: h.Site.Web("/authorize_interaction?uri={object}")},
+			{Rel: ap.RelIntentFollow, Template: h.Site.Web("/authorize_interaction?uri={object}")},
 		},
 	})
 }

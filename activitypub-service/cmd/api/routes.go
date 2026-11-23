@@ -1,9 +1,12 @@
 package main
 
 import (
+	"net/http"
+
 	"activitypub/cmd/api/handlers"
 
 	"anahita-libs/apidoc"
+	"anahita-libs/responses"
 
 	"github.com/labstack/echo/v4"
 )
@@ -37,6 +40,25 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 
 	// What other servers ask of this installation, and send to it.
 	r.serverRoutes(api)
+
+	// Where somebody from another server, on a page here and not signed in,
+	// is sent to act on it from their own server (roadmap row 134). Outside
+	// the group below: it needs no token.
+	api.GET("/activitypub/intent", r.handler.Intent, r.setViewer).
+		Summary("Where somebody from another server acts on something here").
+		Describe("Given their handle, the page on their own server where they follow a profile "+
+			"here, or answer, like or repost a post here: their server's FEP-3b86 intent, else its "+
+			"OStatus subscribe page. With none, `error` is `intent_none` and `address` is what to "+
+			"search for there. Thirty in ten minutes from one address.").
+		Viewer(apidoc.Anyone).
+		Takes(&handlers.IntentRequest{}).
+		Unbound().
+		Sends(http.StatusOK, handlers.Intent{}).
+		Sends(http.StatusBadRequest, responses.Refusal{}, "`intent_handle`: not a handle on another server").
+		Sends(http.StatusNotFound, responses.Refusal{}, "`intent_not_out`: the profile or the post is not on the fediverse").
+		Sends(http.StatusConflict, responses.Refusal{}, "the installation is not on the fediverse: "+
+			"`site_private` or `site_unreachable`").
+		Sends(http.StatusTooManyRequests, responses.Refusal{}, "`too_many_intents`")
 
 	// --- Asked by people here ---
 	// Everything under /activitypub is asked by somebody signed in here, so

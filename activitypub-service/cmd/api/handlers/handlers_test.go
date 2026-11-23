@@ -336,6 +336,18 @@ func TestWebFingerFindsWhoChoseToBeFound(t *testing.T) {
 			jrd.Links[0].Href != "https://api.example.org/ap/users/"+anaUUID {
 			t.Errorf("%s: answered %+v", resource, jrd)
 		}
+		// Where she is sent from a page elsewhere (roadmap row 134).
+		templates := map[string]string{}
+		for _, link := range jrd.Links {
+			if link.Template != "" {
+				templates[link.Rel] = link.Template
+			}
+		}
+		if templates[ap.RelSubscribe] != "https://example.org/authorize_interaction?uri={uri}" ||
+			templates[ap.RelIntentObject] != "https://example.org/authorize_interaction?uri={object}" ||
+			templates[ap.RelIntentFollow] != "https://example.org/authorize_interaction?uri={object}" {
+			t.Errorf("%s: templates %v", resource, templates)
+		}
 		if !strings.HasPrefix(rec.Header().Get("Content-Type"), "application/jrd+json") || rec.Header().Get("Access-Control-Allow-Origin") != "*" {
 			t.Errorf("%s: headers %v", resource, rec.Header())
 		}

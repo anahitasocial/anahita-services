@@ -144,4 +144,16 @@ type JRDLink struct {
 	Rel  string `json:"rel"`
 	Type string `json:"type,omitempty"`
 	Href string `json:"href,omitempty"`
+	// An address with a place to fill: where somebody is sent to act on
+	// something from elsewhere (roadmap row 134).
+	Template string `json:"template,omitempty"`
 }
+
+// Where people here are sent from a page elsewhere, to follow somebody or
+// act on a post there (roadmap row 134): OStatus's subscribe, which
+// Mastodon and Pixelfed publish, and FEP-3b86's intents.
+const (
+	RelSubscribe    = "http://ostatus.org/schema/1.0/subscribe"
+	RelIntentObject = "https://w3id.org/fep/3b86/Object"
+	RelIntentFollow = "https://w3id.org/fep/3b86/Follow"
+)

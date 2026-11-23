@@ -31,26 +31,27 @@ Bluesky account they already have. See [Bluesky](#bluesky).
 10. [Looking somebody up on another server](#looking-somebody-up-on-another-server)
 11. [Being followed from another server](#being-followed-from-another-server)
 12. [Following somebody on another server](#following-somebody-on-another-server)
-13. [Somebody who moved](#somebody-who-moved)
-14. [Moving one's own account](#moving-ones-own-account)
-15. [Posts going out](#posts-going-out)
-16. [Quotes](#quotes)
-17. [Posts coming in](#posts-coming-in)
-18. [What can be done with what came from elsewhere](#what-can-be-done-with-what-came-from-elsewhere)
-19. [The inbox](#the-inbox)
-20. [What is sent, and when it does not arrive](#what-is-sent-and-when-it-does-not-arrive)
-21. [Signing keys and signed requests](#signing-keys-and-signed-requests)
-22. [The API](#the-api)
-23. [Leaving, and what follows a person's changes](#leaving-and-what-follows-a-persons-changes)
-24. [Replies](#replies)
-25. [Likes and reposts](#likes-and-reposts)
-26. [Servers that are refused](#servers-that-are-refused)
-27. [Accounts that are refused](#accounts-that-are-refused)
-28. [Pictures that are removed](#pictures-that-are-removed)
-29. [Posts and people that are removed](#posts-and-people-that-are-removed)
-30. [Bluesky](#bluesky)
-31. [Where the code is](#where-the-code-is)
-32. [Further reading](#further-reading)
+13. [From a page on another server](#from-a-page-on-another-server)
+14. [Somebody who moved](#somebody-who-moved)
+15. [Moving one's own account](#moving-ones-own-account)
+16. [Posts going out](#posts-going-out)
+17. [Quotes](#quotes)
+18. [Posts coming in](#posts-coming-in)
+19. [What can be done with what came from elsewhere](#what-can-be-done-with-what-came-from-elsewhere)
+20. [The inbox](#the-inbox)
+21. [What is sent, and when it does not arrive](#what-is-sent-and-when-it-does-not-arrive)
+22. [Signing keys and signed requests](#signing-keys-and-signed-requests)
+23. [The API](#the-api)
+24. [Leaving, and what follows a person's changes](#leaving-and-what-follows-a-persons-changes)
+25. [Replies](#replies)
+26. [Likes and reposts](#likes-and-reposts)
+27. [Servers that are refused](#servers-that-are-refused)
+28. [Accounts that are refused](#accounts-that-are-refused)
+29. [Pictures that are removed](#pictures-that-are-removed)
+30. [Posts and people that are removed](#posts-and-people-that-are-removed)
+31. [Bluesky](#bluesky)
+32. [Where the code is](#where-the-code-is)
+33. [Further reading](#further-reading)
 
 ## What it is
 
@@ -402,7 +403,7 @@ No more than the person's public profile already shows a visitor.
 
 | Address | Answers |
 | --- | --- |
-| `/.well-known/webfinger?resource=acct:ana@example.org` | Where the person is: their address, and their page, `https://example.org/@ana`, which is also their `url`, the link Mastodon shows for their profile. Also answered for their address and for their page's, and for the older `/people/ana` |
+| `/.well-known/webfinger?resource=acct:ana@example.org` | Where the person is: their address, and their page, `https://example.org/@ana`, which is also their `url`, the link Mastodon shows for their profile; and where they are sent from a page elsewhere ([From a page on another server](#from-a-page-on-another-server)). Also answered for their address and for their page's, and for the older `/people/ana` |
 | `/.well-known/host-meta` | Where WebFinger is, for servers that ask the older way |
 | `/ap/users/<uuid>` | Who they are: name, username, what they say of themselves as HTML that is safe to show, their avatar and cover at [addresses that stay](architecture.md#what-a-node-is-called-elsewhere), when they joined, whether a follow waits to be approved, and the public half of their signing key |
 | `/ap/users/<uuid>/followers`, `/following` | How many, and never who |
@@ -557,6 +558,44 @@ to know to look them up again.
   [the sweep](#what-the-bus-lost) finds it, within a few minutes, and asks.
   The same for a request; and a request still waiting is not taken for a
   follow that is gone.
+
+## From a page on another server
+
+Somebody reading a page of another server can follow, answer, like or
+repost from where they have an account, without copying an address into a
+search box (roadmap row 134). It works both ways.
+
+**Somebody here, on a page of Mastodon, Pixelfed or the like.** They give
+their handle there, and that server reads this one's WebFinger, which lists,
+for everybody on the fediverse here, where to send them:
+
+| `rel` | `template` |
+| --- | --- |
+| `http://ostatus.org/schema/1.0/subscribe` | `https://example.org/authorize_interaction?uri={uri}` |
+| `https://w3id.org/fep/3b86/Object` | `https://example.org/authorize_interaction?uri={object}` |
+| `https://w3id.org/fep/3b86/Follow` | `https://example.org/authorize_interaction?uri={object}` |
+
+The first is what Mastodon and Pixelfed publish themselves, at the same
+path; the others are FEP-3b86's, still a draft. The web app's
+`/authorize_interaction` looks up what `uri` names, a profile or a post,
+through `GET /activitypub/lookup`, keeps it, and opens it, + Follow, Like and
+Reply at hand. Somebody signed out signs in first and is brought back. A
+post is kept as a reposted one is: public, beginning its thread, by somebody
+on the server it is on; anything else is said to be not found, with a way
+to search for it.
+
+**Somebody from another server, on a page here, not signed in.** A profile
+on the fediverse shows them + Follow, and a post of one, in its row of
+actions, a way to answer it from their own server. Either asks their
+handle, kept in their browser for next time, and
+`GET /activitypub/intent?handle=…&node_id=…` answers where to send them:
+their server's FEP-3b86 `Follow` or `Object` intent, else its `subscribe`
+page, filled in with the profile's or the post's address here. A server
+that publishes neither, does not answer, or is refused here is answered
+`"error": "intent_none"`, with the `address` to search for on it. Only a
+profile that chose the fediverse and a post that went out are offered;
+anything else is `404 intent_not_out`. Thirty asked in ten minutes from one
+address.
 
 ## Somebody who moved
 
@@ -1191,7 +1230,8 @@ Signed in, for the person themselves:
 | `GET /activitypub/known-profiles` | Administrators: who from other networks is kept here, for the list in the site settings' Federated tab |
 | `GET /activitypub/aliases`, `PUT /activitypub/aliases` `{ "also_known_as": ["ana@old.example"] }` | The old accounts the viewer's also is, for moving in ([Moving one's own account](#moving-ones-own-account)) |
 | `GET /activitypub/move`, `POST /activitypub/move` `{ "to": "ana@new.example" }`, `DELETE /activitypub/move` | Whether the viewer's account moved; moving it away, after step-up; coming back |
-| `GET /activitypub/lookup?q=@alice@mastodon.example` | Finds somebody on another server, by handle or by the address of their profile, and keeps them |
+| `GET /activitypub/lookup?q=@alice@mastodon.example` | Finds somebody on another server, by handle or by the address of their profile, and keeps them; or a post, by its address |
+| `GET /activitypub/intent?handle=@alice@mastodon.example&node_id=12` | Anybody, signed in or not: where somebody from another server is sent to follow a profile here or act on a post here ([From a page on another server](#from-a-page-on-another-server)) |
 
 ~~~json
 {
@@ -1229,7 +1269,9 @@ A lookup answers with who was found:
 }
 ~~~
 
-or with why not: `400 lookup_unreadable` (not a handle or an https address),
+For the address of a post, it answers with the post, kept here: its `id`,
+its `type`, a post's, its `uri` and `origin_domain`. Otherwise it answers
+with why not: `400 lookup_unreadable` (not a handle or an https address),
 `404 lookup_is_here` (somebody on this installation), `404 lookup_not_found`,
 `404 lookup_not_a_person` (a group, a post), `502 lookup_failed` (the other
 server could not be reached or understood), `429 too_many_lookups`.

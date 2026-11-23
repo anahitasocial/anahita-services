@@ -86,7 +86,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 </ul>
 <p class="group">Fediverse and Bluesky</p>
 <ul>
-<li><a href="#activitypub-service">The fediverse</a> <span class="count">31</span></li>
+<li><a href="#activitypub-service">The fediverse</a> <span class="count">32</span></li>
 <li><a href="#atproto-service">Bluesky</a> <span class="count">7</span></li>
 <li><a href="#syndication-service">Channels</a> <span class="count">7</span></li>
 </ul>
@@ -96,7 +96,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 </ul>
 <p class="group">Reference</p>
 <ul>
-<li><a href="#schemas">Shapes</a> <span class="count">182</span></li>
+<li><a href="#schemas">Shapes</a> <span class="count">183</span></li>
 </ul>
 </nav>
 <main>
@@ -10607,6 +10607,32 @@ who may call it: a super administrator.">
 </table>
 <p class="handler">Answered by <code>activitypub/cmd/api/handlers.(*Handlers).DeleteBlock</code></p>
 </details>
+<details class="route" id="getActivitypubIntent" data-search="get /activitypub/intent where somebody from another server acts on something here given their handle, the page on their own server where they follow a profile here, or answer, like or repost a post here: their server&#39;s fep-3b86 intent, else its ostatus subscribe page. with none, `error` is `intent_none` and `address` is what to search for there. thirty in ten minutes from one address.
+
+who may call it: anyone, signed in or not.">
+<summary><span class="method get">GET</span> <code class="path">/activitypub/intent</code> <span class="summary">Where somebody from another server acts on something here</span></summary>
+<div class="description"><p>Given their handle, the page on their own server where they follow a profile here, or answer, like or repost a post here: their server&#39;s FEP-3b86 intent, else its OStatus subscribe page. With none, <code>error</code> is <code>intent_none</code> and <code>address</code> is what to search for there. Thirty in ten minutes from one address.</p></div>
+<p class="who"><strong>Who:</strong> anyone, signed in or not</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>handle</code></td><td>query</td><td>string</td><td>Their handle, @name@server, the first @ or not.</td></tr>
+<tr><td><code>node_id</code></td><td>query</td><td>string</td><td>The profile or the post here.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-activitypub.Intent">activitypub.Intent</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>intent_handle</code>: not a handle on another server<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">404</td><td><code>intent_not_out</code>: the profile or the post is not on the fediverse<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">409</td><td>the installation is not on the fediverse: <code>site_private</code> or <code>site_unreachable</code><div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">429</td><td><code>too_many_intents</code><div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>activitypub/cmd/api/handlers.(*Handlers).Intent</code></p>
+</details>
 <details class="route" id="getActivitypubKnownProfiles" data-search="get /activitypub/known-profiles who from other networks is kept here newest first. `q` narrows it to the names and handles it is found in. for administrators: these people did not ask to be listed.
 
 who may call it: a site administrator.">
@@ -12847,6 +12873,18 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
+<div class="route schema" id="schema-activitypub.Intent" data-search="activitypub.intent address error url">
+<h3>activitypub.Intent</h3>
+<p>Where they are sent, or, when there is nowhere, the address to search for on their server.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>address</code> <span class="required">always</span></td><td>string</td><td>What they would act on, as other servers know it: to search for when there is no page to send them to.</td></tr>
+<tr><td><code>error</code></td><td>string</td><td>Why there is no page, when there is none.</td></tr>
+<tr><td><code>url</code></td><td>string</td><td>Their server&#39;s own page for it.</td></tr>
+</tbody>
+</table>
+</div>
 <div class="route schema" id="schema-activitypub.InteractionPolicy" data-search="activitypub.interactionpolicy canquote">
 <h3>activitypub.InteractionPolicy</h3>
 <p>InteractionPolicy says who may do what with a post: here, who may quote it, approved without being asked.</p>
@@ -12869,13 +12907,14 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-activitypub.JRDLink" data-search="activitypub.jrdlink href rel type">
+<div class="route schema" id="schema-activitypub.JRDLink" data-search="activitypub.jrdlink href rel template type">
 <h3>activitypub.JRDLink</h3>
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
 <tr><td><code>href</code></td><td>string</td><td></td></tr>
 <tr><td><code>rel</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+<tr><td><code>template</code></td><td>string</td><td>An address with a place to fill: where somebody is sent to act on something from elsewhere (roadmap row 134).</td></tr>
 <tr><td><code>type</code></td><td>string</td><td></td></tr>
 </tbody>
 </table>

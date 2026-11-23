@@ -81,7 +81,18 @@ func (h *Handlers) Lookup(c echo.Context) error {
 	ctx, cancel := context.WithTimeout(c.Request().Context(), 3*fetch.Timeout)
 	defer cancel()
 
-	actor, code := h.find(ctx, c.QueryParam("q"))
+	query := strings.TrimSpace(c.QueryParam("q"))
+	actor, code := h.find(ctx, query)
+	// The address of a post, not of somebody: the post, kept as a repost's
+	// is, when it is public and begins its thread (roadmap row 134, for a
+	// post somebody here was sent home to answer).
+	if actor == nil && code == errLookupKind && strings.HasPrefix(query, "https://") {
+		if post, err := h.fetchNote(ctx, query); err == nil && post != nil && post.ID > 0 {
+			return c.JSON(http.StatusOK, &RemotePerson{
+				ID: post.ID, Type: post.Type, URI: post.URI, OriginDomain: post.OriginDomain,
+			})
+		}
+	}
 	if actor == nil {
 		status := http.StatusNotFound
 		switch code {
@@ -101,6 +112,9 @@ func (h *Handlers) Lookup(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, person)
 }
+
+// The answer is somebody, or, for the address of a post, the post: its id
+// here and its type, by which it is opened.
 
 // LookupFromTheCommandLine does what Lookup does for whoever runs the
 // service, with nobody signed in: `app-binary lookup @alice@example.net`.

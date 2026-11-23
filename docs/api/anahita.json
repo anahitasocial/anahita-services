@@ -2999,6 +2999,27 @@
         ],
         "type": "object"
       },
+      "activitypub.Intent": {
+        "description": "Intent is where they are sent, or, when there is nowhere, the address to search for on their server.",
+        "properties": {
+          "address": {
+            "description": "What they would act on, as other servers know it: to search for when there is no page to send them to.",
+            "type": "string"
+          },
+          "error": {
+            "description": "Why there is no page, when there is none.",
+            "type": "string"
+          },
+          "url": {
+            "description": "Their server's own page for it.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "address"
+        ],
+        "type": "object"
+      },
       "activitypub.InteractionPolicy": {
         "description": "InteractionPolicy says who may do what with a post: here, who may quote it, approved without being asked.",
         "properties": {
@@ -3042,6 +3063,10 @@
             "type": "string"
           },
           "rel": {
+            "type": "string"
+          },
+          "template": {
+            "description": "An address with a place to fill: where somebody is sent to act on something from elsewhere (roadmap row 134).",
             "type": "string"
           },
           "type": {
@@ -9378,6 +9403,94 @@
         ],
         "x-handler": "activitypub/cmd/api/handlers.(*Handlers).DeleteBlock",
         "x-viewer": "super_admin"
+      }
+    },
+    "/activitypub/intent": {
+      "get": {
+        "description": "Given their handle, the page on their own server where they follow a profile here, or answer, like or repost a post here: their server's FEP-3b86 intent, else its OStatus subscribe page. With none, `error` is `intent_none` and `address` is what to search for there. Thirty in ten minutes from one address.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getActivitypubIntent",
+        "parameters": [
+          {
+            "description": "Their handle, @name@server, the first @ or not.",
+            "in": "query",
+            "name": "handle",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The profile or the post here.",
+            "in": "query",
+            "name": "node_id",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/activitypub.Intent"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`intent_handle`: not a handle on another server"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`intent_not_out`: the profile or the post is not on the fediverse"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "the installation is not on the fediverse: `site_private` or `site_unreachable`"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`too_many_intents`"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Where somebody from another server acts on something here",
+        "tags": [
+          "activitypub-service"
+        ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).Intent",
+        "x-viewer": "anyone"
       }
     },
     "/activitypub/known-profiles": {
