@@ -56,6 +56,10 @@ type MediumNodeItem struct {
 	// Its content warning, when it has one: shown in place of the post
 	// until the reader chooses to see it.
 	Warning *Warning `json:"warning,omitempty"`
+	// That it is in its author's media library only, in their own list of
+	// photos or videos, which alone lists it with the rest (roadmap row
+	// 178).
+	LibraryOnly bool `json:"library_only,omitempty"`
 	// On a note that quotes a post: that post, or why it is not shown.
 	Quote *QuoteEmbed `json:"quote,omitempty"`
 	// The id of the post it quotes, whether or not it is shown.
@@ -279,6 +283,7 @@ func (r *MediumNodeResponse) MapMediumNodeItem(node *entities.AnahitaNode) *Medi
 		Audio:                NewAudio(node),
 		MediaElsewhere:       NewElsewhere(node),
 		Warning:              NewWarning(node),
+		LibraryOnly:          node.LibraryOnly,
 		Quote:                NewQuoteEmbed(node),
 		QuoteID:              node.QuoteID,
 		Deleted:              node.RootID > 0 && node.DeletedAt != nil,

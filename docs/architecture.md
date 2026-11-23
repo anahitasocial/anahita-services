@@ -235,7 +235,10 @@ service sends it, its sweeper included.
   by the worker). Only on one's own profile; never a reply. Set once.
 - **Listed** by `GET /photos/<id>/?library=1` and `/videos/<id>/?library=1`:
   all of the viewer's own photos or videos on their own profile, these
-  with them. Nobody else's.
+  with them, each saying `library_only` (in a list too, since roadmap row
+  178). Nobody else's. The web app asks so for the article editor's
+  library, and for one's own Photos and Videos tabs, where they can be
+  edited and deleted as any post.
 - A post saved before it was in a library, or quoted, is still found
   where it was: those lists are the viewer's own doing.
 

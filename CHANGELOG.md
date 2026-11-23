@@ -23,6 +23,11 @@ Releases before v1.0.17 are described on GitHub, under
    a post from another server is always sent with `noindex`, since its own
    server's page is the one to be found ([Web shell](docs/web-shell.md#search-engines)).
 
+### Changed
+
+1. **A list of photos or videos says which are in their author's media
+   library only** (`library_only`), as a single post did already.
+
 ### Upgrading
 
 1. Run the migration job before the new services: it adds

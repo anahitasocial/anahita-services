@@ -618,6 +618,10 @@
             "description": "The language the author said it is written in. Left out when they did not say.",
             "type": "string"
           },
+          "library_only": {
+            "description": "That it is in its author's media library only, in their own list of photos or videos, which alone lists it with the rest (roadmap row 178).",
+            "type": "boolean"
+          },
           "likes_count": {
             "description": "How many like it.",
             "format": "int64",
