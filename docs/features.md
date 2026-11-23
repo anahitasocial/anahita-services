@@ -118,11 +118,11 @@ is gathered at the end, [for planning](#not-built).
 | Direct messages | planned | [Direct messages](plans/direct-messages.md) |
 | Approve followers manually | yes | Follow requests |
 | Follow hashtags | yes | And locations |
-| Lists | no | Custom feeds instead ([Custom feeds](feeds.md)) |
+| Lists | no | Custom feeds are lists already: chosen profiles, and more ([Custom feeds](feeds.md)) |
 | Bookmarks | yes | Saved posts |
-| Join fediverse groups | no | |
+| Join fediverse groups | planned | Roadmap row 73 |
 | Host groups or communities | yes | [Groups](groups.md) |
-| Interact from another server | no | |
+| Interact from another server | planned | Roadmap row 134 |
 | Events | yes | [Events](events.md) |
 
 ## Privacy and safety
@@ -130,14 +130,14 @@ is gathered at the end, [for planning](#not-built).
 | Feature | Anahita | |
 | --- | --- | --- |
 | Followers-only posts | yes | [Privacy](privacy.md) |
-| Unlisted posts | no | |
+| Unlisted posts | no | Decided against (2026-11-22) |
 | Block accounts | yes | |
 | Mute accounts | yes | For a day, a week, a month or until lifted, with their notifications or without ([Permissions](permissions.md#mutes)) |
 | Block whole servers (personal) | yes | Nothing from the server, or one under it, is shown; follows with people there end both ways ([Permissions](permissions.md#blocking-a-server)) |
 | Word filters | no | |
 | Hide follower and following lists | yes | Who may see them, never wider than the profile; the counts stay ([Permissions](permissions.md#who-sees-a-profiles-followers-and-whom-it-follows)) |
 | Choose whether posts are searchable | yes | Whether other servers may find them ([Federation](federation.md)) |
-| Hide from search engines | no | |
+| Hide from search engines | planned | Roadmap row 174 |
 | Signed fetches required (secure mode) | no | On the roadmap, kept for later (row 157) |
 
 ## Moderation
@@ -145,7 +145,7 @@ is gathered at the end, [for planning](#not-built).
 | Feature | Anahita | |
 | --- | --- | --- |
 | Report content | yes | [Abuse reports](abuse-reports.md) |
-| Forward reports to other servers | no | |
+| Forward reports to other servers | planned | Roadmap row 177 |
 | Block servers (admin) | yes | [Federation](federation.md) |
 | Limit servers | no | |
 | Allowlist federation | no | |
@@ -164,7 +164,7 @@ is gathered at the end, [for planning](#not-built).
 | Full-text search | yes | [Search](search.md) |
 | Trending content | yes | [Hashtags and locations](hashtags.md#trending) |
 | Profile directory | yes | |
-| Local timeline | no | |
+| Local timeline | planned | A custom feed of everyone, written here (roadmap row 175) |
 | Federated timeline | no | |
 | RSS feeds | no | |
 | Relay support | no | |
@@ -176,7 +176,7 @@ is gathered at the end, [for planning](#not-built).
 | NodeInfo | yes | [Registration](registration.md#nodeinfo) |
 | RFC 9421 HTTP signatures | no | The older draft signatures Mastodon uses |
 | Object integrity proofs | no | |
-| Group federation (FEP-1b12) | no | Put off on 2026-10-17: a group's posts are its members', each needing their consent |
+| Group federation (FEP-1b12) | planned | Roadmap row 73: both ways, each post its author's own, sent out only with their consent |
 | Fetches missing replies | no | |
 | Diaspora protocol | no | |
 | Nomadic identity | no | |
@@ -222,14 +222,18 @@ Every **no** and **planned** above, gathered for planning.
 4. Verified profile links: [Verified domains](plans/verified-domains.md)
 5. Importing server blocklists:
    [Refusing servers from a file](plans/domain-block-import.md)
-6. An official mobile app, Anahita Mobile
+6. Interacting from another server, hiding from search engines, a site's
+   own timeline, forwarding reports and joining fediverse groups: roadmap
+   rows 134, 174, 175, 177 and 73, plans to be written
+7. An official mobile app, Anahita Mobile
 
 **Decided against, or put off, with why:**
 
 1. Mastodon's client API: Anahita's apps show all of Anahita, which
    Mastodon's do not have a place for (2026-10-12).
-2. Group federation: a group's posts are its members', each needing their
-   consent and an author on the fediverse (put off 2026-10-17).
+2. Lists: custom feeds are lists already (2026-11-22).
+3. Unlisted posts: Anahita has no public timeline to leave a post out of;
+   a site's timeline is a feed somebody makes (2026-11-22).
 
 **Not built, and open to plan:**
 
@@ -241,14 +245,12 @@ Every **no** and **planned** above, gathered for planning.
 3. **Media:** a focal point; photo filters.
 4. **Video:** adaptive streaming (HLS); captions, and automatic ones; live
    streaming; chapters; playlists; podcast feeds; peer-to-peer delivery.
-5. **Interactions:** emoji reactions; downvotes; lists; joining groups on
-   other servers; interacting from another server.
-6. **Privacy and safety:** unlisted posts; word filters; hiding from search
-   engines; requiring signed fetches (row 157, kept for later).
-7. **Moderation:** forwarding reports to other servers; limiting servers;
-   federating only with a list; appeals (row 158, kept for later).
-8. **Discovery:** a local timeline; a federated timeline; RSS feeds of
-   profiles; relays.
+5. **Interactions:** emoji reactions; downvotes.
+6. **Privacy and safety:** word filters; requiring signed fetches (row 157,
+   kept for later).
+7. **Moderation:** limiting servers; federating only with a list; appeals
+   (row 158, kept for later).
+8. **Discovery:** a federated timeline; RSS feeds of profiles; relays.
 9. **Federation:** RFC 9421 signatures; object integrity proofs; fetching
    missing replies; Diaspora; nomadic identity; Webmentions; ActivityPub's
    client-to-server API.
