@@ -24,8 +24,7 @@ nobody else can write.
 3. [What exists](#what-exists)
 4. [Out of scope](#out-of-scope)
 5. [Settled](#settled)
-6. [Open](#open)
-7. [Documentation](#documentation)
+6. [Documentation](#documentation)
 
 ## The proof
 
@@ -86,8 +85,13 @@ nobody else can write.
 1. `nodes.verified`, returned on profiles, set by nobody yet.
 2. `website_url`, one link a profile gives: unchanged, and not proof.
 3. `anahita-libs/domains`: the token, the record's name, the check, as a
-   channel's website uses them, and its daily check again.
-4. The notifications, step-up and the shared rate limiter.
+   channel's website uses them.
+4. In syndication-service, `verified_domains`: a domain being proved or
+   proved, its token, how and when, failing since; `profile_id` is "a
+   channel, and later a person or a group". syndication-worker looks at
+   every proof again once a day. Row 63 adds people's and groups' to the
+   same table and the same daily look, not a second of each.
+5. The notifications, step-up and the shared rate limiter.
 
 ## Out of scope
 
@@ -104,16 +108,18 @@ nobody else can write.
    2026-11-23), not the domain as a handle.
 2. **People, groups and channels** (the user, 2026-11-23), by whoever may
    edit the profile.
-3. **A channel's feed** (the user, 2026-11-23, "a valid Atom or RSS feed is
-   also validation"): open, below.
-
-## Open
-
-1. **A feed as a channel's proof.** A feed is public: anybody can connect
-   one, so a valid feed on a domain proves the feed is there, not that the
-   channel's admins hold the site. Proposed: the channel's token inside its
-   feed (in its description, say) proves it, as only whoever writes the
-   feed can put it there; for a blog, a setting away.
+3. **A channel with a feed is verified by it** (the user, 2026-11-23: "it
+   is fair to count the channel's Atom or RSS feed as an automatic proof").
+   A feed is connected only once its site's domain is proved, by the record
+   or the file, and looked at again each day (`not_proved`,
+   [Channels](../channels.md#proving-a-domain)): that proof is the
+   channel's, with nothing more to do. A channel with no feed proves its
+   domain as a person or a group does.
+4. **A verified channel that adds a feed** (the user, 2026-11-23): a feed
+   on its domain or under it (`domains.Site.Covers`) connects on the proof
+   it has, with no second token; a feed on another domain is proved first,
+   as now, and the channel keeps the domain it is verified for. Taking a
+   feed off takes nothing else: the proof stands, looked at each day.
 
 ## Documentation
 
