@@ -101,7 +101,8 @@ and `all` is kept as nothing, so that a definition reads the same to a
 service that has not heard of it; another value is refused
 (`unknown_match`). The web app offers the choice once two kinds of thing
 to match are filled in, as "Show posts that match: Any of these, All of
-these", and a new feed starts at Any. The feed's sentence says "or" between
+these", and a new feed starts at Any, as does a feed of one kind when a
+second is added to it (roadmap row 173). The feed's sentence says "or" between
 them: "Posts from Naomi, or tagged #ceres". A feed of `any` still needs
 something to match: with no source, a hashtag, a keyword, a location or an
 area. Something it asks for that cannot be read (whoever its owner follows,
