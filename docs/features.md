@@ -30,7 +30,7 @@ is gathered at the end, [for planning](#not-built).
 | Feature | Anahita | |
 | --- | --- | --- |
 | Move to another server with followers | yes | After step-up; the old profile is a signpost and posts nothing more ([Federation](federation.md#moving-ones-own-account)) |
-| Accept followers moving in | yes | By naming the old account in Settings › Fediverse ([Federation](federation.md#moving-ones-own-account)) |
+| Accept followers moving in | yes | By naming the old account in Settings › Federated ([Federation](federation.md#moving-ones-own-account)) |
 | Follow somebody who moved | yes | Who follows them here follows their new account; blocks and mutes carry over too ([Federation](federation.md#somebody-who-moved)) |
 | Export your data | yes | [Download your data](data-export.md) |
 | Import follows, blocks and mutes | yes | And saved posts: from another Anahita's download, or Mastodon's or Misskey's files ([Bring your lists in](imports.md)); follows from one's own Bluesky account too ([Federation](federation.md)) |

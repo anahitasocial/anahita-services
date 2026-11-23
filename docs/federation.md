@@ -298,7 +298,7 @@ of all three.
 
 ### 7. The first person
 
-Signed in, somebody turns it on under **Settings › Privacy › Fediverse**.
+Signed in, somebody turns it on under **Settings › Federated**.
 Their profile has to be open to everybody. Then, from an account on
 another server, search for their handle, `@ana@example.org`, and follow
 them. A public note they post arrives there within seconds.
@@ -424,7 +424,7 @@ before; `Vary: Accept` keeps the two apart in caches.
 
 ## Listed and found
 
-Two choices of each person's own, in their Fediverse settings, apart from being
+Two choices of each person's own, in their Federated settings, apart from being
 on the fediverse at all, and on until they say otherwise:
 
 | Choice | Sent as | What it asks of other servers |
@@ -1188,7 +1188,7 @@ Signed in, for the person themselves:
 | `GET /activitypub/settings` | Whether they are on the fediverse, whether they could be, and what they are or would be called. An administrator may ask it of somebody else, with `?person_id=`, to read and not to change |
 | `PUT /activitypub/settings` `{ "enabled": true }` | Turns it on or off |
 | `PUT /activitypub/settings` `{ "discoverable": false, "indexable": false }` | Whether other servers may list them, and find them in search; either alone. See [Listed and found](#listed-and-found) |
-| `GET /activitypub/known-profiles` | Administrators: who from other networks is kept here, for the list in the Fediverse settings |
+| `GET /activitypub/known-profiles` | Administrators: who from other networks is kept here, for the list in the site settings' Federated tab |
 | `GET /activitypub/aliases`, `PUT /activitypub/aliases` `{ "also_known_as": ["ana@old.example"] }` | The old accounts the viewer's also is, for moving in ([Moving one's own account](#moving-ones-own-account)) |
 | `GET /activitypub/move`, `POST /activitypub/move` `{ "to": "ana@new.example" }`, `DELETE /activitypub/move` | Whether the viewer's account moved; moving it away, after step-up; coming back |
 | `GET /activitypub/lookup?q=@alice@mastodon.example` | Finds somebody on another server, by handle or by the address of their profile, and keeps them |
@@ -1321,7 +1321,7 @@ reason is for the super administrators who come after, and is never sent to
 the server refused. A change takes up to half a minute to take hold in
 every copy of the service.
 
-In the web app the list is in **Site settings, under Fediverse**: the
+In the web app the list is in **Site settings, under Federated**: the
 servers refused with why, a search by name or reason, a button beside each
 to stop refusing it, and a dialog to refuse another. It is read a page at a
 time as it is scrolled, so a list of thousands is no heavier than a list of
@@ -1372,7 +1372,7 @@ found. Both lists are served by activitypub-service, the one for Bluesky too,
 and read by both services; a change takes up to half a minute to take hold in
 every copy of them.
 
-In the web app it is in **Site settings, under Fediverse**, in the
+In the web app it is in **Site settings, under Federated**, in the
 **Accounts** tab beside **Servers**; **Refuse on this site** in the menu of a
 profile from another network; and **Refuse account** on a report about one.
 
