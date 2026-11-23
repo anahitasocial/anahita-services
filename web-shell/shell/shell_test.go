@@ -484,3 +484,29 @@ func TestAPostWithAWarningShowsNothingOfItself(t *testing.T) {
 		t.Errorf("its picture is still served: %q", image.Header().Get("Location"))
 	}
 }
+
+// An article is shown by its cover, large, where its link is shared
+// (roadmap row 180).
+func TestAnArticleIsShownByItsCover(t *testing.T) {
+	s, reader := newServer(t)
+
+	article := note(22, constants.AnahitaAccessPublic, reader.people["ana"])
+	article.Type = constants.NodeMediumArticleEntityType
+	article.Name = "Rest in peace, coffee grinder"
+	article.CoverFilename = "grinder.jpg"
+	_, _ = article.GetCovers()
+	reader.media[22] = article
+
+	page := get(s, "/articles/22").Body.String()
+	for _, want := range []string{
+		`<meta property="og:image" content="https://www.example.org/_shell/image/post-22"/>`,
+		`<meta name="twitter:card" content="summary_large_image"/>`,
+	} {
+		if !strings.Contains(page, want) {
+			t.Errorf("missing %s in\n%s", want, page)
+		}
+	}
+	if location := get(s, "/_shell/image/post-22").Header().Get("Location"); !strings.Contains(location, "covers/article/22/grinder_large.jpg") {
+		t.Errorf("the article's picture leads to %q", location)
+	}
+}
