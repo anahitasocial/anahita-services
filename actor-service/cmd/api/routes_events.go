@@ -124,6 +124,9 @@ func (r *Routes) eventRoutes(api *apidoc.Router, s *shared) {
 	events.PATCH("/:id/graph-access", r.handler.Event.EditGraphAccess, r.authorize).
 		With(s.graphAccess(responses.EventNode{}))
 
+	events.PATCH("/:id/search-engines", r.handler.Event.EditSearchEngines, r.authorize).
+		With(s.searchEngines(responses.EventNode{}))
+
 	events.GET("/:id/rules", r.handler.Event.ReadRules, r.setViewer).With(s.readRules("event"))
 
 	events.PUT("/:id/rules", r.handler.Event.SetRules, r.authorize).With(s.setRules("event"))

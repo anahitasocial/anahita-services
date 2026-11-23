@@ -108,6 +108,11 @@ func Resolve(reader Reader, path string) *Subject {
 				return actor(node, each.kind)
 			}
 		}
+		// A profile from another server, /@ana@mastodon.social: its own
+		// server's page is the one to be found, not our copy of it.
+		if strings.Contains(found[1], "@") {
+			return &Subject{Tags: Tags{NoIndex: true}}
+		}
 		return nil
 	}
 
@@ -214,8 +219,40 @@ func actor(node *entities.AnahitaNode, kind string) *Subject {
 		subject.Tags.Title = node.Alias
 	}
 	subject.ImageKey = pathOf(node.Avatar, entities.AvatarSizeLarge)
+	subject.Tags.NoIndex = !node.SearchEngines
 
 	return subject
+}
+
+// indexable says whether search engines may index a post's page (roadmap
+// row 174): not when it came from another server, whose own page is the
+// one to be found, nor when its author or the profile it is on said no.
+// Their settings are read here, as the post carries only their names.
+func indexable(reader Reader, node *entities.AnahitaNode) bool {
+	if node.URI != "" || node.OriginDomain != "" {
+		return false
+	}
+	for _, profile := range []*entities.AnahitaNode{node.Author, node.Owner} {
+		if profile == nil || profile.ID == 0 {
+			continue
+		}
+		if !local[profile.Type] {
+			return false
+		}
+		read, err := reader.Actor(profile.ID, profile.Type)
+		if err != nil || read == nil || !read.SearchEngines {
+			return false
+		}
+	}
+	return true
+}
+
+// The kinds of profile made here.
+var local = map[string]bool{
+	constants.NodeActorPersonEntityType:  true,
+	groupType:                            true,
+	constants.NodeActorEventEntityType:   true,
+	constants.NodeActorChannelEntityType: true,
 }
 
 // A post is described only at the page of its own kind: /notes/12 for a
@@ -255,6 +292,7 @@ func post(reader Reader, id int64, kind string) *Subject {
 		},
 		ImageName: "post-" + strconv.FormatInt(node.ID, 10),
 	}
+	subject.Tags.NoIndex = !indexable(reader, node)
 	if subject.Tags.Title == "" {
 		// A note has no title: it is its writer's, and its words are the
 		// description.

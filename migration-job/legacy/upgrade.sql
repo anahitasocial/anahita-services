@@ -520,6 +520,11 @@ ALTER TABLE nodes
 -- (20261122000019_graph_access). Empty for all, as the profile's own access.
 ALTER TABLE nodes ADD COLUMN `graph_access` varchar(32) NOT NULL DEFAULT '' AFTER `access`;
 
+-- nodes.search_engines: whether search engines may index a profile and its
+-- posts (20261122000026_search_engines). Everybody from the PHP site was
+-- already here, so they keep being found.
+ALTER TABLE nodes ADD COLUMN `search_engines` tinyint(1) NOT NULL DEFAULT 1 AFTER `graph_access`;
+
 -- nodes.citation_count.
 -- Nothing on the PHP site cited anything, so every count starts at 0.
 ALTER TABLE nodes ADD COLUMN `citation_count` int(11) unsigned NOT NULL DEFAULT 0 AFTER `quote_count`;

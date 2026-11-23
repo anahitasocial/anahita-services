@@ -162,6 +162,10 @@ func (s *Server) page(w http.ResponseWriter, r *http.Request, clean string) {
 	tags.URL = base + address
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	// The same as the tag, for a search engine that reads only the header.
+	if tags.NoIndex {
+		w.Header().Set("X-Robots-Tag", "noindex")
+	}
 	// Never kept long: a new build has to be picked up at once, and what a
 	// page says of itself follows who may see it.
 	w.Header().Set("Cache-Control", "public, max-age=60")

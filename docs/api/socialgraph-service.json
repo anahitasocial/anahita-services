@@ -184,6 +184,10 @@
             "description": "On a person: who may quote their posts, when a post does not say. \"anyone\", \"followers\" or \"nobody\"; left out when they have not said, which is anyone.",
             "type": "string"
           },
+          "search_engines": {
+            "description": "Whether search engines may index it and its posts (roadmap row 174).",
+            "type": "boolean"
+          },
           "show_reposts_on_profile": {
             "description": "Whether what this actor reposts is also among its profile's posts.",
             "type": "boolean"
@@ -213,6 +217,7 @@
           "allow_follow_request",
           "show_reposts_on_profile",
           "graph_access",
+          "search_engines",
           "allow_download",
           "created_at"
         ],

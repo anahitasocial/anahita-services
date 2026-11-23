@@ -78,6 +78,7 @@ func person(id int64, access string) *entities.AnahitaNode {
 	node.Body = "I grow **beans** and [write about it](https://example.org)."
 	node.Access = access
 	node.Enabled = true
+	node.SearchEngines = true
 	node.Avatar = map[string]entities.AnahitaNodeImage{entities.AvatarSizeLarge: {Url: "avatars/ana_large.jpg"}}
 	return node
 }
@@ -225,6 +226,50 @@ func TestAPageSaysWhatItIsAbout(t *testing.T) {
 	note := get(s, "/notes/10").Body.String()
 	if strings.Contains(note, "<script>alert") || !strings.Contains(note, `content="The heap is alert(1) warm today"`) {
 		t.Errorf("a note's text was written as it came:\n%s", note)
+	}
+}
+
+func TestSearchEnginesAreAskedNotToIndexWhenAProfileSaysNo(t *testing.T) {
+	const noindex = `<meta name="robots" content="noindex"/>`
+
+	s, _ := newServer(t)
+	for _, path := range []string{"/@ana", "/notes/10"} {
+		rec := get(s, path)
+		if strings.Contains(rec.Body.String(), noindex) || rec.Header().Get("X-Robots-Tag") != "" {
+			t.Errorf("%s asks not to be indexed, and she did not say so", path)
+		}
+	}
+
+	// She says no: her profile and her posts ask not to be indexed, and
+	// are still described, since who may see them is unchanged.
+	s, reader := newServer(t)
+	reader.actors[1].SearchEngines = false
+	for _, path := range []string{"/@ana", "/people/ana", "/notes/10"} {
+		rec := get(s, path)
+		if !strings.Contains(rec.Body.String(), noindex) || rec.Header().Get("X-Robots-Tag") != "noindex" {
+			t.Errorf("%s does not ask not to be indexed:\n%s", path, rec.Body.String())
+		}
+		if !strings.Contains(rec.Body.String(), `property="og:description"`) {
+			t.Errorf("%s is no longer described", path)
+		}
+		if strings.Count(rec.Body.String(), `name="robots"`) != 1 {
+			t.Errorf("%s says robots more than once", path)
+		}
+	}
+}
+
+func TestCopiesFromOtherServersAreNotIndexed(t *testing.T) {
+	s, reader := newServer(t)
+
+	remote := note(20, constants.AnahitaAccessPublic, reader.actors[1])
+	remote.URI = "https://mastodon.example/statuses/1"
+	reader.media[20] = remote
+
+	for _, path := range []string{"/@ana@mastodon.example", "/notes/20"} {
+		rec := get(s, path)
+		if rec.Header().Get("X-Robots-Tag") != "noindex" || !strings.Contains(rec.Body.String(), `name="robots"`) {
+			t.Errorf("%s, a copy from another server, may be indexed", path)
+		}
 	}
 }
 

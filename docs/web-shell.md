@@ -16,13 +16,14 @@ is told apart by what they say they are.
 1. [What it sends](#what-it-sends)
 2. [Which pages are described](#which-pages-are-described)
 3. [What is never described](#what-is-never-described)
-4. [Pictures](#pictures)
-5. [What other servers ask this host](#what-other-servers-ask-this-host)
-6. [Running it](#running-it)
-7. [Settings](#settings)
-8. [Not running it](#not-running-it)
-9. [Where the code is](#where-the-code-is)
-10. [What is not built](#what-is-not-built)
+4. [Search engines](#search-engines)
+5. [Pictures](#pictures)
+6. [What other servers ask this host](#what-other-servers-ask-this-host)
+7. [Running it](#running-it)
+8. [Settings](#settings)
+9. [Not running it](#not-running-it)
+10. [Where the code is](#where-the-code-is)
+11. [What is not built](#what-is-not-built)
 
 ## What it sends
 
@@ -35,7 +36,8 @@ is told apart by what they say they are.
 
 The tags are `<title>`, `description`, `og:title`, `og:description`,
 `og:type`, `og:site_name`, `og:url`, `og:image`, `og:image:alt`,
-`twitter:card` and `<link rel="canonical">`. Whatever the build had of these
+`twitter:card`, `<link rel="canonical">`, and `robots` when search engines
+are asked not to index the page ([Search engines](#search-engines)). Whatever the build had of these
 is taken out first, so each is said once. Everything written is escaped: a
 name or a post is somebody's text.
 
@@ -91,6 +93,33 @@ page that does not exist. The answer does not tell the two apart.
 What a page says is read again after a minute, so something made private
 stops being described within that time. What another site already copied is
 that site's to forget.
+
+## Search engines
+
+Each profile says whether search engines may index it and its posts
+(roadmap row 174): `search_engines` on the profile, set with
+`PATCH /people|groups|events|channels/:id/search-engines`. When they may
+not, its pages carry `<meta name="robots" content="noindex"/>` and the
+header `X-Robots-Tag: noindex`.
+
+| Page | Asks not to be indexed when |
+| --- | --- |
+| A profile, at any of its addresses, and its tabs | The profile said no |
+| A post | Its author, or the profile it is on, said no |
+| A profile or a post from another server, `/@ana@mastodon.social` | Always: its own server's page is the one to be found |
+| Hashtags, locations, feeds and every other page | Never |
+
+1. **It hides nothing.** The page is described and shown as before; who
+   may see it is the profile's privacy ([Privacy](privacy.md)). `noindex`
+   asks search engines to leave it out of what they index, and the
+   well-behaved ones do, when they next visit.
+2. **Off for a person who signs up** from 2026-11-22, on for every profile
+   made before and for a new group, event or channel. Each changes it under
+   Settings › Privacy.
+3. **A page listing posts,** a hashtag's, a location's or a feed's, may
+   show a post from somebody who said no, as Mastodon's do.
+4. **The fediverse's own search** is another choice, "Include me in
+   search" in the Federated tab ([Federation](federation.md#listed-and-found)).
 
 ## Pictures
 

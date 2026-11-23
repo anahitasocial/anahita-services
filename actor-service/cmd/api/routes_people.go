@@ -98,6 +98,9 @@ func (r *Routes) peopleRoutes(api *apidoc.Router, s *shared) {
 	people.PATCH("/:id/graph-access", r.handler.Person.EditGraphAccess, r.authorize).
 		With(s.graphAccess(responses.PersonNode{}))
 
+	people.PATCH("/:id/search-engines", r.handler.Person.EditSearchEngines, r.authorize).
+		With(s.searchEngines(responses.PersonNode{}))
+
 	people.PATCH("/:id/reposts-on-profile", r.handler.Person.EditRepostsOnProfile, r.authorize).
 		Summary("Show reposts among a person's posts, or not").
 		Describe("They are always in the Reposts tab of the profile.").

@@ -64,10 +64,11 @@ type shared struct {
 	// followers and whom it follows (roadmap row 151); what may be posted
 	// on it; and what its new photos and videos start with about being
 	// downloaded. Each answers with the profile, in the shape `sends`.
-	access      func(takes any, sends any) func(*apidoc.Route)
-	graphAccess func(sends any) func(*apidoc.Route)
-	features    func(takes any, sends any) func(*apidoc.Route)
-	downloads   func(sends any) func(*apidoc.Route)
+	access        func(takes any, sends any) func(*apidoc.Route)
+	graphAccess   func(sends any) func(*apidoc.Route)
+	searchEngines func(sends any) func(*apidoc.Route)
+	features      func(takes any, sends any) func(*apidoc.Route)
+	downloads     func(sends any) func(*apidoc.Route)
 
 	// Reading one group, channel or event, or what a stranger is shown of
 	// it.
@@ -325,6 +326,22 @@ func newShared() *shared {
 		}
 	}
 
+	searchEngines := func(sends any) func(*apidoc.Route) {
+		return func(route *apidoc.Route) {
+			route.Shared("profiles").
+				Summary("Let search engines index it, or not").
+				Describe("Whether search engines may index the profile and its posts: when not, its pages "+
+					"and its posts' pages carry `noindex`, which asks search engines to leave them out; "+
+					"who may see them is unchanged. Off for a person who signs up, on for a new group, "+
+					"event or channel.").
+				Viewer(apidoc.SignedIn).
+				Takes(&requests.ActorEditSearchEnginesRequest{}).
+				Sends(http.StatusOK, sends).
+				Refuses(http.StatusForbidden, "the viewer may not change it").
+				Refuses(http.StatusNotFound, "there is no such profile")
+		}
+	}
+
 	access := func(takes any, sends any) func(*apidoc.Route) {
 		return func(route *apidoc.Route) {
 			route.Shared("profiles").
@@ -431,6 +448,7 @@ func newShared() *shared {
 		featured:      featured,
 		restore:       restore,
 		graphAccess:   graphAccess,
+		searchEngines: searchEngines,
 		access:        access,
 		features:      features,
 		downloads:     downloads,

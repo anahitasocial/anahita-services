@@ -206,7 +206,10 @@ type AnahitaNode struct {
 	Access   string
 	// Who may see its followers and whom it follows (roadmap row 151):
 	// an access level, or "" for whoever may see the profile.
-	GraphAccess    string
+	GraphAccess string
+	// Whether search engines may index the profile and its posts (roadmap
+	// row 174).
+	SearchEngines  bool
 	PermissionsRaw string
 	Permissions    map[string]string
 	Features       []*AnahitaNodeFeature

@@ -190,6 +190,10 @@ message Node {
     // Who may see a profile's followers and whom it follows (roadmap row
     // 151): an access level, or empty for whoever may see the profile.
     string graph_access = 104;
+
+    // Whether search engines may index the profile and its posts (roadmap
+    // row 174).
+    bool search_engines = 105;
 }
 
 message Nodes {

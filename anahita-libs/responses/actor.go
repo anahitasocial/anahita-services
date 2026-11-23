@@ -67,6 +67,8 @@ type ActorNodeItem struct {
 	// Who may see its followers and whom it follows (roadmap row 151): an
 	// access level, or empty for whoever may see it.
 	GraphAccess string `json:"graph_access"`
+	// Whether search engines may index it and its posts (roadmap row 174).
+	SearchEngines bool `json:"search_engines"`
 	// On a person: who may quote their posts, when a post does not say.
 	// "anyone", "followers" or "nobody"; left out when they have not said,
 	// which is anyone.
@@ -206,6 +208,7 @@ func (r *ActorResponse) MapNodeItem(node *entities.AnahitaNode) *ActorNodeItem {
 		AllowFollowRequest:   node.AllowFollowRequest,
 		ShowRepostsOnProfile: node.ShowRepostsOnProfile,
 		GraphAccess:          node.GraphAccess,
+		SearchEngines:        node.SearchEngines,
 		QuotePolicy:          node.QuotePolicy,
 		AllowDownload:        node.AllowDownload,
 		ArchivedAt:           node.ArchivedAt,

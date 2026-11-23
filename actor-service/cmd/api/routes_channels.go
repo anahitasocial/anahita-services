@@ -99,6 +99,9 @@ func (r *Routes) channelRoutes(api *apidoc.Router, s *shared) {
 	channels.PATCH("/:id/graph-access", r.handler.Channel.EditGraphAccess, r.authorize).
 		With(s.graphAccess(responses.ChannelNode{}))
 
+	channels.PATCH("/:id/search-engines", r.handler.Channel.EditSearchEngines, r.authorize).
+		With(s.searchEngines(responses.ChannelNode{}))
+
 	channels.PATCH("/:id/features", r.handler.Channel.EditFeatures, r.authorize).
 		With(s.features(s.actorReq.EditFeatures, responses.ChannelNode{}))
 

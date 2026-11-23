@@ -10,6 +10,24 @@ made.
 Releases before v1.0.17 are described on GitHub, under
 [Releases](https://github.com/anahitasocial/anahita-services/releases).
 
+## Embryo
+
+### Added
+
+1. **Search engines, each profile's choice.** A profile that says no has
+   its pages, and its posts' pages, sent with `noindex` (a `robots` tag and
+   the header `X-Robots-Tag`), which asks search engines not to index them;
+   it hides nothing. Off for people who sign up from now on, on for every
+   profile already there and for a new group, event or channel:
+   `PATCH /people|groups|events|channels/:id/search-engines`. A profile or
+   a post from another server is always sent with `noindex`, since its own
+   server's page is the one to be found ([Web shell](docs/web-shell.md#search-engines)).
+
+### Upgrading
+
+1. Run the migration job before the new services: it adds
+   `nodes.search_engines` (`20261122000026_search_engines`).
+
 ## v1.8.0 Birth, 2026-11-22
 
 ### Fixed

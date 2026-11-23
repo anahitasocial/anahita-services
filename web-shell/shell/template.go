@@ -26,6 +26,10 @@ type Tags struct {
 	// A picture that is the content, a photo or a cover, is shown large;
 	// one that stands for somebody, an avatar, small.
 	LargeImage bool
+	// Search engines are asked not to index the page (roadmap row 174):
+	// its profile said no, or it is a copy of somebody's from another
+	// server. It hides nothing; who may see the page is unchanged.
+	NoIndex bool
 }
 
 // Template is the app's index.html, with the tags it was built with taken
@@ -42,7 +46,7 @@ var (
 	titleTag  = regexp.MustCompile(`(?is)<title>(.*?)</title>`)
 	describes = regexp.MustCompile(`(?is)<meta\s+name="description"\s+content="(.*?)"\s*/?>`)
 	// Every tag this package writes, wherever the build has one of its own.
-	written = regexp.MustCompile(`(?is)\s*<(?:title>.*?</title|meta\s+(?:property="og:[^"]*"|name="(?:description|twitter:[^"]*)")[^>]*|link\s+rel="canonical"[^>]*)>`)
+	written = regexp.MustCompile(`(?is)\s*<(?:title>.*?</title|meta\s+(?:property="og:[^"]*"|name="(?:description|robots|twitter:[^"]*)")[^>]*|link\s+rel="canonical"[^>]*)>`)
 )
 
 var ErrNoHead = errors.New("the page has no </head> to put tags before")
@@ -113,6 +117,9 @@ func (t *Template) Render(tags Tags) string {
 		meta("name", "twitter:card", "summary_large_image")
 	} else {
 		meta("name", "twitter:card", "summary")
+	}
+	if tags.NoIndex {
+		meta("name", "robots", "noindex")
 	}
 	if tags.URL != "" {
 		b.WriteString(`<link rel="canonical" href="` + html.EscapeString(tags.URL) + `"/>`)

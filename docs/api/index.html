@@ -58,10 +58,10 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <p class="group">Profiles</p>
 <ul>
 <li><a href="#profiles">Profiles</a> <span class="count">1</span></li>
-<li><a href="#people">People</a> <span class="count">24</span></li>
-<li><a href="#groups">Groups</a> <span class="count">25</span></li>
-<li><a href="#events">Events</a> <span class="count">27</span></li>
-<li><a href="#channels">Channels</a> <span class="count">20</span></li>
+<li><a href="#people">People</a> <span class="count">25</span></li>
+<li><a href="#groups">Groups</a> <span class="count">26</span></li>
+<li><a href="#events">Events</a> <span class="count">28</span></li>
+<li><a href="#channels">Channels</a> <span class="count">21</span></li>
 </ul>
 <p class="group">Accounts and the graph</p>
 <ul>
@@ -792,6 +792,38 @@ who may call it: a super administrator, who has just proved who they are again."
 </tbody>
 </table>
 <p class="handler">Answered by <code>actor/cmd/api/handlers.(*personHandler).Purge</code></p>
+</details>
+<details class="route" id="patchPeopleByIdSearchEngines" data-search="patch /people/{id}/search-engines let search engines index it, or not whether search engines may index the profile and its posts: when not, its pages and its posts&#39; pages carry `noindex`, which asks search engines to leave them out; who may see them is unchanged. off for a person who signs up, on for a new group, event or channel.
+
+who may call it: somebody signed in.">
+<summary><span class="method patch">PATCH</span> <code class="path">/people/{id}/search-engines</code> <span class="summary">Let search engines index it, or not</span></summary>
+<div class="description"><p>Whether search engines may index the profile and its posts: when not, its pages and its posts&#39; pages carry <code>noindex</code>, which asks search engines to leave them out; who may see them is unchanged. Off for a person who signs up, on for a new group, event or channel.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code> or <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>search_engines</code></td><td>boolean</td><td>Whether search engines may index it and its posts.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-actor.PersonNode">actor.PersonNode</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not change it</td></tr>
+<tr><td class="status s4">404</td><td>there is no such profile</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*personHandler).EditSearchEngines</code></p>
 </details>
 <details class="route" id="deletePeopleById" data-search="delete /people/{username} delete a person it is out of sight at once and destroyed after thirty days, unless it is restored before then.
 
@@ -1533,6 +1565,38 @@ who may call it: somebody signed in.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).Restore</code></p>
+</details>
+<details class="route" id="patchGroupsByIdSearchEngines" data-search="patch /groups/{id}/search-engines let search engines index it, or not whether search engines may index the profile and its posts: when not, its pages and its posts&#39; pages carry `noindex`, which asks search engines to leave them out; who may see them is unchanged. off for a person who signs up, on for a new group, event or channel.
+
+who may call it: somebody signed in.">
+<summary><span class="method patch">PATCH</span> <code class="path">/groups/{id}/search-engines</code> <span class="summary">Let search engines index it, or not</span></summary>
+<div class="description"><p>Whether search engines may index the profile and its posts: when not, its pages and its posts&#39; pages carry <code>noindex</code>, which asks search engines to leave them out; who may see them is unchanged. Off for a person who signs up, on for a new group, event or channel.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code> or <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>search_engines</code></td><td>boolean</td><td>Whether search engines may index it and its posts.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-actor.GroupNode">actor.GroupNode</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not change it</td></tr>
+<tr><td class="status s4">404</td><td>there is no such profile</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).EditSearchEngines</code></p>
 </details>
 </section>
 <section id="events" class="service">
@@ -2317,6 +2381,38 @@ who may call it: somebody signed in.">
 </table>
 <p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).Restore</code></p>
 </details>
+<details class="route" id="patchEventsByIdSearchEngines" data-search="patch /events/{id}/search-engines let search engines index it, or not whether search engines may index the profile and its posts: when not, its pages and its posts&#39; pages carry `noindex`, which asks search engines to leave them out; who may see them is unchanged. off for a person who signs up, on for a new group, event or channel.
+
+who may call it: somebody signed in.">
+<summary><span class="method patch">PATCH</span> <code class="path">/events/{id}/search-engines</code> <span class="summary">Let search engines index it, or not</span></summary>
+<div class="description"><p>Whether search engines may index the profile and its posts: when not, its pages and its posts&#39; pages carry <code>noindex</code>, which asks search engines to leave them out; who may see them is unchanged. Off for a person who signs up, on for a new group, event or channel.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code> or <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>search_engines</code></td><td>boolean</td><td>Whether search engines may index it and its posts.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-actor.EventNode">actor.EventNode</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not change it</td></tr>
+<tr><td class="status s4">404</td><td>there is no such profile</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).EditSearchEngines</code></p>
+</details>
 </section>
 <section id="channels" class="service">
 <p class="group">Profiles</p>
@@ -2893,6 +2989,38 @@ who may call it: somebody signed in.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).Restore</code></p>
+</details>
+<details class="route" id="patchChannelsByIdSearchEngines" data-search="patch /channels/{id}/search-engines let search engines index it, or not whether search engines may index the profile and its posts: when not, its pages and its posts&#39; pages carry `noindex`, which asks search engines to leave them out; who may see them is unchanged. off for a person who signs up, on for a new group, event or channel.
+
+who may call it: somebody signed in.">
+<summary><span class="method patch">PATCH</span> <code class="path">/channels/{id}/search-engines</code> <span class="summary">Let search engines index it, or not</span></summary>
+<div class="description"><p>Whether search engines may index the profile and its posts: when not, its pages and its posts&#39; pages carry <code>noindex</code>, which asks search engines to leave them out; who may see them is unchanged. Off for a person who signs up, on for a new group, event or channel.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code> or <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>search_engines</code></td><td>boolean</td><td>Whether search engines may index it and its posts.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-actor.ChannelNode">actor.ChannelNode</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not change it</td></tr>
+<tr><td class="status s4">404</td><td>there is no such profile</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).EditSearchEngines</code></p>
 </details>
 </section>
 <section id="auth-service" class="service">
@@ -11694,7 +11822,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-ActorNodeItem" data-search="actornodeitem access alias allow_download allow_follow_request archived_at author avatar_urls body cover_urls created_at deleted_at enabled event featured_at follower_count graph_access id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer is_subscribed_by_viewer leader_count moved_to mute_ends_at mute_hides_notifications name origin_domain quote_policy show_reposts_on_profile type uri verified website_url">
+<div class="route schema" id="schema-ActorNodeItem" data-search="actornodeitem access alias allow_download allow_follow_request archived_at author avatar_urls body cover_urls created_at deleted_at enabled event featured_at follower_count graph_access id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer is_subscribed_by_viewer leader_count moved_to mute_ends_at mute_hides_notifications name origin_domain quote_policy search_engines show_reposts_on_profile type uri verified website_url">
 <h3>ActorNodeItem</h3>
 <p>A profile: a person, a group or an event.</p>
 <table>
@@ -11732,6 +11860,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>name</code></td><td>string</td><td>Its name.</td></tr>
 <tr><td><code>origin_domain</code></td><td>string</td><td>The server it came from, when it came from another.</td></tr>
 <tr><td><code>quote_policy</code></td><td>string</td><td>On a person: who may quote their posts, when a post does not say. &#34;anyone&#34;, &#34;followers&#34; or &#34;nobody&#34;; left out when they have not said, which is anyone.</td></tr>
+<tr><td><code>search_engines</code> <span class="required">always</span></td><td>boolean</td><td>Whether search engines may index it and its posts (roadmap row 174).</td></tr>
 <tr><td><code>show_reposts_on_profile</code> <span class="required">always</span></td><td>boolean</td><td>Whether what this actor reposts is also among its profile&#39;s posts.</td></tr>
 <tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td>What kind of profile it is: <code>node.actor.actor-service.person.v1</code>, <code>...group.v1</code> or <code>...event.v1</code>, or one of another server&#39;s.</td></tr>
 <tr><td><code>uri</code></td><td>string</td><td>What it is called on the server it came from, and that server, when it came from another. Left out of everything made here.</td></tr>
@@ -12934,7 +13063,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-actor.ChannelNode" data-search="actor.channelnode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count graph_access id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer is_subscribed_by_viewer leader_count moved_to mute_ends_at mute_hides_notifications name origin_domain permissions show_reposts_on_profile type updated_at uri verified website_url">
+<div class="route schema" id="schema-actor.ChannelNode" data-search="actor.channelnode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count graph_access id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer is_subscribed_by_viewer leader_count moved_to mute_ends_at mute_hides_notifications name origin_domain permissions search_engines show_reposts_on_profile type updated_at uri verified website_url">
 <h3>actor.ChannelNode</h3>
 <p>A channel, as it is sent: a profile its admins post on as it, which may read a website&#39;s feed.</p>
 <table>
@@ -12975,6 +13104,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>name</code></td><td>string</td><td>Its name.</td></tr>
 <tr><td><code>origin_domain</code></td><td>string</td><td>The server it came from, when it came from another.</td></tr>
 <tr><td><code>permissions</code></td><td>map of string</td><td></td></tr>
+<tr><td><code>search_engines</code> <span class="required">always</span></td><td>boolean</td><td>Whether search engines may index it and its posts (roadmap row 174).</td></tr>
 <tr><td><code>show_reposts_on_profile</code> <span class="required">always</span></td><td>boolean</td><td>Whether what this actor reposts is also among its profile&#39;s posts.</td></tr>
 <tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td>What kind of profile it is: <code>node.actor.actor-service.person.v1</code>, <code>...group.v1</code> or <code>...event.v1</code>, or one of another server&#39;s.</td></tr>
 <tr><td><code>updated_at</code></td><td>time</td><td></td></tr>
@@ -12994,7 +13124,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-actor.EventNode" data-search="actor.eventnode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled event featured_at features follower_count graph_access id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer is_subscribed_by_viewer leader_count moved_to mute_ends_at mute_hides_notifications name origin_domain permissions show_reposts_on_profile type updated_at uri verified website_url">
+<div class="route schema" id="schema-actor.EventNode" data-search="actor.eventnode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled event featured_at features follower_count graph_access id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer is_subscribed_by_viewer leader_count moved_to mute_ends_at mute_hides_notifications name origin_domain permissions search_engines show_reposts_on_profile type updated_at uri verified website_url">
 <h3>actor.EventNode</h3>
 <p>An event, as it is sent: a group with a time and a place, and <code>event</code> saying when it is, how many may go and are going, and what the viewer answered.</p>
 <table>
@@ -13036,6 +13166,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>name</code></td><td>string</td><td>Its name.</td></tr>
 <tr><td><code>origin_domain</code></td><td>string</td><td>The server it came from, when it came from another.</td></tr>
 <tr><td><code>permissions</code></td><td>map of string</td><td></td></tr>
+<tr><td><code>search_engines</code> <span class="required">always</span></td><td>boolean</td><td>Whether search engines may index it and its posts (roadmap row 174).</td></tr>
 <tr><td><code>show_reposts_on_profile</code> <span class="required">always</span></td><td>boolean</td><td>Whether what this actor reposts is also among its profile&#39;s posts.</td></tr>
 <tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td>What kind of profile it is: <code>node.actor.actor-service.person.v1</code>, <code>...group.v1</code> or <code>...event.v1</code>, or one of another server&#39;s.</td></tr>
 <tr><td><code>updated_at</code></td><td>time</td><td></td></tr>
@@ -13059,7 +13190,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-actor.GroupNode" data-search="actor.groupnode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count graph_access id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer is_subscribed_by_viewer leader_count moved_to mute_ends_at mute_hides_notifications name origin_domain permissions show_reposts_on_profile type updated_at uri verified website_url">
+<div class="route schema" id="schema-actor.GroupNode" data-search="actor.groupnode access administrators alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count graph_access id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer is_subscribed_by_viewer leader_count moved_to mute_ends_at mute_hides_notifications name origin_domain permissions search_engines show_reposts_on_profile type updated_at uri verified website_url">
 <h3>actor.GroupNode</h3>
 <p>A group, as it is sent: followed by people, looked after by its admins, and able to host events.</p>
 <table>
@@ -13100,6 +13231,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>name</code></td><td>string</td><td>Its name.</td></tr>
 <tr><td><code>origin_domain</code></td><td>string</td><td>The server it came from, when it came from another.</td></tr>
 <tr><td><code>permissions</code></td><td>map of string</td><td></td></tr>
+<tr><td><code>search_engines</code> <span class="required">always</span></td><td>boolean</td><td>Whether search engines may index it and its posts (roadmap row 174).</td></tr>
 <tr><td><code>show_reposts_on_profile</code> <span class="required">always</span></td><td>boolean</td><td>Whether what this actor reposts is also among its profile&#39;s posts.</td></tr>
 <tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td>What kind of profile it is: <code>node.actor.actor-service.person.v1</code>, <code>...group.v1</code> or <code>...event.v1</code>, or one of another server&#39;s.</td></tr>
 <tr><td><code>updated_at</code></td><td>time</td><td></td></tr>
@@ -13136,7 +13268,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-actor.PersonNode" data-search="actor.personnode access alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count graph_access id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer is_subscribed_by_viewer language leader_count moved_to mute_ends_at mute_hides_notifications name origin_domain permissions person_pronouns person_type quote_policy show_reposts_on_profile type updated_at uri verified website_url">
+<div class="route schema" id="schema-actor.PersonNode" data-search="actor.personnode access alias allow_download allow_follow_request archived_at author authorized avatar_urls body cover_urls created_at deleted_at editor enabled featured_at features follower_count graph_access id is_admined_by_viewer is_blocked_by_viewer is_follow_requested_by_viewer is_following_viewer is_invited is_leading_viewer is_muted_by_viewer is_subscribed_by_viewer language leader_count moved_to mute_ends_at mute_hides_notifications name origin_domain permissions person_pronouns person_type quote_policy search_engines show_reposts_on_profile type updated_at uri verified website_url">
 <h3>actor.PersonNode</h3>
 <p>A person, as they are sent: what every profile has, and their account type, pronouns and language.</p>
 <table>
@@ -13180,6 +13312,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tr><td><code>person_pronouns</code></td><td>string</td><td></td></tr>
 <tr><td><code>person_type</code></td><td>string</td><td></td></tr>
 <tr><td><code>quote_policy</code></td><td>string</td><td>On a person: who may quote their posts, when a post does not say. &#34;anyone&#34;, &#34;followers&#34; or &#34;nobody&#34;; left out when they have not said, which is anyone.</td></tr>
+<tr><td><code>search_engines</code> <span class="required">always</span></td><td>boolean</td><td>Whether search engines may index it and its posts (roadmap row 174).</td></tr>
 <tr><td><code>show_reposts_on_profile</code> <span class="required">always</span></td><td>boolean</td><td>Whether what this actor reposts is also among its profile&#39;s posts.</td></tr>
 <tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td>What kind of profile it is: <code>node.actor.actor-service.person.v1</code>, <code>...group.v1</code> or <code>...event.v1</code>, or one of another server&#39;s.</td></tr>
 <tr><td><code>updated_at</code></td><td>time</td><td></td></tr>

@@ -110,6 +110,9 @@ CREATE TABLE nodes (
   -- Who may see its followers and whom it follows (roadmap row 151): an
   -- access level, or empty for whoever may see the profile.
   `graph_access` varchar(32) NOT NULL DEFAULT '',
+  -- Whether search engines may index the profile and its posts (roadmap row
+  -- 174): on for every profile, off for a person who signs up.
+  `search_engines` tinyint(1) NOT NULL DEFAULT 1,
   -- The per-node-type optional feature set, as JSON. Named `features` because
   -- that is what the code selects; this file called it
   -- `enabled_optional_features`, which nothing has ever read.

@@ -3,6 +3,9 @@ package repositories
 import (
 	"testing"
 	"time"
+
+	"anahita-libs/constants"
+	"anahita-libs/data/entities"
 )
 
 // A new node keeps the date it says it was written, as a channel's article
@@ -23,6 +26,21 @@ func TestANewNodeKeepsTheDateItSays(t *testing.T) {
 	} {
 		if got := addedAt(c.said, now); !got.Equal(c.want) {
 			t.Errorf("%s: made at %v, want %v", c.name, got, c.want)
+		}
+	}
+}
+
+// A person who signs up is asked before search engines may index them; a
+// group, an event or a channel is made to be found (roadmap row 174).
+func TestSearchEnginesAtFirst(t *testing.T) {
+	for nodeType, want := range map[string]bool{
+		constants.NodeActorPersonEntityType:  false,
+		constants.NodeActorEventEntityType:   true,
+		constants.NodeActorChannelEntityType: true,
+		"node.actor.group-service.group.v1":  true,
+	} {
+		if got := searchEnginesAtFirst(&entities.AnahitaNode{Type: nodeType}); got != want {
+			t.Errorf("%s starts with search engines %v, want %v", nodeType, got, want)
 		}
 	}
 }

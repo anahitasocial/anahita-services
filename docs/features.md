@@ -137,7 +137,7 @@ is gathered at the end, [for planning](#not-built).
 | Word filters | no | |
 | Hide follower and following lists | yes | Who may see them, never wider than the profile; the counts stay ([Permissions](permissions.md#who-sees-a-profiles-followers-and-whom-it-follows)) |
 | Choose whether posts are searchable | yes | Whether other servers may find them ([Federation](federation.md)) |
-| Hide from search engines | planned | Roadmap row 174 |
+| Hide from search engines | yes | Each profile's choice, off for people who sign up: its pages ask search engines not to index them ([Web shell](web-shell.md#search-engines)) |
 | Signed fetches required (secure mode) | no | On the roadmap, kept for later (row 157) |
 
 ## Moderation
@@ -222,9 +222,9 @@ Every **no** and **planned** above, gathered for planning.
 4. Verified profile links: [Verified domains](plans/verified-domains.md)
 5. Importing server blocklists:
    [Refusing servers from a file](plans/domain-block-import.md)
-6. Interacting from another server, hiding from search engines, a site's
-   own timeline, forwarding reports and joining fediverse groups: roadmap
-   rows 134, 174, 175, 177 and 73, plans to be written
+6. Interacting from another server, a site's own timeline, forwarding
+   reports and joining fediverse groups: roadmap rows 134, 175, 177 and 73,
+   plans to be written
 7. An official mobile app, Anahita Mobile
 
 **Decided against, or put off, with why:**

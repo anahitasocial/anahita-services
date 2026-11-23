@@ -58,6 +58,7 @@ func fullyPopulatedNode() *entities.AnahitaNode {
 	n.IsSubscribedByViewer = true
 	n.QuotePolicy = "followers"
 	n.AllowDownload = true
+	n.SearchEngines = true
 	archived := time.Now()
 	n.ArchivedAt = &archived
 	featured := time.Now()

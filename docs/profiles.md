@@ -41,6 +41,7 @@ Each is described once, on the page named.
 | What may be posted on it, and by whom | [Permissions](permissions.md#posting) |
 | Followers, follow requests, invitations and blocks | [Permissions](permissions.md#following), [Invitations](permissions.md#invitations) |
 | Whether its new photos and videos may be downloaded | [Permissions](permissions.md#downloading-photos-and-videos) |
+| Whether search engines may index it and its posts | [Web shell](web-shell.md#search-engines) |
 | Being turned off, archived, deleted for thirty days, restored and purged | [Account lifecycle](account-lifecycle.md) |
 | Being featured, for onboarding to offer | [Registration](registration.md#onboarding) |
 | Being reported, and removed as spam | [Abuse reports](abuse-reports.md), [Account lifecycle](account-lifecycle.md#removing-as-spam) |
@@ -80,6 +81,7 @@ says what each does under Profiles.
 | Who may see it | `PATCH /:id/access` |
 | What may be posted on it | `PATCH /:id/features` |
 | Downloading its photos and videos | `PATCH /:id/download-default` |
+| Whether search engines may index it | `PATCH /:id/search-engines` |
 | Its admins | `GET`, `POST /:id/admins/`, `DELETE /:id/admins/:admin_id` |
 | Turned off or on | `PATCH /:id/enabled` |
 | Featured | `PATCH /:id/featured` |

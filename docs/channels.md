@@ -114,7 +114,8 @@ else, and by anybody else, a reply is its writer's.
 As a group's ([Profiles](profiles.md)): anyone, anyone signed in, or its
 followers only (`PATCH /channels/:id/access`); follow requests, when its
 admins allow them; who sees its followers and the profiles it follows
-(`/graph-access`); whom it blocked. A stranger is shown its name, handle and
+(`/graph-access`); whether search engines may index it (`/search-engines`,
+[Web shell](web-shell.md#search-engines)); whom it blocked. A stranger is shown its name, handle and
 profile photo, to ask from. A channel can be archived, switched off and
 deleted as a group can. Rules to agree to before following are a group's
 only: a channel's followers only reply.

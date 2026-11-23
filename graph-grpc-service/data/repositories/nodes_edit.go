@@ -149,6 +149,8 @@ func (r *nodesRepo) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, err
 	// Who may see its followers and whom it follows: the same, so that it
 	// can be set back to the profile's own (roadmap row 151).
 	query = query.Set("graph_access", node.GraphAccess)
+	// Whether search engines may index it: the same, either way (row 174).
+	query = query.Set("search_engines", node.SearchEngines)
 	// The same: written whichever way it is, so that it can be turned off.
 	query = query.Set("allow_download", node.AllowDownload)
 	// A post's content warning: the same, so that it can be taken off.

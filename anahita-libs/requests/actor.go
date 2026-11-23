@@ -190,6 +190,15 @@ type ActorEditGraphAccessRequest struct {
 	GraphAccess string `json:"graph_access" form:"graph_access" validate:"omitempty,oneof=public registered followers leaders mutuals admins"`
 }
 
+// ActorEditSearchEnginesRequest says whether search engines may index a
+// profile and its posts (roadmap row 174).
+type ActorEditSearchEnginesRequest struct {
+	// The profile's id.
+	ID int64 `param:"id" validate:"required,numeric"`
+	// Whether search engines may index it and its posts.
+	SearchEngines bool `json:"search_engines" form:"search_engines"`
+}
+
 type ActorEditRepostsOnProfileRequest struct {
 	// The person's id.
 	ID int64 `param:"id" validate:"required,numeric"`

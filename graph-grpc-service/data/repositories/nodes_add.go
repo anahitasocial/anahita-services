@@ -89,6 +89,7 @@ func (r *nodesRepo) insert(ctx context.Context, db execer, node *entities.Anahit
 		"mimetype",
 		"language",
 		"access",
+		"search_engines",
 		"features",
 	).Values(
 		node.Type,
@@ -144,6 +145,7 @@ func (r *nodesRepo) insert(ctx context.Context, db execer, node *entities.Anahit
 		node.Mimetype,
 		node.Language,
 		node.Access,
+		searchEnginesAtFirst(node),
 		text(node.FeaturesRaw),
 	)
 
@@ -158,6 +160,14 @@ func (r *nodesRepo) insert(ctx context.Context, db execer, node *entities.Anahit
 	}
 
 	return result.LastInsertId()
+}
+
+// searchEnginesAtFirst is whether search engines may index what is being
+// made (roadmap row 174): not a person who signs up, who is asked first,
+// and everything else, a group, an event, a channel, as the column's
+// default. A post follows its author and its profile, not this.
+func searchEnginesAtFirst(node *entities.AnahitaNode) bool {
+	return node.Type != constants.NodeActorPersonEntityType
 }
 
 // PartFiles are the images of one part of a thread that is a photo post.

@@ -90,6 +90,9 @@ func (r *Routes) groupRoutes(api *apidoc.Router, s *shared) {
 	groups.PATCH("/:id/graph-access", r.handler.Group.EditGraphAccess, r.authorize).
 		With(s.graphAccess(responses.GroupNode{}))
 
+	groups.PATCH("/:id/search-engines", r.handler.Group.EditSearchEngines, r.authorize).
+		With(s.searchEngines(responses.GroupNode{}))
+
 	groups.PATCH("/:id/download-default", r.handler.Group.EditDownloadDefault, r.authorize).
 		With(s.downloads(responses.GroupNode{}))
 
