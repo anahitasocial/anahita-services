@@ -241,19 +241,18 @@ func TestEveryHandlerThatSetsAnAudienceChecksIt(t *testing.T) {
 		}
 	}
 
-	// Changing who sees one.
-	for _, path := range []string{
-		"text-service/cmd/api/handlers/medium_access.go",
-		"photo-service/cmd/api/handlers/photo_access.go",
-	} {
+	// Changing who sees one: one handler for every kind of post since
+	// roadmap row 170, item 24, which checks before it saves.
+	{
+		path := "anahita-libs/handlers/post_settings.go"
 		source := read(path)
-		check := strings.Index(source, "permissions.CanChangeMediumAudience(mediumAccessCtx, medium.Access, req.Access)")
-		save := strings.Index(source, "MediaGRPC.Edit(")
-
-		if save == -1 {
-			t.Fatalf("%s: could not find where the change is saved", path)
+		check := strings.Index(source, "permissions.CanChangeMediumAudience(ctx, post.Access, req.Access)")
+		if check == -1 {
+			t.Fatalf("%s: could not find where a post's audience is checked", path)
 		}
-		if check == -1 || check > save {
+		set := strings.Index(source[check:], "post.Access = ")
+		save := strings.Index(source[check:], "s.saved(c, post, viewer)")
+		if set == -1 || save == -1 || save < set {
 			t.Errorf("%s changes a post's audience without checking it first", path)
 		}
 	}
