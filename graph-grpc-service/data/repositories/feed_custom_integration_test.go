@@ -203,6 +203,12 @@ func TestCustomFeedSourcesFiltersAndExclusions(t *testing.T) {
 		{"without a profile", `{"filters":{"hashtags_any":["garden"]},"exclude":{"actors":[2]}}`, []int64{feedInSecret, feedGroupPhoto}},
 		{"without somebody's posts wherever they are", `{"filters":{"hashtags_any":["garden"]},"exclude":{"actors":[4]}}`, []int64{feedBobPublic, feedBobFollowers, feedInSecret}},
 
+		// The site's own timeline: everything written here that the reader
+		// may see, with nothing else to match (roadmap row 175).
+		{"what was written here", `{"filters":{"origin":"here"}}`, []int64{feedBobPublic, feedBobFollowers, feedInSecret, feedGroupPhoto, feedCarolFrench, feedCarolPlain}},
+		{"what was written here, any", `{"filters":{"origin":"here"},"match":"any"}`, []int64{feedBobPublic, feedBobFollowers, feedInSecret, feedGroupPhoto, feedCarolFrench, feedCarolPlain}},
+		{"what was written elsewhere", `{"filters":{"hashtags_any":["garden"],"origin":"elsewhere"}}`, nil},
+
 		// Any or all (roadmap row 149).
 		{"Carol's and #spam, all", `{"sources":{"actors":[4]},"filters":{"hashtags_any":["spam"]}}`, nil},
 		{"Carol's or #spam, any", `{"sources":{"actors":[4]},"filters":{"hashtags_any":["spam"]},"match":"any"}`, []int64{feedCarolFrench, feedCarolPlain, feedGroupPhoto}},

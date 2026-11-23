@@ -342,9 +342,10 @@ func (d *Definition) Check() error {
 	}
 
 	// The whole site is looked at only through a hashtag, a keyword, a
-	// place or an area. A feed of everything, or of every photo, is not
-	// one.
-	if !d.HasSources() && !d.Narrows() {
+	// place or an area, or as what was written here: the site's own
+	// timeline (roadmap row 175). A feed of everything from everywhere, or
+	// of every photo, is not one.
+	if !d.HasSources() && !d.Narrows() && d.Filters.Origin != OriginHere {
 		return RefusedTooBroad
 	}
 

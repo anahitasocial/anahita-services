@@ -164,7 +164,7 @@ is gathered at the end, [for planning](#not-built).
 | Full-text search | yes | [Search](search.md) |
 | Trending content | yes | [Hashtags and locations](hashtags.md#trending) |
 | Profile directory | yes | |
-| Local timeline | planned | A custom feed of everyone, written here (roadmap row 175) |
+| Local timeline | yes | A custom feed of Everyone, Posted: On this site, shared with whoever the site wants to show it to ([Custom feeds](feeds.md)) |
 | Federated timeline | no | |
 | RSS feeds | no | |
 | Relay support | no | |
@@ -222,9 +222,8 @@ Every **no** and **planned** above, gathered for planning.
 4. Verified profile links: [Verified domains](plans/verified-domains.md)
 5. Importing server blocklists:
    [Refusing servers from a file](plans/domain-block-import.md)
-6. Interacting from another server, a site's own timeline, forwarding
-   reports and joining fediverse groups: roadmap rows 134, 175, 177 and 73,
-   plans to be written
+6. Interacting from another server, forwarding reports and joining
+   fediverse groups: roadmap rows 134, 177 and 73, plans to be written
 7. An official mobile app, Anahita Mobile
 
 **Decided against, or put off, with why:**

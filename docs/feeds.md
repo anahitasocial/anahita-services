@@ -67,7 +67,7 @@ Every feed orders its posts by date, newest first. (Search is the one place with
 | --- | --- |
 | `following` | Whoever the feed's owner follows: people, groups and events. The owner's, whoever is reading |
 | `actors` | Profiles chosen by hand, of any kind |
-| neither | The whole site, posts from the fediverse and Bluesky kept here included, which is allowed only with a hashtag, a keyword, a location or an area among the filters |
+| neither | The whole site, posts from the fediverse and Bluesky kept here included, which is allowed only with a hashtag, a keyword, a location or an area among the filters, or with `origin` `here`: everything written on this site, its own timeline (roadmap row 175) |
 
 The web app offers this as one choice of three: **Everyone** (neither), **Profiles I follow** (`following`), or **Chosen profiles** (`actors`, with "And profiles I follow" for both). A new feed starts from the profiles its owner follows, so that it shows something; given a hashtag, a keyword, a location or an area before the owner chose, it switches to Everyone, since "a #dweb feed" almost always means everybody's.
 
@@ -105,7 +105,8 @@ these", and a new feed starts at Any, as does a feed of one kind when a
 second is added to it (roadmap row 173). The feed's sentence says "or" between
 them: "Posts from Naomi, or tagged #ceres". A feed of `any` still needs
 something to match: with no source, a hashtag, a keyword, a location or an
-area. Something it asks for that cannot be read (whoever its owner follows,
+area, unless it is a feed of what was written here, which has nothing to
+match and shows all of it. Something it asks for that cannot be read (whoever its owner follows,
 with no owner; an area around wherever its reader is, with no point sent)
 matches nothing: with `all` the feed is empty, with `any` the rest still
 match.

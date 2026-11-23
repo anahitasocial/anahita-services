@@ -22,6 +22,10 @@ Releases before v1.0.17 are described on GitHub, under
    `PATCH /people|groups|events|channels/:id/search-engines`. A profile or
    a post from another server is always sent with `noindex`, since its own
    server's page is the one to be found ([Web shell](docs/web-shell.md#search-engines)).
+2. **A site's own timeline, as a custom feed:** a feed of everyone may be
+   made with `origin` `here` and nothing else to match, everything written
+   on the site, newest first. A feed of everything from elsewhere is still
+   refused (`too_broad`).
 
 ### Changed
 

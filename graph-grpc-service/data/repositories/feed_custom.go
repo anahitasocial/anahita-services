@@ -140,9 +140,14 @@ func feedCustomMatching(query sq.SelectBuilder, def *feeds.Definition, ownerID i
 	matches, unreadable := feedCustomMatches(def, ownerID)
 
 	if def.MatchesAny() {
-		if len(matches) == 0 {
+		if len(matches) == 0 && unreadable {
 			// Nothing it asks for can be read: nothing, and never the site.
 			return query.Where("1 = 0")
+		}
+		if len(matches) == 0 {
+			// It asks for nothing to match: what was written here, which
+			// the filters say (roadmap row 175), as with all.
+			return query
 		}
 		return query.Where(sq.Or(matches))
 	}

@@ -61,28 +61,29 @@ func TestParseRefuses(t *testing.T) {
 		raw  string
 		want Refusal
 	}{
-		"nothing":            {``, RefusedMalformed},
-		"not json":           {`{`, RefusedMalformed},
-		"two values":         {`{"sources":{"following":true}} {}`, RefusedMalformed},
-		"a key not known":    {`{"sources":{"following":true},"sql":"1=1"}`, RefusedUnknownField},
-		"a nested key":       {`{"sources":{"following":true,"everyone":true}}`, RefusedUnknownField},
-		"the whole site":     {`{}`, RefusedTooBroad},
-		"every photo":        {`{"filters":{"media_types":["photo"]}}`, RefusedTooBroad},
-		"every group's post": {`{"filters":{"actor_types":["group"]}}`, RefusedTooBroad},
-		"a kind of post":     {`{"sources":{"following":true},"filters":{"media_types":["podcast"]}}`, RefusedMediaType},
-		"a kind of profile":  {`{"sources":{"following":true},"filters":{"actor_types":["planet"]}}`, RefusedActorType},
-		"an order":           {`{"sources":{"following":true},"order":"top"}`, RefusedOrder},
-		"a way of matching":  {`{"sources":{"following":true},"match":"some"}`, RefusedMatch},
-		"a language":         {`{"sources":{"following":true},"filters":{"language":"en'; --"}}`, RefusedLanguage},
-		"a short keyword":    {`{"filters":{"keywords_any":["a"]}}`, RefusedKeywordLength},
-		"a hashtag":          {`{"filters":{"hashtags_any":["two words"]}}`, RefusedHashtag},
-		"an actor":           {`{"sources":{"actors":[0]}}`, RefusedActor},
-		"a place":            {`{"filters":{"locations_any":[-1]}}`, RefusedLocation},
-		"too many actors":    {`{"sources":{"actors":` + many(MaxActors+1, number) + `}}`, RefusedTooManyActors},
-		"too many hashtags":  {`{"filters":{"hashtags_any":` + many(MaxHashtags+1, word) + `}}`, RefusedTooManyTags},
-		"too many keywords":  {`{"filters":{"keywords_any":` + many(MaxKeywords+1, word) + `}}`, RefusedTooManyWords},
-		"too many places":    {`{"filters":{"locations_any":` + many(MaxLocations+1, number) + `}}`, RefusedTooManyPlaces},
-		"too many left out":  {`{"sources":{"following":true},"exclude":{"hashtags":` + many(MaxHashtags+1, word) + `}}`, RefusedTooManyTags},
+		"nothing":                   {``, RefusedMalformed},
+		"not json":                  {`{`, RefusedMalformed},
+		"two values":                {`{"sources":{"following":true}} {}`, RefusedMalformed},
+		"a key not known":           {`{"sources":{"following":true},"sql":"1=1"}`, RefusedUnknownField},
+		"a nested key":              {`{"sources":{"following":true,"everyone":true}}`, RefusedUnknownField},
+		"the whole site":            {`{}`, RefusedTooBroad},
+		"every photo":               {`{"filters":{"media_types":["photo"]}}`, RefusedTooBroad},
+		"every group's post":        {`{"filters":{"actor_types":["group"]}}`, RefusedTooBroad},
+		"everything from elsewhere": {`{"filters":{"origin":"elsewhere"}}`, RefusedTooBroad},
+		"a kind of post":            {`{"sources":{"following":true},"filters":{"media_types":["podcast"]}}`, RefusedMediaType},
+		"a kind of profile":         {`{"sources":{"following":true},"filters":{"actor_types":["planet"]}}`, RefusedActorType},
+		"an order":                  {`{"sources":{"following":true},"order":"top"}`, RefusedOrder},
+		"a way of matching":         {`{"sources":{"following":true},"match":"some"}`, RefusedMatch},
+		"a language":                {`{"sources":{"following":true},"filters":{"language":"en'; --"}}`, RefusedLanguage},
+		"a short keyword":           {`{"filters":{"keywords_any":["a"]}}`, RefusedKeywordLength},
+		"a hashtag":                 {`{"filters":{"hashtags_any":["two words"]}}`, RefusedHashtag},
+		"an actor":                  {`{"sources":{"actors":[0]}}`, RefusedActor},
+		"a place":                   {`{"filters":{"locations_any":[-1]}}`, RefusedLocation},
+		"too many actors":           {`{"sources":{"actors":` + many(MaxActors+1, number) + `}}`, RefusedTooManyActors},
+		"too many hashtags":         {`{"filters":{"hashtags_any":` + many(MaxHashtags+1, word) + `}}`, RefusedTooManyTags},
+		"too many keywords":         {`{"filters":{"keywords_any":` + many(MaxKeywords+1, word) + `}}`, RefusedTooManyWords},
+		"too many places":           {`{"filters":{"locations_any":` + many(MaxLocations+1, number) + `}}`, RefusedTooManyPlaces},
+		"too many left out":         {`{"sources":{"following":true},"exclude":{"hashtags":` + many(MaxHashtags+1, word) + `}}`, RefusedTooManyTags},
 	}
 
 	for name, c := range cases {
@@ -206,6 +207,11 @@ func TestStoredGoesThereAndBack(t *testing.T) {
 // An area is a point and a radius within reason, and enough on its own to
 // look at the whole site; where a post was written is one of three.
 func TestNearAndOrigin(t *testing.T) {
+	// The site's own timeline: everything written here, with nothing else
+	// to match (roadmap row 175).
+	if _, err := Parse([]byte(`{"filters":{"origin":"here"}}`)); err != nil {
+		t.Errorf("a feed of what was written here is refused: %v", err)
+	}
 	near, err := Parse([]byte(`{"filters":{"near":{"latitude":49.28,"longitude":-123.12,"radius_km":10}}}`))
 	if err != nil {
 		t.Fatalf("near me, alone: %v", err)
