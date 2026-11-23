@@ -44,8 +44,9 @@ Releases before v1.0.17 are described on GitHub, under
 
 ### Upgrading
 
-1. Run the migration job before the new services: it adds
-   `nodes.search_engines` (`20261122000026_search_engines`).
+1. **One migration,** `search_engines`: a column on `nodes`, on for every
+   profile already there, run by the migration job as any upgrade's are
+   ([Upgrading](docs/deploying.md#upgrading)).
 
 ## v1.8.0 Birth, 2026-11-22
 
