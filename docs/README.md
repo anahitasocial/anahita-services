@@ -499,7 +499,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Post insights](plans/post-insights.md) | 22, set aside: a post's activity was built instead | not started |
 | [Profile tabs for replies and reposts](plans/done/profile-tabs-and-reposts.md) | 24 | done 2026-10-05 |
 | [Quote posts](plans/done/quote-posts.md) | 25 | done 2026-10-05 |
-| [Verified domains](plans/verified-domains.md) | 26 | not started |
+| [Verified domains](plans/verified-domains.md) | row 63 | planned again 2026-11-23 |
 | [Collections](plans/collections.md) | 34 | shape decided 2026-10-06; kept for later, not to be built yet |
 | [Websites: a site's feed as something to follow](plans/done/website.md) | 30 | done 2026-10-17: syndication-service and syndication-worker, a verified domain's feed posted as notes, replies as the website, an Organization on the fediverse, its own Bluesky account; websites became channels in row 147 ([Channels](channels.md)) |
 | [One clean schema](plans/done/migration-baseline.md) | 27 | done 2026-10-17: the migrations folded into `init.sql` and `legacy/upgrade.sql`, the PHP upgrade fixed, `make schema_test`, NULL only where it means something ([The database](architecture.md#the-database)) |
