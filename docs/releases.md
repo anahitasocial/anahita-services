@@ -101,9 +101,10 @@ For whoever maintains anahita-services:
    image for amd64 and arm64 as `ghcr.io/anahitasocial/<image>:v1.2.0`, and
    as `latest`. It builds only the images that changed since the Birth
    release before: [What is rebuilt](#what-is-rebuilt).
-4. On GitHub, Releases › Draft a new release, from the tag, named
-   "v1.2.4 Birth": the changelog's section for the version. A client's
-   release says which services it works with in its own notes.
+4. Its release on GitHub, named "v1.2.4 Birth", is published by the same
+   workflow once its images are: the changelog's section for the version,
+   as its notes. A client's release says which services it works with in
+   its own notes.
 5. In anahita-recipes, once the images are built: the manifests' `ref=`
    and every image in each recipe's `k8s/kustomization.yml` at the new version,
    renamed images by their new names, and `kubectl kustomize` to see it

@@ -70,4 +70,5 @@ git push origin main
 git tag "$version" && git push origin "$version"
 
 echo "$version is tagged, and its images are building on GitHub."
-echo "Next: the release notes on GitHub, then anahita-recipes once the images are built (docs/releases.md)."
+echo "Its release on GitHub follows once they are, with the changelog's section as its notes."
+echo "Next: anahita-recipes once the images are built (docs/releases.md)."

@@ -18,6 +18,10 @@
 # two releases: a change to anahita-libs, go.mod or a base image changes the
 # hash of every image it reaches. "Run workflow" with rebuild_all builds
 # everything regardless.
+#
+# Once every image is joined, the version's section of CHANGELOG.md
+# ("## v1.2.4 Birth, <day>") is published as its release on GitHub, named
+# "v1.2.4 Birth". A run again leaves a release that is there already.
 name: images
 
 on:
@@ -164,3 +168,34 @@ jobs:
               -t "$REGISTRY/$name:$VERSION" -t "$REGISTRY/$name:latest" \
               "$REGISTRY/$name:$VERSION-amd64" "$REGISTRY/$name:$VERSION-arm64"
           done
+
+  notes:
+    needs: join
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ env.VERSION }}
+      # The changelog's section for the version, from its heading to the
+      # next one, published once its images are; docs/releases.md, step 4.
+      - name: The release on GitHub, from the changelog
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          notes="$RUNNER_TEMP/notes.md"
+          awk -v v="$VERSION" '
+            /^## / { inside = ($2 == v); next }
+            inside' CHANGELOG.md >"$notes"
+          if ! grep -q '[^[:space:]]' "$notes"; then
+            echo "::error file=CHANGELOG.md::no section \"## $VERSION Birth\": its images are published, its release on GitHub is not; make it by hand (docs/releases.md, step 4)"
+            exit 1
+          fi
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            echo "$VERSION Birth is on GitHub already: left as it is."
+          else
+            gh release create "$VERSION" --verify-tag --title "$VERSION Birth" --notes-file "$notes"
+          fi
+          echo "Release notes: https://github.com/${{ github.repository }}/releases/tag/$VERSION" >>"$GITHUB_STEP_SUMMARY"
